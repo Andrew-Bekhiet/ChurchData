@@ -10,9 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.io) 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -334,7 +332,7 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
               children: [
                 Positioned.fill(
                     child: Icon(Icons.account_circle,
-                        size: IconTheme.of(context).size * 2.3)),
+                        size: MediaQuery.of(context).size.height / 16.56)),
                 if (showActiveStatus &&
                     activity.data?.snapshot?.value == 'Active')
                   Align(

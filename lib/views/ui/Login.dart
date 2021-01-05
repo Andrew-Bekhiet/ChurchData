@@ -41,16 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
           children: <Widget>[
             Text('بيانات الكنيسة',
                 style: Theme.of(context).textTheme.headline4),
-            Container(height: IconTheme.of(context).size * 2),
+            Container(height: MediaQuery.of(context).size.height / 19),
             SizedBox(
               child: Image.asset(
                 'assets/Logo2.png',
                 fit: BoxFit.scaleDown,
               ),
-              height: IconTheme.of(context).size * 5,
-              width: IconTheme.of(context).size * 5,
+              height: MediaQuery.of(context).size.height / 7.6,
+              width: MediaQuery.of(context).size.width / 3.42,
             ),
-            Container(height: IconTheme.of(context).size),
+            Container(height: MediaQuery.of(context).size.height / 38),
             Text('قم بتسجيل الدخول أو انشاء حساب'),
             Container(height: 30),
             Column(
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                   },
                 ),
-                Container(height: IconTheme.of(context).size),
+                Container(height: MediaQuery.of(context).size.height / 38),
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
