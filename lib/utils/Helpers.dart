@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/views/MiniLists/UsersList.dart';
 import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:churchdata/views/utils/SearchFilters.dart';
@@ -22,6 +23,7 @@ import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart' as open;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as sfxls;
@@ -669,7 +671,9 @@ GeoPoint fromLatLng(LatLng point) {
 
 Future<dynamic> getLinkObject(Uri deepLink) async {
   try {
-    if (deepLink.pathSegments[0] == 'viewArea') {
+    if (deepLink.pathSegments[0] == 'viewImage') {
+      return MessageIcon(deepLink.queryParameters['url']);
+    } else if (deepLink.pathSegments[0] == 'viewArea') {
       return await Area.fromId(deepLink.queryParameters['AreaId']);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
       return await Street.fromId(deepLink.queryParameters['StreetId']);
@@ -1756,9 +1760,11 @@ void showMessage(BuildContext context, no.Notification notification) async {
     Uri.parse(notification.attachement),
   );
   String scndLine = await attachement.getSecondLine();
-  var user = await FirebaseFirestore.instance
-      .doc('Users/${notification.from}')
-      .get(dataSource);
+  var user = notification.from != ''
+      ? await FirebaseFirestore.instance
+          .doc('Users/${notification.from}')
+          .get(dataSource)
+      : null;
   await showDialog(
     context: context,
     builder: (context) => DataDialog(
@@ -1770,37 +1776,42 @@ void showMessage(BuildContext context, no.Notification notification) async {
             notification.content,
             style: TextStyle(fontSize: 18),
           ),
-          Card(
-            color: attachement.color != Colors.transparent
-                ? attachement.color
-                : null,
-            child: ListTile(
-              title: Text(attachement.name),
-              subtitle: Text(
-                scndLine,
+          if (user != null)
+            Card(
+              color: attachement.color != Colors.transparent
+                  ? attachement.color
+                  : null,
+              child: ListTile(
+                title: Text(attachement.name),
+                subtitle: Text(
+                  scndLine,
+                ),
+                leading: attachement is User
+                    ? attachement.getPhoto()
+                    : attachement.photo,
+                onTap: () {
+                  if (attachement is Area) {
+                    areaTap(attachement, context);
+                  } else if (attachement is Street) {
+                    streetTap(attachement, context);
+                  } else if (attachement is Family) {
+                    familyTap(attachement, context);
+                  } else if (attachement is Person) {
+                    personTap(attachement, context);
+                  } else if (attachement is User) {
+                    userTap(attachement, context);
+                  }
+                },
               ),
-              leading: attachement is User
-                  ? attachement.getPhoto()
-                  : attachement.photo,
-              onTap: () {
-                if (attachement is Area) {
-                  areaTap(attachement, context);
-                } else if (attachement is Street) {
-                  streetTap(attachement, context);
-                } else if (attachement is Family) {
-                  familyTap(attachement, context);
-                } else if (attachement is Person) {
-                  personTap(attachement, context);
-                } else if (attachement is User) {
-                  userTap(attachement, context);
-                }
-              },
-            ),
-          ),
+            )
+          else
+            CachedNetworkImage(imageUrl: attachement.url),
           Text('من: ' +
-              User.fromDocumentSnapshot(
-                user,
-              ).name),
+              (user != null
+                  ? User.fromDocumentSnapshot(
+                      user,
+                    ).name
+                  : 'مسؤلو البرنامج')),
           Text(
             DateFormat('d/M/yyyy h:m a', 'ar-EG').format(
               DateTime.fromMillisecondsSinceEpoch(notification.time),
@@ -2164,10 +2175,69 @@ Future _legacyImport(SpreadsheetDecoder decoder, DocumentReference areaId,
   persons = null;
 }
 
-class QueryIcon {
-  Widget getPhoto(BuildContext context) {
+class QueryIcon extends StatelessWidget {
+  Color get color => Colors.transparent;
+  String get name => 'نتائج بحث';
+
+  @override
+  Widget build(BuildContext context) {
     return Icon(Icons.search,
         size: MediaQuery.of(context).size.shortestSide / 7.2);
+  }
+
+  Widget getPhoto(BuildContext context) {
+    return build(context);
+  }
+
+  Future<String> getSecondLine() async => '';
+}
+
+class MessageIcon extends StatelessWidget {
+  final String url;
+  MessageIcon(this.url, {Key key}) : super(key: key);
+
+  Future<String> getSecondLine() async => '';
+  Color get color => Colors.transparent;
+  String get name => '';
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints.expand(width: 55.2, height: 55.2),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          child: CachedNetworkImage(
+            memCacheHeight: 221,
+            imageUrl: url,
+            progressIndicatorBuilder: (context, url, progress) =>
+                CircularProgressIndicator(value: progress.progress),
+          ),
+          onTap: () => showDialog(
+            context: context,
+            builder: (context) => Dialog(
+              child: Hero(
+                tag: url,
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  imageBuilder: (context, imageProvider) => PhotoView(
+                    imageProvider: imageProvider,
+                    tightMode: true,
+                    enableRotation: true,
+                  ),
+                  progressIndicatorBuilder: (context, url, progress) =>
+                      CircularProgressIndicator(value: progress.progress),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget getPhoto(BuildContext context) {
+    return build(context);
   }
 }
 
