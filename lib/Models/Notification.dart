@@ -31,7 +31,9 @@ class Notification extends StatelessWidget {
             leading: snapshot.hasData
                 ? snapshot.data is User
                     ? snapshot.data.getPhoto()
-                    : snapshot.data.photo
+                    : snapshot.data is MessageIcon
+                        ? snapshot.data
+                        : snapshot.data.photo
                 : CircularProgressIndicator(),
             title: Text(title),
             subtitle: Text(
