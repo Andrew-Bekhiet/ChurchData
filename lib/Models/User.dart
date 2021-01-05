@@ -195,6 +195,7 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    await recordLastSeen();
     await userTokenListener?.cancel();
     uid = null;
     await auth.FirebaseAuth.instance.signOut();
