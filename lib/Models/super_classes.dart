@@ -80,11 +80,12 @@ class DataObjectPhoto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!object.hasPhoto)
-      return Icon(object.defaultIcon, size: IconTheme.of(context).size * 2.3);
+    double size = MediaQuery.of(context).size.height / 16.56;
+    if (!object.hasPhoto) return Icon(object.defaultIcon, size: size);
     return Hero(
       tag: object.photoRef.fullPath,
-      child: SizedBox(
+      child: ConstrainedBox(
+        constraints: BoxConstraints.expand(width: size, height: size),
         child: FutureBuilder<String>(
           future: object._photoUrlCache.runOnce(() async =>
               await object.photoRef
@@ -95,14 +96,14 @@ class DataObjectPhoto extends StatelessWidget {
             if (data.hasError) return Center(child: ErrorWidget(data.error));
             if (!data.hasData) return const CircularProgressIndicator();
             if (data.data == '')
-              return Icon(object.defaultIcon,
-                  size: IconTheme.of(context).size * 2.3);
+              return Icon(object.defaultIcon, size: size);
             else
               return Material(
                 type: MaterialType.transparency,
                 child: InkWell(
                   child: !(object is User)
                       ? CachedNetworkImage(
+                          memCacheHeight: (size * 4).toInt(),
                           imageRenderMethodForWeb:
                               ImageRenderMethodForWeb.HtmlImage,
                           imageUrl: data.data,
@@ -169,8 +170,6 @@ class DataObjectPhoto extends StatelessWidget {
               );
           },
         ),
-        width: IconTheme.of(context).size * 2.3,
-        height: IconTheme.of(context).size * 2.3,
       ),
     );
   }

@@ -74,7 +74,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
           itemCount: (documentData?.length ?? 0) + 1,
           itemBuilder: (context, i) {
             if (i == documentData.length)
-              return Container(height: IconTheme.of(context).size * 2);
+              return Container(height: MediaQuery.of(context).size.height / 19);
             var current = options.generate(documentData[i]);
             return DataObjectWidget(
               current,
@@ -331,7 +331,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
 class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => mounted;
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +386,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                                   _getStringType(),
                               textAlign: TextAlign.center,
                               strutStyle: StrutStyle(
-                                  height: IconTheme.of(context).size / 7.5),
+                                  height: MediaQuery.of(context).size.height /
+                                      285.71),
                               style:
                                   Theme.of(context).primaryTextTheme.bodyText1),
                           shape: widget.options.hasNotch
@@ -453,7 +454,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                         (docs?.length ?? 0).toString() + ' ' + _getStringType(),
                         textAlign: TextAlign.center,
                         strutStyle: StrutStyle(
-                            height: IconTheme.of(context).size / 7.5),
+                            height:
+                                MediaQuery.of(context).size.height / 285.71),
                         style: Theme.of(context).primaryTextTheme.bodyText1),
                     shape: widget.options.hasNotch
                         ? widget.options.doubleActionButton
