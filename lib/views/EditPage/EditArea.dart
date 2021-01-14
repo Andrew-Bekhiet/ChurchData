@@ -116,8 +116,11 @@ class _EditAreaState extends State<EditArea> {
                               sourcePath: selectedImage.path,
                               androidUiSettings: AndroidUiSettings(
                                   toolbarTitle: 'قص الصورة',
-                                  toolbarColor: area.color,
-                                  toolbarWidgetColor: Colors.white,
+                                  toolbarColor: Theme.of(context).primaryColor,
+                                  toolbarWidgetColor: Theme.of(context)
+                                      .primaryTextTheme
+                                      .headline6
+                                      .color,
                                   initAspectRatio:
                                       CropAspectRatioPreset.original,
                                   lockAspectRatio: false)))
