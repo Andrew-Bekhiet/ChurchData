@@ -128,8 +128,10 @@ class _EditPersonState extends State<EditPerson> {
                               androidUiSettings: AndroidUiSettings(
                                   toolbarTitle: 'قص الصورة',
                                   toolbarColor: Theme.of(context).primaryColor,
-                                  toolbarWidgetColor:
-                                      Theme.of(context).primaryColor,
+                                  toolbarWidgetColor: Theme.of(context)
+                                      .primaryTextTheme
+                                      .headline6
+                                      .color,
                                   initAspectRatio:
                                       CropAspectRatioPreset.original,
                                   lockAspectRatio: false)))
