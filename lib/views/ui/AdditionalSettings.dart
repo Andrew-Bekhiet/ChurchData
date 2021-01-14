@@ -84,7 +84,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -222,7 +222,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -393,7 +393,7 @@ class _CollegesPageState extends State<CollegesPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -511,7 +511,7 @@ class _FathersPageState extends State<FathersPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -644,7 +644,7 @@ class _FathersPageState extends State<FathersPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -817,7 +817,7 @@ class _JobsPageState extends State<JobsPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -929,7 +929,7 @@ class _PersonTypesPageState extends State<PersonTypesPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -1038,7 +1038,7 @@ class _ServingTypesPageState extends State<ServingTypesPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {
@@ -1150,7 +1150,7 @@ class _StudyYearsPageState extends State<StudyYearsPage> {
       context: context,
       builder: (context) => DataDialog(
         actions: <Widget>[
-          if (context.read<User>().write)
+          if (context.watch<User>().write)
             TextButton.icon(
               icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
               onPressed: () async {

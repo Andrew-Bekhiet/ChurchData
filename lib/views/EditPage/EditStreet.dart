@@ -165,7 +165,7 @@ class _EditStreetState extends State<EditStreet> {
                                 color: Theme.of(context).primaryColor),
                           ),
                         ),
-                        child: Text(DateFormat('d/M/yyyy').format(
+                        child: Text(DateFormat('yyyy/M/d').format(
                           street.lastVisit.toDate(),
                         )),
                       ),
@@ -187,10 +187,10 @@ class _EditStreetState extends State<EditStreet> {
                           ),
                         ),
                         child: street.fatherLastVisit != null
-                            ? Text(DateFormat('d/M/yyyy').format(
+                            ? Text(DateFormat('yyyy/M/d').format(
                                 street.fatherLastVisit.toDate(),
                               ))
-                            : Text(DateFormat('d/M/yyyy').format(
+                            : Text(DateFormat('yyyy/M/d').format(
                                 DateTime(DateTime.now().year,
                                     DateTime.now().month, DateTime.now().day),
                               )),

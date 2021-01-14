@@ -380,7 +380,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 borderSide: BorderSide(color: Theme.of(context).primaryColor),
               ),
             ),
-            child: Text(DateFormat('d/M/yyyy').format(
+            child: Text(DateFormat('yyyy/M/d').format(
               queryValue is Timestamp
                   ? (queryValue as Timestamp).toDate()
                   : DateTime.now(),
@@ -648,7 +648,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         BorderSide(color: Theme.of(context).primaryColor),
                   ),
                 ),
-                child: Text(DateFormat('d/M/yyyy').format(
+                child: Text(DateFormat('yyyy/M/d').format(
                   queryValue != null && queryValue is Timestamp
                       ? (queryValue as Timestamp).toDate()
                       : DateTime.now(),

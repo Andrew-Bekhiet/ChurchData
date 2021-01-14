@@ -28,7 +28,7 @@ class HistoryProperty extends StatelessWidget {
           Text(
               value != null
                   ? DateFormat(
-                          showTime ? 'd/M/yyyy   h:m a' : 'd/M/yyyy', 'ar-EG')
+                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
                       value.toDate(),
                     )
@@ -65,7 +65,7 @@ class HistoryProperty extends StatelessWidget {
                         },
                       ),
                       subtitle: Text(DateFormat(
-                              showTime ? 'd/M/yyyy h:m a' : 'd/M/yyyy', 'ar-EG')
+                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
                           .format(history.data[i].time.toDate())),
                     ),
                   );
@@ -135,7 +135,7 @@ class EditHistoryProperty extends StatelessWidget {
                         },
                       ),
                       subtitle: Text(DateFormat(
-                              showTime ? 'd/M/yyyy h:m a' : 'd/M/yyyy', 'ar-EG')
+                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
                           .format(history.data[i].time.toDate())),
                     ),
                   );
@@ -172,7 +172,7 @@ class TimeHistoryProperty extends StatelessWidget {
           Text(
               value != null
                   ? DateFormat(
-                          showTime ? 'd/M/yyyy   h:m a' : 'd/M/yyyy', 'ar-EG')
+                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
                       value.toDate(),
                     )
@@ -199,7 +199,7 @@ class TimeHistoryProperty extends StatelessWidget {
                     itemCount: history.data.length,
                     itemBuilder: (context, i) => ListTile(
                       title: Text(DateFormat(
-                              showTime ? 'd/M/yyyy h:m a' : 'd/M/yyyy', 'ar-EG')
+                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
                           .format(history.data[i].time.toDate())),
                     ),
                   );

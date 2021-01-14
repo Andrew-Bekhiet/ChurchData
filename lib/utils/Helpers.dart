@@ -1813,7 +1813,7 @@ void showMessage(BuildContext context, no.Notification notification) async {
                     ).name
                   : 'مسؤلو البرنامج')),
           Text(
-            DateFormat('d/M/yyyy h:m a', 'ar-EG').format(
+            DateFormat('yyyy/M/d h:m a', 'ar-EG').format(
               DateTime.fromMillisecondsSinceEpoch(notification.time),
             ),
           ),
