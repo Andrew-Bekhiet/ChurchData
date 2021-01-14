@@ -7,6 +7,7 @@ import 'package:firebase_database/firebase_database.dart'
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:photo_view/photo_view.dart';
 
 import 'User.dart';
@@ -67,7 +68,8 @@ abstract class PhotoObject {
   IconData defaultIcon = Icons.help;
   bool hasPhoto;
 
-  final AsyncMemoizer<String> _photoUrlCache = AsyncMemoizer<String>();
+  final AsyncCache<String> _photoUrlCache =
+      AsyncCache<String>(Duration(days: 1));
 
   Reference get photoRef;
 
@@ -76,103 +78,148 @@ abstract class PhotoObject {
   }
 }
 
-class DataObjectPhoto extends StatelessWidget {
+class DataObjectPhoto extends StatefulWidget {
   final PhotoObject object;
   const DataObjectPhoto(this.object, {Key key}) : super(key: key);
 
   @override
+  _DataObjectPhotoState createState() => _DataObjectPhotoState();
+}
+
+class _DataObjectPhotoState extends State<DataObjectPhoto> {
+  void _updateCache(String cache) async {
+    String url = await widget.object.photoRef
+        .getDownloadURL()
+        .catchError((onError) => '');
+    if (cache != url) {
+      await Hive.box<String>('PhotosURLsCache')
+          .put(widget.object.photoRef.fullPath, url);
+      widget.object._photoUrlCache.invalidate();
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double size = MediaQuery.of(context).size.height / 16.56;
-    if (!object.hasPhoto) return Icon(object.defaultIcon, size: size);
-    return Hero(
-      tag: object.photoRef.fullPath,
-      child: ConstrainedBox(
-        constraints: BoxConstraints.expand(width: size, height: size),
-        child: FutureBuilder<String>(
-          future: object._photoUrlCache.runOnce(() async =>
-              await object.photoRef
-                  .getDownloadURL()
-                  .catchError((onError) => '') ??
-              ''),
-          builder: (context, data) {
-            if (data.hasError) return Center(child: ErrorWidget(data.error));
-            if (!data.hasData) return const CircularProgressIndicator();
-            if (data.data == '')
-              return Icon(object.defaultIcon, size: size);
-            else
-              return Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  child: !(object is User)
-                      ? CachedNetworkImage(
-                          memCacheHeight: (size * 4).toInt(),
-                          imageRenderMethodForWeb:
-                              ImageRenderMethodForWeb.HtmlImage,
-                          imageUrl: data.data,
-                          progressIndicatorBuilder: (context, url, progress) =>
-                              CircularProgressIndicator(
-                                  value: progress.progress),
-                        )
-                      : StreamBuilder(
-                          stream: FirebaseDatabase.instance
-                              .reference()
-                              .child('Users/${(object as User).uid}/lastSeen')
-                              .onValue,
-                          builder: (context, activity) {
-                            if (activity.data?.snapshot?.value == 'Active')
-                              return Stack(
-                                children: [
-                                  Positioned.fill(
-                                    child: CircleAvatar(
-                                      backgroundImage:
-                                          CachedNetworkImageProvider(data.data),
-                                    ),
-                                  ),
-                                  Align(
-                                    child: Container(
-                                      height: 15,
-                                      width: 15,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        border: Border.all(color: Colors.white),
-                                        color: Colors.greenAccent,
+    return LayoutBuilder(
+      builder: (context, constrains) {
+        if (!widget.object.hasPhoto)
+          return Icon(widget.object.defaultIcon, size: constrains.maxHeight);
+        return Hero(
+          tag: widget.object.photoRef.fullPath,
+          child: ConstrainedBox(
+            constraints: BoxConstraints.expand(
+                height: constrains.maxHeight, width: constrains.maxHeight),
+            child: FutureBuilder<String>(
+              future: widget.object._photoUrlCache.fetch(
+                () async {
+                  String cache = Hive.box<String>('PhotosURLsCache')
+                      .get(widget.object.photoRef.fullPath);
+
+                  if (cache == null) {
+                    String url = await widget.object.photoRef
+                        .getDownloadURL()
+                        .catchError((onError) => '');
+                    await Hive.box<String>('PhotosURLsCache')
+                        .put(widget.object.photoRef.fullPath, url);
+
+                    return url;
+                  }
+                  _updateCache(cache);
+                  return cache;
+                },
+              ),
+              builder: (context, data) {
+                if (data.hasError)
+                  return Center(child: ErrorWidget(data.error));
+                if (!data.hasData) return const CircularProgressIndicator();
+                if (data.data == '')
+                  return Icon(widget.object.defaultIcon,
+                      size: constrains.maxHeight);
+                else
+                  return Material(
+                    type: MaterialType.transparency,
+                    child: InkWell(
+                      child: !(widget.object is User)
+                          ? CachedNetworkImage(
+                              memCacheHeight:
+                                  (constrains.maxHeight * 4).toInt(),
+                              imageRenderMethodForWeb:
+                                  ImageRenderMethodForWeb.HtmlImage,
+                              imageUrl: data.data,
+                              progressIndicatorBuilder:
+                                  (context, url, progress) =>
+                                      CircularProgressIndicator(
+                                          value: progress.progress),
+                            )
+                          : StreamBuilder(
+                              stream: FirebaseDatabase.instance
+                                  .reference()
+                                  .child(
+                                      'Users/${(widget.object as User).uid}/lastSeen')
+                                  .onValue,
+                              builder: (context, activity) {
+                                if (activity.data?.snapshot?.value == 'Active')
+                                  return Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: CircleAvatar(
+                                          backgroundImage:
+                                              CachedNetworkImageProvider(
+                                                  data.data),
+                                        ),
                                       ),
-                                    ),
-                                    alignment: Alignment.bottomLeft,
-                                  ),
-                                ],
-                              );
-                            else
-                              return CircleAvatar(
-                                backgroundImage:
-                                    CachedNetworkImageProvider(data.data),
-                              );
-                          },
-                        ),
-                  onTap: () => showDialog(
-                    context: context,
-                    builder: (context) => Dialog(
-                      child: Hero(
-                        tag: object.photoRef.fullPath,
-                        child: CachedNetworkImage(
-                          imageUrl: data.data,
-                          imageBuilder: (context, imageProvider) => PhotoView(
-                            imageProvider: imageProvider,
-                            tightMode: true,
-                            enableRotation: true,
+                                      Align(
+                                        child: Container(
+                                          height: 15,
+                                          width: 15,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(30),
+                                            border:
+                                                Border.all(color: Colors.white),
+                                            color: Colors.greenAccent,
+                                          ),
+                                        ),
+                                        alignment: Alignment.bottomLeft,
+                                      ),
+                                    ],
+                                  );
+                                else
+                                  return CircleAvatar(
+                                    backgroundImage:
+                                        CachedNetworkImageProvider(data.data),
+                                  );
+                              },
+                            ),
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          child: Hero(
+                            tag: widget.object.photoRef.fullPath,
+                            child: CachedNetworkImage(
+                              imageUrl: data.data,
+                              imageBuilder: (context, imageProvider) =>
+                                  PhotoView(
+                                imageProvider: imageProvider,
+                                tightMode: true,
+                                enableRotation: true,
+                              ),
+                              progressIndicatorBuilder:
+                                  (context, url, progress) =>
+                                      CircularProgressIndicator(
+                                          value: progress.progress),
+                            ),
                           ),
-                          progressIndicatorBuilder: (context, url, progress) =>
-                              CircularProgressIndicator(
-                                  value: progress.progress),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              );
-          },
-        ),
-      ),
+                  );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
