@@ -5,6 +5,7 @@ import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/Models/super_classes.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:hive/hive.dart';
 import '../EncryptionKeys.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -47,7 +48,8 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
   StreamSubscription connectionListener;
   StreamSubscription<auth.User> authListener;
 
-  final AsyncMemoizer<String> _photoUrlCache = AsyncMemoizer<String>();
+  final AsyncCache<String> _photoUrlCache =
+      AsyncCache<String>(Duration(days: 1));
 
   @override
   void dispose() {
@@ -352,38 +354,68 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
                   ),
               ],
             );
-          return FutureBuilder<String>(
-            future: _photoUrlCache.runOnce(() => photoRef.getDownloadURL()),
-            builder: (context, photoUrl) {
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: photoUrl.hasData
-                        ? showCircle
-                            ? CircleAvatar(
-                                backgroundImage:
-                                    CachedNetworkImageProvider(photoUrl.data),
-                              )
-                            : CachedNetworkImage(imageUrl: photoUrl.data)
-                        : CircularProgressIndicator(),
-                  ),
-                  if (showActiveStatus &&
-                      activity.data?.snapshot?.value == 'Active')
-                    Align(
-                      child: Container(
-                        height: 15,
-                        width: 15,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          border: Border.all(color: Colors.white),
-                          color: Colors.greenAccent,
-                        ),
-                      ),
-                      alignment: Alignment.bottomLeft,
+          return StatefulBuilder(
+            builder: (context, setState) => FutureBuilder<String>(
+              future: _photoUrlCache.fetch(
+                () async {
+                  String cache = Hive.box<String>('PhotosURLsCache')
+                      .get(photoRef.fullPath);
+
+                  if (cache == null) {
+                    String url = await photoRef
+                        .getDownloadURL()
+                        .catchError((onError) => '');
+                    await Hive.box<String>('PhotosURLsCache')
+                        .put(photoRef.fullPath, url);
+
+                    return url;
+                  }
+                  void Function(String) _updateCache = (String cache) async {
+                    String url = await photoRef
+                        .getDownloadURL()
+                        .catchError((onError) => '');
+                    if (cache != url) {
+                      await Hive.box<String>('PhotosURLsCache')
+                          .put(photoRef.fullPath, url);
+                      _photoUrlCache.invalidate();
+                      setState(() {});
+                    }
+                  };
+                  _updateCache(cache);
+                  return cache;
+                },
+              ),
+              builder: (context, photoUrl) {
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: photoUrl.hasData
+                          ? showCircle
+                              ? CircleAvatar(
+                                  backgroundImage:
+                                      CachedNetworkImageProvider(photoUrl.data),
+                                )
+                              : CachedNetworkImage(imageUrl: photoUrl.data)
+                          : CircularProgressIndicator(),
                     ),
-                ],
-              );
-            },
+                    if (showActiveStatus &&
+                        activity.data?.snapshot?.value == 'Active')
+                      Align(
+                        child: Container(
+                          height: 15,
+                          width: 15,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.white),
+                            color: Colors.greenAccent,
+                          ),
+                        ),
+                        alignment: Alignment.bottomLeft,
+                      ),
+                  ],
+                );
+              },
+            ),
           );
         },
       ),
