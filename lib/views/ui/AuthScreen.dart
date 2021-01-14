@@ -29,79 +29,113 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool isNew = false;
-  bool forcePassMode = false;
-  bool showLoading = false;
-  bool requestUserName = false;
-  TextEditingController pAs = TextEditingController();
-  FocusNode pasFocus = FocusNode();
-  TextEditingController userName = TextEditingController();
+  final TextEditingController passwordText = TextEditingController();
+  final FocusNode passwordFocus = FocusNode();
+  final TextEditingController userName = TextEditingController();
+
+  Completer<bool> _authCompleter = Completer<bool>();
+
+  bool ignoreBiometrics = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _authenticate();
+  }
+
+  void _authenticate() {
+    if (!canCheckBio) return;
+    _authCompleter = Completer<bool>();
+    LocalAuthentication()
+        .authenticateWithBiometrics(
+            localizedReason: 'برجاء التحقق للمتابعة',
+            stickyAuth: true,
+            useErrorDialogs: false)
+        .then(_authCompleter.complete)
+        .catchError(_authCompleter.completeError);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Selector<User, Tuple2<String, String>>(
       selector: (_, user) => Tuple2(user.name, user.password),
       builder: (context, user, child) {
-        try {
-          if (showLoading) {
-            return Scaffold(
-              key: authKey,
-              resizeToAvoidBottomInset: !kIsWeb,
-              appBar: AppBar(
-                leading: Container(),
-                title: Text('جار التحقق...'),
-              ),
-              body: Loading(),
-            );
-          }
-          if (canCheckBio &&
-              user.item1 != null &&
-              user.item2 != null &&
-              !forcePassMode) {
-            // if (!mounted) {
-            //   return widget.nextWidget;
-            // }
-            return FutureBuilder<bool>(
-              future: LocalAuthentication()
-                  .authenticateWithBiometrics(
-                      localizedReason: 'برجاء التحقق للمتابعة',
-                      stickyAuth: true,
-                      useErrorDialogs: false)
-                  .catchError(
-                (err) {
-                  return false;
-                },
-              ),
-              builder: (context, data) {
-                if (data.hasData && data.data == true) {
-                  if (widget.nextRoute != null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context)
-                          .pushReplacementNamed(widget.nextRoute);
-                    });
-                  } else if (widget.nextWidget == null) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context).pop();
-                    });
-                  } else {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (con) {
-                          return widget.nextWidget;
-                        }),
-                      );
-                    });
+        if (user.item2 != null) {
+          try {
+            if (canCheckBio && !ignoreBiometrics) {
+              return FutureBuilder<bool>(
+                future: _authCompleter.future,
+                builder: (context, data) {
+                  if (data.hasData && data.data == true) {
+                    if (widget.nextRoute != null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context)
+                            .pushReplacementNamed(widget.nextRoute);
+                      });
+                    } else if (widget.nextWidget == null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context).pop();
+                      });
+                    } else {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (con) {
+                            return widget.nextWidget;
+                          }),
+                        );
+                      });
+                    }
+                    return Scaffold(
+                      key: authKey,
+                      resizeToAvoidBottomInset: !kIsWeb,
+                      appBar: AppBar(
+                        leading: Container(),
+                        title: Text('جار التحميل'),
+                      ),
+                      body: Center(
+                        child: const CircularProgressIndicator(),
+                      ),
+                    );
+                  } else if (data.hasData && data.data == false) {
+                    return Scaffold(
+                      key: authKey,
+                      resizeToAvoidBottomInset: !kIsWeb,
+                      appBar: AppBar(
+                        title: Text('فشل التحقق!'),
+                      ),
+                      body: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.refresh),
+                              label: Text('إعادة المحاولة'),
+                              onPressed: () {
+                                _authenticate();
+                                setState(() {});
+                              },
+                            ),
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.security),
+                              label: Text('إدخال كلمة السر'),
+                              onPressed: () {
+                                setState(() {
+                                  ignoreBiometrics = true;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }
                   return Scaffold(
                     key: authKey,
                     resizeToAvoidBottomInset: !kIsWeb,
-                  );
-                } else if (data.hasData && data.data == false) {
-                  return Scaffold(
-                    key: authKey,
-                    resizeToAvoidBottomInset: !kIsWeb,
                     appBar: AppBar(
-                      title: Text('فشل التحقق!'),
+                      leading: Container(),
+                      title: Text('جار التحقق...'),
                     ),
                     body: Center(
                       child: Column(
@@ -112,6 +146,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             icon: Icon(Icons.refresh),
                             label: Text('إعادة المحاولة'),
                             onPressed: () {
+                              _authenticate();
                               setState(() {});
                             },
                           ),
@@ -120,7 +155,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             label: Text('إدخال كلمة السر'),
                             onPressed: () {
                               setState(() {
-                                forcePassMode = true;
+                                ignoreBiometrics = true;
                               });
                             },
                           ),
@@ -128,53 +163,22 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   );
-                }
-                return Scaffold(
-                  key: authKey,
-                  resizeToAvoidBottomInset: !kIsWeb,
-                  appBar: AppBar(
-                    leading: Container(),
-                    title: Text('جار التحقق...'),
-                  ),
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.refresh),
-                          label: Text('إعادة المحاولة'),
-                          onPressed: () {
-                            setState(() {});
-                          },
-                        ),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.security),
-                          label: Text('إدخال كلمة السر'),
-                          onPressed: () {
-                            setState(() {
-                              forcePassMode = true;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
+                },
+              );
+            }
+          } on PlatformException catch (err, stkTrace) {
+            FirebaseCrashlytics.instance
+                .setCustomKey('LastErrorIn', 'AuthScreen.build');
+            FirebaseCrashlytics.instance.recordError(err, stkTrace);
           }
-        } on PlatformException catch (err, stkTrace) {
-          FirebaseCrashlytics.instance
-              .setCustomKey('LastErrorIn', 'AuthScreen.build');
-          FirebaseCrashlytics.instance.recordError(err, stkTrace);
         }
+        if (canCheckBio) LocalAuthentication().stopAuthentication();
         return Scaffold(
           key: authKey,
           resizeToAvoidBottomInset: !kIsWeb,
           appBar: AppBar(
             leading: Container(),
-            title: Text(isNew
+            title: Text(user.item2 == null
                 ? 'اقتربت من الانتهاء'
                 : 'إدخال كلمة المرور للدخول للبرنامج'),
           ),
@@ -184,7 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  if (isNew)
+                  if (user.item2 == null)
                     TextFormField(
                       decoration: InputDecoration(
                         labelText: 'اسم المستخدم',
@@ -195,16 +199,16 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       textInputAction: TextInputAction.next,
                       autofocus: true,
-                      controller: userName,
+                      controller: userName..text = user.item1,
                       validator: (value) {
                         if (value.isEmpty) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
                       },
-                      onFieldSubmitted: (value) => pasFocus.requestFocus(),
+                      onFieldSubmitted: (_) => passwordFocus.requestFocus(),
                     ),
-                  if (isNew)
+                  if (user.item2 == null)
                     Text(
                         'يرجى إدخال كلمة السر لاستخدامها فيما بعد للدخول للبرنامج:'),
                   TextFormField(
@@ -219,8 +223,8 @@ class _AuthScreenState extends State<AuthScreen> {
                     obscureText: true,
                     autocorrect: false,
                     autofocus: true,
-                    controller: pAs,
-                    focusNode: pasFocus,
+                    controller: passwordText,
+                    focusNode: passwordFocus,
                     validator: (value) {
                       if (value.isEmpty) {
                         return 'هذا الحقل مطلوب';
@@ -228,19 +232,20 @@ class _AuthScreenState extends State<AuthScreen> {
                       return null;
                     },
                     onFieldSubmitted: (v) =>
-                        _submit(pAs.text, userName.text, isNew),
+                        _submit(v, userName.text, user.item2 == null),
                   ),
                   ElevatedButton(
-                    onPressed: () => _submit(pAs.text, userName.text, isNew),
+                    onPressed: () => _submit(
+                        passwordText.text, userName.text, user.item2 == null),
                     child: Text('تسجيل الدخول'),
                   ),
-                  if (!isNew && canCheckBio)
+                  if (user.item2 != null && canCheckBio)
                     OutlinedButton.icon(
                       icon: Icon(Icons.fingerprint),
                       label: Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
                       onPressed: () {
                         setState(() {
-                          forcePassMode = false;
+                          ignoreBiometrics = false;
                         });
                       },
                     ),
@@ -255,11 +260,16 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future _submit(String password, String userName,
       [bool nameRequired = false]) async {
-    if (nameRequired && (userName == null || userName == '')) {
-      setState(() => showLoading = false);
+    if (nameRequired && (userName == null || userName.isEmpty)) {
+      passwordText.clear();
       await showErrorDialog(context, 'اسم المستخدم لا يمكن ان يكون فارغا');
+      return;
     }
-    setState(() => showLoading = true);
+    // ignore: unawaited_futures
+    showDialog(
+      context: context,
+      builder: (context) => Loading(),
+    );
     String pwd = context.read<User>().password;
     String encryptedPassword = Encryption.encryptPassword(password);
     if (pwd == null && password.isNotEmpty) {
@@ -272,6 +282,7 @@ class _AuthScreenState extends State<AuthScreen> {
         await FirebaseFunctions.instance
             .httpsCallable('changeUserName')
             .call({'newName': userName});
+        Navigator.of(context).pop();
         if (widget.nextWidget != null) {
           await Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (c) => widget.nextWidget),
@@ -286,13 +297,12 @@ class _AuthScreenState extends State<AuthScreen> {
             .setCustomKey('LastErrorIn', 'AuthScreen._submit');
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
         await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
-        setState(() {
-          showLoading = false;
-        });
+        setState(() {});
       }
     } else if (password.isNotEmpty && pwd == encryptedPassword) {
       encryptedPassword = null;
       pwd = null;
+      Navigator.of(context).pop();
       if (widget.nextWidget != null) {
         await Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (c) => widget.nextWidget),
@@ -305,8 +315,9 @@ class _AuthScreenState extends State<AuthScreen> {
     } else {
       encryptedPassword = null;
       pwd = null;
-      setState(() => showLoading = false);
+      Navigator.of(context).pop();
       await showErrorDialog(context, 'كلمة سر خاطئة أو فارغة!');
+      setState(() {});
     }
     encryptedPassword = null;
     pwd = null;
