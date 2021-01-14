@@ -388,7 +388,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                               textAlign: TextAlign.center,
                               strutStyle: StrutStyle(
                                   height: MediaQuery.of(context).size.height /
-                                      (kIsWeb ? 285.71 : 100)),
+                                      (!kIsWeb ? 285.71 : 100)),
                               style:
                                   Theme.of(context).primaryTextTheme.bodyText1),
                           shape: widget.options.hasNotch
