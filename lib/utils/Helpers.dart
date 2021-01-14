@@ -19,6 +19,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart' as open;
 import 'package:path_provider/path_provider.dart';
@@ -526,9 +527,9 @@ void changeTheme(
     {int primary,
     int accent,
     Brightness brightness,
-    @required BuildContext context}) async {
-  primary = primary ?? (await settingsInstance).getInt('ThemeColorIndex');
-  var darkTheme = (await settingsInstance).getBool('Theme');
+    @required BuildContext context}) {
+  primary = primary ?? Hive.box('Settings').get('PrimaryColorIndex');
+  bool darkTheme = Hive.box('Settings').get('DarkTheme');
   brightness = brightness ??
       (darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
