@@ -239,7 +239,7 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 ),
                                 child: person.birthDate != null
-                                    ? Text(DateFormat('d/M/yyyy').format(
+                                    ? Text(DateFormat('yyyy/M/d').format(
                                         person.birthDate.toDate(),
                                       ))
                                     : Text('(فارغ)'),
@@ -745,7 +745,7 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 ),
                                 child: person.lastTanawol != null
-                                    ? Text(DateFormat('d/M/yyyy').format(
+                                    ? Text(DateFormat('yyyy/M/d').format(
                                         person.lastTanawol.toDate(),
                                       ))
                                     : Text('(فارغ)'),
@@ -783,7 +783,7 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 ),
                                 child: person.lastConfession != null
-                                    ? Text(DateFormat('d/M/yyyy').format(
+                                    ? Text(DateFormat('yyyy/M/d').format(
                                         person.lastConfession.toDate(),
                                       ))
                                     : Text('(فارغ)'),
@@ -915,7 +915,7 @@ class _EditPersonState extends State<EditPerson> {
                                     ),
                                   ),
                                   child: person.lastCall != null
-                                      ? Text(DateFormat('d/M/yyyy').format(
+                                      ? Text(DateFormat('yyyy/M/d').format(
                                           person.lastCall.toDate(),
                                         ))
                                       : Text('(فارغ)'),

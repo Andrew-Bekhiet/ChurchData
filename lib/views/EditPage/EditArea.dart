@@ -262,7 +262,7 @@ class _EditAreaState extends State<EditArea> {
                                       color: Theme.of(context).primaryColor),
                                 ),
                               ),
-                              child: Text(DateFormat('d/M/yyyy').format(
+                              child: Text(DateFormat('yyyy/M/d').format(
                                 area.lastVisit.toDate(),
                               )),
                             ),
@@ -284,10 +284,10 @@ class _EditAreaState extends State<EditArea> {
                                 ),
                               ),
                               child: area.fatherLastVisit != null
-                                  ? Text(DateFormat('d/M/yyyy').format(
+                                  ? Text(DateFormat('yyyy/M/d').format(
                                       area.fatherLastVisit.toDate(),
                                     ))
-                                  : Text(DateFormat('d/M/yyyy').format(
+                                  : Text(DateFormat('yyyy/M/d').format(
                                       DateTime(
                                           DateTime.now().year,
                                           DateTime.now().month,

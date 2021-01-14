@@ -55,7 +55,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                           ),
                         ),
                         child: person.lastTanawol != null
-                            ? Text(DateFormat('d/M/yyyy').format(
+                            ? Text(DateFormat('yyyy/M/d').format(
                                 person.lastTanawol.toDate(),
                               ))
                             : Text('(فارغ)'),
@@ -92,7 +92,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                           ),
                         ),
                         child: person.lastConfession != null
-                            ? Text(DateFormat('d/M/yyyy').format(
+                            ? Text(DateFormat('yyyy/M/d').format(
                                 person.lastConfession.toDate(),
                               ))
                             : Text('(فارغ)'),

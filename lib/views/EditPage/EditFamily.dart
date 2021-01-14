@@ -329,7 +329,7 @@ class _EditFamilyState extends State<EditFamily> {
                                 color: Theme.of(context).primaryColor),
                           ),
                         ),
-                        child: Text(DateFormat('d/M/yyyy').format(
+                        child: Text(DateFormat('yyyy/M/d').format(
                           family.lastVisit.toDate(),
                         )),
                       ),
@@ -351,10 +351,10 @@ class _EditFamilyState extends State<EditFamily> {
                           ),
                         ),
                         child: family.fatherLastVisit != null
-                            ? Text(DateFormat('d/M/yyyy').format(
+                            ? Text(DateFormat('yyyy/M/d').format(
                                 family.fatherLastVisit.toDate(),
                               ))
-                            : Text(DateFormat('d/M/yyyy').format(
+                            : Text(DateFormat('yyyy/M/d').format(
                                 DateTime(DateTime.now().year,
                                     DateTime.now().month, DateTime.now().day),
                               )),

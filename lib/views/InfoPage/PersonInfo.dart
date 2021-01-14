@@ -216,7 +216,7 @@ class _PersonInfoState extends State<PersonInfo> {
                           ),
                           Text(
                               person.birthDate != null
-                                  ? DateFormat('d/M/yyyy').format(
+                                  ? DateFormat('yyyy/M/d').format(
                                       person.birthDate.toDate(),
                                     )
                                   : '',
