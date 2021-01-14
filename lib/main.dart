@@ -460,7 +460,7 @@ class AppState extends State<App> {
           result == ConnectivityResult.wifi) {
         dataSource =
             firestore.GetOptions(source: firestore.Source.serverAndCache);
-        if (mainScfld.currentState.mounted)
+        if (!kIsWeb && (mainScfld?.currentState?.mounted ?? false))
           ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.greenAccent,
             content: Text('تم استرجاع الاتصال بالانترنت'),
@@ -468,7 +468,7 @@ class AppState extends State<App> {
       } else {
         dataSource = firestore.GetOptions(source: firestore.Source.cache);
 
-        if (mainScfld.currentState.mounted)
+        if (!kIsWeb && (mainScfld?.currentState?.mounted ?? false))
           ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text('لا يوجد اتصال بالانترنت!'),
