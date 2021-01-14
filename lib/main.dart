@@ -28,7 +28,9 @@ import 'package:firebase_messaging/firebase_messaging.dart'
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:hive/hive.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart';
@@ -69,12 +71,12 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp().then((value) => User.getCurrentUser()).then(
     (User user) async {
-      var settings = await SharedPreferences.getInstance();
-      var primary = settings.getInt('Theme.of(context).primaryColorIndex');
-      if (primary == -1) primary = null;
-      var accent = settings.getInt('Theme.of(context).primaryColorIndex');
-      if (accent == -1) accent = null;
-      var darkTheme = settings.getBool('Theme');
+      Hive.init((await getApplicationDocumentsDirectory()).path);
+      await Hive.openBox<String>('PhotosURLsCache');
+      var settings = await Hive.openBox('Settings');
+      var primary = settings.get('PrimaryColorIndex', defaultValue: 7);
+      var accent = primary;
+      var darkTheme = settings.get('DarkTheme');
       runApp(
         MultiProvider(
           providers: [
@@ -116,10 +118,12 @@ void main() {
     WidgetsFlutterBinding.ensureInitialized();
     Firebase.initializeApp().then((value) => User.getCurrentUser()).then(
       (User user) async {
-        var settings = await SharedPreferences.getInstance();
-        var primary = settings.getInt('Theme.of(context).primaryColorIndex');
-        var accent = settings.getInt('Theme.of(context).primaryColorIndex');
-        var darkTheme = settings.getBool('Theme');
+        Hive.init((await getApplicationDocumentsDirectory()).path);
+        await Hive.openBox<String>('PhotosURLsCache');
+        var settings = await Hive.openBox('Settings');
+        var primary = settings.get('PrimaryColorIndex', defaultValue: -1);
+        var accent = primary;
+        var darkTheme = settings.get('DarkTheme');
         runApp(
           MultiProvider(
             key: UniqueKey(),
