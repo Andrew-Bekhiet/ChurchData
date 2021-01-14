@@ -30,7 +30,7 @@ dependencies:
   excel: ^1.1.5
   expandable: ^4.1.4
   file_picker: ^2.0.12
-  firebase: ^7.3.2
+  firebase: ^7.3.3
   firebase_analytics: ^6.1.0
   firebase_auth: ^0.18.4+1
   firebase_core: ^0.5.3
@@ -56,13 +56,14 @@ dependencies:
   local_auth: ^0.6.3+4
   location: ^3.0.2
   open_file: ^3.0.3
-  package_info_plus: ^0.5.0
+  package_info_plus: ^0.6.3
   path_provider: ^1.6.24
   permission_handler: ^5.0.1+1
   photo_view: ^0.10.2
   provider: ^4.3.2+2
   share: ^0.6.5+4
   shared_preferences: ^0.5.12+4
+  showcaseview: ^0.1.6
   spreadsheet_decoder: ^1.2.0
   steel_crypt: ^2.2.2+1
   syncfusion_flutter_xlsio: ^18.3.50-beta
