@@ -13,6 +13,7 @@ import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:churchdata/views/utils/DataObjectWidget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contact/contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -387,7 +388,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                               textAlign: TextAlign.center,
                               strutStyle: StrutStyle(
                                   height: MediaQuery.of(context).size.height /
-                                      285.71),
+                                      (kIsWeb ? 285.71 : 100)),
                               style:
                                   Theme.of(context).primaryTextTheme.bodyText1),
                           shape: widget.options.hasNotch

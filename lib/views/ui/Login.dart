@@ -1,6 +1,8 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_auth/firebase_auth.dart'
+    if (dart.library.io) 'package:firebase_auth/firebase_auth.dart'
+    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'

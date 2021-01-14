@@ -4,7 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
+    hide User, FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
