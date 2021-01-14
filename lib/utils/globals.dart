@@ -64,10 +64,6 @@ AndroidParameters androidParameters = AndroidParameters(
       '7C7F256422E764%212535&authkey=AOvqyUErovriovU'),
 );
 
-bool areaOrder = false;
-
-String areaOrderBy = 'Name';
-
 bool canCheckBio = false;
 
 GetOptions dataSource = GetOptions(source: Source.serverAndCache);
@@ -77,10 +73,6 @@ DynamicLinkParametersOptions dynamicLinkParametersOptions =
         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
 
 bool export = false;
-
-bool familyOrder = false;
-
-String familyOrderBy = 'Name';
 
 FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
@@ -93,10 +85,6 @@ var notifChannel = MethodChannel('com.AndroidQuartz.ChurchData/Notifications');
 
 Map<String, dynamic> pendingMessage;
 
-bool personOrder = false;
-String personOrderBy = 'Name';
-
-bool platformBrightness = true;
 List<Color> primaries = <Color>[
   Colors.red,
   Colors.pink,
@@ -122,9 +110,7 @@ List<Color> primaries = <Color>[
 RemoteConfig remoteConfig;
 
 var settingsInstance = SharedPreferences.getInstance();
-bool streetOrder = false;
 
-String streetOrderBy = 'Name';
 String uriPrefix = 'https://churchdata.page.link';
 
 bool configureMessaging = true;
