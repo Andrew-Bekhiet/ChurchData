@@ -1022,7 +1022,8 @@ class _SearchQueryState extends State<SearchQuery> {
               documentsData: () => Future(
                 () => areas
                     .where(childItems[parentIndex][childIndex].value.value,
-                        isEqualTo: queryValue)
+                        isEqualTo: queryValue,
+                        isNull: queryValue == null ? true : null)
                     .snapshots(),
               ),
             ),
@@ -1036,7 +1037,8 @@ class _SearchQueryState extends State<SearchQuery> {
               documentsData: () => Future(
                 () => streets
                     .where(childItems[parentIndex][childIndex].value.value,
-                        isEqualTo: queryValue)
+                        isEqualTo: queryValue,
+                        isNull: queryValue == null ? true : null)
                     .snapshots(),
               ),
             ),
@@ -1050,7 +1052,8 @@ class _SearchQueryState extends State<SearchQuery> {
               documentsData: () => Future(
                 () => families
                     .where(childItems[parentIndex][childIndex].value.value,
-                        isEqualTo: queryValue)
+                        isEqualTo: queryValue,
+                        isNull: queryValue == null ? true : null)
                     .snapshots(),
               ),
             ),
@@ -1065,10 +1068,17 @@ class _SearchQueryState extends State<SearchQuery> {
               documentsData: () => Future(
                 () => persons
                     .where('BirthDay',
-                        isEqualTo: queryValue != null
+                        isGreaterThanOrEqualTo: queryValue != null
                             ? Timestamp.fromDate(
                                 DateTime(1970, queryValue.toDate().month,
                                     queryValue.toDate().day),
+                              )
+                            : null)
+                    .where('BirthDay',
+                        isLessThanOrEqualTo: queryValue != null
+                            ? Timestamp.fromDate(
+                                DateTime(1970, queryValue.toDate().month,
+                                    queryValue.toDate().day + 1),
                               )
                             : null)
                     .snapshots(),
@@ -1084,7 +1094,8 @@ class _SearchQueryState extends State<SearchQuery> {
             documentsData: () => Future(
               () => persons
                   .where(childItems[parentIndex][childIndex].value.value,
-                      isEqualTo: queryValue)
+                      isEqualTo: queryValue,
+                      isNull: queryValue == null ? true : null)
                   .snapshots(),
             ),
           ),
@@ -1414,19 +1425,21 @@ class _SearchQueryState extends State<SearchQuery> {
       operatorIndex = int.parse(widget.query['operatorIndex']);
       queryText = widget.query['queryText'];
       birthDate = widget.query['birthDate'] == 'true';
-      queryValue = widget.query['queryValue'].toString().startsWith('D')
-          ? FirebaseFirestore.instance.doc(
-              widget.query['queryValue'].toString().substring(1),
-            )
-          : (widget.query['queryValue'].toString().startsWith('T')
-              ? Timestamp.fromMillisecondsSinceEpoch(int.parse(
+      queryValue = widget.query['queryValue'] != null
+          ? widget.query['queryValue'].toString().startsWith('D')
+              ? FirebaseFirestore.instance.doc(
                   widget.query['queryValue'].toString().substring(1),
-                ))
-              : (widget.query['queryValue'].toString().startsWith('I')
-                  ? int.parse(
+                )
+              : widget.query['queryValue'].toString().startsWith('T')
+                  ? Timestamp.fromMillisecondsSinceEpoch(int.parse(
                       widget.query['queryValue'].toString().substring(1),
-                    )
-                  : widget.query['queryValue'].toString().substring(1)));
+                    ))
+                  : widget.query['queryValue'].toString().startsWith('I')
+                      ? int.parse(
+                          widget.query['queryValue'].toString().substring(1),
+                        )
+                      : widget.query['queryValue'].toString().substring(1)
+          : null;
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => execute(),
       );
