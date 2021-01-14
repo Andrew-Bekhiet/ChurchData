@@ -79,7 +79,7 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
             documentsData != null ||
             familyData != null),
         assert(showNull == false || (showNull == true && empty != null)) {
-    this.isAdmin = isAdmin ?? User().superAccess;
+    this.isAdmin = isAdmin ?? User().superAccess ?? false;
     if (items != null && (cache?.length ?? 0) != items.length) {
       cache = List.generate(items.length, (_) => AsyncMemoizer<String>());
     }

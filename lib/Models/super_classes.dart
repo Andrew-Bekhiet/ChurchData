@@ -1,7 +1,9 @@
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/firebase_database.dart'
+    if (dart.library.io) 'package:firebase_database/firebase_database.dart'
+    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

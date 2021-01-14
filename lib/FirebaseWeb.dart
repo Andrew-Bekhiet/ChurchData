@@ -1,12 +1,21 @@
 import 'package:firebase/firebase.dart' as firebase;
+import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase/src/interop/messaging_interop.dart';
 import 'package:firebase/src/interop/remote_config_interop.dart';
 
 export 'package:cloud_firestore/cloud_firestore.dart';
 export 'package:cloud_functions/cloud_functions.dart';
-export 'package:firebase_auth/firebase_auth.dart';
+// export 'package:firebase_auth_web/firebase_auth_web.dart';
 export 'package:firebase_core/firebase_core.dart';
 export 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
+
+class ServerValue {
+  static Object get timestamp => firebase.ServerValue.TIMESTAMP;
+}
+
+class FirebaseAuth {
+  static FirebaseAuthWeb get instance => FirebaseAuthWeb.instance;
+}
 
 class Database {
   firebase.DatabaseReference child(String path) {
@@ -162,15 +171,5 @@ class RemoteConfig implements firebase.RemoteConfig {
   @override
   void setLogLevel(firebase.RemoteConfigLogLevel value) {
     instance.setLogLevel(value);
-  }
-}
-
-class Storage {
-  firebase.Reference child(String path) {
-    return firebase.storage().ref(path);
-  }
-
-  Storage ref() {
-    return this;
   }
 }

@@ -10,7 +10,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/firebase_database.dart'
+    if (dart.library.io) 'package:firebase_database/firebase_database.dart'
+    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -41,8 +43,8 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
   bool approveLocations;
   bool approved;
 
-  StreamSubscription<Event> userTokenListener;
-  StreamSubscription<Event> connectionListener;
+  StreamSubscription userTokenListener;
+  StreamSubscription connectionListener;
   StreamSubscription<auth.User> authListener;
 
   final AsyncMemoizer<String> _photoUrlCache = AsyncMemoizer<String>();
