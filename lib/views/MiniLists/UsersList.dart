@@ -24,7 +24,7 @@ class UsersList extends StatefulWidget {
 
 class _UsersEditListState extends State<UsersEditList> {
   @override
-  Widget build(BuildContext c) {
+  Widget build(BuildContext context) {
     return Consumer<SearchString>(
       builder: (context, filter, _) => FutureBuilder<List<User>>(
         future: User.getUsersForEdit(),

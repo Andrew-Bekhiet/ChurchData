@@ -124,9 +124,10 @@ class _EditPersonState extends State<EditPerson> {
                       if (selectedImage == null) return;
                       changedImage = (await ImageCropper.cropImage(
                               sourcePath: selectedImage.path,
+                              cropStyle: CropStyle.circle,
                               androidUiSettings: AndroidUiSettings(
                                   toolbarTitle: 'قص الصورة',
-                                  toolbarColor: person.color,
+                                  toolbarColor: Theme.of(context).primaryColor,
                                   toolbarWidgetColor:
                                       Theme.of(context).primaryColor,
                                   initAspectRatio:
