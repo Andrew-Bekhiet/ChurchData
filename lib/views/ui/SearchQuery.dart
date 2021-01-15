@@ -804,7 +804,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     selectedColor: Color(queryValue is int
                         ? queryValue
                         : Colors.transparent.value),
-                    onSelect: (color, _) {
+                    onSelect: (color) {
                       Navigator.of(context).pop();
                       setState(() {
                         queryValue = color.value;
@@ -1075,7 +1075,7 @@ class _SearchQueryState extends State<SearchQuery> {
                               )
                             : null)
                     .where('BirthDay',
-                        isLessThanOrEqualTo: queryValue != null
+                        isLessThan: queryValue != null
                             ? Timestamp.fromDate(
                                 DateTime(1970, queryValue.toDate().month,
                                     queryValue.toDate().day + 1),
