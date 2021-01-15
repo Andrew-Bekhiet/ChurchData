@@ -36,7 +36,8 @@ class _UsersEditListState extends State<UsersEditList> {
           return RefreshIndicator(
             child: Builder(
               builder: (context) {
-                List<User> documentData = future.data.sublist(0);
+                List<User> documentData = future.data.sublist(0)
+                  ..sort((u1, u2) => u1.name.compareTo(u2.name));
                 if (filter.value != '')
                   documentData.retainWhere((element) => element.name
                       .toLowerCase()
