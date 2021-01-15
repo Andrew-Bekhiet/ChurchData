@@ -51,8 +51,22 @@ class _AuthScreenState extends State<AuthScreen> {
             localizedReason: 'برجاء التحقق للمتابعة',
             stickyAuth: true,
             useErrorDialogs: false)
-        .then(_authCompleter.complete)
-        .catchError(_authCompleter.completeError);
+        .then((value) {
+      _authCompleter.complete(value);
+      if (value) {
+        if (widget.nextRoute != null) {
+          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        } else if (widget.nextWidget == null) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (con) {
+              return widget.nextWidget;
+            }),
+          );
+        }
+      }
+    }).catchError(_authCompleter.completeError);
   }
 
   @override
@@ -65,38 +79,42 @@ class _AuthScreenState extends State<AuthScreen> {
             if (canCheckBio && !ignoreBiometrics) {
               return FutureBuilder<bool>(
                 future: _authCompleter.future,
-                builder: (context, data) {
-                  if (data.hasData && data.data == true) {
-                    if (widget.nextRoute != null) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.of(context)
-                            .pushReplacementNamed(widget.nextRoute);
-                      });
-                    } else if (widget.nextWidget == null) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.of(context).pop();
-                      });
-                    } else {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (con) {
-                            return widget.nextWidget;
-                          }),
-                        );
-                      });
-                    }
+                builder: (context, snapshot) {
+                  if (!_authCompleter.isCompleted || snapshot.data)
                     return Scaffold(
                       key: authKey,
                       resizeToAvoidBottomInset: !kIsWeb,
                       appBar: AppBar(
                         leading: Container(),
-                        title: Text('جار التحميل'),
+                        title: Text('جار التحقق...'),
                       ),
                       body: Center(
-                        child: const CircularProgressIndicator(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.refresh),
+                              label: Text('إعادة المحاولة'),
+                              onPressed: () {
+                                _authenticate();
+                                setState(() {});
+                              },
+                            ),
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.security),
+                              label: Text('إدخال كلمة السر'),
+                              onPressed: () {
+                                setState(() {
+                                  ignoreBiometrics = true;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
-                  } else if (data.hasData && data.data == false) {
+                  else {
                     return Scaffold(
                       key: authKey,
                       resizeToAvoidBottomInset: !kIsWeb,
@@ -130,39 +148,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     );
                   }
-                  return Scaffold(
-                    key: authKey,
-                    resizeToAvoidBottomInset: !kIsWeb,
-                    appBar: AppBar(
-                      leading: Container(),
-                      title: Text('جار التحقق...'),
-                    ),
-                    body: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          OutlinedButton.icon(
-                            icon: Icon(Icons.refresh),
-                            label: Text('إعادة المحاولة'),
-                            onPressed: () {
-                              _authenticate();
-                              setState(() {});
-                            },
-                          ),
-                          OutlinedButton.icon(
-                            icon: Icon(Icons.security),
-                            label: Text('إدخال كلمة السر'),
-                            onPressed: () {
-                              setState(() {
-                                ignoreBiometrics = true;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
                 },
               );
             }
@@ -244,6 +229,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       icon: Icon(Icons.fingerprint),
                       label: Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
                       onPressed: () {
+                        _authenticate();
                         setState(() {
                           ignoreBiometrics = false;
                         });
