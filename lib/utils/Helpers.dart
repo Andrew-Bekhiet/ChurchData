@@ -710,7 +710,7 @@ void changeTheme(
   context.read<ThemeNotifier>().setTheme(
         ThemeData(
           floatingActionButtonTheme: FloatingActionButtonThemeData(
-              backgroundColor: Theme.of(context).primaryColor),
+              backgroundColor: primaries[primary ?? 7]),
           visualDensity: VisualDensity.adaptivePlatformDensity,
           outlinedButtonTheme: OutlinedButtonThemeData(
               style:
@@ -1408,24 +1408,20 @@ Future importArea(
 
 Future<dynamic> onForegroundMessage(Map<dynamic, dynamic> message,
     {bool foreground = true}) async {
-  try {
-    print(await Hive.box<Map<dynamic, dynamic>>('Notifications').add(
-        (message['data'] as Map<dynamic, dynamic>).cast<String, dynamic>()));
-    if (foreground)
-      ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
-        SnackBar(
-          content: Text(message['notification']['body']),
-          action: SnackBarAction(
-            label: 'فتح الاشعارات',
-            onPressed: () => Navigator.of(mainScfld.currentContext)
-                .pushNamed('Notifications'),
-          ),
+  await Hive.box<Map<dynamic, dynamic>>('Notifications')
+      .add((message['data'] as Map<dynamic, dynamic>).cast<String, dynamic>());
+  if (foreground)
+    ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
+      SnackBar(
+        content: Text(message['notification']['body']),
+        action: SnackBarAction(
+          label: 'فتح الاشعارات',
+          onPressed: () =>
+              Navigator.of(mainScfld.currentContext).pushNamed('Notifications'),
         ),
-      );
-    return null;
-  } catch (e) {
-    print(e);
-  }
+      ),
+    );
+  return null;
 }
 
 Future<dynamic> onMessage(Map<String, dynamic> message) async {

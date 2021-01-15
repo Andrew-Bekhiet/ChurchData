@@ -460,14 +460,12 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
     if (onlyCanApproveLocations) {
       return FirebaseFirestore.instance
           .collection('Users')
-          .orderBy('ApproveLocations')
           .orderBy('Name')
           .where('ApproveLocations', isEqualTo: true)
           .get(dataSource);
     }
     return FirebaseFirestore.instance
         .collection('Users')
-        .orderBy('ApproveLocations')
         .orderBy('Name')
         .get(dataSource);
   }
