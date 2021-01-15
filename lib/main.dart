@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/views/EditPage/EditFamily.dart';
 import 'package:churchdata/views/EditPage/EditPerson.dart';
 import 'package:churchdata/views/EditPage/EditStreet.dart';
@@ -27,12 +28,13 @@ import 'package:firebase_messaging/firebase_messaging.dart'
     hide UserInfo;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timeago/timeago.dart';
 
 import 'Models/OrderOptions.dart';
@@ -49,7 +51,7 @@ import 'views/ui/MyAccount.dart';
 import 'views/ui/NotificationsPage.dart';
 import 'views/ui/Root.dart';
 import 'views/ui/SearchQuery.dart';
-import 'views/ui/Settings.dart' as settings;
+import 'views/ui/Settings.dart' as settingsui;
 import 'views/ui/Updates.dart';
 import 'views/utils/LoadingWidget.dart';
 
@@ -71,9 +73,9 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp().then((value) => User.getCurrentUser()).then(
     (User user) async {
-      Hive.init((await getApplicationDocumentsDirectory()).path);
-      await Hive.openBox<String>('PhotosURLsCache');
-      var settings = await Hive.openBox('Settings');
+      await _initConfigs();
+
+      var settings = Hive.box('Settings');
       var primary = settings.get('PrimaryColorIndex', defaultValue: 7);
       var accent = primary;
       var darkTheme = settings.get('DarkTheme');
@@ -113,58 +115,23 @@ void main() {
       );
     },
   );
+}
 
-  notifChannel.setMethodCallHandler((call) {
-    WidgetsFlutterBinding.ensureInitialized();
-    Firebase.initializeApp().then((value) => User.getCurrentUser()).then(
-      (User user) async {
-        Hive.init((await getApplicationDocumentsDirectory()).path);
-        await Hive.openBox<String>('PhotosURLsCache');
-        var settings = await Hive.openBox('Settings');
-        var primary = settings.get('PrimaryColorIndex', defaultValue: -1);
-        var accent = primary;
-        var darkTheme = settings.get('DarkTheme');
-        runApp(
-          MultiProvider(
-            key: UniqueKey(),
-            providers: [
-              ChangeNotifierProvider<OrderOptions>(
-                key: UniqueKey(),
-                create: (_) => OrderOptions(),
-              ),
-              ChangeNotifierProvider<User>.value(key: UniqueKey(), value: user),
-              ChangeNotifierProvider<ThemeNotifier>(
-                key: UniqueKey(),
-                create: (_) => ThemeNotifier(
-                  ThemeData(
-                    floatingActionButtonTheme: FloatingActionButtonThemeData(
-                        backgroundColor: primaries[primary ?? 7]),
-                    visualDensity: VisualDensity.adaptivePlatformDensity,
-                    outlinedButtonTheme: OutlinedButtonThemeData(
-                        style: OutlinedButton.styleFrom(
-                            primary: primaries[primary ?? 7])),
-                    textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(
-                            primary: primaries[primary ?? 7])),
-                    elevatedButtonTheme: ElevatedButtonThemeData(
-                        style: ElevatedButton.styleFrom(
-                            primary: primaries[primary ?? 7])),
-                    brightness: darkTheme != null
-                        ? (darkTheme ? Brightness.dark : Brightness.light)
-                        : WidgetsBinding.instance.window.platformBrightness,
-                    accentColor: accents[accent ?? 7],
-                    primaryColor: primaries[primary ?? 7],
-                  ),
-                ),
-              ),
-            ],
-            builder: (context, _) => App(key: UniqueKey()),
-          ),
-        );
-      },
-    );
-    return null;
-  });
+Future _initConfigs() async {
+  //Hive initialization:
+  await Hive.initFlutter();
+
+  await Hive.openBox('Settings');
+  await Hive.openBox<Map>('NotificationsSettings');
+  await Hive.openBox<String>('PhotosURLsCache');
+  await Hive.openBox<Map>('Notifications');
+
+  //Notifications:
+  await AndroidAlarmManager.initialize();
+
+  await FlutterLocalNotificationsPlugin().initialize(
+      InitializationSettings(android: AndroidInitializationSettings('warning')),
+      onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {
@@ -249,7 +216,7 @@ class AppState extends State<App> {
               PersonInfo(person: ModalRoute.of(context).settings.arguments),
           'UserInfo': (context) =>
               UserInfo(user: ModalRoute.of(context).settings.arguments),
-          'Settings': (context) => settings.Settings(),
+          'Settings': (context) => settingsui.Settings(),
           'Settings/Churches': (context) => ChurchesPage(),
           'Settings/Fathers': (context) => FathersPage(),
           'Settings/Jobs': (context) => JobsPage(),
@@ -349,8 +316,8 @@ class AppState extends State<App> {
                       tooltip: 'تسجيل الخروج',
                       onPressed: () async {
                         var user = context.read<User>();
-                        await (await settingsInstance)
-                            .setBool('FCM_Token_Registered', false);
+                        await Hive.box('Settings')
+                            .put('FCM_Token_Registered', false);
                         // ignore: unawaited_futures
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
@@ -405,8 +372,9 @@ class AppState extends State<App> {
     );
   }
 
-  Future configureFirebaseMessaging(SharedPreferences value) async {
-    if (!(value.getBool('FCM_Token_Registered') ?? false) &&
+  Future configureFirebaseMessaging() async {
+    if (!Hive.box('Settings')
+            .get('FCM_Token_Registered', defaultValue: false) &&
         auth.FirebaseAuth.instance.currentUser != null) {
       try {
         if (kIsWeb)
@@ -414,9 +382,8 @@ class AppState extends State<App> {
         firestore.FirebaseFirestore.instance.settings = firestore.Settings(
           persistenceEnabled: true,
           sslEnabled: true,
-          cacheSizeBytes: int.parse(
-            (await settingsInstance).getString('cacheSize'),
-          ),
+          cacheSizeBytes: Hive.box('Settings')
+              .get('cacheSize', defaultValue: 300 * 1024 * 1024),
         );
         // ignore: empty_catches
       } catch (e) {}
@@ -428,7 +395,7 @@ class AppState extends State<App> {
               .httpsCallable('registerFCMToken')
               .call({'token': await FirebaseMessaging().getToken()});
         if (permission == true || permission == null)
-          await (await settingsInstance).setBool('FCM_Token_Registered', true);
+          await Hive.box('Settings').put('FCM_Token_Registered', true);
       } catch (err, stkTrace) {
         print(err.toString());
         await FirebaseCrashlytics.instance
@@ -497,7 +464,7 @@ class AppState extends State<App> {
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
       if (context.read<User>()?.uid != null) {
-        await settingsInstance.then(configureFirebaseMessaging);
+        await configureFirebaseMessaging();
         if (!kIsWeb)
           await FirebaseCrashlytics.instance
               .setCustomKey('UID', context.read<User>().uid);
