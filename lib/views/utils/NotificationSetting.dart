@@ -93,7 +93,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
                 context: context,
               );
               return DateTime(2020, 1, 1, selected?.hour ?? initialValue.hour,
-                  selected.minute ?? initialValue.minute);
+                  selected?.minute ?? initialValue.minute);
             },
             onChanged: (value) {
               time = TimeOfDay(hour: value.hour, minute: value.minute);
@@ -116,6 +116,14 @@ class _NotificationSettingState extends State<NotificationSetting> {
   }
 
   void onSave() async {
+    var current = notificationsSettings.get(widget.hiveKey, defaultValue: {
+      'Hours': 11,
+      'Minutes': 0,
+      'Period': 7
+    }).cast<String, int>();
+    if (current['Period'] == int.parse(period.text) * multiplier &&
+        current['Hours'] == time.hour &&
+        current['Minutes'] == time.minute) return;
     await notificationsSettings.put(widget.hiveKey, <String, int>{
       'Period': int.parse(period.text) * multiplier,
       'Hours': time.hour,
@@ -127,7 +135,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
         widget.notificationCallback,
         exact: true,
         startAt: DateTime(DateTime.now().year, DateTime.now().month,
-            DateTime.now().day, 0, 0),
+            DateTime.now().day, time.hour, time.minute),
         rescheduleOnReboot: true);
   }
 
