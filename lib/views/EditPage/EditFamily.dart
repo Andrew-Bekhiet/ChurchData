@@ -536,7 +536,7 @@ class _EditFamilyState extends State<EditFamily> {
       builder: (context) => DataDialog(
         content: ColorsList(
           selectedColor: family.color,
-          onSelect: (color, _) {
+          onSelect: (color) {
             Navigator.of(context).pop();
             setState(() {
               family.color = color;
