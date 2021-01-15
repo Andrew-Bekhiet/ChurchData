@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
 import '../utils/Helpers.dart';
@@ -228,7 +229,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   }
 
   Future<Widget> getLeftWidget() async {
-    if ((await settingsInstance).getBool('ShowPersonState') == true) {
+    if (Hive.box('Settings').get('ShowPersonState', defaultValue: false)) {
       var color = (await state?.get(dataSource))?.data();
       return color == null
           ? Container(width: 1, height: 1)
@@ -302,7 +303,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   @override
   Future<String> getSecondLine() async {
-    String key = (await settingsInstance).getString('PersonSecondLine');
+    String key = Hive.box('Settings').get('PersonSecondLine');
     if (key == 'Members') {
       return '';
     } else if (key == 'AreaId') {

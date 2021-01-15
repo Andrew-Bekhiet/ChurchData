@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 
 import '../Models.dart';
@@ -199,7 +200,7 @@ class Street extends DataObject
 
   @override
   Future<String> getSecondLine() async {
-    String key = (await settingsInstance).getString('StreetSecondLine');
+    String key = Hive.box('Settings').get('StreetSecondLine');
     if (key == 'Members') {
       return await getMembersString();
     } else if (key == 'AreaId') {
