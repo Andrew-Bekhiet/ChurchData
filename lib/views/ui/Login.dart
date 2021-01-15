@@ -9,13 +9,14 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../utils/Helpers.dart';
 import '../../Models/User.dart';
-import '../../utils/globals.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({Key key}) : super(key: key);
@@ -192,43 +193,72 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> setupSettings() async {
     try {
       var user = await User.getCurrentUser();
-      (await settingsInstance).getString('cacheSize') ??
-          (await settingsInstance).setString('cacheSize', '314572800');
+      var settings = Hive.box('Settings');
+      settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
-      (await settingsInstance).getString('AreaSecondLine') ??
-          (await settingsInstance).setString('AreaSecondLine', 'Address');
+      settings.get('AreaSecondLine') ??
+          await settings.put('AreaSecondLine', 'Address');
 
-      (await settingsInstance).getString('StreetSecondLine') ??
-          (await settingsInstance).setString('StreetSecondLine', 'LastVisit');
+      settings.get('StreetSecondLine') ??
+          await settings.put('StreetSecondLine', 'LastVisit');
 
-      (await settingsInstance).getString('FamilySecondLine') ??
-          (await settingsInstance).setString('FamilySecondLine', 'Address');
+      settings.get('FamilySecondLine') ??
+          await settings.put('FamilySecondLine', 'Address');
 
-      (await settingsInstance).getString('PersonSecondLine') ??
-          (await settingsInstance).setString('PersonSecondLine', 'Type');
+      settings.get('PersonSecondLine') ??
+          await settings.put('PersonSecondLine', 'Type');
 
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        // if (popOnce) {
-        //   Navigator.of(context).pop(true);
-        //   popOnce = false;
-        // }
-        if (user.getNotificationsPermissions().values.toList().any((e) => e)) {
-          if ((await settingsInstance).getString('ReminderTimeHours') == null) {
-            await (await settingsInstance).setString('ReminderTimeHours', '11');
-            await (await settingsInstance)
-                .setString('ReminderTimeMinutes', '0');
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) async {
+          if (user
+              .getNotificationsPermissions()
+              .values
+              .toList()
+              .any((e) => e)) {
+            var notificationsSettings =
+                Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
+            if (user.confessionsNotify) {
+              if (notificationsSettings.get('ConfessionTime') == null) {
+                await notificationsSettings.put('ConfessionTime',
+                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              }
+              await AndroidAlarmManager.periodic(Duration(days: 7),
+                  'Confessions'.hashCode, showConfessionNotification,
+                  exact: true,
+                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                      DateTime.now().day, 11),
+                  rescheduleOnReboot: true);
+            }
+
+            if (user.tanawolNotify) {
+              if (notificationsSettings.get('TanawolTime') == null) {
+                await notificationsSettings.put('TanawolTime',
+                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              }
+              await AndroidAlarmManager.periodic(Duration(days: 7),
+                  'Tanawol'.hashCode, showTanawolNotification,
+                  exact: true,
+                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                      DateTime.now().day, 11),
+                  rescheduleOnReboot: true);
+            }
+
+            if (user.birthdayNotify) {
+              if (notificationsSettings.get('BirthDayTime') == null) {
+                await notificationsSettings.put(
+                    'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
+              }
+              await AndroidAlarmManager.periodic(Duration(days: 1),
+                  'BirthDay'.hashCode, showBirthDayNotification,
+                  exact: true,
+                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                      DateTime.now().day, 11),
+                  wakeup: true,
+                  rescheduleOnReboot: true);
+            }
           }
-          if (user.confessionsNotify) {
-            await notifChannel.invokeMethod('startConfessions');
-          }
-          if (user.tanawolNotify) {
-            await notifChannel.invokeMethod('startTanawol');
-          }
-          if (user.birthdayNotify) {
-            await notifChannel.invokeMethod('startBirthDay');
-          }
-        }
-      });
+        },
+      );
       return true;
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance

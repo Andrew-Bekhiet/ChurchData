@@ -6,6 +6,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,12 @@ class _RootState extends State<Root>
   bool _pushed = false;
   bool _showSearch = false;
   FocusNode searchFocus = FocusNode();
+
+  /*final showCaseCompleter = Completer();
+  final GlobalKey _areasKey = GlobalKey();
+  final GlobalKey _streetsKey = GlobalKey();
+  final GlobalKey _familiesKey = GlobalKey();
+  final GlobalKey _personsKey = GlobalKey();*/
 
   void addTap([bool type = false]) {
     if (_tabController.index == 0) {
@@ -495,8 +502,8 @@ class _RootState extends State<Root>
                   onTap: () async {
                     mainScfld.currentState.openEndDrawer();
                     await auth.FirebaseAuth.instance.signOut();
-                    await (await settingsInstance)
-                        .setBool('FCM_Token_Registered', false);
+                    await Hive.box('Settings')
+                        .put('FCM_Token_Registered', false);
                     // ignore: unawaited_futures
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
@@ -614,6 +621,9 @@ class _RootState extends State<Root>
   }
 
   void showPendingUIDialogs() async {
+    // ShowCaseWidget.of(context)
+    //     .startShowCase([_areasKey, _streetsKey, _familiesKey, _personsKey]);
+    // await showCaseCompleter.future;
     if (!await context.read<User>().userDataUpToDate()) {
       await showErrorUpdateDataDialog(
           context: mainScfld.currentContext, pushApp: false);
@@ -626,7 +636,7 @@ class _RootState extends State<Root>
 
   void showBatteryOptimizationDialog() async {
     if (!await BatteryOptimization.isIgnoringBatteryOptimizations() &&
-        await (await settingsInstance).getBool('ShowBatteryDialog') != false) {
+        Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -644,9 +654,9 @@ class _RootState extends State<Root>
                   TextButton(
                       child: Text('عدم الاظهار مجددًا'),
                       onPressed: () async {
+                        await Hive.box('Settings')
+                            .put('ShowBatteryDialog', false);
                         await Navigator.pop(context);
-                        await (await settingsInstance)
-                            .setBool('ShowBatteryDialog', false);
                       }),
                 ],
               ));

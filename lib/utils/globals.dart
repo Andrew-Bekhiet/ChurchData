@@ -7,7 +7,6 @@ import 'package:firebase_remote_config/firebase_remote_config.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 const List<Color> colors = [
@@ -108,8 +107,6 @@ List<Color> primaries = <Color>[
 ];
 
 RemoteConfig remoteConfig;
-
-var settingsInstance = SharedPreferences.getInstance();
 
 String uriPrefix = 'https://churchdata.page.link';
 
