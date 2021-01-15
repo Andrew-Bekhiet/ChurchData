@@ -92,10 +92,8 @@ class _MyAccountState extends State<MyAccount> {
                   ),
                 if (user.write == true)
                   ListTile(
-                    leading: Icon(
-                      const IconData(0xef56, fontFamily: 'MaterialIconsR'),
-                    ),
-                    title: Text('رؤية جميع البيانات'),
+                    leading: Icon(Icons.edit),
+                    title: Text('تعديل البيانات'),
                   ),
                 if (user.exportAreas == true)
                   ListTile(
