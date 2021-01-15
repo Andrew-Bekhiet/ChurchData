@@ -73,8 +73,8 @@ class SettingsState extends State<Settings> {
                           context: context,
                           builder: (context) => DataDialog(
                             content: ColorsList(
-                              colors: primaries,
                               selectedColor: color,
+                              colors: primaries,
                               onSelect: (color) {
                                 Navigator.of(context).pop();
                                 setState(() {
@@ -113,8 +113,8 @@ class SettingsState extends State<Settings> {
                         onPressed: () async {
                           await Hive.box('Settings')
                               .put('DarkTheme', darkTheme);
-                          await Hive.box('Settings')
-                              .put('PrimaryColorIndex', colors.indexOf(color));
+                          await Hive.box('Settings').put(
+                              'PrimaryColorIndex', primaries.indexOf(color));
                           changeTheme(context: context);
                         },
                         child: Text('تغيير'),
@@ -193,6 +193,7 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
+                          onChanged: (_) {},
                           value: settings.get('AreaSecondLine'),
                           items: Area.getStaticHumanReadableMap()
                               .entries
@@ -223,6 +224,7 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
+                          onChanged: (_) {},
                           value: settings.get('StreetSecondLine'),
                           items: Street.getHumanReadableMap2()
                               .entries
@@ -253,6 +255,7 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
+                          onChanged: (_) {},
                           value: settings.get('FamilySecondLine'),
                           items: Family.getHumanReadableMap2()
                               .entries
@@ -283,6 +286,7 @@ class SettingsState extends State<Settings> {
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
+                          onChanged: (_) {},
                           value: settings.get('PersonSecondLine'),
                           items: Person.getHumanReadableMap2()
                               .entries
@@ -454,6 +458,13 @@ class SettingsState extends State<Settings> {
                         selected.minute ?? initialValue.minute);
                   },
                   onSaved: (value) async {
+                    var current = notificationsSettings.get('BirthDayTime',
+                        defaultValue: {
+                          'Hours': 11,
+                          'Minutes': 0
+                        }).cast<String, int>();
+                    if (current['Hours'] == value.hour &&
+                        current['Minutes'] == value.minute) return;
                     await notificationsSettings.put(
                       'BirthDayTime',
                       <String, int>{
@@ -462,7 +473,7 @@ class SettingsState extends State<Settings> {
                       },
                     );
                     await AndroidAlarmManager.periodic(Duration(days: 1),
-                        'BirthDay'.hashCode, showTanawolNotification,
+                        'BirthDay'.hashCode, showBirthDayNotification,
                         exact: true,
                         startAt: DateTime(
                             DateTime.now().year,
