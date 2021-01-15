@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -8,16 +7,20 @@ import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:device_info/device_info.dart';
 import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    hide Person;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -521,6 +524,176 @@ void areaTap(Area area, BuildContext context) {
     return;
   }
   Navigator.of(context).pushNamed('AreaInfo', arguments: area);
+}
+
+void showConfessionNotification() async {
+  await Firebase.initializeApp();
+  var user = await User.getCurrentUser();
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('LastConfession', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where('LastConfession', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  }
+  await FlutterLocalNotificationsPlugin().show(
+      0,
+      'انذار الاعتراف',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+            'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
+            icon: 'warning',
+            autoCancel: false,
+            visibility: NotificationVisibility.secret,
+            showWhen: false),
+      ),
+      payload: 'Confessions');
+}
+
+void showTanawolNotification() async {
+  await Firebase.initializeApp();
+  var user = await User.getCurrentUser();
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('LastTanawol', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where('LastTanawol', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  }
+  await FlutterLocalNotificationsPlugin().show(
+      1,
+      'انذار التناول',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+            'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
+            icon: 'warning',
+            autoCancel: false,
+            visibility: NotificationVisibility.secret,
+            showWhen: false),
+      ),
+      payload: 'Tanawol');
+}
+
+void showBirthDayNotification() async {
+  await Firebase.initializeApp();
+  var user = await User.getCurrentUser();
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where(
+          'BirthDay',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day),
+          ),
+        )
+        .where(
+          'BirthDay',
+          isLessThan: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+          ),
+        )
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where(
+          'BirthDay',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day),
+          ),
+        )
+        .where(
+          'BirthDay',
+          isLessThan: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+          ),
+        )
+        .limit(20)
+        .get(source));
+  }
+  await FlutterLocalNotificationsPlugin().show(
+      2,
+      'أعياد الميلاد',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+            'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
+            icon: 'birthday',
+            autoCancel: false,
+            visibility: NotificationVisibility.secret,
+            showWhen: false),
+      ),
+      payload: 'Birthday');
+}
+
+Future onNotificationClicked(String payload) {
+  if (WidgetsBinding.instance.renderViewElement != null) {
+    processClickedNotification(mainScfld.currentContext, payload);
+  }
+  return null;
 }
 
 void changeTheme(
@@ -1235,30 +1408,24 @@ Future importArea(
 
 Future<dynamic> onForegroundMessage(Map<dynamic, dynamic> message,
     {bool foreground = true}) async {
-  if ((await settingsInstance).getStringList('Notifications') == null)
-    await (await settingsInstance).setStringList(
-      'Notifications',
-      [],
-    );
-  await (await settingsInstance).setStringList(
-    'Notifications',
-    (await settingsInstance).getStringList('Notifications')
-      ..add(
-        jsonEncode(message['data']),
-      ),
-  );
-  if (foreground)
-    ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
-      SnackBar(
-        content: Text(message['notification']['body']),
-        action: SnackBarAction(
-          label: 'فتح الاشعارات',
-          onPressed: () =>
-              Navigator.of(mainScfld.currentContext).pushNamed('Notifications'),
+  try {
+    print(await Hive.box<Map<dynamic, dynamic>>('Notifications').add(
+        (message['data'] as Map<dynamic, dynamic>).cast<String, dynamic>()));
+    if (foreground)
+      ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
+        SnackBar(
+          content: Text(message['notification']['body']),
+          action: SnackBarAction(
+            label: 'فتح الاشعارات',
+            onPressed: () => Navigator.of(mainScfld.currentContext)
+                .pushNamed('Notifications'),
+          ),
         ),
-      ),
-    );
-  return null;
+      );
+    return null;
+  } catch (e) {
+    print(e);
+  }
 }
 
 Future<dynamic> onMessage(Map<String, dynamic> message) async {
@@ -1283,86 +1450,91 @@ void personTap(Person person, BuildContext context) {
   Navigator.of(context).pushNamed('PersonInfo', arguments: person);
 }
 
-Future processClickedNotification(BuildContext context) async {
-  if (await notifChannel.invokeMethod('OpenedBirthdays')) {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '3',
-                'childIndex': '2',
-                'operatorIndex': '0',
-                'queryText': '',
-                'queryValue': 'T' +
-                    (now - (now % Duration.millisecondsPerDay)).toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'BirthDay'
-              });
-            },
-          ),
-        );
-      },
-    );
-  } else if (await notifChannel.invokeMethod('OpenedConfessions')) {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        int duration = (await settingsInstance).getInt('ConfessionsPInterval');
-        await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '3',
-                'childIndex': '15',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (duration ?? Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastConfession'
-              });
-            },
-          ),
-        );
-      },
-    );
-  } else if (await notifChannel.invokeMethod('OpenedTanawol')) {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        int duration = (await settingsInstance).getInt('TanawolPInterval');
-        await Future.delayed(Duration(milliseconds: 900), () => null);
-        await Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) {
-              var now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '3',
-                'childIndex': '14',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (duration ?? Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastTanawol'
-              });
-            },
-          ),
-        );
-      },
-    );
-  }
+Future processClickedNotification(BuildContext context,
+    [String payload]) async {
+  var notificationDetails =
+      await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
+
+  if (notificationDetails.didNotificationLaunchApp) {
+    if ((notificationDetails.payload ?? payload) == 'Birthday') {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) async {
+          await Future.delayed(Duration(milliseconds: 900), () => null);
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                var now = DateTime.now().millisecondsSinceEpoch;
+                return SearchQuery(query: {
+                  'parentIndex': '3',
+                  'childIndex': '2',
+                  'operatorIndex': '0',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      (now - (now % Duration.millisecondsPerDay)).toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'BirthDay'
+                });
+              },
+            ),
+          );
+        },
+      );
+    } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) async {
+          await Future.delayed(Duration(milliseconds: 900), () => null);
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                var now = DateTime.now().millisecondsSinceEpoch;
+                return SearchQuery(query: {
+                  'parentIndex': '3',
+                  'childIndex': '15',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastConfession'
+                });
+              },
+            ),
+          );
+        },
+      );
+    } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) async {
+          await Future.delayed(Duration(milliseconds: 900), () => null);
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) {
+                var now = DateTime.now().millisecondsSinceEpoch;
+                return SearchQuery(query: {
+                  'parentIndex': '3',
+                  'childIndex': '14',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastTanawol'
+                });
+              },
+            ),
+          );
+        },
+      );
+    }
+  } else
+    return;
 }
 
 Future processLink(Uri deepLink, BuildContext context) async {
@@ -1683,7 +1855,7 @@ Future showErrorDialog(BuildContext context, String message,
 Future showErrorUpdateDataDialog(
     {BuildContext context, bool pushApp = true}) async {
   if (pushApp ||
-      await (await settingsInstance).getInt('DialogLastShown') !=
+      Hive.box('Settings').get('DialogLastShown') !=
           tranucateToDay().millisecondsSinceEpoch) {
     await showDialog(
       context: context,
@@ -1735,8 +1907,8 @@ Future showErrorUpdateDataDialog(
         ],
       ),
     );
-    await (await settingsInstance)
-        .setInt('DialogLastShown', tranucateToDay().millisecondsSinceEpoch);
+    await Hive.box('Settings')
+        .put('DialogLastShown', tranucateToDay().millisecondsSinceEpoch);
   }
 }
 
