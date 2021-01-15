@@ -53,7 +53,7 @@ class Notification extends StatelessWidget {
     );
   }
 
-  static Notification fromMessage(Map<dynamic, dynamic> message,
+  static Notification fromMessage(Map<String, dynamic> message,
           [void Function() longPress]) =>
       Notification(
           message['type'],
