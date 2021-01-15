@@ -500,7 +500,7 @@ class _EditAreaState extends State<EditArea> {
       builder: (context) => DataDialog(
         content: ColorsList(
           selectedColor: area.color,
-          onSelect: (color, _) {
+          onSelect: (color) {
             Navigator.of(context).pop();
             setState(() {
               area.color = color;

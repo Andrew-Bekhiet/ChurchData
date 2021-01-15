@@ -1113,7 +1113,7 @@ class _EditPersonState extends State<EditPerson> {
       builder: (context) => DataDialog(
         content: ColorsList(
           selectedColor: person.color,
-          onSelect: (color, _) {
+          onSelect: (color) {
             Navigator.of(context).pop();
             setState(() {
               person.color = color;

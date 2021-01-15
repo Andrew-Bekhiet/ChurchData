@@ -419,7 +419,7 @@ class _EditStreetState extends State<EditStreet> {
       builder: (context) => DataDialog(
         content: ColorsList(
           selectedColor: street.color,
-          onSelect: (color, _) {
+          onSelect: (color) {
             Navigator.of(context).pop();
             setState(() {
               street.color = color;
