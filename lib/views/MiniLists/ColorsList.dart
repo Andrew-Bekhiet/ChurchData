@@ -17,15 +17,15 @@ class ColorsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (colors != null)
+    if (colors == null)
       return BlockPicker(
         pickerColor: selectedColor,
-        onColorChanged: (value) => onSelect,
+        onColorChanged: (v) => onSelect(v),
       );
     else
       return BlockPicker(
         pickerColor: selectedColor,
-        onColorChanged: (value) => onSelect,
+        onColorChanged: (v) => onSelect(v),
         availableColors: colors,
       );
   }
