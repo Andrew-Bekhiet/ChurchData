@@ -136,7 +136,7 @@ class MegaMap extends StatelessWidget {
                   ?.where((f) => f.locationPoint != null)
                   ?.map((f) => Marker(
                         onTap: () {
-                          ScaffoldMessenger.of(context);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(f.name),
