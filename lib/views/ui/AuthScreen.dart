@@ -80,7 +80,8 @@ class _AuthScreenState extends State<AuthScreen> {
               return FutureBuilder<bool>(
                 future: _authCompleter.future,
                 builder: (context, snapshot) {
-                  if (!_authCompleter.isCompleted || snapshot.data)
+                  if (!_authCompleter.isCompleted ||
+                      (snapshot.hasData && snapshot.data))
                     return Scaffold(
                       key: authKey,
                       resizeToAvoidBottomInset: !kIsWeb,
