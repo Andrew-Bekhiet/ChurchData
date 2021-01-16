@@ -53,6 +53,7 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
 
   @override
   void dispose() {
+    Hive.close();
     userTokenListener?.cancel();
     connectionListener?.cancel();
     authListener?.cancel();
@@ -619,6 +620,10 @@ class User extends DataObject with PhotoObject, ChangeNotifier {
                 (userPerson.lastConfession.millisecondsSinceEpoch +
                         5184000000) >=
                     DateTime.now().millisecondsSinceEpoch));
+  }
+
+  void reloadImage() {
+    _photoUrlCache.invalidate();
   }
 
   @override
