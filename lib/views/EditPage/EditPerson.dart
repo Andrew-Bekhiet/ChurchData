@@ -74,10 +74,12 @@ class _EditPersonState extends State<EditPerson> {
             SliverAppBar(
               actions: <Widget>[
                 IconButton(
-                    icon: IconShadowWidget(
-                      Icon(
-                        Icons.photo_camera,
-                        color: Theme.of(context).iconTheme.color,
+                    icon: Builder(
+                      builder: (context) => IconShadowWidget(
+                        Icon(
+                          Icons.photo_camera,
+                          color: IconTheme.of(context).color,
+                        ),
                       ),
                     ),
                     onPressed: () async {
@@ -145,18 +147,26 @@ class _EditPersonState extends State<EditPerson> {
               expandedHeight: 250.0,
               floating: false,
               pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  person.name,
-                  style: TextStyle(
-                    fontSize: 16.0,
-                  ),
-                ),
-                background: changedImage == null
-                    ? person.photo
-                    : Image.file(
-                        File(changedImage),
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) => FlexibleSpaceBar(
+                  title: AnimatedOpacity(
+                    duration: Duration(milliseconds: 300),
+                    opacity: constraints.biggest.height > kToolbarHeight * 1.7
+                        ? 0
+                        : 1,
+                    child: Text(
+                      person.name,
+                      style: TextStyle(
+                        fontSize: 16.0,
                       ),
+                    ),
+                  ),
+                  background: changedImage == null
+                      ? person.photo
+                      : Image.file(
+                          File(changedImage),
+                        ),
+                ),
               ),
             ),
           ];

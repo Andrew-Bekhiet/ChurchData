@@ -64,10 +64,12 @@ class _EditAreaState extends State<EditArea> {
             SliverAppBar(
               actions: <Widget>[
                 IconButton(
-                    icon: IconShadowWidget(
-                      Icon(
-                        Icons.photo_camera,
-                        color: Theme.of(context).iconTheme.color,
+                    icon: Builder(
+                      builder: (context) => IconShadowWidget(
+                        Icon(
+                          Icons.photo_camera,
+                          color: IconTheme.of(context).color,
+                        ),
                       ),
                     ),
                     onPressed: () async {
@@ -134,19 +136,28 @@ class _EditAreaState extends State<EditArea> {
               expandedHeight: 250.0,
               floating: false,
               pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  area.name,
-                  style: TextStyle(
-                    fontSize: 16.0,
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) => FlexibleSpaceBar(
+                  title: AnimatedOpacity(
+                    duration: Duration(milliseconds: 300),
+                    opacity: constraints.biggest.height > kToolbarHeight * 1.7
+                        ? 0
+                        : 1,
+                    child: Text(
+                      area.name,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                      ),
+                    ),
                   ),
+                  background: changedImage == null || deletePhoto
+                      ? area.photo
+                      : PhotoView(
+                          imageProvider: FileImage(
+                            File(changedImage),
+                          ),
+                        ),
                 ),
-                background: changedImage == null || deletePhoto
-                    ? area.photo
-                    : PhotoView(
-                        imageProvider: FileImage(
-                        File(changedImage),
-                      )),
               ),
             ),
           ];
@@ -473,7 +484,7 @@ class _EditAreaState extends State<EditArea> {
             area.getMap(),
           );
         }
-        ScaffoldMessenger.of(context);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
         Navigator.of(context).pop(area.ref);
       }
@@ -482,7 +493,7 @@ class _EditAreaState extends State<EditArea> {
           .setCustomKey('LastErrorIn', 'AreaP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Area', area.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
