@@ -255,7 +255,7 @@ class MapView extends StatelessWidget {
                           startCap: Cap.roundCap,
                           width: 5,
                           onTap: () {
-                            ScaffoldMessenger.of(context);
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 backgroundColor:
