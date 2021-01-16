@@ -86,6 +86,7 @@ ios/Flutter/flutter_export_environment.sh
 Logo.png
 ios/Runner/._GoogleService-Info.plist
 ios/Runner/GoogleService-Info.plist
+ios/Runner/AppDelegate.swift
 lib/EncryptionKeys.dart
 ios/Podfile2
 *.lock
