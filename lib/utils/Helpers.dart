@@ -558,19 +558,20 @@ void showConfessionNotification() async {
         .limit(20)
         .get(source));
   }
-  await FlutterLocalNotificationsPlugin().show(
-      0,
-      'انذار الاعتراف',
-      docs.docs.map((e) => e.data()['Name']).join(', '),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-            'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
-            icon: 'warning',
-            autoCancel: false,
-            visibility: NotificationVisibility.secret,
-            showWhen: false),
-      ),
-      payload: 'Confessions');
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        0,
+        'انذار الاعتراف',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
+              icon: 'warning',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Confessions');
 }
 
 void showTanawolNotification() async {
@@ -605,19 +606,20 @@ void showTanawolNotification() async {
         .limit(20)
         .get(source));
   }
-  await FlutterLocalNotificationsPlugin().show(
-      1,
-      'انذار التناول',
-      docs.docs.map((e) => e.data()['Name']).join(', '),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-            'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
-            icon: 'warning',
-            autoCancel: false,
-            visibility: NotificationVisibility.secret,
-            showWhen: false),
-      ),
-      payload: 'Tanawol');
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        1,
+        'انذار التناول',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
+              icon: 'warning',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Tanawol');
 }
 
 void showBirthDayNotification() async {
@@ -674,19 +676,20 @@ void showBirthDayNotification() async {
         .limit(20)
         .get(source));
   }
-  await FlutterLocalNotificationsPlugin().show(
-      2,
-      'أعياد الميلاد',
-      docs.docs.map((e) => e.data()['Name']).join(', '),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-            'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
-            icon: 'birthday',
-            autoCancel: false,
-            visibility: NotificationVisibility.secret,
-            showWhen: false),
-      ),
-      payload: 'Birthday');
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        2,
+        'أعياد الميلاد',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
+              icon: 'birthday',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Birthday');
 }
 
 Future onNotificationClicked(String payload) {
@@ -1928,7 +1931,7 @@ void showMessage(BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
-  String scndLine = await attachement.getSecondLine();
+  String scndLine = await attachement.getSecondLine() ?? '';
   var user = notification.from != ''
       ? await FirebaseFirestore.instance
           .doc('Users/${notification.from}')
