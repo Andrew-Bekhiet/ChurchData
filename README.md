@@ -1,6 +1,6 @@
 <div dir="rtl">
-  
-# بيانات الكنيسة
+
+# ![Logo](android\app\src\main\res\mipmap-mdpi\ic_launcher.png) بيانات الكنيسة
 تطبيق cross-platform يعمل بـ Flutter و Firebase لإدارة قاعدة بيانات الكنيسة
 ويمكن استخدامه في الافتقاد وإرسال تهنئات بأعياد ميلاد الأشخاص بالبيانات
 
