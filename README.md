@@ -1,6 +1,6 @@
 <div dir="rtl">
 
-# ![Logo](android\app\src\main\res\mipmap-mdpi\ic_launcher.png) بيانات الكنيسة
+# ![Logo](https://github.com/Andrew-Bekhiet/ChurchData/raw/master/android/app/src/main/res/mipmap-hdpi/ic_launcher.png) بيانات الكنيسة
 تطبيق cross-platform يعمل بـ Flutter و Firebase لإدارة قاعدة بيانات الكنيسة
 ويمكن استخدامه في الافتقاد وإرسال تهنئات بأعياد ميلاد الأشخاص بالبيانات
 
