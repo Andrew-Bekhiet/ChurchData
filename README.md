@@ -1,7 +1,15 @@
 <div dir="rtl">
+<center>
 
-# ![Logo](https://github.com/Andrew-Bekhiet/ChurchData/raw/master/android/app/src/main/res/mipmap-hdpi/ic_launcher.png) بيانات الكنيسة
-تطبيق cross-platform يعمل بـ Flutter و Firebase لإدارة قاعدة بيانات الكنيسة
+![Logo](https://github.com/Andrew-Bekhiet/ChurchData/raw/master/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png)
+
+</center>
+
+# بيانات الكنيسة
+بصلوات سيدنا الحبيب الأنبا سارافيم أسقف الإسماعيلية
+ تقدم كنيسة السيدة العذراء مريم بالإسماعيلية تطبيق "بيانات الكنيسة"
+
+وهو تطبيق cross-platform يعمل بـ Flutter و Firebase لإدارة قاعدة بيانات الكنيسة
 ويمكن استخدامه في الافتقاد وإرسال تهنئات بأعياد ميلاد الأشخاص بالبيانات
 
 ## الفهرس

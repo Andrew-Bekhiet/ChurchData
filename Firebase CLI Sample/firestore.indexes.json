@@ -1,0 +1,407 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Address",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Address",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "FatherLastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "FatherLastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Areas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Allowed",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Families",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Location",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Families",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Families",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "StreetId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FatherLastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Families",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "StreetId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Location",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Families",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "StreetId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FamilyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FamilyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Type",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FamilyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Type",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Persons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FatherLastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "FatherLastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LaastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "LastVisit",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Location",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Streets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "AreaId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ApproveLocations",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "Name",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "IsAdmin",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

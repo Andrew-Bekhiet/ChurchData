@@ -1,0 +1,163 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    function checkUserRegistered(){
+        return request.auth.uid != null && request.auth.token.approved && (request.auth.token.personRef == null || 
+        ((get(/databases/$(database)/documents/$(path(request.auth.token.personRef))).data.LastTanawol.toMillis() + 2592000000) > request.time.toMillis()
+          && (get(/databases/$(database)/documents/$(path(request.auth.token.personRef))).data.LastConfession.toMillis() + 5184000000) > request.time.toMillis()));
+    }
+
+    function canApproveLocations(){
+      return checkUserRegistered() && request.auth.token.approveLocations;
+    }
+    
+    function checkLocationConfirmed(){
+        return canApproveLocations() ||
+            (!request.resource.data.keys().hasAny(['Location']) && !request.resource.data.keys().hasAny(['LocationConfirmed']))
+            || (request.resource.data.keys().hasAny(['LocationConfirmed']) && (request.resource.data.LocationConfirmed == false || (request.resource.data.keys().hasAny(['Location']) && request.resource.data.Location == resource.data.Location && request.resource.data.LocationConfirmed == resource.data.LocationConfirmed)))
+            || (request.resource.data.keys().hasAny(['Location']) && request.resource.data.Location != resource.data.Location && request.resource.data.keys().hasAny(['LocationConfirmed']) && request.resource.data.LocationConfirmed == false);
+    }
+    
+    match /Areas{
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{area=**} {
+        allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
+        allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)  && request.auth.token.write;
+        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        allow create: if checkUserRegistered() && (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+      }
+    }
+    match /Streets {
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{street=**} {
+        allow read: if checkUserRegistered() &&
+          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
+        allow delete: if checkUserRegistered() &&
+          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
+        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        allow create: if checkUserRegistered() &&
+          (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+      }
+    }
+    match /Families {
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{family=**} {
+        allow read: if checkUserRegistered() &&
+          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
+        allow delete: if checkUserRegistered() &&
+          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
+        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        allow create: if checkUserRegistered() &&
+          (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+      }
+    }
+    match /Persons {
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{person=**} {
+        allow delete: if checkUserRegistered() &&
+          (request.auth.token.superAccess || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
+        allow read: if (checkUserRegistered() &&
+          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed))) ||
+          (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person[0]);
+        allow create, update: if (checkUserRegistered() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write) || (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person[0] && request.resource.data.LastEdit == request.auth.uid);
+      }
+    }
+    match /Users {
+      allow read: if checkUserRegistered();
+      allow write: if false;
+      match /null {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+      match /{user=**} {
+        allow write: if false;
+        allow read: if checkUserRegistered();
+      }
+    }
+    match /Types {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{type=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /Fathers {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{item=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /Jobs {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{item=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /StudyYears {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{item=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /Colleges {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{item=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /Churches {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{church=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+    match /States {
+      allow read: if checkUserRegistered();
+      allow write: if checkUserRegistered() && request.auth.token.superAccess;
+      match /{state=**} {
+        allow read: if checkUserRegistered();
+        allow write: if checkUserRegistered() && request.auth.token.superAccess;
+      }
+    }
+    match /ServingTypes {
+      allow write: if checkUserRegistered() && request.auth.token.write;
+      allow read: if request.auth.uid != null;
+      match /{sType=**} {
+        allow write: if checkUserRegistered() && request.auth.token.write;
+        allow read: if request.auth.uid != null;
+      }
+    }
+  }
+}

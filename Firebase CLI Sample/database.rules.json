@@ -1,0 +1,18 @@
+{
+    "rules": {
+        ".read": "false",
+        ".write": "false",
+        "Users": {
+            "$uid": {
+                "forceRefresh": {
+                    ".read": "$uid === auth.uid",
+                    ".write": "$uid === auth.uid"
+                },
+                "lastSeen": {
+                    ".read": "auth.uid !== null",
+                    ".write": "$uid === auth.uid"
+                }
+            }
+        }
+    }
+}
