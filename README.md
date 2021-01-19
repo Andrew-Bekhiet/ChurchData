@@ -159,7 +159,7 @@
 
 ## ⚒️ كيفية استخدام البرنامج (للكنيسة):
 >هذا القسم تبسيط لما يجب عمله في 
-[INSTALL.md](https://github.com/Andrew-Bekhiet/ChurchData/INSTALL.md)
+[INSTALL.md](https://github.com/Andrew-Bekhiet/ChurchData/blob/master/INSTALL.md)
 1. تنزيل الكود المصدري للبرنامج
 2. عمل بعض التعديلات على الكود لربط البرنامج بقاعدة بيانات الكنيسة المستهلكة
 3. عمل البرنامج وتحويل الكود إلى تطبيق اندرويد
