@@ -17,12 +17,14 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart' as open;
 import 'package:path_provider/path_provider.dart';
@@ -1409,40 +1411,46 @@ Future importArea(
   }
 }
 
-Future<dynamic> onForegroundMessage(Map<dynamic, dynamic> message,
-    {bool foreground = true}) async {
-  await Hive.box<Map<dynamic, dynamic>>('Notifications')
-      .add((message['data'] as Map<dynamic, dynamic>).cast<String, dynamic>());
-  if (foreground)
-    ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
-      SnackBar(
-        content: Text(message['notification']['body']),
-        action: SnackBarAction(
-          label: 'فتح الاشعارات',
-          onPressed: () =>
-              Navigator.of(mainScfld.currentContext).pushNamed('Notifications'),
-        ),
-      ),
-    );
-  return null;
+void showPendingMessage([BuildContext context]) async {
+  context ??= mainScfld.currentContext;
+  var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (pendingMessage != null) {
+    // ignore: unawaited_futures
+    Navigator.of(context).pushNamed('Notifications');
+    if (pendingMessage.data['type'] == 'Message')
+      await showMessage(
+        context,
+        no.Notification.fromMessage(pendingMessage.data),
+      );
+    else
+      await processLink(Uri.parse(pendingMessage.data['attachement']), context);
+  }
 }
 
-Future<dynamic> onMessage(Map<String, dynamic> message) async {
-  await onForegroundMessage(message, foreground: false);
-  try {
-    // ignore: unawaited_futures
-    Navigator.of(mainScfld.currentContext).pushNamed('Notifications');
-    pendingMessage['data']['type'] != 'Message'
-        ? processLink(Uri.parse(pendingMessage['data']['attachement']),
-            mainScfld.currentContext)
-        : showMessage(
-            mainScfld.currentContext,
-            no.Notification.fromMessage(pendingMessage['data']),
-          );
-  } catch (e) {
-    pendingMessage = message;
-  }
-  return null;
+void onForegroundMessage(RemoteMessage message, [BuildContext context]) async {
+  context ??= mainScfld.currentContext;
+  await storeNotification(message);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message.notification.body),
+      action: SnackBarAction(
+        label: 'فتح الاشعارات',
+        onPressed: () => Navigator.of(context).pushNamed('Notifications'),
+      ),
+    ),
+  );
+}
+
+Future<int> storeNotification(RemoteMessage message) async {
+  return await Hive.box<Map<dynamic, dynamic>>('Notifications')
+      .add(message.data);
+}
+
+Future<void> onBackgroundMessage(RemoteMessage message) async {
+  await Hive.initFlutter();
+  await Hive.openBox<Map>('Notifications');
+  await storeNotification(message);
+  await Hive.close();
 }
 
 void personTap(Person person, BuildContext context) {
