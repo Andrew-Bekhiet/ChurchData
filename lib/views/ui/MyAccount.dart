@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -83,7 +85,38 @@ class _MyAccountState extends State<MyAccount> {
                       );
                       if (source == null) return;
                       if (source == 'delete') {
-                        //TODO: showdialog
+                        if (await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                content: Text('هل تريد حذف الصورة؟'),
+                                actions: [
+                                  TextButton.icon(
+                                    icon: Icon(Icons.delete),
+                                    label: Text('حذف'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                  ),
+                                  TextButton(
+                                    child: Text('تراجع'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                  )
+                                ],
+                              ),
+                            ) ??
+                            false) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('جار التحميل'),
+                            duration: Duration(minutes: 2),
+                          ));
+                          await user.photoRef.putData(Uint8List(1024));
+                          user.reloadImage();
+                          setState(() {});
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text('تم بنجاح'),
+                          ));
+                        }
                         return;
                       }
                       if ((source &&
