@@ -14,6 +14,7 @@ import 'package:churchdata/views/utils/DataMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -37,6 +38,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
+import 'Models/HivePersistenceProvider.dart';
 import 'Models/OrderOptions.dart';
 import 'Models/ThemeNotifier.dart';
 import 'Models/User.dart';
@@ -122,16 +124,18 @@ Future _initConfigs() async {
   await Hive.initFlutter();
 
   await Hive.openBox('Settings');
+  await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
   await Hive.openBox<String>('PhotosURLsCache');
-  await Hive.openBox<Map>('Notifications');
 
   //Notifications:
-  await AndroidAlarmManager.initialize();
+  if (!kIsWeb) await AndroidAlarmManager.initialize();
 
-  await FlutterLocalNotificationsPlugin().initialize(
-      InitializationSettings(android: AndroidInitializationSettings('warning')),
-      onSelectNotification: onNotificationClicked);
+  if (!kIsWeb)
+    await FlutterLocalNotificationsPlugin().initialize(
+        InitializationSettings(
+            android: AndroidInitializationSettings('warning')),
+        onSelectNotification: onNotificationClicked);
 }
 
 class App extends StatefulWidget {
@@ -149,8 +153,9 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(
-      builder: (context, theme, _) => MaterialApp(
+    return FeatureDiscovery.withProvider(
+      persistenceProvider: HivePersistenceProvider(),
+      child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'بيانات الكنيسة',
         initialRoute: '/',
@@ -250,12 +255,13 @@ class AppState extends State<App> {
         supportedLocales: [
           Locale('ar', 'EG'),
         ],
-        themeMode: theme.getTheme().brightness == Brightness.dark
+        themeMode: context.watch<ThemeNotifier>().getTheme().brightness ==
+                Brightness.dark
             ? ThemeMode.dark
             : ThemeMode.light,
         locale: Locale('ar', 'EG'),
-        theme: theme.getTheme(),
-        darkTheme: theme.getTheme(),
+        theme: context.watch<ThemeNotifier>().getTheme(),
+        darkTheme: context.watch<ThemeNotifier>().getTheme(),
       ),
     );
   }
@@ -389,11 +395,11 @@ class AppState extends State<App> {
       } catch (e) {}
       try {
         bool permission =
-            await FirebaseMessaging().requestNotificationPermissions();
+            await FirebaseMessaging.instance.requestNotificationPermissions();
         if (permission == true || permission == null)
           await FirebaseFunctions.instance
               .httpsCallable('registerFCMToken')
-              .call({'token': await FirebaseMessaging().getToken()});
+              .call({'token': await FirebaseMessaging.instance.getToken()});
         if (permission == true || permission == null)
           await Hive.box('Settings').put('FCM_Token_Registered', true);
       } catch (err, stkTrace) {
@@ -404,11 +410,11 @@ class AppState extends State<App> {
       }
     }
     if (configureMessaging) {
-      FirebaseMessaging().configure(
-          onBackgroundMessage: onMessage,
-          onLaunch: onMessage,
-          onResume: onMessage,
-          onMessage: onForegroundMessage);
+      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
+      FirebaseMessaging.onMessage.listen(onForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen((m) async {
+        await showPendingMessage();
+      });
       configureMessaging = false;
     }
   }
