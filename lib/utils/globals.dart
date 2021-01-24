@@ -82,8 +82,6 @@ GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 
 var notifChannel = MethodChannel('com.AndroidQuartz.ChurchData/Notifications');
 
-Map<String, dynamic> pendingMessage;
-
 List<Color> primaries = <Color>[
   Colors.red,
   Colors.pink,
