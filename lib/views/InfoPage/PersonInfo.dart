@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:churchdata/Models.dart';
@@ -9,6 +10,7 @@ import 'package:churchdata/views/utils/CopiableProperty.dart';
 import 'package:churchdata/views/utils/DataObjectWidget.dart';
 import 'package:churchdata/views/utils/HistoryProperty.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
 import 'package:flutter_contact/contacts.dart';
@@ -31,17 +33,18 @@ class PersonInfo extends StatefulWidget {
 
 class _PersonInfoState extends State<PersonInfo> {
   Person person;
+  StreamSubscription<DocumentSnapshot> _listener;
+
+  final List<String> choices = [
+    'إضافة إلى جهات الاتصال',
+    'نسخ في لوحة الاتصال',
+    'إرسال رسالة',
+    'إرسال رسالة (واتساب)',
+    'ارسال إشعار للمستخدمين عن الشخص'
+  ];
 
   @override
   Widget build(BuildContext context) {
-    var choices = [
-      'إضافة إلى جهات الاتصال',
-      'نسخ في لوحة الاتصال',
-      'إرسال رسالة',
-      'إرسال رسالة (واتساب)',
-      'ارسال إشعار للمستخدمين عن الشخص'
-    ];
-
     return Scaffold(
       body: Selector<User, bool>(
         selector: (_, user) => user.write,
@@ -95,92 +98,131 @@ class _PersonInfoState extends State<PersonInfo> {
                       },
                       tooltip: 'مشاركة برابط',
                     ),
-                    PopupMenuButton(
-                      onSelected: (item) async {
-                        int i = choices.indexOf(item);
-                        if (i == 0) {
-                          if ((await Permission.contacts.request()).isGranted)
-                            await Contacts.addContact(
-                              Contact(givenName: person.name, phones: [
-                                Item(label: 'Mobile', value: person.phone)
-                              ]),
-                            );
-                        } else if (i == 1 && (person.phone ?? '') != '') {
-                          var result = await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              content: Text('هل تريد اجراء مكالمة الأن'),
-                              actions: [
-                                OutlinedButton.icon(
-                                  icon: Icon(Icons.call),
-                                  label: Text('اجراء مكالمة الأن'),
-                                  onPressed: () => Navigator.pop(context, true),
-                                ),
-                                TextButton.icon(
-                                  icon: Icon(Icons.dialpad),
-                                  label: Text('نسخ في لوحة الاتصال فقط'),
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                ),
-                              ],
+                    DescribedFeatureOverlay(
+                      onBackgroundTap: () async {
+                        await FeatureDiscovery.completeCurrentStep(context);
+                        return true;
+                      },
+                      onDismiss: () async {
+                        await FeatureDiscovery.completeCurrentStep(context);
+                        return true;
+                      },
+                      backgroundDismissible: true,
+                      contentLocation: ContentLocation.below,
+                      featureId: 'Person.MoreOptions',
+                      tapTarget: Icon(
+                        Icons.more_vert,
+                      ),
+                      title: Text('المزيد من الخيارات'),
+                      description: Column(
+                        children: <Widget>[
+                          Text(
+                              'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الشخص\ىنسخ في لوحة الاتصال\ىاضافة لجهات الاتصال\ىارسال رسالة\ىارسال رسالة من خلال الواتساب'),
+                          OutlinedButton(
+                            child: Text(
+                              'تخطي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
                             ),
-                          );
-                          if (result == null) return;
-                          if (result) {
-                            await Permission.phone.request();
-                            await FlutterPhoneState.startPhoneCall(
-                                    getPhone(person.phone, false))
-                                .done;
-                            var recordLastCall = await showDialog(
+                            onPressed: () =>
+                                FeatureDiscovery.completeCurrentStep(context),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Theme.of(context).accentColor,
+                      targetColor: Colors.transparent,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                      child: PopupMenuButton(
+                        onSelected: (item) async {
+                          int i = choices.indexOf(item);
+                          if (i == 0) {
+                            if ((await Permission.contacts.request()).isGranted)
+                              await Contacts.addContact(
+                                Contact(givenName: person.name, phones: [
+                                  Item(label: 'Mobile', value: person.phone)
+                                ]),
+                              );
+                          } else if (i == 1 && (person.phone ?? '') != '') {
+                            var result = await showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                content:
-                                    Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
+                                content: Text('هل تريد اجراء مكالمة الأن'),
                                 actions: [
-                                  TextButton(
-                                      child: Text('نعم'),
-                                      onPressed: () =>
-                                          Navigator.pop(context, true)),
-                                  TextButton(
-                                      child: Text('لا'),
-                                      onPressed: () =>
-                                          Navigator.pop(context, false)),
+                                  OutlinedButton.icon(
+                                    icon: Icon(Icons.call),
+                                    label: Text('اجراء مكالمة الأن'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                  ),
+                                  TextButton.icon(
+                                    icon: Icon(Icons.dialpad),
+                                    label: Text('نسخ في لوحة الاتصال فقط'),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                  ),
                                 ],
                               ),
                             );
-                            if (recordLastCall == true) {
-                              await person.ref.update({
-                                'LastEdit':
-                                    auth.FirebaseAuth.instance.currentUser.uid,
-                                'LastCall': Timestamp.now()
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('تم بنجاح'),
+                            if (result == null) return;
+                            if (result) {
+                              await Permission.phone.request();
+                              await FlutterPhoneState.startPhoneCall(
+                                      getPhone(person.phone, false))
+                                  .done;
+                              var recordLastCall = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  content:
+                                      Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
+                                  actions: [
+                                    TextButton(
+                                        child: Text('نعم'),
+                                        onPressed: () =>
+                                            Navigator.pop(context, true)),
+                                    TextButton(
+                                        child: Text('لا'),
+                                        onPressed: () =>
+                                            Navigator.pop(context, false)),
+                                  ],
                                 ),
                               );
-                            }
-                          } else
+                              if (recordLastCall == true) {
+                                await person.ref.update({
+                                  'LastEdit': auth
+                                      .FirebaseAuth.instance.currentUser.uid,
+                                  'LastCall': Timestamp.now()
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('تم بنجاح'),
+                                  ),
+                                );
+                              }
+                            } else
+                              await launch(
+                                  'tel://' + getPhone(person.phone, false));
+                          } else if (i == 2) {
                             await launch(
-                                'tel://' + getPhone(person.phone, false));
-                        } else if (i == 2) {
-                          await launch(
-                              'sms://' + getPhone(person.phone, false));
-                        } else if (i == 3) {
-                          await launch('whatsapp://send?phone=+' +
-                              getPhone(person.phone).replaceAll('+', ''));
-                        } else if (i == 4) {
-                          sendNotification(context, person);
-                        }
-                      },
-                      itemBuilder: (BuildContext context) {
-                        return choices.map((v) {
-                          return PopupMenuItem(
-                            value: v,
-                            child: Text(v),
-                          );
-                        }).toList();
-                      },
+                                'sms://' + getPhone(person.phone, false));
+                          } else if (i == 3) {
+                            await launch('whatsapp://send?phone=+' +
+                                getPhone(person.phone).replaceAll('+', ''));
+                          } else if (i == 4) {
+                            sendNotification(context, person);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) {
+                          return choices.map((v) {
+                            return PopupMenuItem(
+                              value: v,
+                              child: Text(v),
+                            );
+                          }).toList();
+                        },
+                      ),
                     ),
                   ],
                   expandedHeight: 250.0,
@@ -425,7 +467,7 @@ class _PersonInfoState extends State<PersonInfo> {
                               : LinearProgressIndicator(),
                         ),
                       ),
-                    EditHistoryProperty('أخر تعديل بواسطة:', person.lastEdit,
+                    EditHistoryProperty('أخر تحديث للبيانات:', person.lastEdit,
                         person.ref.collection('EditHistory')),
                   ],
                 ),
@@ -435,6 +477,26 @@ class _PersonInfoState extends State<PersonInfo> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _listener?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = widget.person.ref.snapshots().listen((event) {
+      person = Person.fromDocumentSnapshot(event);
+      if (mounted) setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      FeatureDiscovery.discoverFeatures(context, [
+        'Person.MoreOptions',
+      ]);
+    });
   }
 
   @override
