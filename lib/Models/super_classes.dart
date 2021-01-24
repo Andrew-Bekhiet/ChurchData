@@ -142,80 +142,75 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                   return Icon(widget.object.defaultIcon,
                       size: constrains.maxHeight);
                 else
-                  return Material(
-                    type: MaterialType.transparency,
-                    child: InkWell(
-                      child: !(widget.object is User)
-                          ? CachedNetworkImage(
-                              memCacheHeight:
-                                  (constrains.maxHeight * 4).toInt(),
-                              imageRenderMethodForWeb:
-                                  ImageRenderMethodForWeb.HtmlImage,
-                              imageUrl: data.data,
-                              progressIndicatorBuilder:
-                                  (context, url, progress) =>
-                                      CircularProgressIndicator(
-                                          value: progress.progress),
-                            )
-                          : StreamBuilder(
-                              stream: FirebaseDatabase.instance
-                                  .reference()
-                                  .child(
-                                      'Users/${(widget.object as User).uid}/lastSeen')
-                                  .onValue,
-                              builder: (context, activity) {
-                                if (activity.data?.snapshot?.value == 'Active')
-                                  return Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        child: CircleAvatar(
-                                          backgroundImage:
-                                              CachedNetworkImageProvider(
-                                                  data.data),
+                  return GestureDetector(
+                    child: !(widget.object is User)
+                        ? CachedNetworkImage(
+                            memCacheHeight: (constrains.maxHeight * 4).toInt(),
+                            imageRenderMethodForWeb:
+                                ImageRenderMethodForWeb.HtmlImage,
+                            imageUrl: data.data,
+                            progressIndicatorBuilder:
+                                (context, url, progress) =>
+                                    CircularProgressIndicator(
+                                        value: progress.progress),
+                          )
+                        : StreamBuilder(
+                            stream: FirebaseDatabase.instance
+                                .reference()
+                                .child(
+                                    'Users/${(widget.object as User).uid}/lastSeen')
+                                .onValue,
+                            builder: (context, activity) {
+                              if (activity.data?.snapshot?.value == 'Active')
+                                return Stack(
+                                  children: [
+                                    Positioned.fill(
+                                      child: CircleAvatar(
+                                        backgroundImage:
+                                            CachedNetworkImageProvider(
+                                                data.data),
+                                      ),
+                                    ),
+                                    Align(
+                                      child: Container(
+                                        height: 15,
+                                        width: 15,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(30),
+                                          border:
+                                              Border.all(color: Colors.white),
+                                          color: Colors.greenAccent,
                                         ),
                                       ),
-                                      Align(
-                                        child: Container(
-                                          height: 15,
-                                          width: 15,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            border:
-                                                Border.all(color: Colors.white),
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                        alignment: Alignment.bottomLeft,
-                                      ),
-                                    ],
-                                  );
-                                else
-                                  return CircleAvatar(
-                                    backgroundImage:
-                                        CachedNetworkImageProvider(data.data),
-                                  );
-                              },
+                                      alignment: Alignment.bottomLeft,
+                                    ),
+                                  ],
+                                );
+                              else
+                                return CircleAvatar(
+                                  backgroundImage:
+                                      CachedNetworkImageProvider(data.data),
+                                );
+                            },
+                          ),
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        child: Hero(
+                          tag:
+                              widget.heroTag ?? widget.object.photoRef.fullPath,
+                          child: CachedNetworkImage(
+                            imageUrl: data.data,
+                            imageBuilder: (context, imageProvider) => PhotoView(
+                              imageProvider: imageProvider,
+                              tightMode: true,
+                              enableRotation: true,
                             ),
-                      onTap: () => showDialog(
-                        context: context,
-                        builder: (context) => Dialog(
-                          child: Hero(
-                            tag: widget.heroTag ??
-                                widget.object.photoRef.fullPath,
-                            child: CachedNetworkImage(
-                              imageUrl: data.data,
-                              imageBuilder: (context, imageProvider) =>
-                                  PhotoView(
-                                imageProvider: imageProvider,
-                                tightMode: true,
-                                enableRotation: true,
-                              ),
-                              progressIndicatorBuilder:
-                                  (context, url, progress) =>
-                                      CircularProgressIndicator(
-                                          value: progress.progress),
-                            ),
+                            progressIndicatorBuilder:
+                                (context, url, progress) =>
+                                    CircularProgressIndicator(
+                                        value: progress.progress),
                           ),
                         ),
                       ),

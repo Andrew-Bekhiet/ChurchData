@@ -42,57 +42,16 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return wrapInCard
-        ? Card(
-            color: _getColor(context),
-            child: ListTile(
-              dense: isDense,
-              onLongPress: onLongPress,
-              onTap: onTap ?? () => dataObjectTap(current, context),
-              trailing: trailing,
-              title: title ?? Text(current.name),
-              subtitle: showSubtitle
-                  ? subtitle ??
-                          Hive.box('Settings')
-                                  .get(_getTName() + 'SecondLine') !=
-                              null
-                      ? FutureBuilder(
-                          future: _memoizer.runOnce(
-                              () async => await current.getSecondLine()),
-                          builder: (cont, subT) {
-                            if (subT.hasData) {
-                              return Text(subT.data ?? '',
-                                  maxLines: 1, overflow: TextOverflow.ellipsis);
-                            } else {
-                              return LinearProgressIndicator(
-                                  backgroundColor:
-                                      current.color != Colors.transparent
-                                          ? current.color
-                                          : null,
-                                  valueColor: AlwaysStoppedAnimation(
-                                      current.color != Colors.transparent
-                                          ? current.color
-                                          : Theme.of(context).primaryColor));
-                            }
-                          },
-                        )
-                      : null
-                  : null,
-              leading: photo ??
-                  (current is PhotoObject
-                      ? (current as PhotoObject).photo
-                      : null),
-            ),
-          )
-        : ListTile(
-            dense: isDense,
-            onLongPress: onLongPress,
-            onTap: onTap ?? () => dataObjectTap(current, context),
-            trailing: trailing,
-            title: title ?? Text(current.name),
-            subtitle: showSubtitle
-                ? subtitle ??
-                    FutureBuilder(
+    final tile = ListTile(
+      dense: isDense,
+      onLongPress: onLongPress,
+      onTap: onTap ?? () => dataObjectTap(current, context),
+      trailing: trailing,
+      title: title ?? Text(current.name),
+      subtitle: showSubtitle
+          ? (subtitle ??
+              (Hive.box('Settings').get(_getTName() + 'SecondLine') != null
+                  ? FutureBuilder(
                       future: _memoizer
                           .runOnce(() async => await current.getSecondLine()),
                       builder: (cont, subT) {
@@ -112,12 +71,12 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                         }
                       },
                     )
-                : null,
-            leading: photo ??
-                (current is PhotoObject
-                    ? (current as PhotoObject).photo
-                    : null),
-          );
+                  : null))
+          : null,
+      leading: photo ??
+          (current is PhotoObject ? (current as PhotoObject).photo : null),
+    );
+    return wrapInCard ? Card(color: _getColor(context), child: tile) : tile;
   }
 
   Color _getColor(BuildContext context) {
