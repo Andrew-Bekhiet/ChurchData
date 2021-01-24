@@ -76,11 +76,16 @@ abstract class PhotoObject {
   Widget get photo {
     return DataObjectPhoto(this);
   }
+
+  Widget photoWithHero(Object heroTag) {
+    return DataObjectPhoto(this, heroTag: heroTag);
+  }
 }
 
 class DataObjectPhoto extends StatefulWidget {
   final PhotoObject object;
-  const DataObjectPhoto(this.object, {Key key}) : super(key: key);
+  final Object heroTag;
+  const DataObjectPhoto(this.object, {Key key, this.heroTag}) : super(key: key);
 
   @override
   _DataObjectPhotoState createState() => _DataObjectPhotoState();
@@ -106,7 +111,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
         if (!widget.object.hasPhoto)
           return Icon(widget.object.defaultIcon, size: constrains.maxHeight);
         return Hero(
-          tag: widget.object.photoRef.fullPath,
+          tag: widget.heroTag ?? widget.object.photoRef.fullPath,
           child: ConstrainedBox(
             constraints: BoxConstraints.expand(
                 height: constrains.maxHeight, width: constrains.maxHeight),
@@ -196,7 +201,8 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                         context: context,
                         builder: (context) => Dialog(
                           child: Hero(
-                            tag: widget.object.photoRef.fullPath,
+                            tag: widget.heroTag ??
+                                widget.object.photoRef.fullPath,
                             child: CachedNetworkImage(
                               imageUrl: data.data,
                               imageBuilder: (context, imageProvider) =>

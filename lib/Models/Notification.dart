@@ -1,3 +1,4 @@
+import 'package:churchdata/Models/super_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -33,7 +34,8 @@ class Notification extends StatelessWidget {
                     ? snapshot.data.getPhoto()
                     : snapshot.data is MessageIcon
                         ? snapshot.data
-                        : snapshot.data.photo
+                        : (snapshot.data as PhotoObject)
+                            .photoWithHero(snapshot.data)
                 : CircularProgressIndicator(),
             title: Text(title),
             subtitle: Text(
