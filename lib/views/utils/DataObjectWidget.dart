@@ -1,7 +1,9 @@
 import 'package:async/async.dart';
+import 'package:churchdata/Models.dart';
 import 'package:churchdata/Models/super_classes.dart';
 import 'package:churchdata/utils/Helpers.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 class DataObjectWidget<T extends DataObject> extends StatelessWidget {
@@ -30,6 +32,14 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       this.photo,
       this.showSubtitle = true});
 
+  String _getTName() {
+    if (T == Area) return 'Area';
+    if (T == Street) return 'Street';
+    if (T == Family) return 'Family';
+    if (T == Person) return 'Person';
+    throw UnimplementedError();
+  }
+
   @override
   Widget build(BuildContext context) {
     return wrapInCard
@@ -43,26 +53,30 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
               title: title ?? Text(current.name),
               subtitle: showSubtitle
                   ? subtitle ??
-                      FutureBuilder(
-                        future: _memoizer
-                            .runOnce(() async => await current.getSecondLine()),
-                        builder: (cont, subT) {
-                          if (subT.hasData) {
-                            return Text(subT.data ?? '',
-                                maxLines: 1, overflow: TextOverflow.ellipsis);
-                          } else {
-                            return LinearProgressIndicator(
-                                backgroundColor:
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : null,
-                                valueColor: AlwaysStoppedAnimation(
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : Theme.of(context).primaryColor));
-                          }
-                        },
-                      )
+                          Hive.box('Settings')
+                                  .get(_getTName() + 'SecondLine') !=
+                              null
+                      ? FutureBuilder(
+                          future: _memoizer.runOnce(
+                              () async => await current.getSecondLine()),
+                          builder: (cont, subT) {
+                            if (subT.hasData) {
+                              return Text(subT.data ?? '',
+                                  maxLines: 1, overflow: TextOverflow.ellipsis);
+                            } else {
+                              return LinearProgressIndicator(
+                                  backgroundColor:
+                                      current.color != Colors.transparent
+                                          ? current.color
+                                          : null,
+                                  valueColor: AlwaysStoppedAnimation(
+                                      current.color != Colors.transparent
+                                          ? current.color
+                                          : Theme.of(context).primaryColor));
+                            }
+                          },
+                        )
+                      : null
                   : null,
               leading: photo ??
                   (current is PhotoObject

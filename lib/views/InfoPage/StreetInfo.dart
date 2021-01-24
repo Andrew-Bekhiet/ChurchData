@@ -139,7 +139,9 @@ class _StreetInfoState extends State<StreetInfo> {
                           'تاريخ أخر زيارة (لللأب الكاهن):',
                           street.fatherLastVisit,
                           street.ref.collection('FatherVisitHistory')),
-                      EditHistoryProperty('أخر تعديل بواسطة:', street.lastEdit,
+                      EditHistoryProperty(
+                          'أخر تحديث للبيانات:',
+                          street.lastEdit,
                           street.ref.collection('EditHistory')),
                       Divider(thickness: 1),
                       ListTile(

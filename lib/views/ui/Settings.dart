@@ -330,7 +330,7 @@ class SettingsState extends State<Settings> {
                 Selector<User, Map<String, bool>>(
                     selector: (_, user) => user.getNotificationsPermissions(),
                     builder: (context, permission, _) {
-                      if (permission.containsValue(true)) {
+                      if (permission.containsValue(true) && !kIsWeb) {
                         return ExpandablePanel(
                           theme: ExpandableThemeData(
                               useInkWell: true,

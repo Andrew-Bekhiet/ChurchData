@@ -208,57 +208,58 @@ class _LoginScreenState extends State<LoginScreen> {
       settings.get('PersonSecondLine') ??
           await settings.put('PersonSecondLine', 'Type');
 
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) async {
-          if (user
-              .getNotificationsPermissions()
-              .values
-              .toList()
-              .any((e) => e)) {
-            var notificationsSettings =
-                Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
-            if (user.confessionsNotify) {
-              if (notificationsSettings.get('ConfessionTime') == null) {
-                await notificationsSettings.put('ConfessionTime',
-                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+      if (!kIsWeb)
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) async {
+            if (user
+                .getNotificationsPermissions()
+                .values
+                .toList()
+                .any((e) => e)) {
+              var notificationsSettings =
+                  Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
+              if (user.confessionsNotify) {
+                if (notificationsSettings.get('ConfessionTime') == null) {
+                  await notificationsSettings.put('ConfessionTime',
+                      <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+                }
+                await AndroidAlarmManager.periodic(Duration(days: 7),
+                    'Confessions'.hashCode, showConfessionNotification,
+                    exact: true,
+                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                        DateTime.now().day, 11),
+                    rescheduleOnReboot: true);
               }
-              await AndroidAlarmManager.periodic(Duration(days: 7),
-                  'Confessions'.hashCode, showConfessionNotification,
-                  exact: true,
-                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                      DateTime.now().day, 11),
-                  rescheduleOnReboot: true);
-            }
 
-            if (user.tanawolNotify) {
-              if (notificationsSettings.get('TanawolTime') == null) {
-                await notificationsSettings.put('TanawolTime',
-                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+              if (user.tanawolNotify) {
+                if (notificationsSettings.get('TanawolTime') == null) {
+                  await notificationsSettings.put('TanawolTime',
+                      <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+                }
+                await AndroidAlarmManager.periodic(Duration(days: 7),
+                    'Tanawol'.hashCode, showTanawolNotification,
+                    exact: true,
+                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                        DateTime.now().day, 11),
+                    rescheduleOnReboot: true);
               }
-              await AndroidAlarmManager.periodic(Duration(days: 7),
-                  'Tanawol'.hashCode, showTanawolNotification,
-                  exact: true,
-                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                      DateTime.now().day, 11),
-                  rescheduleOnReboot: true);
-            }
 
-            if (user.birthdayNotify) {
-              if (notificationsSettings.get('BirthDayTime') == null) {
-                await notificationsSettings.put(
-                    'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
+              if (user.birthdayNotify) {
+                if (notificationsSettings.get('BirthDayTime') == null) {
+                  await notificationsSettings.put(
+                      'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
+                }
+                await AndroidAlarmManager.periodic(Duration(days: 1),
+                    'BirthDay'.hashCode, showBirthDayNotification,
+                    exact: true,
+                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
+                        DateTime.now().day, 11),
+                    wakeup: true,
+                    rescheduleOnReboot: true);
               }
-              await AndroidAlarmManager.periodic(Duration(days: 1),
-                  'BirthDay'.hashCode, showBirthDayNotification,
-                  exact: true,
-                  startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                      DateTime.now().day, 11),
-                  wakeup: true,
-                  rescheduleOnReboot: true);
             }
-          }
-        },
-      );
+          },
+        );
       return true;
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance

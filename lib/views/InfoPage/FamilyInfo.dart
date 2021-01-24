@@ -171,7 +171,9 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           'تاريخ أخر زيارة (لللأب الكاهن):',
                           family.fatherLastVisit,
                           family.ref.collection('FatherVisitHistory')),
-                      EditHistoryProperty('أخر تعديل بواسطة:', family.lastEdit,
+                      EditHistoryProperty(
+                          'أخر تحديث للبيانات:',
+                          family.lastEdit,
                           family.ref.collection('EditHistory')),
                       Divider(thickness: 1),
                       ListTile(
