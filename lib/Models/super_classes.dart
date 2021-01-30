@@ -74,11 +74,13 @@ abstract class PhotoObject {
   Reference get photoRef;
 
   Widget get photo {
-    return DataObjectPhoto(this);
+    return DataObjectPhoto(this,
+        key: hasPhoto ? ValueKey(photoRef?.fullPath) : null);
   }
 
   Widget photoWithHero(Object heroTag) {
-    return DataObjectPhoto(this, heroTag: heroTag);
+    return DataObjectPhoto(this,
+        key: hasPhoto ? ValueKey(photoRef?.fullPath) : null, heroTag: heroTag);
   }
 }
 
