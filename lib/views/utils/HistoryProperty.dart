@@ -153,22 +153,23 @@ class EditHistoryProperty extends StatelessWidget {
                             flex: 5,
                             child: Text(future.data[0].data()['Name']),
                           ),
-                          Flexible(
-                            flex: 5,
-                            child: Text(
-                                DateFormat(
-                                        showTime
-                                            ? 'yyyy/M/d   h:m a'
-                                            : 'yyyy/M/d',
-                                        'ar-EG')
-                                    .format(
-                                  (future.data[1] as QuerySnapshot)
-                                      .docs[0]
-                                      .data()['Time']
-                                      .toDate(),
-                                ),
-                                style: Theme.of(context).textTheme.overline),
-                          ),
+                          if ((future.data[1] as QuerySnapshot).docs.isNotEmpty)
+                            Flexible(
+                              flex: 5,
+                              child: Text(
+                                  DateFormat(
+                                          showTime
+                                              ? 'yyyy/M/d   h:m a'
+                                              : 'yyyy/M/d',
+                                          'ar-EG')
+                                      .format(
+                                    (future.data[1] as QuerySnapshot)
+                                        .docs[0]
+                                        .data()['Time']
+                                        .toDate(),
+                                  ),
+                                  style: Theme.of(context).textTheme.overline),
+                            ),
                         ],
                       )
                     : LinearProgressIndicator();

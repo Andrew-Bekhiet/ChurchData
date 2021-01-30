@@ -40,14 +40,25 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
     throw UnimplementedError();
   }
 
+  String _getArabicTName() {
+    if (T == Area) return 'المنطقة';
+    if (T == Street) return 'الشارع';
+    if (T == Family) return 'العائلة';
+    if (T == Person) return 'الشخص';
+    throw UnimplementedError();
+  }
+
   @override
   Widget build(BuildContext context) {
     final tile = ListTile(
       dense: isDense,
       onLongPress: onLongPress,
-      onTap: onTap ?? () => dataObjectTap(current, context),
+      onTap: current.name != null
+          ? (onTap ?? () => dataObjectTap(current, context))
+          : null,
       trailing: trailing,
-      title: title ?? Text(current.name),
+      title: title ??
+          Text(current.name ?? 'حدث خطأ: لا يمكن إيجاد $_getArabicTName()'),
       subtitle: showSubtitle
           ? (subtitle ??
               (Hive.box('Settings').get(_getTName() + 'SecondLine') != null
