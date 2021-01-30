@@ -296,7 +296,7 @@ class AppState extends State<App> {
             }
 
             if (user.approved) {
-              return AuthScreen(nextWidget: Root());
+              return AuthScreen(nextWidget: const Root());
             } else {
               WidgetsBinding.instance.addPostFrameCallback((_) async {
                 if (user.personRef == null && !showFormOnce) {
