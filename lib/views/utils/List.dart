@@ -43,40 +43,25 @@ class _InnerList<T extends DataObject> extends StatefulWidget {
 }
 
 class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
-  StreamSubscription<bool> selectAllListener;
+  StreamSubscription<bool> _selectAllListener;
+  List<DocumentSnapshot> _documentsData;
+  String _oldFilter = '';
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<ListOptions<T>, SearchString>(
-      builder: (context, options, filter, child) {
-        List<DocumentSnapshot> documentData = options.items.sublist(0);
-        if (filter.value != '')
-          documentData.retainWhere((element) => element
-              .data()['Name']
-              .toLowerCase()
-              .replaceAll(
-                  RegExp(
-                    r'[أإآ]',
-                  ),
-                  'ا')
-              .replaceAll(
-                  RegExp(
-                    r'[ى]',
-                  ),
-                  'ي')
-              .contains(filter.value));
-        if ((options.cache?.length ?? 0) != (documentData?.length ?? 0))
-          options.cache = List<AsyncMemoizer<String>>.generate(
-              documentData?.length ?? 0, (_) => AsyncMemoizer<String>());
+    return Consumer<ListOptions<T>>(
+      builder: (context, options, child) {
+        if (_oldFilter == '' && options.items.length != _documentsData.length)
+          _requery(false);
         return ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 6),
-          addAutomaticKeepAlives: (documentData?.length ?? 0) < 300,
+          addAutomaticKeepAlives: (_documentsData?.length ?? 0) < 300,
           cacheExtent: 200,
-          itemCount: (documentData?.length ?? 0) + 1,
+          itemCount: (_documentsData?.length ?? 0) + 1,
           itemBuilder: (context, i) {
-            if (i == documentData.length)
+            if (i == _documentsData.length)
               return Container(height: MediaQuery.of(context).size.height / 19);
-            var current = options.generate(documentData[i]);
+            var current = options.generate(_documentsData[i]);
             return DataObjectWidget(
               current,
               onLongPress: () async {
@@ -250,10 +235,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                             }
                           },
                         )
-                      : Container(
-                          height: 1,
-                          width: 1,
-                        ))
+                      : null)
                   : Checkbox(
                       value: options.selected.contains(current),
                       onChanged: (v) {
@@ -266,7 +248,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                         });
                       }),
               subtitle: FutureBuilder(
-                future: options.cache[i]
+                future: options.cache[current.id]
                     .runOnce(() async => await current.getSecondLine()),
                 builder: (cont, subT) {
                   if (subT.connectionState == ConnectionState.done) {
@@ -293,39 +275,81 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
 
   @override
   void dispose() {
-    selectAllListener.cancel();
+    _selectAllListener?.cancel();
     super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
-    selectAllListener = selectAllListener ??
-        context
-            .read<OrderOptions>()
-            .selectAllOf<T>()
-            .stream
-            .asBroadcastStream()
-            .listen((bool event) {
-          context.read<ListOptions<T>>().changeSelectionMode(true);
-          if (event) {
-            context.read<ListOptions<T>>().selected = context
-                .read<ListOptions<T>>()
-                .items
-                .map((e) => context.read<ListOptions<T>>().generate(e))
-                .toList()
-                .cast<T>();
-            if (context.read<SearchString>().value != '')
-              context.read<ListOptions<T>>().selected.retainWhere((T element) =>
-                  element.name.contains(context.read<SearchString>().value));
-          } else {
-            context.read<ListOptions<T>>().selected = <T>[];
-          }
-          setState(() {});
-        });
-    context.read<ListOptions<T>>().cache = List<AsyncMemoizer<String>>.generate(
-        context.read<ListOptions<T>>().items?.length ?? 0,
-        (_) => AsyncMemoizer<String>());
+    _selectAllListener ??= context
+        .read<OrderOptions>()
+        .selectAllOf<T>()
+        .stream
+        .asBroadcastStream()
+        .listen((bool event) {
+      context.read<ListOptions<T>>().changeSelectionMode(true);
+      if (event) {
+        context.read<ListOptions<T>>().selected = context
+            .read<ListOptions<T>>()
+            .items
+            .map((e) => context.read<ListOptions<T>>().generate(e))
+            .toList()
+            .cast<T>();
+        if (context.read<SearchString>().value != '')
+          context.read<ListOptions<T>>().selected.retainWhere((T element) =>
+              element.name.contains(context.read<SearchString>().value));
+      } else {
+        context.read<ListOptions<T>>().selected = <T>[];
+      }
+      setState(() {});
+    });
+    context.read<SearchString>().addListener(_requery);
+    _requery();
+  }
+
+  void _requery([bool rebuild = true]) {
+    if (!mounted) return;
+    String filter = context.read<SearchString>().value;
+    if (filter.isNotEmpty) {
+      if (_oldFilter.length < filter.length && filter.startsWith(_oldFilter))
+        _documentsData = _documentsData
+            .where((d) => (d.data()['Name'] as String)
+                .toLowerCase()
+                .replaceAll(
+                    RegExp(
+                      r'[أإآ]',
+                    ),
+                    'ا')
+                .replaceAll(
+                    RegExp(
+                      r'[ى]',
+                    ),
+                    'ي')
+                .contains(filter))
+            .toList();
+      else
+        _documentsData = context
+            .read<ListOptions<T>>()
+            .items
+            .where((d) => (d.data()['Name'] as String)
+                .toLowerCase()
+                .replaceAll(
+                    RegExp(
+                      r'[أإآ]',
+                    ),
+                    'ا')
+                .replaceAll(
+                    RegExp(
+                      r'[ى]',
+                    ),
+                    'ي')
+                .contains(filter))
+            .toList();
+    } else
+      _documentsData = context.read<ListOptions<T>>().items;
+    _oldFilter = filter;
+    if (rebuild) setState(() {});
   }
 }
 
@@ -334,12 +358,15 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   @override
   bool get wantKeepAlive => mounted;
 
+  AsyncCache<Stream<QuerySnapshot>> dataCache =
+      AsyncCache<Stream<QuerySnapshot>>(Duration(minutes: 5));
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     if (widget.options.documentsData != null)
       return FutureBuilder<Stream<QuerySnapshot>>(
-        future: widget.options.documentsData(),
+        future: dataCache.fetch(widget.options.documentsData),
         builder: (context, future) {
           if (future.hasError) return Center(child: ErrorWidget(future.error));
           if (!future.hasData)
@@ -409,6 +436,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   ),
                 ),
                 onRefresh: () {
+                  dataCache.invalidate();
                   setState(() {});
                   return widget.options.documentsData();
                 },

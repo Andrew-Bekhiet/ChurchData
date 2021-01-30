@@ -52,10 +52,10 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   Future<List<QueryDocumentSnapshot>> Function() familyData;
 
   List<T> selected = <T>[];
-  List<AsyncMemoizer<String>> cache = <AsyncMemoizer<String>>[];
+  Map<String, AsyncMemoizer<String>> cache = {};
 
   final void Function(T, BuildContext) tap;
-  final DataObject Function(DocumentSnapshot) generate;
+  covariant DataObject Function(DocumentSnapshot) generate;
   final T empty;
 
   final Widget floatingActionButton;
@@ -81,14 +81,14 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
         assert(showNull == false || (showNull == true && empty != null)) {
     this.isAdmin = isAdmin ?? User().superAccess ?? false;
     if (items != null && (cache?.length ?? 0) != items.length) {
-      cache = List.generate(items.length, (_) => AsyncMemoizer<String>());
+      cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
     }
   }
 
   void changeItems(List<DocumentSnapshot> items) {
     this.items = items;
     if (items != null && (cache?.length ?? 0) != items.length) {
-      cache = List.generate(items.length, (_) => AsyncMemoizer<String>());
+      cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
     }
     notifyListeners();
   }
