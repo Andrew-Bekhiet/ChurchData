@@ -2,6 +2,9 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import { FieldValue, Timestamp } from '@google-cloud/firestore';
 import * as download from 'download';
+import * as tools from 'firebase-tools';
+import * as xlsx from 'xlsx';
+import FirebaseFirestore = require('@google-cloud/firestore');
 
 admin.initializeApp();
 
@@ -23,9 +26,18 @@ exports.doBackupFirestoreData = functions.pubsub.schedule('0 0 * * 0').onRun(asy
         outputUriPrefix: `gs://${projectId}/${timestamp}`,
         collectionIds: [],
     })
-        .then(responses => {
+        .then(async responses => {
             const response = responses[0];
             console.log(`Operation Name: ${response['name']}`);
+            if (new Date().getDate() <= 7) {
+                await admin.storage().bucket().deleteFiles({prefix:'Exports/{export}'})
+                return await tools.firestore
+                    .delete('Deleted', {
+                        project: process.env.GCLOUD_PROJECT,
+                        recursive: true,
+                        yes: true,
+                    });
+            }
             return responses;
         })
         .catch(err => {
@@ -48,6 +60,188 @@ exports.migrateTypesToDocRefs = functions.https.onCall(async (data, context) => 
     }
     return await pendingChanges.commit();
 });
+
+exports.exportToExcel = functions.runWith({memory:'512MB', timeoutSeconds:540}).https.onCall(async (data, context) => {
+    if (context.auth === undefined) {
+        throw new functions.https.HttpsError("unauthenticated", '');
+    }
+    const currentUser = await admin.auth().getUser(context.auth.uid);
+    if (!(currentUser.customClaims.approved && currentUser.customClaims.exportAreas)) {
+        throw new functions.https.HttpsError("permission-denied", 'Must be approved user with "Export Areas" permission');
+    }
+
+    let area: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData>;
+    if(data?.onlyArea){
+        assertNotEmpty('onlyArea', data?.onlyArea, typeof '');
+        area = await admin.firestore().collection('Areas').doc(data?.onlyArea).get();
+        if (!currentUser.customClaims.superAccess) {
+            if(!area.exists || !(area.data().Allowed as string[]).includes(currentUser.uid))throw new functions.https.HttpsError("permission-denied", "User doesn't have permission to export the required area");
+        }
+    }
+
+    console.log('Starting export operation from user: ' + context.auth.uid + ' for ' + (data?.onlyArea ? 'area: ' + data?.onlyArea : 'all data avaliable for the user'));
+
+    const users = (await admin.firestore().collection('Users').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    
+    const studyYears = (await admin.firestore().collection('StudyYears').get()).docs.reduce((map, obj) => { map[obj.id] = obj.data().Name ?? '(غير معروف)'; return map; });
+    const colleges = (await admin.firestore().collection('Colleges').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const jobs = (await admin.firestore().collection('Jobs').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const types = (await admin.firestore().collection('Types').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const churches = (await admin.firestore().collection('Churches').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const cfathers = (await admin.firestore().collection('Fathers').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const states = (await admin.firestore().collection('States').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    const servingTypes = (await admin.firestore().collection('ServingTypes').get()).docs.reduce((map, obj) => {map[obj.id] = obj.data().Name??'(غير معروف)'; return map;});
+    
+    let areas: Map<String, Map<String, any>> = new Map<String, Map<String, any>>();
+    if(data?.onlyArea){
+        const rslt = {};
+        rslt['Name'] = area.data()['Name'];
+        rslt['Address'] = area.data()['Address'];
+        rslt['Last Visit'] = (area.data()['LastVisit'] as Timestamp)?.toDate()??'';
+        rslt['Father Last Visit'] = (area.data()['FatherLastVisit'] as Timestamp)?.toDate()??'';
+        rslt['Last Edit'] = users[area.data()['LastEdit']]??'';
+        rslt['Allowed Users'] = (area.data()['Allowed'] as string[])?.map((u) => users[u] ?? '(غير معروف)')?.reduce((arr, o)=>arr +',' +o)??'';
+        areas[area.id] = rslt;
+    } else {
+        areas = (currentUser.customClaims.superAccess ?
+            await admin.firestore().collection('Areas').orderBy('Name').get() :
+            await admin.firestore()
+                .collection('Areas')
+                .where('Allowed', 'array-contains', currentUser.uid).orderBy('Name')
+                .get()
+        ).docs.reduce<Map<String, Map<String, any>>>((map, a) => {
+            const rslt = {};
+            //'Name', 'Address', 'LastVisit','FatherLastVisit','LastEdit','Allowed'
+            rslt['Name'] = a.data()['Name'];
+            rslt['Address'] = a.data()['Address'];
+            rslt['Last Visit'] = (a.data()['LastVisit'] as Timestamp)?.toDate()??'';
+            rslt['Father Last Visit'] = (a.data()['FatherLastVisit'] as Timestamp)?.toDate()??'';
+            rslt['Last Edit'] = users[a.data()['LastEdit']]??'';
+            rslt['Allowed Users'] = (a.data()['Allowed'] as string[])?.map((u) => users[u] ?? '(غير معروف)')?.reduce((arr, o)=>arr +',' +o)??'';
+            map[a.id] = rslt;
+            return map;
+        }, new Map<String, Map<String, any>>());
+    }
+
+    const streets = (data?.onlyArea ?
+        await admin.firestore()
+                .collection('Streets')
+                .where('AreaId', '==', area.ref).orderBy('Name')
+                .get() :
+        (currentUser.customClaims.superAccess ?
+            await admin.firestore().collection('Streets').orderBy('Name').get() :
+            await admin.firestore()
+                .collection('Streets')
+                .where('AreaId', 'in', Object.keys(areas).map((a)=>admin.firestore().collection('Areas').doc(a))).orderBy('Name')
+                .get())
+    ).docs.reduce<Map<String, Map<String, any>>>((map, s) => {
+        const rslt = {};
+        rslt['Inside Area'] = areas[(s.data()['AreaId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجودة)';
+        rslt['Name'] = s.data()['Name'];
+        rslt['Last Visit'] = (s.data()['LastVisit'] as Timestamp)?.toDate()??'';
+        rslt['Father Last Visit'] = (s.data()['FatherLastVisit'] as Timestamp)?.toDate()??'';
+        rslt['Last Edit'] = users[s.data()['LastEdit']]??'';
+        map[s.id] = rslt
+        return map;
+    }, new Map<String, Map<String, any>>());
+
+
+    const familiesMap = (currentUser.customClaims.superAccess ?
+        await admin.firestore().collection('Families').orderBy('Name').get() :
+        await admin.firestore()
+            .collection('Families')
+            .where('AreaId', 'in', Object.keys(areas).map((a)=>admin.firestore().collection('Areas').doc(a))).orderBy('Name')
+            .get()).docs.reduce<Map<String, Map<String, any>>>((map, f) => {
+                map[f.id] = f.data();
+                return map;
+            }, new Map<String, Map<String, any>>());
+
+    const families = (data?.onlyArea ?
+        await admin.firestore()
+                .collection('Families')
+                .where('AreaId', '==', area.ref).orderBy('Name')
+                .get() :
+        (currentUser.customClaims.superAccess ?
+            await admin.firestore().collection('Families').orderBy('Name').get() :
+            await admin.firestore()
+                .collection('Families')
+                .where('AreaId', 'in', Object.keys(areas).map((a)=>admin.firestore().collection('Areas').doc(a))).orderBy('Name')
+                .get())
+    ).docs.reduce<Map<String, Map<String, any>>>((map, f) => {
+        const rslt = {};
+        rslt['Inside Area'] = areas[(f.data()['AreaId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجودة)';
+        rslt['Inside Street'] = streets[(f.data()['StreetId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجود)';
+        rslt['Inside Family'] = familiesMap[(f.data()['InsideFamily'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Inside Family 2'] = familiesMap[(f.data()['InsideFamily2'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Is Store'] = f.data()['IsStore'];
+        rslt['Name'] = f.data()['Name'];
+        rslt['Address'] = f.data()['Address'];
+        rslt['Notes'] = f.data()['Notes'];
+        rslt['LastVisit'] = (f.data()['LastVisit'] as Timestamp)?.toDate()??'';
+        rslt['FatherLastVisit'] = (f.data()['FatherLastVisit'] as Timestamp)?.toDate()??'';
+        rslt['LastEdit'] = users[f.data()['LastEdit']]??'';
+        map[f.id] = rslt
+        return map;
+    },new Map<String, Map<String, any>>());
+    
+    const persons = (data?.onlyArea ?
+        await admin.firestore()
+                .collection('Persons')
+                .where('AreaId', '==', area.ref).orderBy('Name')
+                .get() :
+        (currentUser.customClaims.superAccess ?
+            await admin.firestore().collection('Persons').orderBy('Name').get() :
+            await admin.firestore()
+                .collection('Persons')
+                .where('AreaId', 'in', Object.keys(areas).map((a)=>admin.firestore().collection('Areas').doc(a))).orderBy('Name')
+                .get())
+    ).docs.reduce<Map<String, Map<String, any>>>((map, p) => {
+        const rslt = {};
+        rslt['Inside Area'] = areas[(p.data()['AreaId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجودة)';
+        rslt['Inside Street'] = streets[(p.data()['StreetId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجود)';
+        rslt['Inside Family'] = families[(p.data()['FamilyId'] as admin.firestore.DocumentReference)?.id]?.Name ?? '(غير موجودة)';
+        rslt['Name'] = p.data()['Name'];
+        rslt['Phone Number'] = p.data()['Phone'];
+        Object.assign(rslt, p.data()['Phones']);
+        
+        rslt['Birth Date'] = (p.data()['BirthDate'] as Timestamp)?.toDate()??'';
+        rslt['Is Student'] = p.data()['IsStudent'];
+        rslt['Study Year'] = studyYears[(p.data()['StudyYear'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['College'] = colleges[(p.data()['College'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Job'] = jobs[(p.data()['Job'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Job Description'] = p.data()['JobDescription'];
+        rslt['Qualification'] = p.data()['Qualification'];
+        rslt['Type'] = types[p.data()['Type']]?.Name;
+        rslt['Notes'] = p.data()['Notes'];
+        rslt['Is Servant'] = p.data()['IsServant'];
+        rslt['Serving Area'] = areas[(p.data()['ServingAreaId'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Church'] = churches[(p.data()['Church'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Meeting'] = p.data()['Meeting'];
+        rslt['Confession Father'] = cfathers[(p.data()['CFather'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['State'] = states[(p.data()['State'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Serving Type'] = servingTypes[(p.data()['ServingType'] as admin.firestore.DocumentReference)?.id]?.Name;
+        rslt['Last Tanawol'] = (p.data()['LastTanawol'] as Timestamp)?.toDate()??'';
+        rslt['Last Call'] = (p.data()['LastCall'] as Timestamp)?.toDate()??'';
+        rslt['Last Confession'] = (p.data()['LastConfession'] as Timestamp)?.toDate()??'';
+        rslt['Last Edit'] = users[p.data()['LastEdit']]??'';
+        map[p.id] = rslt
+        return map;
+    }, new Map<String, Map<String, any>>());
+
+    const book = xlsx.utils.book_new();
+    xlsx.utils.book_append_sheet(book, xlsx.utils.json_to_sheet(Object.values(areas)), 'Areas');
+    xlsx.utils.book_append_sheet(book, xlsx.utils.json_to_sheet(Object.values(streets)), 'Streets');
+    xlsx.utils.book_append_sheet(book, xlsx.utils.json_to_sheet(Object.values(families)), 'Families');
+    xlsx.utils.book_append_sheet(book, xlsx.utils.json_to_sheet(Object.values(persons)), 'Persons');
+    await xlsx.writeFile(book, '/tmp/Export.xlsx');
+    const file = (await admin.storage().bucket().upload('/tmp/Export.xlsx', {
+        destination: 'Exports/Export-' + new Date().toISOString() + '.xlsx',
+        gzip: true,
+    }))[0];
+    await file.setMetadata({metadata:{'createdBy': currentUser.uid}});
+    return file.id;
+});
+
 
 exports.userSignUp = functions.auth.user().onCreate(async (user) => {
     const customClaims = {
@@ -422,6 +616,7 @@ exports.changePassword = functions.https.onCall(async (data, context) => { //Cha
 
         if (data.oldPassword !== null || (currentUser.customClaims.password === null && data.oldPassword === null)) {
             //TODO: Implement encryption Algorithms
+            const password = null;
             if (password !== currentUser.customClaims.password && currentUser.customClaims.password !== null) {
                 throw new functions.https.HttpsError('permission-denied', 'Old Password is incorrect');
             }

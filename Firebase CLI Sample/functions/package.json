@@ -14,16 +14,20 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google-cloud/bigquery": "^5.5.0",
     "@google-cloud/firestore": "^4.7.1",
     "@types/node-fetch": "^2.5.7",
     "@types/request-promise": "^4.1.46",
     "download": "^8.0.0",
     "firebase-admin": "^9.2.0",
     "firebase-functions": "^3.11.0",
+    "firebase-tools": "^9.4.0",
     "googleapis": "^61.0.0",
     "node-fetch": "^2.6.1",
     "request": "^2.88.2",
-    "request-promise": "^4.2.6"
+    "request-promise": "^4.2.6",
+    "sha3": "^2.1.2",
+    "xlsx": "^0.16.9"
   },
   "devDependencies": {
     "@types/download": "^6.2.4",

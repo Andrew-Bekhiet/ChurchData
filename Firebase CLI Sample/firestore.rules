@@ -26,11 +26,14 @@ service cloud.firestore {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      match /{area=**} {
+      match /{area} {
         allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
         allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)  && request.auth.token.write;
         allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
         allow create: if checkUserRegistered() && (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        match /{history=**} {
+          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Areas/$(area))).data.Allowed);
+        }
       }
     }
     match /Streets {
@@ -40,7 +43,7 @@ service cloud.firestore {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      match /{street=**} {
+      match /{street} {
         allow read: if checkUserRegistered() &&
           (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
         allow delete: if checkUserRegistered() &&
@@ -48,6 +51,10 @@ service cloud.firestore {
         allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
         allow create: if checkUserRegistered() &&
           (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        
+        match /{history=**} {
+          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Streets/$(street)).data.AreaId).data.Allowed);
+        }
       }
     }
     match /Families {
@@ -57,7 +64,7 @@ service cloud.firestore {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      match /{family=**} {
+      match /{family} {
         allow read: if checkUserRegistered() &&
           (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
         allow delete: if checkUserRegistered() &&
@@ -65,6 +72,10 @@ service cloud.firestore {
         allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
         allow create: if checkUserRegistered() &&
           (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+      
+        match /{history=**} {
+          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Families/$(family)).data.AreaId).data.Allowed);
+        }
       }
     }
     match /Persons {
@@ -74,13 +85,17 @@ service cloud.firestore {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
-      match /{person=**} {
+      match /{person} {
         allow delete: if checkUserRegistered() &&
           (request.auth.token.superAccess || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
         allow read: if (checkUserRegistered() &&
           (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed))) ||
-          (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person[0]);
-        allow create, update: if (checkUserRegistered() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write) || (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person[0] && request.resource.data.LastEdit == request.auth.uid);
+          (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person);
+        allow create, update: if (checkUserRegistered() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write) || (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person);
+      
+        match /{history=**} {
+          allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.AreaId).data.Allowed);
+        }
       }
     }
     match /Users {
