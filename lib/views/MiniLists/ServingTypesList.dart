@@ -36,7 +36,7 @@ class _ServingTypesEditListState extends State<ServingTypesEditList> {
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
                         ServingType current =
-                            ServingType.fromDocumentSnapshot(data.data.docs[i]);
+                            ServingType.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

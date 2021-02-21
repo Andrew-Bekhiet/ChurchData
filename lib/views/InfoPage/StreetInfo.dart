@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:churchdata/Models.dart';
 import 'package:churchdata/Models/Area.dart';
 import 'package:churchdata/Models/SearchString.dart';
@@ -13,42 +11,25 @@ import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share/share.dart';
 
-class StreetInfo extends StatefulWidget {
+class StreetInfo extends StatelessWidget {
   final Street street;
+  final Map showWarning = <String, bool>{'p1': true};
 
   StreetInfo({Key key, this.street}) : super(key: key);
-
-  @override
-  _StreetInfoState createState() => _StreetInfoState();
-}
-
-class _StreetInfoState extends State<StreetInfo> {
-  Street street;
-  bool showWarning = true;
-
-  StreamSubscription<DocumentSnapshot> _listener;
-
-  void addTap([bool type]) {
-    Navigator.of(context).pushNamed(
-      'Data/EditFamily',
-      arguments: {'IsStore': type, 'StreetId': street.ref},
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!street.locationConfirmed &&
           street.locationPoints != null &&
-          showWarning) {
-        showWarning = false;
+          showWarning['p1']) {
+        showWarning['p1'] = false;
         showDialog(
           context: context,
           builder: (context) => DataDialog(
@@ -61,191 +42,187 @@ class _StreetInfoState extends State<StreetInfo> {
 
     return Selector<User, bool>(
       selector: (_, user) => user.write,
-      builder: (context, permission, _) => Scaffold(
-        appBar: AppBar(
-          backgroundColor:
-              street.color != Colors.transparent ? street.color : null,
-          title: Text(street.name),
-          actions: <Widget>[
-            if (permission)
-              IconButton(
-                icon: Icon(Icons.edit),
-                onPressed: () async {
-                  dynamic result = await Navigator.of(context)
-                      .pushNamed('Data/EditStreet', arguments: street);
-                  if (result is DocumentReference) {
-                    street = await Street.fromId(result.id);
-                    setState(() {});
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('تم الحفظ بنجاح'),
-                      ),
+      builder: (context, permission, _) => StreamBuilder<Street>(
+        initialData: street,
+        stream: street.ref.snapshots().map(Street.fromDoc),
+        builder: (context, snapshot) {
+          final Street street = snapshot.data;
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor:
+                  street.color != Colors.transparent ? street.color : null,
+              title: Text(street.name),
+              actions: <Widget>[
+                if (permission)
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: () async {
+                      dynamic result = await Navigator.of(context)
+                          .pushNamed('Data/EditStreet', arguments: street);
+                      if (result is DocumentReference) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('تم الحفظ بنجاح'),
+                          ),
+                        );
+                      } else if (result == 'deleted')
+                        Navigator.of(context).pop();
+                    },
+                    tooltip: 'تعديل',
+                  ),
+                IconButton(
+                  icon: Icon(Icons.share),
+                  onPressed: () async {
+                    await Share.share(
+                      await shareStreet(street),
                     );
-                  } else if (result == 'deleted') Navigator.of(context).pop();
-                },
-                tooltip: 'تعديل',
-              ),
-            IconButton(
-              icon: Icon(Icons.share),
-              onPressed: () async {
-                await Share.share(
-                  await shareStreet(street),
-                );
-              },
-              tooltip: 'مشاركة برابط',
-            ),
-            PopupMenuButton(
-              onSelected: (_) => sendNotification(context, street),
-              itemBuilder: (context) {
-                return [
-                  PopupMenuItem(
-                    value: '',
-                    child: Text('ارسال إشعار للمستخدمين عن الشارع'),
-                  ),
-                ];
-              },
-            ),
-          ],
-        ),
-        body: ListenableProvider<SearchString>(
-          create: (_) => SearchString(''),
-          builder: (context, child) => NestedScrollView(
-            headerSliverBuilder: (context, x) {
-              return <Widget>[
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    <Widget>[
-                      ListTile(
-                        title: Hero(
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: Text(
-                                street.name,
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
-                            ),
-                            tag: street.id + '-name'),
-                      ),
-                      if (street.locationPoints != null)
-                        ElevatedButton.icon(
-                          icon: Icon(Icons.map),
-                          onPressed: () => showMap(),
-                          label: Text('إظهار على الخريطة'),
-                        ),
-                      Divider(thickness: 1),
-                      HistoryProperty('تاريخ أخر زيارة:', street.lastVisit,
-                          street.ref.collection('VisitHistory')),
-                      HistoryProperty(
-                          'تاريخ أخر زيارة (لللأب الكاهن):',
-                          street.fatherLastVisit,
-                          street.ref.collection('FatherVisitHistory')),
-                      EditHistoryProperty(
-                          'أخر تحديث للبيانات:',
-                          street.lastEdit,
-                          street.ref.collection('EditHistory')),
-                      Divider(thickness: 1),
-                      ListTile(
-                        title: Text('داخل منطقة:'),
-                        subtitle: street.areaId != null &&
-                                street.areaId.parent.id != 'null'
-                            ? FutureBuilder<Area>(
-                                future: Area.fromId(street.areaId.id),
-                                builder: (context, area) => area.hasData
-                                    ? DataObjectWidget<Area>(area.data,
-                                        isDense: true)
-                                    : LinearProgressIndicator(),
-                              )
-                            : Text('غير موجودة'),
-                      ),
-                      Divider(
-                        thickness: 1,
-                      ),
-                      Text('العائلات بالشارع:',
-                          style: Theme.of(context).textTheme.bodyText1),
-                      SearchFilters(2),
-                    ],
-                  ),
+                  },
+                  tooltip: 'مشاركة برابط',
                 ),
-              ];
-            },
-            body: SafeArea(
-              child: Consumer<OrderOptions>(
-                builder: (context, options, _) => DataObjectList<Family>(
-                  options: ListOptions<Family>(
-                      doubleActionButton: true,
-                      floatingActionButton: permission
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(right: 32),
-                                  child: FloatingActionButton(
-                                    child: Icon(Icons.update),
-                                    tooltip: 'تسجيل أخر زيارة اليوم',
-                                    heroTag: 'lastVisit',
-                                    onPressed: recordLastVisit,
+                PopupMenuButton(
+                  onSelected: (_) => sendNotification(context, street),
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(
+                        value: '',
+                        child: Text('ارسال إشعار للمستخدمين عن الشارع'),
+                      ),
+                    ];
+                  },
+                ),
+              ],
+            ),
+            body: ListenableProvider<SearchString>(
+              create: (_) => SearchString(''),
+              builder: (context, child) => NestedScrollView(
+                headerSliverBuilder: (context, x) {
+                  return <Widget>[
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        <Widget>[
+                          ListTile(
+                            title: Hero(
+                                child: Material(
+                                  type: MaterialType.transparency,
+                                  child: Text(
+                                    street.name,
+                                    style:
+                                        Theme.of(context).textTheme.headline6,
                                   ),
                                 ),
-                                PopupMenuButton<bool>(
-                                  child: FloatingActionButton(
-                                      child: Icon(Icons.add), onPressed: null),
-                                  itemBuilder: (_) => [
-                                    PopupMenuItem(
-                                      child: ListTile(
-                                        leading: Icon(Icons.add_business),
-                                        title: Text('اضافة محل'),
+                                tag: street.id + '-name'),
+                          ),
+                          if (street.locationPoints != null)
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.map),
+                              onPressed: () => showMap(context),
+                              label: Text('إظهار على الخريطة'),
+                            ),
+                          Divider(thickness: 1),
+                          HistoryProperty('تاريخ أخر زيارة:', street.lastVisit,
+                              street.ref.collection('VisitHistory')),
+                          HistoryProperty(
+                              'تاريخ أخر زيارة (لللأب الكاهن):',
+                              street.fatherLastVisit,
+                              street.ref.collection('FatherVisitHistory')),
+                          EditHistoryProperty(
+                              'أخر تحديث للبيانات:',
+                              street.lastEdit,
+                              street.ref.collection('EditHistory')),
+                          Divider(thickness: 1),
+                          ListTile(
+                            title: Text('داخل منطقة:'),
+                            subtitle: street.areaId != null &&
+                                    street.areaId.parent.id != 'null'
+                                ? FutureBuilder<Area>(
+                                    future: Area.fromId(street.areaId.id),
+                                    builder: (context, area) => area.hasData
+                                        ? DataObjectWidget<Area>(area.data,
+                                            isDense: true)
+                                        : LinearProgressIndicator(),
+                                  )
+                                : Text('غير موجودة'),
+                          ),
+                          Divider(
+                            thickness: 1,
+                          ),
+                          Text('العائلات بالشارع:',
+                              style: Theme.of(context).textTheme.bodyText1),
+                          SearchFilters(2),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+                body: SafeArea(
+                  child: Consumer<OrderOptions>(
+                    builder: (context, options, _) => DataObjectList<Family>(
+                      options: ListOptions<Family>(
+                          doubleActionButton: true,
+                          floatingActionButton: permission
+                              ? Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(right: 32),
+                                      child: FloatingActionButton(
+                                        child: Icon(Icons.update),
+                                        tooltip: 'تسجيل أخر زيارة اليوم',
+                                        heroTag: 'lastVisit',
+                                        onPressed: () =>
+                                            recordLastVisit(context),
                                       ),
-                                      value: true,
                                     ),
-                                    PopupMenuItem(
-                                      child: ListTile(
-                                        leading: Icon(Icons.group_add),
-                                        title: Text('اضافة عائلة'),
+                                    PopupMenuButton<bool>(
+                                      child: FloatingActionButton(
+                                          child: Icon(Icons.add),
+                                          onPressed: null),
+                                      itemBuilder: (_) => [
+                                        PopupMenuItem(
+                                          child: ListTile(
+                                            leading: Icon(Icons.add_business),
+                                            title: Text('اضافة محل'),
+                                          ),
+                                          value: true,
+                                        ),
+                                        PopupMenuItem(
+                                          child: ListTile(
+                                            leading: Icon(Icons.group_add),
+                                            title: Text('اضافة عائلة'),
+                                          ),
+                                          value: false,
+                                        )
+                                      ],
+                                      onSelected: (type) =>
+                                          Navigator.of(context).pushNamed(
+                                        'Data/EditFamily',
+                                        arguments: {
+                                          'IsStore': type,
+                                          'StreetId': street.ref
+                                        },
                                       ),
-                                      value: false,
-                                    )
+                                    ),
                                   ],
-                                  onSelected: addTap,
-                                ),
-                              ],
-                            )
-                          : null,
-                      generate: Family.fromDocumentSnapshot,
-                      tap: familyTap,
-                      documentsData: () => street.getMembersLive(
-                          orderBy: options.familyOrderBy,
-                          descending: !options.familyASC)),
+                                )
+                              : null,
+                          generate: Family.fromDoc,
+                          tap: familyTap,
+                          documentsData: street.getMembersLive(
+                              orderBy: options.familyOrderBy,
+                              descending: !options.familyASC)),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    street = widget.street;
-  }
-
-  @override
-  void dispose() {
-    _listener?.cancel();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _listener = widget.street.ref.snapshots().listen((event) {
-      street = Street.fromDocumentSnapshot(event);
-      if (mounted) setState(() {});
-    });
-  }
-
-  void recordLastVisit() async {
+  void recordLastVisit(BuildContext context) async {
     await street.ref.update({
       'LastVisit': Timestamp.now(),
       'LastEdit': FirebaseAuth.instance.currentUser.uid
@@ -255,7 +232,7 @@ class _StreetInfoState extends State<StreetInfo> {
     ));
   }
 
-  void showMap() {
+  void showMap(BuildContext context) {
     bool approve = context.read<User>().approveLocations;
     Navigator.of(context).push(
       MaterialPageRoute(

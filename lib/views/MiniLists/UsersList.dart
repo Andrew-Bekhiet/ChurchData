@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:churchdata/Models/User.dart';
 import 'package:churchdata/utils/Helpers.dart';
 import 'package:churchdata/views/utils/DataObjectWidget.dart';
@@ -90,87 +88,76 @@ class _UsersListState extends State<UsersList> {
   @override
   Widget build(BuildContext c) {
     return Consumer2<ListOptions<User>, SearchString>(
-      builder: (context, options, filter, _) =>
-          FutureBuilder<Stream<QuerySnapshot>>(
-        future: options.documentsData(),
-        builder: (context, future) {
-          if (future.hasError) return Center(child: ErrorWidget(future.error));
-          if (!future.hasData)
+      builder: (context, options, filter, _) => StreamBuilder<QuerySnapshot>(
+        stream: options.documentsData,
+        builder: (context, stream) {
+          if (stream.hasError) return Center(child: ErrorWidget(stream.error));
+          if (!stream.hasData)
             return Center(child: CircularProgressIndicator());
-          return StreamBuilder<QuerySnapshot>(
-            stream: future.data,
-            builder: (context, stream) {
-              if (stream.hasError)
-                return Center(child: ErrorWidget(stream.error));
-              if (!stream.hasData)
-                return Center(child: CircularProgressIndicator());
-              return RefreshIndicator(
-                child: Builder(
-                  builder: (context) {
-                    List<DocumentSnapshot> documentData =
-                        stream.data.docs.sublist(0);
-                    if (filter.value != '')
-                      documentData.retainWhere((element) => element
-                          .data()['Name']
-                          .toLowerCase()
-                          .replaceAll(
-                              RegExp(
-                                r'[أإآ]',
-                              ),
-                              'ا')
-                          .replaceAll(
-                              RegExp(
-                                r'[ى]',
-                              ),
-                              'ي')
-                          .contains(filter.value));
-                    return ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      addAutomaticKeepAlives: (documentData?.length ?? 0) < 300,
-                      cacheExtent: 200,
-                      itemCount: documentData?.length ?? 0,
-                      itemBuilder: (context, i) {
-                        var current =
-                            User.fromDocumentSnapshot(documentData[i]);
-                        return DataObjectWidget<User>(
-                          current,
-                          showSubtitle: false,
-                          photo: current.getPhoto(),
-                          onLongPress: options.isAdmin
-                              ? () => userTap(current, context)
-                              : null,
-                          onTap: () {
-                            if (options.selected.contains(current)) {
-                              setState(() {
-                                options.selected.remove(current);
-                              });
-                            } else {
-                              setState(() {
-                                options.selected.add(current);
-                              });
-                            }
-                          },
-                          trailing: Checkbox(
-                              value: options.selected.contains(current),
-                              onChanged: (v) {
-                                setState(() {
-                                  if (v) {
-                                    options.selected.add(current);
-                                  } else {
-                                    options.selected.remove(current);
-                                  }
-                                });
-                              }),
-                        );
+          return RefreshIndicator(
+            child: Builder(
+              builder: (context) {
+                List<DocumentSnapshot> documentData =
+                    stream.data.docs.sublist(0);
+                if (filter.value != '')
+                  documentData.retainWhere((element) => element
+                      .data()['Name']
+                      .toLowerCase()
+                      .replaceAll(
+                          RegExp(
+                            r'[أإآ]',
+                          ),
+                          'ا')
+                      .replaceAll(
+                          RegExp(
+                            r'[ى]',
+                          ),
+                          'ي')
+                      .contains(filter.value));
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  addAutomaticKeepAlives: (documentData?.length ?? 0) < 300,
+                  cacheExtent: 200,
+                  itemCount: documentData?.length ?? 0,
+                  itemBuilder: (context, i) {
+                    var current = User.fromDoc(documentData[i]);
+                    return DataObjectWidget<User>(
+                      current,
+                      showSubtitle: false,
+                      photo: current.getPhoto(),
+                      onLongPress: options.isAdmin
+                          ? () => userTap(current, context)
+                          : null,
+                      onTap: () {
+                        if (options.selected.contains(current)) {
+                          setState(() {
+                            options.selected.remove(current);
+                          });
+                        } else {
+                          setState(() {
+                            options.selected.add(current);
+                          });
+                        }
                       },
+                      trailing: Checkbox(
+                          value: options.selected.contains(current),
+                          onChanged: (v) {
+                            setState(() {
+                              if (v) {
+                                options.selected.add(current);
+                              } else {
+                                options.selected.remove(current);
+                              }
+                            });
+                          }),
                     );
                   },
-                ),
-                onRefresh: () {
-                  setState(() {});
-                  return options.documentsData();
-                },
-              );
+                );
+              },
+            ),
+            onRefresh: () {
+              setState(() {});
+              return options.documentsData.last;
             },
           );
         },

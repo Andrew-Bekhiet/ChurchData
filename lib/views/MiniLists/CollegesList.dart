@@ -35,8 +35,7 @@ class _CollegesEditListState extends State<CollegesEditList> {
                   child: ListView.builder(
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
-                        College current =
-                            College.fromDocumentSnapshot(data.data.docs[i]);
+                        College current = College.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

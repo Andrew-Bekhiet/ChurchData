@@ -10,7 +10,6 @@ import 'package:churchdata/views/utils/List.dart';
 import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -429,8 +428,8 @@ class _UserPState extends State<UserP> {
                           });
                           Navigator.of(context).pop();
                         },
-                        generate: Person.fromDocumentSnapshot,
-                        documentsData: () => Person.getAllForUser(
+                        generate: Person.fromDoc,
+                        documentsData: Person.getAllForUser(
                             orderBy: options.item1, descending: !options.item2),
                       ),
                     ),

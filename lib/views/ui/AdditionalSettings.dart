@@ -186,8 +186,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                     itemCount: data.data.size,
                                     itemBuilder: (context, i) {
                                       Father current =
-                                          Father.fromDocumentSnapshot(
-                                              data.data.docs[i]);
+                                          Father.fromDoc(data.data.docs[i]);
                                       return Card(
                                         child: ListTile(
                                           onTap: () =>
@@ -346,7 +345,7 @@ class _ChurchesPageState extends State<ChurchesPage> {
                                 child: ListTile(
                                   title: Text(name.data),
                                   onTap: () async => churchTap(
-                                      Church.fromDocumentSnapshot(
+                                      Church.fromDoc(
                                         await father.churchId.get(),
                                       ),
                                       false),
@@ -613,8 +612,7 @@ class _FathersPageState extends State<FathersPage> {
                                     itemCount: data.data.size,
                                     itemBuilder: (context, i) {
                                       Father current =
-                                          Father.fromDocumentSnapshot(
-                                              data.data.docs[i]);
+                                          Father.fromDoc(data.data.docs[i]);
                                       return Card(
                                         child: ListTile(
                                           onTap: () =>
@@ -770,7 +768,7 @@ class _FathersPageState extends State<FathersPage> {
                                       : name.data),
                                   onTap: father.churchId != null
                                       ? () async => churchTap(
-                                          Church.fromDocumentSnapshot(
+                                          Church.fromDoc(
                                             await father.churchId.get(),
                                           ),
                                           false)

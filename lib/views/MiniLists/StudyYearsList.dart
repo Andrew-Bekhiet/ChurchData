@@ -36,7 +36,7 @@ class _StudyYearsEditListState extends State<StudyYearsEditList> {
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
                         StudyYear current =
-                            StudyYear.fromDocumentSnapshot(data.data.docs[i]);
+                            StudyYear.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

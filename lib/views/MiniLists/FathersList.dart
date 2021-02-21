@@ -46,8 +46,7 @@ class InnerListState extends State<_InnerFathersList> {
                 return ListView.builder(
                     itemCount: fathers.data.size,
                     itemBuilder: (context, i) {
-                      Father current =
-                          Father.fromDocumentSnapshot(fathers.data.docs[i]);
+                      Father current = Father.fromDoc(fathers.data.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
@@ -130,8 +129,7 @@ class _FathersEditListState extends State<FathersEditList> {
                   child: ListView.builder(
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
-                        Father current =
-                            Father.fromDocumentSnapshot(data.data.docs[i]);
+                        Father current = Father.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

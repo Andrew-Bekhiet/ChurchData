@@ -12,7 +12,6 @@ import 'package:churchdata/views/utils/List.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -398,8 +397,8 @@ class _EditStreetState extends State<EditStreet> {
                           foci[2].requestFocus();
                           _selectDate();
                         },
-                        generate: Area.fromDocumentSnapshot,
-                        documentsData: () => Area.getAllForUser(
+                        generate: Area.fromDoc,
+                        documentsData: Area.getAllForUser(
                             orderBy: options.item1, descending: !options.item2),
                       ),
                     ),

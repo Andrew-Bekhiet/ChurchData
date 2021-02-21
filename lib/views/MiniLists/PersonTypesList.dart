@@ -36,7 +36,7 @@ class _PersonTypesEditListState extends State<PersonTypesEditList> {
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
                         PersonType current =
-                            PersonType.fromDocumentSnapshot(data.data.docs[i]);
+                            PersonType.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

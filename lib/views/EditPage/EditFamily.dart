@@ -9,7 +9,6 @@ import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -589,8 +588,8 @@ class _EditFamilyState extends State<EditFamily> {
                             });
                             foci[13].requestFocus();
                           },
-                          generate: Family.fromDocumentSnapshot,
-                          documentsData: () => Family.getAllForUser(
+                          generate: Family.fromDoc,
+                          documentsData: Family.getAllForUser(
                               orderBy: options.item1,
                               descending: !options.item2),
                         ),
@@ -648,8 +647,8 @@ class _EditFamilyState extends State<EditFamily> {
                             });
                             foci[13].requestFocus();
                           },
-                          generate: Family.fromDocumentSnapshot,
-                          documentsData: () => Family.getAllForUser(
+                          generate: Family.fromDoc,
+                          documentsData: Family.getAllForUser(
                               orderBy: options.item1,
                               descending: !options.item2),
                         ),
@@ -708,8 +707,8 @@ class _EditFamilyState extends State<EditFamily> {
                             foci[3].requestFocus();
                             _selectDate();
                           },
-                          generate: Street.fromDocumentSnapshot,
-                          documentsData: () => Street.getAllForUser(
+                          generate: Street.fromDoc,
+                          documentsData: Street.getAllForUser(
                               orderBy: options.item1,
                               descending: !options.item2),
                         ),

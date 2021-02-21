@@ -11,7 +11,6 @@ import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
@@ -537,8 +536,8 @@ class _EditAreaState extends State<EditArea> {
                         ListenableProvider(
                             create: (_) => ListOptions<User>(
                                 isAdmin: User().manageUsers,
-                                documentsData: () => User.getAllUsersLive()
-                                    .then((value) => Stream.value(value)))
+                                documentsData:
+                                    Stream.fromFuture(User.getAllUsersLive()))
                               ..selected = users.data)
                       ],
                       builder: (context, child) => DataDialog(

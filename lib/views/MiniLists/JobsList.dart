@@ -25,7 +25,7 @@ class InnerListState extends State<_InnerJobsList> {
                 return ListView.builder(
                     itemCount: jobs.data.size,
                     itemBuilder: (context, i) {
-                      Job current = Job.fromDocumentSnapshot(jobs.data.docs[i]);
+                      Job current = Job.fromDoc(jobs.data.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
@@ -132,8 +132,7 @@ class _JobsEditListState extends State<JobsEditList> {
                   child: ListView.builder(
                       itemCount: data.data.docs.length,
                       itemBuilder: (context, i) {
-                        Job current =
-                            Job.fromDocumentSnapshot(data.data.docs[i]);
+                        Job current = Job.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(

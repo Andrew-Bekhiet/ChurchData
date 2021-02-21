@@ -46,8 +46,7 @@ class InnerListState extends State<_InnerChurchsList> {
                 return ListView.builder(
                     itemCount: churchs.data.size,
                     itemBuilder: (context, i) {
-                      Church current =
-                          Church.fromDocumentSnapshot(churchs.data.docs[i]);
+                      Church current = Church.fromDoc(churchs.data.docs[i]);
                       return current.name.contains(filter)
                           ? Card(
                               child: ListTile(
@@ -123,8 +122,7 @@ class _ChurchesEditListState extends State<ChurchesEditList> {
                   child: ListView.builder(
                       itemCount: data.data.size,
                       itemBuilder: (context, i) {
-                        Church current =
-                            Church.fromDocumentSnapshot(data.data.docs[i]);
+                        Church current = Church.fromDoc(data.data.docs[i]);
                         return current.name.contains(filter)
                             ? Card(
                                 child: ListTile(
