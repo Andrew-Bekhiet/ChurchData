@@ -1,10 +1,12 @@
+import 'package:churchdata/Models/Area.dart';
+import 'package:churchdata/Views/utils/List.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.io) 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:churchdata/Models/User.dart';
 import 'package:churchdata/utils/Helpers.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../EditPage/EditUser.dart';
 
@@ -170,6 +172,38 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                     title: Text('التأكيد على المواقع'),
                   ),
+                ElevatedButton.icon(
+                  label: Text('رؤية البيانات كما يراها ' + user.name),
+                  icon: Icon(Icons.visibility),
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: ListenableProvider<SearchString>(
+                        create: (_) => SearchString(),
+                        builder: (context, _) => Column(
+                          children: [
+                            Text(
+                              'يستطيع ' +
+                                  user.name +
+                                  ' رؤية ${user.write ? 'وتعديل ' : ''}المناطق التالية وما بداخلها:',
+                              style: Theme.of(context).textTheme.headline6,
+                            ),
+                            Expanded(
+                              child: DataObjectList<Area>(
+                                options: ListOptions(
+                                  generate: Area.fromDoc,
+                                  tap: areaTap,
+                                  documentsData: Area.getAllForUser(
+                                      uid: user.superAccess ? null : user.uid),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           );
