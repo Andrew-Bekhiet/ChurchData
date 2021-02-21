@@ -17,7 +17,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -181,7 +180,7 @@ class _EditPersonState extends State<EditPerson> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
                       decoration: InputDecoration(
                         labelText: 'الاسم',
@@ -204,7 +203,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
                       decoration: InputDecoration(
                         labelText: 'رقم الهاتف',
@@ -226,6 +225,81 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   ),
+                  if (person.phones.isNotEmpty)
+                    ...person.phones.entries.map(
+                      (e) => Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: e.key,
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.edit),
+                              tooltip: 'تعديل اسم الهاتف',
+                              onPressed: () async {
+                                TextEditingController name =
+                                    TextEditingController(text: e.key);
+                                var rslt = await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                      actions: [
+                                        TextButton(
+                                            child: Text('حفظ'),
+                                            onPressed: () => Navigator.pop(
+                                                context, name.text)),
+                                        TextButton(
+                                            child: Text('حذف'),
+                                            onPressed: () => Navigator.pop(
+                                                context, 'delete')),
+                                      ],
+                                      title: Text('اسم الهاتف'),
+                                      content: TextField(controller: name)),
+                                );
+                                if (rslt == 'delete') {
+                                  person.phones.remove(e.key);
+                                  setState(() {});
+                                } else if (rslt != null) {
+                                  person.phones.remove(e.key);
+                                  person.phones[name.text] = e.value;
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          initialValue: e.value,
+                          onChanged: (s) => person.phones[e.key] = s,
+                          validator: (value) {
+                            return null;
+                          },
+                        ),
+                      ),
+                    ),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.add),
+                    label: Text('اضافة رقم هاتف أخر'),
+                    onPressed: () async {
+                      TextEditingController name =
+                          TextEditingController(text: '');
+                      if (await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                                actions: [
+                                  TextButton(
+                                      child: Text('حفظ'),
+                                      onPressed: () =>
+                                          Navigator.pop(context, name.text))
+                                ],
+                                title: Text('اسم الهاتف'),
+                                content: TextField(controller: name)),
+                          ) !=
+                          null) setState(() => person.phones[name.text] = '');
+                    },
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -233,7 +307,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: <Widget>[
                       Flexible(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15.0),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
                             focusNode: foci[2],
                             child: InkWell(
@@ -293,8 +367,7 @@ class _EditPersonState extends State<EditPerson> {
                               builder: (context, data) {
                                 if (data.hasData) {
                                   return Container(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 15.0),
+                                    padding: EdgeInsets.symmetric(vertical: 10),
                                     child: DropdownButtonFormField(
                                       isDense: true,
                                       value: person.studyYear?.path,
@@ -439,8 +512,7 @@ class _EditPersonState extends State<EditPerson> {
                               builder: (context, data) {
                                 if (data.hasData) {
                                   return Container(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 15.0),
+                                    padding: EdgeInsets.symmetric(vertical: 10),
                                     child: DropdownButtonFormField(
                                       isDense: true,
                                       value: person.job?.path,
@@ -497,7 +569,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!person.isStudent)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 15.0),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
                         decoration: InputDecoration(
                           labelText: 'تفاصيل الوظيفة',
@@ -518,7 +590,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!person.isStudent)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 15.0),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
                         decoration: InputDecoration(
                           labelText: 'المؤهل',
@@ -544,7 +616,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: [
                       Expanded(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15.0),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
                             focusNode: foci[9],
                             child: InkWell(
@@ -596,7 +668,7 @@ class _EditPersonState extends State<EditPerson> {
                             builder: (context, data) {
                               if (data.hasData) {
                                 return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 15.0),
+                                  padding: EdgeInsets.symmetric(vertical: 10),
                                   child: DropdownButtonFormField(
                                     isDense: true,
                                     value: person.church?.path,
@@ -652,7 +724,7 @@ class _EditPersonState extends State<EditPerson> {
                     ],
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 15.0),
+                    padding: EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
                       decoration: InputDecoration(
                         labelText: 'الاجتماع المشارك به',
@@ -739,7 +811,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: <Widget>[
                       Flexible(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15.0),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
                             focusNode: foci[13],
                             child: InkWell(
@@ -776,7 +848,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: <Widget>[
                       Flexible(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15.0),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
                             focusNode: foci[14],
                             child: InkWell(
@@ -813,7 +885,7 @@ class _EditPersonState extends State<EditPerson> {
                       child: InkWell(
                         onTap: _selectFamily,
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 15.0),
+                          padding: EdgeInsets.symmetric(vertical: 10),
                           child: InputDecorator(
                             decoration: InputDecoration(
                               labelText: 'داخل عائلة',
@@ -908,7 +980,7 @@ class _EditPersonState extends State<EditPerson> {
                       children: <Widget>[
                         Flexible(
                           child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 15.0),
+                            padding: EdgeInsets.symmetric(vertical: 10),
                             child: Focus(
                               focusNode: foci[16],
                               child: InkWell(
@@ -941,7 +1013,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!widget.userData)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 15.0),
+                      padding: EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
                         decoration: InputDecoration(
                           labelText: 'ملاحظات',
@@ -951,7 +1023,8 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                         ),
                         focusNode: foci[18],
-                        textInputAction: TextInputAction.next,
+                        maxLines: null,
+                        textInputAction: TextInputAction.newline,
                         initialValue: person.notes,
                         onChanged: _notesChanged,
                         onFieldSubmitted: (_) => foci[19].requestFocus(),
@@ -1040,7 +1113,7 @@ class _EditPersonState extends State<EditPerson> {
                       builder: (context, permission, _) {
                         if (permission) {
                           return Container(
-                            padding: EdgeInsets.symmetric(vertical: 15.0),
+                            padding: EdgeInsets.symmetric(vertical: 10),
                             child: Focus(
                               focusNode: foci[21],
                               child: InkWell(
@@ -1378,8 +1451,8 @@ class _EditPersonState extends State<EditPerson> {
                                     .doc(area.id);
                               });
                             },
-                            generate: Area.fromDocumentSnapshot,
-                            documentsData: () => Area.getAllForUser(
+                            generate: Area.fromDoc,
+                            documentsData: Area.getAllForUser(
                                 orderBy: options.item1,
                                 descending: !options.item2),
                           ),
@@ -1454,8 +1527,8 @@ class _EditPersonState extends State<EditPerson> {
                             });
                             foci[14].requestFocus();
                           },
-                          generate: Family.fromDocumentSnapshot,
-                          documentsData: () => Family.getAllForUser(
+                          generate: Family.fromDoc,
+                          documentsData: Family.getAllForUser(
                               orderBy: options.item1,
                               descending: !options.item2),
                         ),
