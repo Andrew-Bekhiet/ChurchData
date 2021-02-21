@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Flutter Debug",
             "request": "launch",
@@ -23,8 +24,21 @@
             "flutterMode": "release"
         },
         {
-            "name": "Flutter Web (port 5000)",
+            "name": "Flutter Web",
             "request": "launch",
+            "type": "dart",
+            "args": [
+                "--vmservice-out-file=detective_connect.txt",
+                "--web-port",
+                "5000",
+                "--web-renderer",
+                "html"
+            ]
+        },
+        {
+            "name": "Flutter Web release",
+            "request": "launch",
+            "flutterMode": "release",
             "type": "dart",
             "args": [
                 "--vmservice-out-file=detective_connect.txt",
