@@ -1,14 +1,21 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:battery_optimization/battery_optimization.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:device_info/device_info.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
+import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -444,8 +451,8 @@ class _RootState extends State<Root>
                           )
                         : null,
                     tap: areaTap,
-                    generate: Area.fromDocumentSnapshot,
-                    documentsData: () => Area.getAllForUser(
+                    generate: Area.fromDoc,
+                    documentsData: Area.getAllForUser(
                         orderBy: options.item1, descending: !options.item2),
                   ),
                 ),
@@ -463,8 +470,8 @@ class _RootState extends State<Root>
                           )
                         : null,
                     tap: streetTap,
-                    generate: Street.fromDocumentSnapshot,
-                    documentsData: () => Street.getAllForUser(
+                    generate: Street.fromDoc,
+                    documentsData: Street.getAllForUser(
                         orderBy: options.item1, descending: !options.item2),
                   ),
                 ),
@@ -498,8 +505,8 @@ class _RootState extends State<Root>
                           )
                         : null,
                     tap: familyTap,
-                    generate: Family.fromDocumentSnapshot,
-                    documentsData: () => Family.getAllForUser(
+                    generate: Family.fromDoc,
+                    documentsData: Family.getAllForUser(
                         orderBy: options.item1, descending: !options.item2),
                   ),
                 ),
@@ -517,8 +524,8 @@ class _RootState extends State<Root>
                           )
                         : null,
                     tap: personTap,
-                    generate: Person.fromDocumentSnapshot,
-                    documentsData: () => Person.getAllForUser(
+                    generate: Person.fromDoc,
+                    documentsData: Person.getAllForUser(
                         orderBy: options.item1, descending: !options.item2),
                   ),
                 ),
@@ -814,30 +821,117 @@ class _RootState extends State<Root>
                     Navigator.of(context).pushNamed('Settings');
                   },
                 ),
-                ListTile(
-                  leading: Icon(Icons.cloud_upload),
-                  title: Text('استيراد من ملف اكسل'),
-                  onTap: () {
-                    mainScfld.currentState.openEndDrawer();
-                    import(context);
-                  },
-                ),
+                Selector<User, bool>(
+                    selector: (_, user) => user.write,
+                    builder: (context2, permission, _) {
+                      return permission
+                          ? ListTile(
+                              leading: Icon(Icons.cloud_upload),
+                              title: Text('استيراد من ملف اكسل'),
+                              onTap: () {
+                                mainScfld.currentState.openEndDrawer();
+                                import(context);
+                              },
+                            )
+                          : Container();
+                    }),
                 Selector<User, bool>(
                   selector: (_, user) => user.exportAreas,
-                  builder: (context, permission, _) {
+                  builder: (context2, permission, _) {
                     return permission
                         ? ListTile(
                             leading: Icon(Icons.cloud_download),
                             title: Text('تصدير إلى ملف اكسل'),
-                            onTap: () {
+                            onTap: () async {
                               mainScfld.currentState.openEndDrawer();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'برجاء اختيار المنطقة التي تريد تصدير بياناتها'),
+                              Area rslt = await showDialog(
+                                context: context,
+                                builder: (context) => Dialog(
+                                  child: ListenableProvider<SearchString>(
+                                    create: (_) => SearchString(),
+                                    builder: (context, _) => Column(
+                                      children: [
+                                        Text(
+                                            'برجاء اختيار المنطقة التي تريد تصديرها:',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headline5),
+                                        Expanded(
+                                          child: DataObjectList<Area>(
+                                            options: ListOptions(
+                                              documentsData:
+                                                  Area.getAllForUser(),
+                                              generate: Area.fromDoc,
+                                              tap: (area, context) =>
+                                                  Navigator.pop(
+                                                context,
+                                                area,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               );
-                              export = !export;
+                              if (rslt != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('جار تصدير ' + rslt.name + '...'),
+                                        LinearProgressIndicator(),
+                                      ],
+                                    ),
+                                    duration: Duration(minutes: 9),
+                                  ),
+                                );
+                                try {
+                                  String filename = Uri.decodeComponent(
+                                      (await FirebaseFunctions.instance
+                                              .httpsCallable('exportToExcel')
+                                              .call({'onlyArea': rslt.id}))
+                                          .data);
+                                  var file = await File(
+                                          (await getApplicationDocumentsDirectory())
+                                                  .path +
+                                              '/' +
+                                              filename.replaceAll(':', ''))
+                                      .create(recursive: true);
+                                  await FirebaseStorage.instance
+                                      .ref(filename)
+                                      .writeToFile(file);
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('تم تصدير البيانات ينجاح'),
+                                      action: SnackBarAction(
+                                        label: 'فتح',
+                                        onPressed: () {
+                                          OpenFile.open(file.path);
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                } on Exception catch (e, st) {
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text('فشل تصدير البيانات')),
+                                  );
+                                  await FirebaseCrashlytics.instance
+                                      .setCustomKey(
+                                          'LastErrorIn', 'Root.exportOnlyArea');
+                                  await FirebaseCrashlytics.instance
+                                      .recordError(e, st);
+                                }
+                              }
                             },
                           )
                         : Container();
@@ -845,27 +939,81 @@ class _RootState extends State<Root>
                 ),
                 Selector<User, bool>(
                   selector: (_, user) => user.exportAreas,
-                  builder: (context, permission, _) {
+                  builder: (context2, permission, _) {
                     return permission
                         ? ListTile(
-                            leading: Icon(Icons.analytics),
-                            title: Text('تصدير لتحليل البيانات'),
-                            onTap: () {
+                            leading: Icon(Icons.file_download),
+                            title: Text('تصدير جميع البيانات'),
+                            onTap: () async {
                               mainScfld.currentState.openEndDrawer();
-                              analysisExport(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
+                                      LinearProgressIndicator(),
+                                    ],
+                                  ),
+                                  duration: Duration(minutes: 9),
+                                ),
+                              );
+                              try {
+                                String filename = Uri.decodeComponent(
+                                    (await FirebaseFunctions.instance
+                                            .httpsCallable('exportToExcel')
+                                            .call())
+                                        .data);
+                                var file = await File(
+                                        (await getApplicationDocumentsDirectory())
+                                                .path +
+                                            '/' +
+                                            filename.replaceAll(':', ''))
+                                    .create(recursive: true);
+                                await FirebaseStorage.instance
+                                    .ref(filename)
+                                    .writeToFile(file);
+                                ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('تم تصدير البيانات ينجاح'),
+                                    action: SnackBarAction(
+                                      label: 'فتح',
+                                      onPressed: () {
+                                        OpenFile.open(file.path);
+                                      },
+                                    ),
+                                  ),
+                                );
+                              } on Exception catch (e, st) {
+                                ScaffoldMessenger.of(context)
+                                    .hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('فشل تصدير البيانات')),
+                                );
+                                await FirebaseCrashlytics.instance.setCustomKey(
+                                    'LastErrorIn', 'Root.exportAll');
+                                await FirebaseCrashlytics.instance
+                                    .recordError(e, st);
+                              }
                             },
                           )
                         : Container();
                   },
                 ),
-                ListTile(
-                  leading: Icon(Icons.system_update_alt),
-                  title: Text('تحديث البرنامج'),
-                  onTap: () {
-                    mainScfld.currentState.openEndDrawer();
-                    Navigator.of(context).pushNamed('Update');
-                  },
-                ),
+                if (!kIsWeb)
+                  ListTile(
+                    leading: Icon(Icons.system_update_alt),
+                    title: Text('تحديث البرنامج'),
+                    onTap: () {
+                      mainScfld.currentState.openEndDrawer();
+                      Navigator.of(context).pushNamed('Update');
+                    },
+                  ),
                 ListTile(
                   leading: Icon(Icons.info_outline),
                   title: Text('حول البرنامج'),
@@ -1020,10 +1168,10 @@ class _RootState extends State<Root>
     if (!await context.read<User>().userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
-    await showDynamicLink();
-    await showPendingMessage(context);
-    await processClickedNotification(context);
-    await showBatteryOptimizationDialog();
+    if (!kIsWeb) await showDynamicLink();
+    if (!kIsWeb) await showPendingMessage(context);
+    if (!kIsWeb) await processClickedNotification(context);
+    if (!kIsWeb) await showBatteryOptimizationDialog();
     FeatureDiscovery.discoverFeatures(context, [
       'Areas',
       'Streets',
@@ -1048,7 +1196,7 @@ class _RootState extends State<Root>
           content: Text(
               'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
           actions: [
-            OutlineButton(
+            OutlinedButton(
               child: Text('الغاء حفظ الطاقة للبرنامج'),
               onPressed: () async {
                 await Navigator.pop(context);

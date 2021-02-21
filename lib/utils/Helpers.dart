@@ -14,10 +14,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
+import 'package:firebase_messaging/firebase_messaging.dart'
+    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -50,487 +51,15 @@ import '../views/ui/Lists.dart';
 import '../views/ui/SearchQuery.dart';
 import 'globals.dart';
 
-Future analysisExport(BuildContext context) async {
-  var scaffold = ScaffoldMessenger.of(context);
-  try {
-    if ((await Permission.storage.request()).isGranted) {
-      scaffold.hideCurrentSnackBar();
-      scaffold.showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'جار تجهيز البيانات',
-              ),
-              LinearProgressIndicator(),
-            ],
-          ),
-          duration: Duration(seconds: 100),
-        ),
-      );
-
-      var file = sfxls.Workbook();
-      file.worksheets.addWithName('Streets');
-      file.worksheets.addWithName('Families');
-      file.worksheets.addWithName('Persons');
-
-      var areasSheet = file.worksheets[0];
-      var streetsSheet = file.worksheets[1];
-      var familiesSheet = file.worksheets[2];
-      var personsSheet = file.worksheets[3];
-
-      areasSheet.name = 'Areas';
-
-      areasSheet.getRangeByName('A1').setText('ID');
-      areasSheet.getRangeByName('B1').setText('Name');
-      areasSheet.getRangeByName('C1').setText('Address');
-      areasSheet.getRangeByName('D1').setText('Last Visit');
-      areasSheet.getRangeByName('E1').setText('Father Last Visit');
-      areasSheet.getRangeByName('F1').setText('Location');
-      areasSheet.getRangeByName('G1').setText('Last Edit');
-
-      streetsSheet.getRangeByName('A1').setText('ID');
-      streetsSheet.getRangeByName('B1').setText('Name');
-      streetsSheet.getRangeByName('C1').setText('Location');
-      streetsSheet.getRangeByName('D1').setText('Last Visit');
-      streetsSheet.getRangeByName('E1').setText('Father Last Visit');
-      streetsSheet.getRangeByName('F1').setText('Inside Area');
-      streetsSheet.getRangeByName('G1').setText('Last Edit');
-
-      familiesSheet.getRangeByName('A1').setText('ID');
-      familiesSheet.getRangeByName('B1').setText('Name');
-      familiesSheet.getRangeByName('C1').setText('Address');
-      familiesSheet.getRangeByName('D1').setText('Last Visit');
-      familiesSheet.getRangeByName('E1').setText('Father Last Visit');
-      familiesSheet.getRangeByName('F1').setText('Location');
-      familiesSheet.getRangeByName('G1').setText('Inside Area');
-      familiesSheet.getRangeByName('H1').setText('Inside Street');
-      familiesSheet.getRangeByName('I1').setText('Last Edit');
-
-      personsSheet.getRangeByName('A1').setText('ID');
-      personsSheet.getRangeByName('B1').setText('Name');
-      personsSheet.getRangeByName('C1').setText('Birthdate');
-      personsSheet.getRangeByName('D1').setText('Is Student');
-      personsSheet.getRangeByName('E1').setText('Study Year');
-      personsSheet.getRangeByName('F1').setText('College');
-      personsSheet.getRangeByName('G1').setText('Job');
-      personsSheet.getRangeByName('H1').setText('Job Description');
-      personsSheet.getRangeByName('I1').setText('Qualification');
-      personsSheet.getRangeByName('J1').setText('Person Type');
-      personsSheet.getRangeByName('K1').setText('Church');
-      personsSheet.getRangeByName('L1').setText('Confession Father');
-      personsSheet.getRangeByName('M1').setText('Is Servant');
-      personsSheet.getRangeByName('N1').setText('Serving Type');
-      personsSheet.getRangeByName('O1').setText('State');
-      personsSheet.getRangeByName('P1').setText('Last Tanawol');
-      personsSheet.getRangeByName('Q1').setText('Last Confession');
-      personsSheet.getRangeByName('R1').setText('Notes');
-      personsSheet.getRangeByName('S1').setText('Last Edit');
-      personsSheet.getRangeByName('T1').setText('Inside Area');
-      personsSheet.getRangeByName('U1').setText('Inside Street');
-      personsSheet.getRangeByName('V1').setText('Inside Family');
-
-      Map<String, String> streetsByID = {
-        for (var doc in await Street.getAllStreetsForUser()) doc.id: doc.name,
-      };
-
-      Map<String, String> familiesByID = {
-        for (var doc in await Family.getAllFamiliesForUser()) doc.id: doc.name
-      };
-
-      Map<String, String> usersByID = {
-        for (var sDoc in (await User.getAllUsersLive()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> studyYearByID = {
-        for (var sDoc in (await StudyYear.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> collegesByID = {
-        for (var sDoc in (await College.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> jobsByID = {
-        for (var sDoc in (await Job.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> typesByID = {
-        for (var sDoc in (await PersonType.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> churchByID = {
-        for (var sDoc in (await Church.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> fathersByID = {
-        for (var sDoc in (await Father.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, String> servingTypeByID = {
-        for (var sDoc in (await ServingType.getAllForUser()).docs)
-          sDoc.id: sDoc.data()['Name']
-      };
-
-      Map<String, PersonState> statesByID = {
-        for (var sDoc in (await PersonState.getAllForUser()).docs)
-          sDoc.id: PersonState.fromDocumentSnapshot(sDoc)
-      };
-
-      int areaIndex = 2;
-      int streetIndex = 2;
-      int familyIndex = 2;
-      int personIndex = 2;
-
-      var areas = await Area.getAllAreasForUser();
-      for (Area area in areas) {
-        scaffold.hideCurrentSnackBar();
-        scaffold.showSnackBar(
-          SnackBar(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'جار تصدير منطقة ' + area.name,
-                ),
-                LinearProgressIndicator(),
-              ],
-            ),
-            duration: Duration(seconds: 100),
-          ),
-        );
-        var areaStreets = await area.getChildren();
-        var areaFamilies = await area.getFamilyMembersList();
-        var areaPersons = await area.getPersonMembersList();
-
-        var areaCellStyle = sfxls.CellStyle(file);
-        areaCellStyle.backColor = area.color.toHex();
-
-        areasSheet
-            .getRangeByName('A' + (areas.indexOf(area) + areaIndex).toString())
-            .cellStyle = areaCellStyle;
-
-        areasSheet
-            .getRangeByName('A' + (areas.indexOf(area) + areaIndex).toString())
-            .setText(area.id);
-        areasSheet
-            .getRangeByName('B' + (areas.indexOf(area) + areaIndex).toString())
-            .setText(area.name);
-        areasSheet
-            .getRangeByName('C' + (areas.indexOf(area) + areaIndex).toString())
-            .setText(area.address);
-        if (area.lastVisit != null)
-          areasSheet
-              .getRangeByName(
-                  'D' + (areas.indexOf(area) + areaIndex).toString())
-              .setDateTime(area.lastVisit.toDate());
-        if (area.fatherLastVisit != null)
-          areasSheet
-              .getRangeByName(
-                  'E' + (areas.indexOf(area) + areaIndex).toString())
-              .setDateTime(area.fatherLastVisit.toDate());
-        if (area.locationPoints != null)
-          areasSheet
-              .getRangeByName(
-                  'F' + (areas.indexOf(area) + areaIndex).toString())
-              .setText(area.locationPoints.join(', '));
-        if (area.lastEdit != null)
-          areasSheet
-              .getRangeByName(
-                  'G' + (areas.indexOf(area) + areaIndex).toString())
-              .setText(usersByID[area.lastEdit] ?? '');
-
-        for (Street street in areaStreets) {
-          var cellStyle = sfxls.CellStyle(file);
-          cellStyle.backColor = street.color.toHex();
-
-          streetsSheet
-              .getRangeByName(
-                  'A' + (areaStreets.indexOf(street) + streetIndex).toString())
-              .cellStyle = cellStyle;
-
-          streetsSheet
-              .getRangeByName(
-                  'A' + (areaStreets.indexOf(street) + streetIndex).toString())
-              .setText(street.id);
-          streetsSheet
-              .getRangeByName(
-                  'B' + (areaStreets.indexOf(street) + streetIndex).toString())
-              .setText(street.name);
-          if (street.locationPoints != null)
-            streetsSheet
-                .getRangeByName('C' +
-                    (areaStreets.indexOf(street) + streetIndex).toString())
-                .setText(street.locationPoints.join(', '));
-          if (street.lastVisit != null)
-            streetsSheet
-                .getRangeByName('D' +
-                    (areaStreets.indexOf(street) + streetIndex).toString())
-                .setDateTime(street.lastVisit.toDate());
-          if (street.fatherLastVisit != null)
-            streetsSheet
-                .getRangeByName('E' +
-                    (areaStreets.indexOf(street) + streetIndex).toString())
-                .setDateTime(street.fatherLastVisit.toDate());
-          streetsSheet
-              .getRangeByName(
-                  'F' + (areaStreets.indexOf(street) + streetIndex).toString())
-              .setText(area.name);
-          if (street.lastEdit != null)
-            streetsSheet
-                .getRangeByName('G' +
-                    (areaStreets.indexOf(street) + streetIndex).toString())
-                .setText(usersByID[street.lastEdit] ?? '');
-        }
-
-        for (Family family in areaFamilies) {
-          var cellStyle = sfxls.CellStyle(file);
-          cellStyle.backColor = family.color.toHex();
-
-          familiesSheet
-              .getRangeByName(
-                  'A' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .setText(family.id);
-          familiesSheet
-              .getRangeByName(
-                  'A' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .cellStyle = cellStyle;
-
-          familiesSheet
-              .getRangeByName(
-                  'B' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .setText(family.name);
-          familiesSheet
-              .getRangeByName(
-                  'C' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .setText(family.address);
-          if (family.lastVisit != null)
-            familiesSheet
-                .getRangeByName('D' +
-                    (areaFamilies.indexOf(family) + familyIndex).toString())
-                .setDateTime(family.lastVisit.toDate());
-          if (family.fatherLastVisit != null)
-            familiesSheet
-                .getRangeByName('E' +
-                    (areaFamilies.indexOf(family) + familyIndex).toString())
-                .setDateTime(family.fatherLastVisit.toDate());
-          if (family.locationPoint != null)
-            familiesSheet
-                .getRangeByName('F' +
-                    (areaFamilies.indexOf(family) + familyIndex).toString())
-                .setText(family.locationPoint.toString());
-          familiesSheet
-              .getRangeByName(
-                  'G' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .setText(area.name);
-          familiesSheet
-              .getRangeByName(
-                  'H' + (areaFamilies.indexOf(family) + familyIndex).toString())
-              .setText(streetsByID[family.streetId.id] ?? '');
-          if (family.lastEdit != null)
-            familiesSheet
-                .getRangeByName('I' +
-                    (areaFamilies.indexOf(family) + familyIndex).toString())
-                .setText(usersByID[family.lastEdit] ?? '');
-        }
-
-        for (Person person in areaPersons) {
-          var cellStyle = sfxls.CellStyle(file);
-          cellStyle.backColor = person.color.toHex();
-
-          personsSheet
-              .getRangeByName(
-                  'A' + (areaPersons.indexOf(person) + personIndex).toString())
-              .cellStyle = cellStyle;
-
-          personsSheet
-              .getRangeByName(
-                  'A' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.id);
-          personsSheet
-              .getRangeByName(
-                  'B' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.name);
-          if (person.birthDate != null)
-            personsSheet
-                .getRangeByName('C' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setDateTime(person.birthDate.toDate());
-          personsSheet
-              .getRangeByName(
-                  'D' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.isStudent.toString());
-          if (person.studyYear != null)
-            personsSheet
-                .getRangeByName('E' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(studyYearByID[person.studyYear.id] ?? '');
-          if (person.college != null)
-            personsSheet
-                .getRangeByName('F' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(collegesByID[person.college.id] ?? '');
-          if (person.job != null)
-            personsSheet
-                .getRangeByName('G' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(jobsByID[person.job.id] ?? '');
-          personsSheet
-              .getRangeByName(
-                  'H' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.jobDescription);
-          personsSheet
-              .getRangeByName(
-                  'I' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.qualification);
-          if (person.type != null)
-            personsSheet
-                .getRangeByName('J' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(typesByID[person.type] ?? '');
-          if (person.church != null)
-            personsSheet
-                .getRangeByName('K' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(churchByID[person.church.id] ?? '');
-          if (person.cFather != null)
-            personsSheet
-                .getRangeByName('L' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(fathersByID[person.cFather.id] ?? '');
-          personsSheet
-              .getRangeByName(
-                  'M' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.isServant.toString());
-          if (person.servingType != null)
-            personsSheet
-                .getRangeByName('N' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(servingTypeByID[person.servingType.id] ?? '');
-
-          if (person.state != null) {
-            personsSheet
-                .getRangeByName('O' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(statesByID[person.state.id].name);
-
-            var stateCellStyle = sfxls.CellStyle(file);
-            stateCellStyle.backColor =
-                statesByID[person.state.id].color.toHex();
-
-            personsSheet
-                .getRangeByName('O' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .cellStyle = stateCellStyle;
-          }
-
-          if (person.lastTanawol != null)
-            personsSheet
-                .getRangeByName('P' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setDateTime(person.lastTanawol.toDate());
-          if (person.lastConfession != null)
-            personsSheet
-                .getRangeByName('Q' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setDateTime(person.lastConfession.toDate());
-          personsSheet
-              .getRangeByName(
-                  'R' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(person.notes);
-          if (person.lastEdit != null)
-            personsSheet
-                .getRangeByName('S' +
-                    (areaPersons.indexOf(person) + personIndex).toString())
-                .setText(usersByID[person.lastEdit] ?? '');
-
-          personsSheet
-              .getRangeByName(
-                  'T' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(area.name);
-
-          personsSheet
-              .getRangeByName(
-                  'U' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(streetsByID[person.streetId.id] ?? '');
-
-          personsSheet
-              .getRangeByName(
-                  'V' + (areaPersons.indexOf(person) + personIndex).toString())
-              .setText(familiesByID[person.familyId.id] ?? '');
-        }
-        streetIndex += areaStreets.length;
-        familyIndex += areaFamilies.length;
-        personIndex += areaPersons.length;
-        // areaIndex++; //We dont need this
-      }
-      String filePath = '/storage/emulated/0/ChurchData/Export-' +
-          DateTime.now().toIso8601String().replaceAll(':', '_') +
-          '.xlsx';
-      if (Platform.isAndroid &&
-          (await DeviceInfoPlugin().androidInfo).version.sdkInt <= 28) {
-        await (await File(filePath).create(recursive: true))
-            .writeAsBytes(file.saveAsStream());
-        scaffold.hideCurrentSnackBar();
-        scaffold.showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم التصدير بنجاح الى ' + filePath,
-            ),
-          ),
-        );
-      } else {
-        filePath = (await getApplicationDocumentsDirectory()).path +
-            '/ChurchData/Export-' +
-            DateTime.now().toIso8601String().replaceAll(':', '_') +
-            '.xlsx';
-        await (await (File(filePath)).create(recursive: true))
-            .writeAsBytes(file.saveAsStream());
-        scaffold.hideCurrentSnackBar();
-        scaffold.showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم التصدير بنجاح الى ' + filePath,
-            ),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      }
-      await open.OpenFile.open(filePath);
-    }
-  } catch (err, stckTrace) {
-    scaffold.hideCurrentSnackBar();
-    scaffold.showSnackBar(
-      SnackBar(
-        content: Text(
-          err.toString(),
-        ),
-      ),
-    );
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers.analysisExport');
-    await FirebaseCrashlytics.instance.recordError(err, stckTrace);
-  }
-}
-
 void areaTap(Area area, BuildContext context) {
-  if (export) {
-    exportArea(area, context);
-    return;
-  }
   Navigator.of(context).pushNamed('AreaInfo', arguments: area);
 }
 
 void showConfessionNotification() async {
   await Firebase.initializeApp();
-  var user = await User.getCurrentUser();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
   var source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
@@ -578,7 +107,9 @@ void showConfessionNotification() async {
 
 void showTanawolNotification() async {
   await Firebase.initializeApp();
-  var user = await User.getCurrentUser();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
   var source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
@@ -626,7 +157,9 @@ void showTanawolNotification() async {
 
 void showBirthDayNotification() async {
   await Firebase.initializeApp();
-  var user = await User.getCurrentUser();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
   var source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
@@ -745,95 +278,6 @@ void dataObjectTap(DataObject obj, BuildContext context) {
     personTap(obj, context);
   else
     throw UnimplementedError();
-}
-
-Future exportArea(Area area, BuildContext context) async {
-  try {
-    if ((await Permission.storage.request()).isGranted) {
-      var areaStreets = await area.getChildren();
-      var areaFamilies = await area.getFamilyMembersList();
-      var areaPersons = await area.getPersonMembersList();
-      var file = excel.Excel.createExcel()
-        ..appendRow(
-          'Main',
-          area.getExportMap().values.toList(),
-        )
-        ..appendRow(
-          'Areas',
-          Street.getEmptyExportMap().keys.toList(),
-        )
-        ..appendRow(
-          'Families',
-          Family.getEmptyExportMap().keys.toList(),
-        )
-        ..appendRow(
-          'Contacts',
-          Person.getEmptyExportMap().keys.toList(),
-        );
-      await file.setDefaultSheet('Areas');
-      for (Street item in areaStreets) {
-        file.appendRow(
-          'Areas',
-          item.getExportMap().values.toList(),
-        );
-      }
-
-      for (Family item in areaFamilies) {
-        file.appendRow(
-          'Families',
-          item.getExportMap().values.toList(),
-        );
-      }
-
-      for (Person item in areaPersons) {
-        file.appendRow(
-          'Contacts',
-          item.getExportMap().values.toList(),
-        );
-      }
-      String filePath = '/storage/emulated/0/ChurchData/${area.name}.xlsx';
-      if (Platform.isAndroid &&
-          (await DeviceInfoPlugin().androidInfo).version.sdkInt <= 28) {
-        await (await (File(filePath)).create(recursive: true)).writeAsBytes(
-          await file.encode(),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم التصدير بنجاح الى ' + filePath,
-            ),
-          ),
-        );
-      } else {
-        filePath = (await getApplicationDocumentsDirectory()).path +
-            '/ChurchData/${area.name}.xlsx';
-        await (await (File(filePath)).create(recursive: true)).writeAsBytes(
-          await file.encode(),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم التصدير بنجاح الى ' + filePath,
-            ),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      }
-      await open.OpenFile.open(filePath);
-    }
-  } catch (err, stckTrace) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          err.toString(),
-        ),
-      ),
-    );
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers.exportArea');
-    await FirebaseCrashlytics.instance.recordError(err, stckTrace);
-  }
-  export = false;
 }
 
 void familyTap(Family family, BuildContext context) {
@@ -1085,8 +529,8 @@ void import(BuildContext context) async {
                         options: ListOptions<Area>(
                           tap: (Area area, _) =>
                               _legacyImport(decoder, area.ref, context),
-                          generate: Area.fromDocumentSnapshot,
-                          documentsData: () => Area.getAllForUser(
+                          generate: Area.fromDoc,
+                          documentsData: Area.getAllForUser(
                               orderBy: options.item1,
                               descending: !options.item2),
                         ),
@@ -1427,7 +871,8 @@ void showPendingMessage([BuildContext context]) async {
   }
 }
 
-void onForegroundMessage(RemoteMessage message, [BuildContext context]) async {
+void onForegroundMessage(messaging_types.RemoteMessage message,
+    [BuildContext context]) async {
   context ??= mainScfld.currentContext;
   await storeNotification(message);
   ScaffoldMessenger.of(context).showSnackBar(
@@ -1441,12 +886,12 @@ void onForegroundMessage(RemoteMessage message, [BuildContext context]) async {
   );
 }
 
-Future<int> storeNotification(RemoteMessage message) async {
+Future<int> storeNotification(messaging_types.RemoteMessage message) async {
   return await Hive.box<Map<dynamic, dynamic>>('Notifications')
       .add(message.data);
 }
 
-Future<void> onBackgroundMessage(RemoteMessage message) async {
+Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
   await Hive.initFlutter();
   await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
@@ -1548,7 +993,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
   try {
     if (deepLink.pathSegments[0] == 'viewArea') {
       areaTap(
-          Area.fromDocumentSnapshot(
+          Area.fromDoc(
             await FirebaseFirestore.instance
                 .doc('Areas/${deepLink.queryParameters['AreaId']}')
                 .get(),
@@ -1556,7 +1001,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
           context);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
       streetTap(
-          Street.fromDocumentSnapshot(
+          Street.fromDoc(
             await FirebaseFirestore.instance
                 .doc('Streets/${deepLink.queryParameters['StreetId']}')
                 .get(),
@@ -1564,7 +1009,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
           context);
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
       familyTap(
-          Family.fromDocumentSnapshot(
+          Family.fromDoc(
             await FirebaseFirestore.instance
                 .doc('Families/${deepLink.queryParameters['FamilyId']}')
                 .get(),
@@ -1572,7 +1017,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
           context);
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
       personTap(
-          Person.fromDocumentSnapshot(
+          Person.fromDoc(
             await FirebaseFirestore.instance
                 .doc('Persons/${deepLink.queryParameters['PersonId']}')
                 .get(),
@@ -1620,8 +1065,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
           ListenableProvider(
               create: (_) => ListOptions<User>(
                   isAdmin: User().manageUsers,
-                  documentsData: () => User.getAllUsersLive()
-                      .then((value) => Stream.value(value))))
+                  documentsData: Stream.fromFuture(User.getAllUsersLive())))
         ],
         builder: (context, child) => DataDialog(
           actions: [
@@ -1988,7 +1432,7 @@ void showMessage(BuildContext context, no.Notification notification) async {
             CachedNetworkImage(imageUrl: attachement.url),
           Text('من: ' +
               (user != null
-                  ? User.fromDocumentSnapshot(
+                  ? User.fromDoc(
                       user,
                     ).name
                   : 'مسؤلو البرنامج')),
