@@ -20,6 +20,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   DocumentReference areaId;
 
   String phone;
+  Map<String, dynamic> phones; //Other phones if any
   Timestamp birthDate;
 
   Timestamp lastConfession;
@@ -54,6 +55,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       this.familyId,
       String name = '',
       this.phone = '',
+      this.phones,
       bool hasPhoto = false,
       this.birthDate,
       this.lastTanawol,
@@ -78,6 +80,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       Color color = Colors.transparent})
       : super(id, name, color) {
     this.hasPhoto = hasPhoto;
+    phones ??= {};
     defaultIcon = Icons.person;
   }
 
@@ -88,6 +91,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     areaId = data['AreaId'];
 
     phone = data['Phone'];
+    phones = data['Phones']?.cast<String, dynamic>() ?? {};
 
     hasPhoto = data['HasPhoto'] ?? false;
     defaultIcon = Icons.person;
@@ -162,38 +166,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     return tmp['Name'] ?? 'لا يوجد';
   }
 
-  @override
-  Map<String, dynamic> getExportMap() => {
-        'ID': id,
-        'FamilyId': familyId?.id,
-        'StreetId': streetId?.id,
-        'AreaId': areaId?.id,
-        'Name': name,
-        'Phone': phone,
-        'HasPhoto': (hasPhoto ?? false).toString(),
-        'Color': color.value,
-        'BirthDate': birthDate?.millisecondsSinceEpoch?.toString(),
-        'BirthDay': birthDay?.millisecondsSinceEpoch?.toString(),
-        'IsStudent': isStudent?.toString(),
-        'StudyYear': studyYear?.id,
-        'College': college,
-        'Job': job?.id,
-        'JobDescription': jobDescription,
-        'Qualification': qualification,
-        'Type': type,
-        'Notes': notes,
-        'IsServant': isServant?.toString(),
-        'ServingAreaId': servingAreaId?.id,
-        'Church': church?.id,
-        'Meeting': meeting,
-        'CFather': cFather?.id,
-        'State': state?.id,
-        'ServingType': servingType?.id,
-        'LastTanawol': lastTanawol?.millisecondsSinceEpoch?.toString(),
-        'LastConfession': lastConfession?.millisecondsSinceEpoch?.toString(),
-        'LastEdit': lastEdit
-      };
-
   Future<String> getFamilyName() async {
     var tmp = (await familyId?.get(dataSource))?.data();
     if (tmp == null) return '';
@@ -251,6 +223,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'AreaId': areaId,
         'Name': name,
         'Phone': phone,
+        'Phones': (phones?.map((k, v) => MapEntry(k, v)) ?? {})
+          ..removeWhere((k, v) => v.toString().isEmpty),
         'HasPhoto': hasPhoto ?? false,
         'Color': color.value,
         'BirthDate': birthDate,
@@ -405,46 +379,44 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     await setAreaIdFromStreet();
   }
 
-  static Person fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Person fromDoc(DocumentSnapshot data) =>
       Person._createFromData(data.data(), data.id);
 
-  static Future<Person> fromId(String id) async => Person.fromDocumentSnapshot(
+  static Future<Person> fromId(String id) async => Person.fromDoc(
         await FirebaseFirestore.instance.doc('Persons/$id').get(),
       );
 
   static List<Person> getAll(List<DocumentSnapshot> persons) {
-    return persons
-        .map(
-          (a) => Person.fromDocumentSnapshot(a),
-        )
-        .toList();
+    return persons.map(Person.fromDoc).toList();
   }
 
-  static Future<Stream<QuerySnapshot>> getAllForUser({
+  static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async {
-    if (User().superAccess) {
-      return FirebaseFirestore.instance
-          .collection('Persons')
-          .orderBy(orderBy, descending: descending)
-          .snapshots();
-    }
-    return FirebaseFirestore.instance
-        .collection('Persons')
-        .where(
-          'AreaId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed',
-                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                  .get(dataSource))
-              .docs
-              .map((e) => e.reference)
-              .toList(),
-        )
-        .orderBy(orderBy, descending: descending)
-        .snapshots();
+  }) async* {
+    await for (var u in User.instance.stream)
+      if (u.superAccess)
+        await for (var s in FirebaseFirestore.instance
+            .collection('Persons')
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
+      else
+        await for (var s in FirebaseFirestore.instance
+            .collection('Persons')
+            .where(
+              'AreaId',
+              whereIn: (await FirebaseFirestore.instance
+                      .collection('Areas')
+                      .where('Allowed',
+                          arrayContains:
+                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .get(dataSource))
+                  .docs
+                  .map((e) => e.reference)
+                  .toList(),
+            )
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

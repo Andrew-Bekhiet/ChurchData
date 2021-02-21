@@ -48,8 +48,8 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   List<DocumentSnapshot> items = [];
   bool selectionMode = false;
   bool isAdmin = false;
-  Future<Stream<QuerySnapshot>> Function() documentsData;
-  Future<List<QueryDocumentSnapshot>> Function() familyData;
+  Stream<QuerySnapshot> documentsData;
+  Stream<List<QuerySnapshot>> familiesData;
 
   List<T> selected = <T>[];
   Map<String, AsyncMemoizer<String>> cache = {};
@@ -73,11 +73,11 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
       this.showNull = false,
       this.selectionMode = false,
       this.documentsData,
-      this.familyData,
+      this.familiesData,
       bool isAdmin})
       : assert((items != null && items != []) ||
             documentsData != null ||
-            familyData != null),
+            familiesData != null),
         assert(showNull == false || (showNull == true && empty != null)) {
     this.isAdmin = isAdmin ?? User().superAccess ?? false;
     if (items != null && (cache?.length ?? 0) != items.length) {

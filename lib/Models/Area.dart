@@ -91,21 +91,6 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
         .docs);
   }
 
-  @override
-  Map<String, dynamic> getExportMap() => {
-        'ID': id,
-        'Name': name,
-        'Address': address,
-        'HasPhoto': hasPhoto ?? false,
-        'Location': locationPoints?.join(','),
-        'LocationConfirmed': locationConfirmed,
-        'Color': color.value,
-        'LastVisit': lastVisit?.millisecondsSinceEpoch?.toString(),
-        'FatherLastVisit': fatherLastVisit?.millisecondsSinceEpoch?.toString(),
-        'Allowed': allowedUsers.join(','),
-        'LastEdit': lastEdit
-      };
-
   Future<List<Family>> getFamilyMembersList(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
@@ -188,9 +173,9 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     return MapView(childrenDepth: depth, editMode: editMode, area: this);
   }
 
-  Future<Stream<QuerySnapshot>> getMembersLive(
-      {String orderBy = 'Name', bool descending = false}) async {
-    return await Area.getAreaChildrenLive(id, orderBy, descending);
+  Stream<QuerySnapshot> getMembersLive(
+      {String orderBy = 'Name', bool descending = false}) {
+    return Area.getAreaChildrenLive(id, orderBy, descending);
   }
 
   Future<List<Person>> getPersonMembersList(
@@ -252,17 +237,17 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     );
   }
 
-  static Area fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Area fromDoc(DocumentSnapshot data) =>
       Area.createFromData(data.data(), data.id);
 
-  static Future<Area> fromId(String id) async => Area.fromDocumentSnapshot(
+  static Future<Area> fromId(String id) async => Area.fromDoc(
         await FirebaseFirestore.instance.doc('Areas/$id').get(),
       );
 
   static List<Area> getAll(List<DocumentSnapshot> areas) {
     return areas
         .map(
-          (a) => Area.fromDocumentSnapshot(a),
+          (a) => Area.fromDoc(a),
         )
         .toList();
   }
@@ -271,42 +256,38 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     String orderBy = 'Name',
     bool descending = false,
   }) async {
-    if (User().superAccess) {
-      return getAll((await FirebaseFirestore.instance
-              .collection('Areas')
-              .orderBy(orderBy, descending: descending)
-              .get(dataSource))
-          .docs);
-    }
-    return getAll((await FirebaseFirestore.instance
-            .collection('Areas')
-            .where('Allowed',
-                arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-            .orderBy(orderBy, descending: descending)
-            .get(dataSource))
-        .docs);
+    return (await getAllForUser(orderBy: orderBy, descending: descending).first)
+        .docs
+        .map(fromDoc);
   }
 
-  static Future<Stream<QuerySnapshot>> getAllForUser({
+  static Stream<QuerySnapshot> getAllForUser({
+    String uid,
     String orderBy = 'Name',
     bool descending = false,
-  }) async {
-    if (User().superAccess) {
-      return FirebaseFirestore.instance
-          .collection('Areas')
-          .orderBy(orderBy, descending: descending)
-          .snapshots();
+  }) async* {
+    await for (var u in User.instance.stream) {
+      if (u.superAccess && (uid == null || uid == u.uid)) {
+        await for (var s in FirebaseFirestore.instance
+            .collection('Areas')
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) {
+          yield s;
+        }
+      } else {
+        await for (var s in FirebaseFirestore.instance
+            .collection('Areas')
+            .where('Allowed', arrayContains: uid ?? u.uid)
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) {
+          yield s;
+        }
+      }
     }
-    return FirebaseFirestore.instance
-        .collection('Areas')
-        .where('Allowed',
-            arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-        .orderBy(orderBy, descending: descending)
-        .snapshots();
   }
 
-  static Future<Stream<QuerySnapshot>> getAreaChildrenLive(String id,
-      [String orderBy = 'Name', bool descending = false]) async {
+  static Stream<QuerySnapshot> getAreaChildrenLive(String id,
+      [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Streets')
         .where(

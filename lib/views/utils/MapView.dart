@@ -213,8 +213,8 @@ class MapView extends StatelessWidget {
               return Center(
                 child: CircularProgressIndicator(),
               );
-            Area area = Area.fromDocumentSnapshot(areaData.data);
-            Street street = Street.fromDocumentSnapshot(streetData.data);
+            Area area = Area.fromDoc(areaData.data);
+            Street street = Street.fromDoc(streetData.data);
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
                 compassEnabled: true,
@@ -337,7 +337,7 @@ class MapView extends StatelessWidget {
             return Center(
               child: CircularProgressIndicator(),
             );
-          Area area = Area.fromDocumentSnapshot(areaData.data);
+          Area area = Area.fromDoc(areaData.data);
           return StatefulBuilder(
             builder: (context, setState) => GoogleMap(
               compassEnabled: true,

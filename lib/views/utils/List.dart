@@ -358,98 +358,77 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   @override
   bool get wantKeepAlive => mounted;
 
-  AsyncCache<Stream<QuerySnapshot>> dataCache =
-      AsyncCache<Stream<QuerySnapshot>>(Duration(minutes: 5));
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
     if (widget.options.documentsData != null)
-      return FutureBuilder<Stream<QuerySnapshot>>(
-        future: dataCache.fetch(widget.options.documentsData),
-        builder: (context, future) {
-          if (future.hasError) return Center(child: ErrorWidget(future.error));
-          if (!future.hasData)
+      return StreamBuilder<QuerySnapshot>(
+        stream: widget.options.documentsData.asBroadcastStream(),
+        builder: (context, stream) {
+          if (stream.hasError) return Center(child: ErrorWidget(stream.error));
+          if (!stream.hasData)
             return Center(child: CircularProgressIndicator());
-          return StreamBuilder<QuerySnapshot>(
-            stream: future.data,
-            builder: (context, stream) {
-              if (stream.hasError)
-                return Center(child: ErrorWidget(stream.error));
-              if (!stream.hasData)
-                return Center(child: CircularProgressIndicator());
-              return RefreshIndicator(
-                child: ChangeNotifierProxyProvider0<ListOptions<T>>(
-                  create: (_) => ListOptions<T>(
-                      tap: widget.options.tap,
-                      generate: widget.options.generate,
-                      empty: widget.options.empty,
-                      showNull: widget.options.showNull,
-                      items: stream.data.docs,
-                      selectionMode: widget.options.selectionMode),
-                  update: (_, old) => old..changeItems(stream.data.docs),
-                  builder: (context, _) =>
-                      Selector<ListOptions<T>, List<DocumentSnapshot>>(
-                    selector: (_, op) => op.items,
-                    builder: (context, docs, child) {
-                      return Scaffold(
-                        primary: false,
-                        extendBody: true,
-                        body: Column(
+          return ChangeNotifierProxyProvider0<ListOptions<T>>(
+            create: (_) => ListOptions<T>(
+                tap: widget.options.tap,
+                generate: widget.options.generate,
+                empty: widget.options.empty,
+                showNull: widget.options.showNull,
+                items: stream.data.docs,
+                selectionMode: widget.options.selectionMode),
+            update: (_, old) => old..changeItems(stream.data.docs),
+            builder: (context, _) =>
+                Selector<ListOptions<T>, List<DocumentSnapshot>>(
+              selector: (_, op) => op.items,
+              builder: (context, docs, child) {
+                return Scaffold(
+                  primary: false,
+                  extendBody: true,
+                  body: child == null
+                      ? _InnerList<T>()
+                      : Column(
                           children: [
-                            if (child != null) child,
+                            child,
                             Flexible(child: _InnerList<T>()),
                           ],
                         ),
-                        floatingActionButtonLocation: widget.options.hasNotch
-                            ? FloatingActionButtonLocation.endDocked
-                            : null,
-                        floatingActionButton:
-                            widget.options.floatingActionButton,
-                        bottomNavigationBar: BottomAppBar(
-                          color: Theme.of(context).primaryColor,
-                          child: Text(
-                              (docs?.length ?? 0).toString() +
-                                  ' ' +
-                                  _getStringType(),
-                              textAlign: TextAlign.center,
-                              strutStyle: StrutStyle(
-                                  height: MediaQuery.of(context).size.height /
-                                      (!kIsWeb ? 285.71 : 100)),
-                              style:
-                                  Theme.of(context).primaryTextTheme.bodyText1),
-                          shape: widget.options.hasNotch
-                              ? widget.options.doubleActionButton
-                                  ? const DoubleCircularNotchedButton()
-                                  : const CircularNotchedRectangle()
-                              : null,
-                        ),
-                      );
-                    },
-                    child: widget.options.showNull
-                        ? DataObjectWidget<T>(
-                            widget.options.empty,
-                            onTap: () => widget.options
-                                .tap(widget.options.empty, context),
-                          )
+                  floatingActionButtonLocation: widget.options.hasNotch
+                      ? FloatingActionButtonLocation.endDocked
+                      : null,
+                  floatingActionButton: widget.options.floatingActionButton,
+                  bottomNavigationBar: BottomAppBar(
+                    color: Theme.of(context).primaryColor,
+                    child: Text(
+                        (docs?.length ?? 0).toString() + ' ' + _getStringType(),
+                        textAlign: TextAlign.center,
+                        strutStyle: StrutStyle(
+                            height: MediaQuery.of(context).size.height /
+                                (!kIsWeb ? 285.71 : 100)),
+                        style: Theme.of(context).primaryTextTheme.bodyText1),
+                    shape: widget.options.hasNotch
+                        ? widget.options.doubleActionButton
+                            ? const DoubleCircularNotchedButton()
+                            : const CircularNotchedRectangle()
                         : null,
                   ),
-                ),
-                onRefresh: () {
-                  dataCache.invalidate();
-                  setState(() {});
-                  return widget.options.documentsData();
-                },
-              );
-            },
+                );
+              },
+              child: widget.options.showNull
+                  ? DataObjectWidget<T>(
+                      widget.options.empty,
+                      onTap: () =>
+                          widget.options.tap(widget.options.empty, context),
+                    )
+                  : null,
+            ),
           );
         },
       );
-    return FutureBuilder<List<QueryDocumentSnapshot>>(
-      future: widget.options.familyData(),
-      builder: (context, future) {
-        if (future.hasError) return Center(child: ErrorWidget(future.error));
-        if (!future.hasData) return Center(child: CircularProgressIndicator());
+    return StreamBuilder<List<QuerySnapshot>>(
+      stream: widget.options.familiesData,
+      builder: (context, stream) {
+        if (stream.hasError) return Center(child: ErrorWidget(stream.error));
+        if (!stream.hasData) return Center(child: CircularProgressIndicator());
         return RefreshIndicator(
           child: ChangeNotifierProxyProvider0<ListOptions<T>>(
             create: (_) => ListOptions<T>(
@@ -457,9 +436,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 generate: widget.options.generate,
                 empty: widget.options.empty,
                 showNull: widget.options.showNull,
-                items: future.data,
+                items: stream.data.expand((q) => q.docs).toList(),
                 selectionMode: widget.options.selectionMode),
-            update: (_, old) => old..changeItems(future.data),
+            update: (_, old) =>
+                old..changeItems(stream.data.expand((q) => q.docs).toList()),
             builder: (context, _) =>
                 Selector<ListOptions<T>, List<DocumentSnapshot>>(
               selector: (_, op) => op.items,
@@ -501,7 +481,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           ),
           onRefresh: () {
             setState(() {});
-            return widget.options.familyData();
+            return widget.options.familiesData.last;
           },
         );
       },

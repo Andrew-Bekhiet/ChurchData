@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../Models.dart';
 import '../Models/super_classes.dart';
@@ -108,24 +109,6 @@ class Family extends DataObject
   }
 
   @override
-  Map<String, dynamic> getExportMap() => {
-        'ID': id,
-        'AreaId': areaId.id,
-        'StreetId': streetId.id,
-        'Name': name,
-        'Address': address,
-        'Color': color.value,
-        'Location': locationPoint != null
-            ? '${locationPoint.latitude},${locationPoint.longitude}'
-            : null,
-        'LocationConfirmed': locationConfirmed,
-        'LastVisit': lastVisit?.millisecondsSinceEpoch?.toString(),
-        'FatherLastVisit': fatherLastVisit?.millisecondsSinceEpoch?.toString(),
-        'LastEdit': lastEdit,
-        'IsStore': isStore
-      };
-
-  @override
   Map<String, dynamic> getHumanReadableMap() => {
         'Name': name ?? '',
         'Address': address ?? '',
@@ -202,9 +185,9 @@ class Family extends DataObject
     return MapView(editMode: editMode, family: this, childrenDepth: 3);
   }
 
-  Future<List<QueryDocumentSnapshot>> getMembersLive(
-      {String orderBy = 'Name', bool descending = false}) async {
-    return await Family.getFamilyMembersLive(areaId, id, orderBy, descending);
+  Stream<List<QuerySnapshot>> getMembersLive(
+      {String orderBy = 'Name', bool descending = false}) {
+    return Family.getFamilyMembersLive(areaId, id, orderBy, descending);
   }
 
   @override
@@ -249,19 +232,15 @@ class Family extends DataObject
     );
   }
 
-  static Family fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Family fromDoc(DocumentSnapshot data) =>
       Family._createFromData(data.data(), data.id);
 
-  static Future<Family> fromId(String id) async => Family.fromDocumentSnapshot(
+  static Future<Family> fromId(String id) async => Family.fromDoc(
         await FirebaseFirestore.instance.doc('Families/$id').get(),
       );
 
   static List<Family> getAll(List<DocumentSnapshot> families) {
-    return families
-        .map(
-          (a) => Family.fromDocumentSnapshot(a),
-        )
-        .toList();
+    return families.map(Family.fromDoc).toList();
   }
 
   static Future<List<Family>> getAllFamiliesForUser({
@@ -274,9 +253,7 @@ class Family extends DataObject
               .orderBy(orderBy, descending: descending)
               .get(dataSource))
           .docs
-          .map(
-            (e) => Family.fromDocumentSnapshot(e),
-          )
+          .map(Family.fromDoc)
           .toList();
     }
     return (await FirebaseFirestore.instance
@@ -296,37 +273,37 @@ class Family extends DataObject
             .orderBy(orderBy, descending: descending)
             .get(dataSource))
         .docs
-        .map(
-          (e) => Family.fromDocumentSnapshot(e),
-        )
+        .map(Family.fromDoc)
         .toList();
   }
 
-  static Future<Stream<QuerySnapshot>> getAllForUser({
+  static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async {
-    if (User().superAccess) {
-      return FirebaseFirestore.instance
-          .collection('Families')
-          .orderBy(orderBy, descending: descending)
-          .snapshots();
-    }
-    return FirebaseFirestore.instance
-        .collection('Families')
-        .where(
-          'AreaId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed',
-                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                  .get(dataSource))
-              .docs
-              .map((e) => e.reference)
-              .toList(),
-        )
-        .orderBy(orderBy, descending: descending)
-        .snapshots();
+  }) async* {
+    await for (var u in User.instance.stream)
+      if (u.superAccess) {
+        await for (var s in FirebaseFirestore.instance
+            .collection('Families')
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
+      } else
+        await for (var s in FirebaseFirestore.instance
+            .collection('Families')
+            .where(
+              'AreaId',
+              whereIn: (await FirebaseFirestore.instance
+                      .collection('Areas')
+                      .where('Allowed',
+                          arrayContains:
+                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .get(dataSource))
+                  .docs
+                  .map((e) => e.reference)
+                  .toList(),
+            )
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {
@@ -344,78 +321,75 @@ class Family extends DataObject
         'IsStore': 'isStore'
       };
 
-  static Future<List<QueryDocumentSnapshot>> getFamilyMembersLive(
+  static Stream<List<QuerySnapshot>> getFamilyMembersLive(
       DocumentReference areaId, String id,
-      [String orderBy = 'Name', bool descending = false]) async {
-    List<QueryDocumentSnapshot> families1, families2, families3;
-    if (User().superAccess) {
-      families1 = (await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('AreaId', isEqualTo: areaId)
-              .where(
-                'FamilyId',
-                isEqualTo:
-                    FirebaseFirestore.instance.collection('Families').doc(id),
-              )
-              .orderBy(orderBy, descending: descending)
-              .get(dataSource))
-          .docs;
-      families2 = (await FirebaseFirestore.instance
-              .collection('Families')
-              .where(
-                'InsideFamily',
-                isEqualTo:
-                    FirebaseFirestore.instance.collection('Families').doc(id),
-              )
-              .orderBy('Name')
-              .get(dataSource))
-          .docs;
-      families3 = (await FirebaseFirestore.instance
-              .collection('Families')
-              .where(
-                'InsideFamily2',
-                isEqualTo:
-                    FirebaseFirestore.instance.collection('Families').doc(id),
-              )
-              .orderBy('Name')
-              .get(dataSource))
-          .docs;
-      return [...families1, ...families2, ...families3];
+      [String orderBy = 'Name', bool descending = false]) async* {
+    await for (var u in User.instance.stream) {
+      if (u.superAccess)
+        await for (var s in Rx.combineLatest3(
+            FirebaseFirestore.instance
+                .collection('Persons')
+                .where('AreaId', isEqualTo: areaId)
+                .where(
+                  'FamilyId',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy(orderBy, descending: descending)
+                .snapshots(),
+            FirebaseFirestore.instance
+                .collection('Families')
+                .where(
+                  'InsideFamily',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy('Name')
+                .snapshots(),
+            FirebaseFirestore.instance
+                .collection('Families')
+                .where(
+                  'InsideFamily2',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy('Name')
+                .snapshots(),
+            (a, b, c) => <QuerySnapshot>[a, b, c])) yield s;
+      else
+        await for (var s in Rx.combineLatest3(
+            FirebaseFirestore.instance
+                .collection('Persons')
+                .where('AreaId', isEqualTo: areaId)
+                .where(
+                  'FamilyId',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy(orderBy, descending: descending)
+                .snapshots(),
+            FirebaseFirestore.instance
+                .collection('Families')
+                .where('AreaId', isEqualTo: areaId)
+                .where(
+                  'InsideFamily',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy('Name')
+                .snapshots(),
+            FirebaseFirestore.instance
+                .collection('Families')
+                .where('AreaId', isEqualTo: areaId)
+                .where(
+                  'InsideFamily2',
+                  isEqualTo:
+                      FirebaseFirestore.instance.collection('Families').doc(id),
+                )
+                .orderBy('Name')
+                .snapshots(),
+            (a, b, c) => <QuerySnapshot>[a, b, c])) yield s;
     }
-    families1 = (await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('AreaId', isEqualTo: areaId)
-            .where(
-              'FamilyId',
-              isEqualTo:
-                  FirebaseFirestore.instance.collection('Families').doc(id),
-            )
-            .orderBy(orderBy, descending: descending)
-            .get(dataSource))
-        .docs;
-    families2 = (await FirebaseFirestore.instance
-            .collection('Families')
-            .where('AreaId', isEqualTo: areaId)
-            .where(
-              'InsideFamily',
-              isEqualTo:
-                  FirebaseFirestore.instance.collection('Families').doc(id),
-            )
-            .orderBy('Name')
-            .get(dataSource))
-        .docs;
-    families3 = (await FirebaseFirestore.instance
-            .collection('Families')
-            .where('AreaId', isEqualTo: areaId)
-            .where(
-              'InsideFamily2',
-              isEqualTo:
-                  FirebaseFirestore.instance.collection('Families').doc(id),
-            )
-            .orderBy('Name')
-            .get(dataSource))
-        .docs;
-    return [...families1, ...families2, ...families3];
   }
 
   // @override

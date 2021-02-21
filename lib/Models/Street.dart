@@ -97,19 +97,6 @@ class Street extends DataObject
   }
 
   @override
-  Map<String, dynamic> getExportMap() => {
-        'ID': id,
-        'Name': name,
-        'AreaId': areaId.id,
-        'Color': color.value,
-        'Location': locationPoints?.join(','),
-        'LocationConfirmed': locationConfirmed,
-        'LastVisit': lastVisit?.millisecondsSinceEpoch?.toString(),
-        'FatherLastVisit': fatherLastVisit?.millisecondsSinceEpoch?.toString(),
-        'LastEdit': lastEdit
-      };
-
-  @override
   Map<String, dynamic> getHumanReadableMap() => {
         'Name': name ?? '',
         'LastVisit': toDurationString(lastVisit),
@@ -172,9 +159,9 @@ class Street extends DataObject
     );
   }
 
-  Future<Stream<QuerySnapshot>> getMembersLive(
-      {String orderBy = 'Name', bool descending = false}) async {
-    return await Street.getStreetMembersLive(areaId, id, orderBy, descending);
+  Stream<QuerySnapshot> getMembersLive(
+      {String orderBy = 'Name', bool descending = false}) {
+    return Street.getStreetMembersLive(areaId, id, orderBy, descending);
   }
 
   @override
@@ -224,42 +211,45 @@ class Street extends DataObject
     );
   }
 
-  static Street fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Street fromDoc(DocumentSnapshot data) =>
       Street._createFromData(data.data(), data.id);
 
-  static Future<Street> fromId(String id) async => Street.fromDocumentSnapshot(
+  static Future<Street> fromId(String id) async => Street.fromDoc(
         await FirebaseFirestore.instance.doc('Streets/$id').get(),
       );
 
   static List<Street> getAll(List<DocumentSnapshot> streets) {
-    return streets.map((s) => Street.fromDocumentSnapshot(s)).toList();
+    return streets.map(Street.fromDoc);
   }
 
-  static Future<Stream<QuerySnapshot>> getAllForUser({
+  static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async {
-    if (User().superAccess) {
-      return FirebaseFirestore.instance
-          .collection('Streets')
-          .orderBy(orderBy, descending: descending)
-          .snapshots();
+  }) async* {
+    await for (var u in User.instance.stream) {
+      if (u.superAccess)
+        await for (var s in FirebaseFirestore.instance
+            .collection('Streets')
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
+      else
+        await for (var s in FirebaseFirestore.instance
+            .collection('Streets')
+            .where(
+              'AreaId',
+              whereIn: (await FirebaseFirestore.instance
+                      .collection('Areas')
+                      .where('Allowed',
+                          arrayContains:
+                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .get(dataSource))
+                  .docs
+                  .map((e) => e.reference)
+                  .toList(),
+            )
+            .orderBy(orderBy, descending: descending)
+            .snapshots()) yield s;
     }
-    return FirebaseFirestore.instance
-        .collection('Streets')
-        .where(
-          'AreaId',
-          whereIn: (await FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed',
-                      arrayContains: auth.FirebaseAuth.instance.currentUser.uid)
-                  .get(dataSource))
-              .docs
-              .map((e) => e.reference)
-              .toList(),
-        )
-        .orderBy(orderBy, descending: descending)
-        .snapshots();
   }
 
   static Future<List<Street>> getAllStreetsForUser({
@@ -272,9 +262,7 @@ class Street extends DataObject
               .orderBy(orderBy, descending: descending)
               .get(dataSource))
           .docs
-          .map(
-            (e) => Street.fromDocumentSnapshot(e),
-          )
+          .map(Street.fromDoc)
           .toList();
     }
     return (await FirebaseFirestore.instance
@@ -294,9 +282,7 @@ class Street extends DataObject
             .orderBy(orderBy, descending: descending)
             .get(dataSource))
         .docs
-        .map(
-          (e) => Street.fromDocumentSnapshot(e),
-        )
+        .map(Street.fromDoc)
         .toList();
   }
 
@@ -323,9 +309,9 @@ class Street extends DataObject
   // @override
   // fireWeb.Reference get webPhotoRef => throw UnimplementedError();
 
-  static Future<Stream<QuerySnapshot>> getStreetMembersLive(
+  static Stream<QuerySnapshot> getStreetMembersLive(
       DocumentReference areaId, String id,
-      [String orderBy = 'Name', bool descending = false]) async {
+      [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Families')
         .where('AreaId', isEqualTo: areaId)
