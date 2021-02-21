@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart'
-    if (dart.library.io) 'package:firebase_remote_config/firebase_remote_config.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

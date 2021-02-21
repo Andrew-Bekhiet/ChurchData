@@ -1,11 +1,8 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart'
-    if (dart.library.io) 'package:firebase_auth/firebase_auth.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' as auth;
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -85,6 +82,30 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   onPressed: () async {
+                    if (kIsWeb) {
+                      print('signing in with popup');
+                      await auth.FirebaseAuth.instance
+                          .signInWithCredential((await auth
+                                  .FirebaseAuth.instance
+                                  .signInWithPopup(GoogleAuthProvider()))
+                              .credential)
+                          .catchError((er) {
+                        if (er.toString().contains(
+                            'An account already exists with the same email address'))
+                          showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                    content: Text(
+                                        'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
+                                        '\n'
+                                        'جرب تسجيل الدخول بفيسبوك'),
+                                  ));
+                        return null;
+                      }).then((user) {
+                        if (user != null) setupSettings();
+                      });
+                      return;
+                    }
                     GoogleSignInAccount googleUser =
                         await GoogleSignIn().signIn();
                     if (googleUser != null) {
@@ -192,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      var user = await User.getCurrentUser();
+      var user = User.instance;
       var settings = Hive.box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 

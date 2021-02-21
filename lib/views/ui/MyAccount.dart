@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

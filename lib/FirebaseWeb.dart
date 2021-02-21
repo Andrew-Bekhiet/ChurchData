@@ -1,7 +1,7 @@
 import 'package:firebase/firebase.dart' as firebase;
 import 'package:firebase_auth_web/firebase_auth_web.dart';
-import 'package:firebase/src/interop/messaging_interop.dart';
 import 'package:firebase/src/interop/remote_config_interop.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 export 'package:cloud_firestore/cloud_firestore.dart';
 export 'package:cloud_functions/cloud_functions.dart';
@@ -39,61 +39,32 @@ class FirebaseDatabase {
   static Database get instance => Database();
 }
 
-class FirebaseMessaging implements firebase.Messaging {
+class FirebaseMessaging {
   static firebase.Messaging get instance => firebase.messaging();
-  FirebaseMessaging();
 
-  @override
-  MessagingJsImpl get jsObject => instance.jsObject;
-
-  @override
-  Stream<firebase.Payload> get onBackgroundMessage =>
-      instance.onBackgroundMessage;
-
-  @override
-  Stream<firebase.Payload> get onMessage => instance.onMessage;
-
-  @override
-  Stream<Null> get onTokenRefresh => instance.onTokenRefresh;
-
-  void configure({
-    Future<dynamic> Function(Map<String, dynamic> message) onMessage,
-    Future<dynamic> Function(Map<String, dynamic> message) onBackgroundMessage,
-    Future<dynamic> Function(Map<String, dynamic> message) onLaunch,
-    Future<dynamic> Function(Map<String, dynamic> message) onResume,
-  }) {
-    instance.onMessage.listen((e) => onMessage(e.data));
-    instance.onBackgroundMessage.listen((e) => onBackgroundMessage(e.data));
+  static void onBackgroundMessage(
+      Future<void> Function(RemoteMessage) handler) {
+    instance.onBackgroundMessage.listen(
+      (d) {
+        handler(RemoteMessage(
+            collapseKey: d.collapseKey,
+            data: d.data,
+            from: d.from,
+            notification: RemoteNotification(
+                title: d.notification.title, body: d.notification.body)));
+      },
+    );
   }
 
-  @override
-  void deleteToken(String token) {
-    instance.deleteToken(token);
-  }
+  static Stream<RemoteMessage> get onMessage =>
+      instance.onMessage.map((d) => RemoteMessage(
+          collapseKey: d.collapseKey,
+          data: d.data,
+          from: d.from,
+          notification: RemoteNotification(
+              title: d.notification.title, body: d.notification.body)));
 
-  @override
-  Future<String> getToken() async {
-    return await instance.getToken();
-  }
-
-  Future requestNotificationPermissions() async {
-    return instance.requestPermission();
-  }
-
-  @override
-  Future requestPermission() async {
-    return instance.requestPermission();
-  }
-
-  @override
-  void usePublicVapidKey(String key) {
-    instance.usePublicVapidKey(key);
-  }
-
-  @override
-  void useServiceWorker(registration) {
-    instance.useServiceWorker(registration);
-  }
+  static Stream<RemoteMessage> get onMessageOpenedApp => Stream.empty();
 }
 
 class RemoteConfig implements firebase.RemoteConfig {

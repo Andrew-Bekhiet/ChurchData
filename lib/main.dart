@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/views/EditPage/EditFamily.dart';
@@ -18,12 +19,10 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.io) 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User
     hide UserInfo;
 import 'package:firebase_messaging/firebase_messaging.dart'
-    if (dart.library.io) 'package:firebase_messaging/firebase_messaging.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User
     hide UserInfo;
@@ -73,8 +72,9 @@ void main() {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp().then((value) => User.getCurrentUser()).then(
-    (User user) async {
+  Firebase.initializeApp().then(
+    (_) async {
+      final User user = User.instance;
       await _initConfigs();
 
       var settings = Hive.box('Settings');
@@ -87,7 +87,7 @@ void main() {
             ChangeNotifierProvider<OrderOptions>(
               create: (_) => OrderOptions(),
             ),
-            ChangeNotifierProvider<User>.value(key: UniqueKey(), value: user),
+            ChangeNotifierProvider<User>.value(value: user),
             ChangeNotifierProvider<ThemeNotifier>(
               create: (_) => ThemeNotifier(
                 ThemeData(
@@ -112,7 +112,7 @@ void main() {
               ),
             ),
           ],
-          builder: (context, _) => App(key: UniqueKey()),
+          builder: (context, _) => App(),
         ),
       );
     },
@@ -268,7 +268,8 @@ class AppState extends State<App> {
 
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<List<dynamic>>(
-      future: loadApp(context),
+      future: precacheImage(AssetImage('assets/Logo2.png'), context)
+          .then((_) => loadApp(context)),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done)
           return Loading(

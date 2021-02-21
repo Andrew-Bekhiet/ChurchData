@@ -3,7 +3,6 @@ library globals;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart'
-    if (dart.library.io) 'package:firebase_remote_config/firebase_remote_config.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,8 +69,6 @@ GetOptions dataSource = GetOptions(source: Source.serverAndCache);
 DynamicLinkParametersOptions dynamicLinkParametersOptions =
     DynamicLinkParametersOptions(
         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
-
-bool export = false;
 
 FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
