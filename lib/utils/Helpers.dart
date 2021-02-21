@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/views/MiniLists/UsersList.dart';
@@ -8,8 +7,6 @@ import 'package:churchdata/views/utils/SearchFilters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:device_info/device_info.dart';
-import 'package:excel/excel.dart' as excel;
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -27,19 +24,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:open_file/open_file.dart' as open;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' as sfxls;
 import 'package:timeago/timeago.dart';
 import 'package:tuple/tuple.dart';
 
 import '../Models.dart';
 import '../Models/ListOptions.dart';
-import '../Models/MiniModels.dart';
 import '../Models/Notification.dart' as no;
 import '../Models/OrderOptions.dart';
 import '../Models/SearchString.dart';
