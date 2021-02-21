@@ -68,7 +68,7 @@ class Church extends MiniModel with ParentObject<Father> {
         .snapshots();
   }
 
-  static Church fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Church fromDoc(DocumentSnapshot data) =>
       Church._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -86,7 +86,7 @@ class Church extends MiniModel with ParentObject<Father> {
             .where('ChurchId', isEqualTo: ref)
             .get(dataSource))
         .docs
-        .map((i) => Father.fromDocumentSnapshot(i))
+        .map((i) => Father.fromDoc(i))
         .toList();
   }
 }
@@ -111,7 +111,7 @@ class PersonState extends MiniModel {
     return {'Name': name, 'Color': color};
   }
 
-  static PersonState fromDocumentSnapshot(DocumentSnapshot data) =>
+  static PersonState fromDoc(DocumentSnapshot data) =>
       PersonState._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -139,7 +139,7 @@ class College extends MiniModel {
     return {'Name': name};
   }
 
-  static College fromDocumentSnapshot(DocumentSnapshot data) =>
+  static College fromDoc(DocumentSnapshot data) =>
       College._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -172,7 +172,7 @@ class Father extends MiniModel with ChildObject<Church> {
 
   Future<String> getChurchName() async {
     if (churchId == null) return '';
-    return Church.fromDocumentSnapshot(
+    return Church.fromDoc(
       await churchId.get(),
     ).name;
   }
@@ -182,7 +182,7 @@ class Father extends MiniModel with ChildObject<Church> {
     return {'Name': name, 'ChurchId': churchId};
   }
 
-  static Father fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Father fromDoc(DocumentSnapshot data) =>
       Father._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -218,7 +218,7 @@ class Job extends MiniModel {
     return {'Name': name};
   }
 
-  static Job fromDocumentSnapshot(DocumentSnapshot data) =>
+  static Job fromDoc(DocumentSnapshot data) =>
       Job._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -246,7 +246,7 @@ class PersonType extends MiniModel {
     return {'Name': name};
   }
 
-  static PersonType fromDocumentSnapshot(DocumentSnapshot data) =>
+  static PersonType fromDoc(DocumentSnapshot data) =>
       PersonType._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -274,7 +274,7 @@ class ServingType extends MiniModel {
     return {'Name': name};
   }
 
-  static ServingType fromDocumentSnapshot(DocumentSnapshot data) =>
+  static ServingType fromDoc(DocumentSnapshot data) =>
       ServingType._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
@@ -307,7 +307,7 @@ class StudyYear extends MiniModel {
     return {'Name': name, 'IsCollegeYear': isCollegeYear};
   }
 
-  static StudyYear fromDocumentSnapshot(DocumentSnapshot data) =>
+  static StudyYear fromDoc(DocumentSnapshot data) =>
       StudyYear._createFromData(data.data(), data.id);
 
   static Future<QuerySnapshot> getAllForUser({String userUID}) {
