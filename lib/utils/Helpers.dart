@@ -1462,7 +1462,7 @@ void userTap(User user, BuildContext context) async {
   if (user.approved) {
     await Navigator.of(context).pushNamed('UserInfo', arguments: user);
   } else {
-    bool rslt = await showDialog(
+    dynamic rslt = await showDialog(
         context: context,
         builder: (context) => DataDialog(
               actions: <Widget>[
@@ -1484,7 +1484,12 @@ void userTap(User user, BuildContext context) async {
                   icon: Icon(Icons.close),
                   label: Text('لا'),
                   onPressed: () => Navigator.of(context).pop(false),
-                )
+                ),
+                TextButton.icon(
+                  icon: Icon(Icons.close),
+                  label: Text('حذف المستخدم'),
+                  onPressed: () => Navigator.of(context).pop('delete'),
+                ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
               content: Column(
@@ -1512,6 +1517,36 @@ void userTap(User user, BuildContext context) async {
         // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
         user.notifyListeners();
         userTap(user, context);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم بنجاح'),
+            duration: Duration(seconds: 15),
+          ),
+        );
+      } catch (err, stkTrace) {
+        await FirebaseCrashlytics.instance
+            .setCustomKey('LastErrorIn', 'Data.userTap');
+        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+      }
+    } else if (rslt == 'delete') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: LinearProgressIndicator(),
+          duration: Duration(seconds: 15),
+        ),
+      );
+      try {
+        await FirebaseFunctions.instance
+            .httpsCallable('deleteUser')
+            .call({'affectedUser': user.uid});
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم بنجاح'),
+            duration: Duration(seconds: 15),
+          ),
+        );
       } catch (err, stkTrace) {
         await FirebaseCrashlytics.instance
             .setCustomKey('LastErrorIn', 'Data.userTap');
