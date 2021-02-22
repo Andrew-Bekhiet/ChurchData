@@ -136,7 +136,9 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
               builder: (context, data) {
                 if (data.hasError)
                   return Center(child: ErrorWidget(data.error));
-                if (!data.hasData) return const CircularProgressIndicator();
+                if (!data.hasData)
+                  return const AspectRatio(
+                      aspectRatio: 1, child: CircularProgressIndicator());
                 if (data.data == '')
                   return Icon(widget.object.defaultIcon,
                       size: constrains.maxHeight);
@@ -149,9 +151,11 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                 ImageRenderMethodForWeb.HtmlImage,
                             imageUrl: data.data,
                             progressIndicatorBuilder:
-                                (context, url, progress) =>
-                                    CircularProgressIndicator(
-                                        value: progress.progress),
+                                (context, url, progress) => AspectRatio(
+                              aspectRatio: 1,
+                              child: CircularProgressIndicator(
+                                  value: progress.progress),
+                            ),
                           )
                         : StreamBuilder(
                             stream: FirebaseDatabase.instance
@@ -207,9 +211,11 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                               enableRotation: true,
                             ),
                             progressIndicatorBuilder:
-                                (context, url, progress) =>
-                                    CircularProgressIndicator(
-                                        value: progress.progress),
+                                (context, url, progress) => AspectRatio(
+                              aspectRatio: 1,
+                              child: CircularProgressIndicator(
+                                  value: progress.progress),
+                            ),
                           ),
                         ),
                       ),
