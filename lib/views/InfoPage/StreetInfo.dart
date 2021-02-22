@@ -233,7 +233,7 @@ class StreetInfo extends StatelessWidget {
   }
 
   void showMap(BuildContext context) {
-    bool approve = context.read<User>().approveLocations;
+    bool approve = User.instance.approveLocations;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {

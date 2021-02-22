@@ -974,7 +974,7 @@ class _SearchQueryState extends State<SearchQuery> {
   void execute() async {
     Widget body;
     String userId = auth.FirebaseAuth.instance.currentUser.uid;
-    bool isAdmin = context.read<User>().superAccess;
+    bool isAdmin = User.instance.superAccess;
     Query areas = FirebaseFirestore.instance.collection('Areas');
     Query streets = FirebaseFirestore.instance.collection('Streets');
     Query families = FirebaseFirestore.instance.collection('Families');

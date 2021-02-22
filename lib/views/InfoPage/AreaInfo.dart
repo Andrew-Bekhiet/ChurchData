@@ -41,12 +41,12 @@ class AreaInfo extends StatelessWidget {
         );
       }
       FeatureDiscovery.discoverFeatures(context, [
-        if (context.read<User>().write) 'Edit',
+        if (User.instance.write) 'Edit',
         'Share',
         'MoreOptions',
         'EditHistory',
-        if (context.read<User>().write) 'LastVisit',
-        if (context.read<User>().write) 'Add'
+        if (User.instance.write) 'LastVisit',
+        if (User.instance.write) 'Add'
       ]);
     });
 
@@ -489,7 +489,7 @@ class AreaInfo extends StatelessWidget {
   }
 
   void showMap(BuildContext context, Area area) {
-    bool approve = context.read<User>().approveLocations;
+    bool approve = User.instance.approveLocations;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {

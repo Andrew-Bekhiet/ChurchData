@@ -1024,7 +1024,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
         ),
       );
     } else if (deepLink.pathSegments[0] == 'viewUser') {
-      if (context.read<User>().manageUsers) {
+      if (User.instance.manageUsers) {
         userTap(await User.fromID(deepLink.queryParameters['UID']), context);
       } else {
         await showErrorDialog(
@@ -1166,7 +1166,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
     await FirebaseFunctions.instance.httpsCallable('sendMessageToUsers').call({
       'users': users.map((e) => e.uid).toList(),
       'title': title.text,
-      'body': 'أرسل إليك ${context.read<User>().name} رسالة',
+      'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
       'attachement': 'https://churchdata.page.link/view$link'
     });

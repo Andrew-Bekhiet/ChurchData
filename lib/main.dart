@@ -324,7 +324,7 @@ class AppState extends State<App> {
                       icon: Icon(Icons.exit_to_app),
                       tooltip: 'تسجيل الخروج',
                       onPressed: () async {
-                        var user = context.read<User>();
+                        var user = User.instance;
                         await Hive.box('Settings')
                             .put('FCM_Token_Registered', false);
                         // ignore: unawaited_futures
@@ -472,12 +472,12 @@ class AppState extends State<App> {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
-      if (context.read<User>()?.uid != null) {
+      if (User.instance?.uid != null) {
         await configureFirebaseMessaging();
         if (!kIsWeb)
           await FirebaseCrashlytics.instance
-              .setCustomKey('UID', context.read<User>().uid);
-        if (!await context.read<User>().userDataUpToDate()) {
+              .setCustomKey('UID', User.instance.uid);
+        if (!await User.instance.userDataUpToDate()) {
           throw Exception('Error Update User Data');
         }
       }

@@ -292,7 +292,7 @@ class _EditStreetState extends State<EditStreet> {
         if (street.getMap()['Location'] != null &&
             hashList(street.getMap()['Location']) !=
                 hashList(old['Location'])) {
-          if (context.read<User>().approveLocations) {
+          if (User.instance.approveLocations) {
             street.locationConfirmed = await showDialog(
               context: context,
               barrierDismissible: false,

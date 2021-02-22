@@ -1114,11 +1114,11 @@ class _RootState extends State<Root>
   }
 
   void _recordLastSeen() async {
-    await mainScfld.currentContext.read<User>().recordLastSeen();
+    await User.instance.recordLastSeen();
   }
 
   void _recordActive() async {
-    await mainScfld.currentContext.read<User>().recordActive();
+    await User.instance.recordActive();
   }
 
   @override
@@ -1165,7 +1165,7 @@ class _RootState extends State<Root>
   }
 
   void showPendingUIDialogs() async {
-    if (!await context.read<User>().userDataUpToDate()) {
+    if (!await User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
     if (!kIsWeb) await showDynamicLink();
@@ -1179,7 +1179,7 @@ class _RootState extends State<Root>
       'Persons',
       'Search',
       'MyAccount',
-      if (context.read<User>().manageUsers) 'ManageUsers',
+      if (User.instance.manageUsers) 'ManageUsers',
       'DataMap',
       'AdvancedSearch',
       'Settings'

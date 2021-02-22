@@ -429,7 +429,7 @@ class _EditAreaState extends State<EditArea> {
         if (area.getMap()['Location'] != null &&
             hashList(area.getMap()['Location']) !=
                 hashList(oldArea['Location'])) {
-          if (context.read<User>().approveLocations) {
+          if (User.instance.approveLocations) {
             area.locationConfirmed = await showDialog(
               context: context,
               barrierDismissible: false,

@@ -461,7 +461,7 @@ class _EditFamilyState extends State<EditFamily> {
         );
         if (family.getMap()['Location'] != null &&
             family.getMap()['Location'] != old['Location']) {
-          if (context.read<User>().approveLocations) {
+          if (User.instance.approveLocations) {
             family.locationConfirmed = await showDialog(
               context: context,
               barrierDismissible: false,
