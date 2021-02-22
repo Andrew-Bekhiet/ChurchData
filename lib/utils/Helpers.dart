@@ -1322,6 +1322,7 @@ Future showErrorUpdateDataDialog(
               var userPerson = await User.getCurrentPerson();
               await Navigator.of(context)
                   .pushNamed('UpdateUserDataError', arguments: userPerson);
+              userPerson = await User.getCurrentPerson();
               if (userPerson != null &&
                   ((userPerson.lastTanawol.millisecondsSinceEpoch +
                               2592000000) >
