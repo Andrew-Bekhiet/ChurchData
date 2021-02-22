@@ -74,7 +74,8 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Firebase.initializeApp().then(
     (_) async {
-      await User.instance.initialized;
+      if (auth.FirebaseAuth.instance.currentUser?.uid != null)
+        await User.instance.initialized;
       final User user = User.instance;
       await _initConfigs();
 
