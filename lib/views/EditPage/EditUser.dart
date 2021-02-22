@@ -46,6 +46,18 @@ class _UserPState extends State<UserP> {
               expandedHeight: 250.0,
               floating: false,
               pinned: true,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.close),
+                  tooltip: 'إلغاء تنشيط الحساب',
+                  onPressed: unApproveUser,
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_forever),
+                  tooltip: 'حذف الحساب',
+                  onPressed: deleteUser,
+                ),
+              ],
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
@@ -248,13 +260,6 @@ class _UserPState extends State<UserP> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           FloatingActionButton(
-            mini: true,
-            tooltip: 'إلغاء تنشيط الحساب',
-            heroTag: null,
-            onPressed: delete,
-            child: Icon(Icons.close),
-          ),
-          FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: null,
             onPressed: save,
@@ -265,7 +270,7 @@ class _UserPState extends State<UserP> {
     );
   }
 
-  void delete() {
+  void unApproveUser() {
     showDialog(
       context: context,
       builder: (context) => DataDialog(
@@ -273,45 +278,109 @@ class _UserPState extends State<UserP> {
         content: Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
         actions: <Widget>[
           TextButton(
-              child: Text('متابعة'),
-              onPressed: () async {
-                try {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: LinearProgressIndicator(),
-                      duration: Duration(seconds: 15),
-                    ),
-                  );
-                  Navigator.of(context).pop();
-                  // !kIsWeb
-                  //     ?
-                  await FirebaseFunctions.instance
-                      .httpsCallable('unApproveUser')
-                      .call({'affectedUser': widget.user.uid});
-                  // : await functions()
-                  //     .httpsCallable('unApproveUser')
-                  //     .call({'affectedUser': widget.user.uid});
-                  Navigator.of(context).pop('unapproved');
-                } catch (err, stkTrace) {
-                  await FirebaseCrashlytics.instance
-                      .setCustomKey('LastErrorIn', 'UserPState.delete');
-                  await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        err.toString(),
-                      ),
-                      duration: Duration(seconds: 7),
-                    ),
-                  );
-                }
-              }),
-          TextButton(
-              child: Text('تراجع'),
-              onPressed: () {
+            child: Text('متابعة'),
+            onPressed: () async {
+              try {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: LinearProgressIndicator(),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
                 Navigator.of(context).pop();
-              }),
+                await FirebaseFunctions.instance
+                    .httpsCallable('unApproveUser')
+                    .call({'affectedUser': widget.user.uid});
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                Navigator.of(context).pop('unapproved');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('تم بنجاح'),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
+              } catch (err, stkTrace) {
+                await FirebaseCrashlytics.instance
+                    .setCustomKey('LastErrorIn', 'UserPState.unapproveUser');
+                await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      err.toString(),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ),
+                );
+              }
+            },
+          ),
+          TextButton(
+            child: Text('تراجع'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void deleteUser() {
+    showDialog(
+      context: context,
+      builder: (context) => DataDialog(
+        title: Text('حذف حساب ${widget.user.name}'),
+        content:
+            Text('هل أنت متأكد من حذف حساب ' + widget.user.name + ' نهائيًا؟'),
+        actions: <Widget>[
+          TextButton(
+            style: Theme.of(context).textButtonTheme.style.copyWith(
+                foregroundColor:
+                    MaterialStateProperty.resolveWith((state) => Colors.red)),
+            child: Text('حذف'),
+            onPressed: () async {
+              try {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: LinearProgressIndicator(),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
+                Navigator.of(context).pop();
+                await FirebaseFunctions.instance
+                    .httpsCallable('deleteUser')
+                    .call({'affectedUser': widget.user.uid});
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                Navigator.of(context).pop('deleted');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('تم بنجاح'),
+                    duration: Duration(seconds: 15),
+                  ),
+                );
+              } catch (err, stkTrace) {
+                await FirebaseCrashlytics.instance
+                    .setCustomKey('LastErrorIn', 'UserPState.delete');
+                await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      err.toString(),
+                    ),
+                    duration: Duration(seconds: 7),
+                  ),
+                );
+              }
+            },
+          ),
+          TextButton(
+            child: Text('تراجع'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
         ],
       ),
     );
