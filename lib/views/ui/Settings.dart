@@ -376,7 +376,8 @@ class SettingsState extends State<Settings> {
                           .truncate()
                           .toString(),
                       onSaved: (c) async {
-                        await settings.put('cacheSize', int.parse(c));
+                        await settings.put(
+                            'cacheSize', int.parse(c) * 1024 * 1024);
                       },
                       validator: (value) {
                         if (value.isEmpty) {
