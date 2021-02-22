@@ -586,7 +586,7 @@ class _EditFamilyState extends State<EditFamily> {
                                   .collection('Families')
                                   .doc(value.id);
                             });
-                            foci[13].requestFocus();
+                            foci[7].requestFocus();
                           },
                           generate: Family.fromDoc,
                           documentsData: Family.getAllForUser(
@@ -645,7 +645,7 @@ class _EditFamilyState extends State<EditFamily> {
                                   .collection('Families')
                                   .doc(value.id);
                             });
-                            foci[13].requestFocus();
+                            foci[7].requestFocus();
                           },
                           generate: Family.fromDoc,
                           documentsData: Family.getAllForUser(
