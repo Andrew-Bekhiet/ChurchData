@@ -312,7 +312,9 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
     if (!mounted) return;
     String filter = context.read<SearchString>().value;
     if (filter.isNotEmpty) {
-      if (_oldFilter.length < filter.length && filter.startsWith(_oldFilter))
+      if (_oldFilter.length < filter.length &&
+          filter.startsWith(_oldFilter) &&
+          _documentsData != null)
         _documentsData = _documentsData
             .where((d) => (d.data()['Name'] as String)
                 .toLowerCase()
