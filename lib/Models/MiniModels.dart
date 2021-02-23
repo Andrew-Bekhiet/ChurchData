@@ -24,11 +24,6 @@ abstract class MiniModel extends DataObject {
       FirebaseFirestore.instance.collection(collectionName).doc(id);
 
   @override
-  Map<String, dynamic> getExportMap() {
-    throw UnimplementedError();
-  }
-
-  @override
   Map<String, dynamic> getHumanReadableMap() {
     throw UnimplementedError();
   }
