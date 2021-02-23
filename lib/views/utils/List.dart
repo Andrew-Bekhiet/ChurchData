@@ -357,11 +357,14 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
 class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   @override
-  bool get wantKeepAlive => mounted;
+  bool get wantKeepAlive => _builtOnce && ModalRoute.of(context).isCurrent;
 
+  bool _builtOnce = false;
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    _builtOnce = true;
+    updateKeepAlive();
     if (widget.options.documentsData != null)
       return StreamBuilder<QuerySnapshot>(
         stream: widget.options.documentsData.asBroadcastStream(),

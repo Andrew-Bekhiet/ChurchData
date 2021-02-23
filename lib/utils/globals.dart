@@ -106,3 +106,4 @@ RemoteConfig remoteConfig;
 String uriPrefix = 'https://churchdata.page.link';
 
 bool configureMessaging = true;
+enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }

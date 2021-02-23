@@ -1,7 +1,6 @@
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:churchdata/utils/helpers.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CopiableProperty extends StatelessWidget {
   const CopiableProperty(this.name, this.value, {Key key})
@@ -38,7 +37,7 @@ class PhoneNumberProperty extends StatelessWidget {
 
   final String name;
   final String value;
-  final void Function(String) phoneCall;
+  final void Function(String, PhoneCallAction) phoneCall;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +51,7 @@ class PhoneNumberProperty extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.phone),
                   tooltip: 'اجراء مكالمة',
-                  onPressed: () => phoneCall(value),
+                  onPressed: () => phoneCall(value, PhoneCallAction.Call),
                 ),
                 IconButton(
                   icon: Image.asset('assets/whatsapp.png',
@@ -60,13 +59,12 @@ class PhoneNumberProperty extends StatelessWidget {
                       height: IconTheme.of(context).size,
                       color: Theme.of(context).iconTheme.color),
                   tooltip: 'ارسال رسالة (واتساب)',
-                  onPressed: () =>
-                      launch('whatsapp://send?phone=+' + getPhone(value)),
+                  onPressed: () => phoneCall(value, PhoneCallAction.Whatsapp),
                 ),
                 IconButton(
                   icon: Icon(Icons.message),
                   tooltip: 'ارسال رسالة',
-                  onPressed: () => launch('sms://' + getPhone(value, false)),
+                  onPressed: () => phoneCall(value, PhoneCallAction.Message),
                 ),
                 IconButton(
                   icon: Icon(Icons.copy),
