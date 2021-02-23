@@ -866,7 +866,10 @@ void showPendingMessage([BuildContext context]) async {
 void onForegroundMessage(messaging_types.RemoteMessage message,
     [BuildContext context]) async {
   context ??= mainScfld.currentContext;
+  bool opened = Hive.isBoxOpen('Notifications');
+  if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
+  if (!opened) await Hive.box<Map>('Notifications').close();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message.notification.body),
