@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/Models/super_classes.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';
@@ -145,19 +146,23 @@ class User extends DataObject
           });
           Map<dynamic, dynamic> idTokenClaims;
           try {
-            var idToken = await user.getIdTokenResult();
-            if (kIsWeb)
-              await Encryption.setUserData(idToken.claims);
-            else {
-              for (var item in idToken.claims.entries) {
-                await flutterSecureStorage.write(
-                    key: item.key, value: item.value?.toString());
+            var idToken;
+            if ((await Connectivity().checkConnectivity()) !=
+                ConnectivityResult.none) {
+              idToken = await user.getIdTokenResult();
+              if (kIsWeb)
+                await Encryption.setUserData(idToken.claims);
+              else {
+                for (var item in idToken.claims.entries) {
+                  await flutterSecureStorage.write(
+                      key: item.key, value: item.value?.toString());
+                }
               }
+              await FirebaseDatabase.instance
+                  .reference()
+                  .child('Users/${user.uid}/forceRefresh')
+                  .set(false);
             }
-            await FirebaseDatabase.instance
-                .reference()
-                .child('Users/${user.uid}/forceRefresh')
-                .set(false);
             connectionListener ??= FirebaseDatabase.instance
                 .reference()
                 .child('.info/connected')
@@ -175,7 +180,10 @@ class User extends DataObject
                     .set('Active');
               }
             });
-            idTokenClaims = idToken.claims;
+            idTokenClaims = idToken?.claims ??
+                (kIsWeb
+                    ? await Encryption.getUserData()
+                    : await flutterSecureStorage.readAll());
           } on Exception {
             if (kIsWeb)
               idTokenClaims = await Encryption.getUserData();
