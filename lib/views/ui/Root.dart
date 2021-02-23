@@ -1138,7 +1138,7 @@ class _RootState extends State<Root>
     initializeDateFormatting('ar_EG', null);
     _tabController = TabController(vsync: this, length: 4);
     WidgetsBinding.instance.addObserver(this);
-    startKeepAlive();
+    _keepAlive(true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showPendingUIDialogs();
     });
@@ -1214,11 +1214,6 @@ class _RootState extends State<Root>
         ),
       );
     }
-  }
-
-  void startKeepAlive() {
-    assert(_keepAliveTimer == null);
-    _keepAlive(true);
   }
 
   void _keepAlive(bool visible) {
