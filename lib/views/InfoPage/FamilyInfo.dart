@@ -50,6 +50,12 @@ class FamilyInfo extends StatelessWidget {
         stream: family.ref.snapshots().map(Family.fromDoc),
         builder: (context, snapshot) {
           final Family family = snapshot.data;
+          if (family == null)
+            return Scaffold(
+              body: Center(
+                child: Text('تم حذف العائلة'),
+              ),
+            );
           return Scaffold(
             appBar: AppBar(
               backgroundColor:

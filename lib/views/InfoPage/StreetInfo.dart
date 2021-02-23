@@ -47,6 +47,12 @@ class StreetInfo extends StatelessWidget {
         stream: street.ref.snapshots().map(Street.fromDoc),
         builder: (context, snapshot) {
           final Street street = snapshot.data;
+          if (street == null)
+            return Scaffold(
+              body: Center(
+                child: Text('تم حذف الشارع'),
+              ),
+            );
           return Scaffold(
             appBar: AppBar(
               backgroundColor:

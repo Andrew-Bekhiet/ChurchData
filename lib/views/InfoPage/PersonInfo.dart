@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:ui';
 
 import 'package:churchdata/Models.dart';
@@ -49,6 +50,12 @@ class PersonInfo extends StatelessWidget {
           stream: person.ref.snapshots().map(Person.fromDoc),
           builder: (context, snapshot) {
             final Person person = snapshot.data;
+            if (person == null)
+              return Scaffold(
+                body: Center(
+                  child: Text('تم حذف الشخص'),
+                ),
+              );
             return NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return <Widget>[
@@ -138,14 +145,16 @@ class PersonInfo extends StatelessWidget {
                         textColor:
                             Theme.of(context).primaryTextTheme.bodyText1.color,
                         child: PopupMenuButton(
-                          onSelected: (p) => _phoneCall(context, p),
+                          onSelected: (p) {
+                            sendNotification(context, person);
+                          },
                           itemBuilder: (BuildContext context) {
-                            return choices.map((v) {
-                              return PopupMenuItem(
-                                value: v,
-                                child: Text(v),
-                              );
-                            }).toList();
+                            return [
+                              PopupMenuItem(
+                                value: '',
+                                child: Text('ارسال اشعار للمستخدمين عن الشخص'),
+                              )
+                            ];
                           },
                         ),
                       ),
@@ -188,12 +197,15 @@ class PersonInfo extends StatelessWidget {
                       PhoneNumberProperty(
                         'رقم الهاتف:',
                         person.phone,
-                        (s) => _phoneCall(context, s),
+                        (n, action) => _phoneCall(context, n, action),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
                             .map((e) => PhoneNumberProperty(
-                                e.key, e.value, (_) => _phoneCall(context, _)))
+                                  e.key,
+                                  e.value,
+                                  (n, action) => _phoneCall(context, n, action),
+                                ))
                             .toList(),
                       ListTile(
                         title: Text('السن:'),
@@ -419,16 +431,16 @@ class PersonInfo extends StatelessWidget {
     );
   }
 
-  void _phoneCall(BuildContext context, String item) async {
-    int i = choices.indexOf(item);
-    if (i == 0) {
+  void _phoneCall(
+      BuildContext context, String item, PhoneCallAction action) async {
+    if (action == PhoneCallAction.AddToContacts) {
       if ((await Permission.contacts.request()).isGranted)
         await Contacts.addContact(
           Contact(
               givenName: person.name,
               phones: [Item(label: 'Mobile', value: item)]),
         );
-    } else if (i == 1 && (item ?? '') != '') {
+    } else if (action == PhoneCallAction.Call && (item ?? '') != '') {
       var result = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -478,13 +490,11 @@ class PersonInfo extends StatelessWidget {
         }
       } else
         await launch('tel://' + getPhone(item, false));
-    } else if (i == 2) {
+    } else if (action == PhoneCallAction.Message) {
       await launch('sms://' + getPhone(item, false));
-    } else if (i == 3) {
+    } else if (action == PhoneCallAction.Whatsapp) {
       await launch(
           'whatsapp://send?phone=+' + getPhone(item).replaceAll('+', ''));
-    } else if (i == 4) {
-      sendNotification(context, person);
     }
   }
 }

@@ -58,6 +58,12 @@ class AreaInfo extends StatelessWidget {
           stream: area.ref.snapshots().map(Area.fromDoc),
           builder: (context, snapshot) {
             final Area area = snapshot.data;
+            if (area == null)
+              return Scaffold(
+                body: Center(
+                  child: Text('تم حذف المنطقة'),
+                ),
+              );
             return Scaffold(
               body: ListenableProvider<SearchString>(
                 create: (_) => SearchString(''),
