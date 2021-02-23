@@ -426,9 +426,9 @@ class PersonInfo extends StatelessWidget {
         await Contacts.addContact(
           Contact(
               givenName: person.name,
-              phones: [Item(label: 'Mobile', value: person.phone)]),
+              phones: [Item(label: 'Mobile', value: item)]),
         );
-    } else if (i == 1 && (person.phone ?? '') != '') {
+    } else if (i == 1 && (item ?? '') != '') {
       var result = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -450,8 +450,7 @@ class PersonInfo extends StatelessWidget {
       if (result == null) return;
       if (result) {
         await Permission.phone.request();
-        await FlutterPhoneState.startPhoneCall(getPhone(person.phone, false))
-            .done;
+        await FlutterPhoneState.startPhoneCall(getPhone(item, false)).done;
         var recordLastCall = await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -478,12 +477,12 @@ class PersonInfo extends StatelessWidget {
           );
         }
       } else
-        await launch('tel://' + getPhone(person.phone, false));
+        await launch('tel://' + getPhone(item, false));
     } else if (i == 2) {
-      await launch('sms://' + getPhone(person.phone, false));
+      await launch('sms://' + getPhone(item, false));
     } else if (i == 3) {
-      await launch('whatsapp://send?phone=+' +
-          getPhone(person.phone).replaceAll('+', ''));
+      await launch(
+          'whatsapp://send?phone=+' + getPhone(item).replaceAll('+', ''));
     } else if (i == 4) {
       sendNotification(context, person);
     }
