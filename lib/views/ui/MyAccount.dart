@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:churchdata/views/utils/DataDialog.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -108,7 +106,8 @@ class _MyAccountState extends State<MyAccount> {
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
-                          await user.photoRef.putData(Uint8List(1024));
+                          await FirebaseFunctions.instance
+                              .httpsCallable('deleteImage');
                           user.reloadImage();
                           setState(() {});
                           ScaffoldMessenger.of(context).hideCurrentSnackBar();
