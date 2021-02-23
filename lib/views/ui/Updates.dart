@@ -23,15 +23,13 @@ class UpdateHelper {
   static Future<RemoteConfig> setupRemoteConfig() async {
     try {
       remoteConfig = await RemoteConfig.instance;
-      // remoteConfig.setConfigSettings(
-      //   RemoteConfigSettings(),
-      // );
       await remoteConfig.setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
         'DownloadLink':
-            'https://onedrive.live.com/download?cid=857C7F256422E764&resid'
-                '=857C7F256422E764%212535&authkey=AOvqyUErovriovU',
+            'https://github.com/Andrew-Bekhiet/ChurchData/releases/download/v' +
+                (await PackageInfo.fromPlatform()).version +
+                '/ChurchData.apk',
       });
       await remoteConfig.fetch(
         expiration: const Duration(minutes: 2),
