@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:battery_optimization/battery_optimization.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:device_info/device_info.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';

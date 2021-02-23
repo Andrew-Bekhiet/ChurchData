@@ -29,7 +29,7 @@ dependencies:
   connectivity: ^2.0.2
   cupertino_icons: ^1.0.0
   datetime_picker_formfield: ^1.0.0
-  device_info: ^1.0.0
+  device_info_plus: ^0.7.2
   expandable: ^4.1.4
   feature_discovery: ^0.13.0+2
   file_picker: ^2.1.5+1
@@ -69,7 +69,7 @@ dependencies:
   pointycastle: ^2.0.1
   provider: ^4.3.3
   rxdart: ^0.25.0
-  share: ^0.6.5+4
+  share_plus: ^1.2.0
   shared_preferences: ^0.5.12+4
   spreadsheet_decoder: ^1.2.0
   timeago: ^2.0.29

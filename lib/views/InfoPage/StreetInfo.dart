@@ -15,7 +15,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     hide User, FirebaseAuth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 
 class StreetInfo extends StatelessWidget {
   final Street street;

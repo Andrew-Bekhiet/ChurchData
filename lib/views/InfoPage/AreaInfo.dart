@@ -17,7 +17,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/material.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 
 class AreaInfo extends StatelessWidget {
   final Area area;

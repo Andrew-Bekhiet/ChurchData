@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contact/contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 export 'package:churchdata/Models/ListOptions.dart' show ListOptions;
