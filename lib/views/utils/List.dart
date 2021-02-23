@@ -64,7 +64,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
             return DataObjectWidget(
               current,
               onLongPress: () async {
-                options.changeSelectionMode(!options.selectionMode);
+                options.selectionMode = !options.selectionMode;
                 if (options.isAdmin) {
                   if (!options.selectionMode) {
                     if (options.selected.isNotEmpty) {
@@ -287,7 +287,7 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
         .stream
         .asBroadcastStream()
         .listen((bool event) {
-      context.read<ListOptions<T>>().changeSelectionMode(true);
+      context.read<ListOptions<T>>().selectionMode = true;
       if (event) {
         context.read<ListOptions<T>>().selected = context
             .read<ListOptions<T>>()
@@ -380,7 +380,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 showNull: widget.options.showNull,
                 items: stream.data.docs,
                 selectionMode: widget.options.selectionMode),
-            update: (_, old) => old..changeItems(stream.data.docs),
+            update: (_, old) => old..items = stream.data.docs,
             builder: (context, _) =>
                 Selector<ListOptions<T>, List<DocumentSnapshot>>(
               selector: (_, op) => op.items,
@@ -443,7 +443,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 items: stream.data.expand((q) => q.docs).toList(),
                 selectionMode: widget.options.selectionMode),
             update: (_, old) =>
-                old..changeItems(stream.data.expand((q) => q.docs).toList()),
+                old..items = stream.data.expand((q) => q.docs).toList(),
             builder: (context, _) =>
                 Selector<ListOptions<T>, List<DocumentSnapshot>>(
               selector: (_, op) => op.items,

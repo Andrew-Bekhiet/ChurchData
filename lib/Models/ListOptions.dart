@@ -5,61 +5,31 @@ import 'package:flutter/material.dart';
 
 import 'User.dart';
 
-class UsersCheckListOptions with ChangeNotifier {
-  bool grouped = false;
-  bool showTrueOnly = false;
-  List<User> users = [];
-  bool enabled = true;
-  Future<List<User>> usersData;
-
-  UsersCheckListOptions(
-      {this.grouped,
-      this.showTrueOnly,
-      this.users,
-      this.enabled,
-      this.usersData})
-      : assert((users != null && users != []) || usersData != null);
-
-  void changeDocs(List<User> docs) {
-    users = docs;
-    notifyListeners();
-  }
-
-  bool changeEnabled(bool enalbed) {
-    enabled = enabled;
-    return enabled;
-  }
-
-  bool changeGrouped(bool grouped) {
-    this.grouped = grouped;
-    notifyListeners();
-    return grouped;
-  }
-
-  bool changeShowTrueOnly(bool showTrueOnly) {
-    this.showTrueOnly = showTrueOnly;
-    notifyListeners();
-    return showTrueOnly;
-  }
-}
-
 class ListOptions<T extends DataObject> with ChangeNotifier {
   final bool showNull;
-  List<DocumentSnapshot> items = [];
-  bool selectionMode = false;
+  List<DocumentSnapshot> _items = [];
+
+  bool _selectionMode = false;
+
   bool isAdmin = false;
-  Stream<QuerySnapshot> documentsData;
-  Stream<List<QuerySnapshot>> familiesData;
+
+  Stream<QuerySnapshot> _documentsData;
+
+  Stream<List<QuerySnapshot>> _familiesData;
 
   List<T> selected = <T>[];
-  Map<String, AsyncMemoizer<String>> cache = {};
 
+  Map<String, AsyncMemoizer<String>> cache = {};
   final void Function(T, BuildContext) tap;
+
   covariant DataObject Function(DocumentSnapshot) generate;
+
   final T empty;
 
   final Widget floatingActionButton;
+
   final bool doubleActionButton;
+
   final bool hasNotch;
 
   ListOptions(
@@ -69,37 +39,44 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
       this.tap,
       this.generate,
       this.empty,
-      this.items,
+      List<DocumentSnapshot> items,
       this.showNull = false,
-      this.selectionMode = false,
-      this.documentsData,
-      this.familiesData,
+      bool selectionMode = false,
+      Stream<QuerySnapshot> documentsData,
+      Stream<List<QuerySnapshot>> familiesData,
       bool isAdmin})
       : assert((items != null && items != []) ||
             documentsData != null ||
             familiesData != null),
         assert(showNull == false || (showNull == true && empty != null)) {
-    this.isAdmin = isAdmin ?? User().superAccess ?? false;
+    this.isAdmin = isAdmin ?? User.instance.superAccess ?? false;
+    _documentsData = documentsData?.asBroadcastStream();
+    _familiesData = familiesData?.asBroadcastStream();
     if (items != null && (cache?.length ?? 0) != items.length) {
       cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
     }
   }
+  Stream<QuerySnapshot> get documentsData => _documentsData;
 
-  void changeItems(List<DocumentSnapshot> items) {
-    this.items = items;
-    if (items != null && (cache?.length ?? 0) != items.length) {
-      cache = {for (var d in items) d.id: AsyncMemoizer<String>()};
-    }
+  set documentsData(Stream<QuerySnapshot> documentsData) {
+    _documentsData = documentsData.asBroadcastStream();
+  }
+
+  Stream<List<QuerySnapshot>> get familiesData => _familiesData;
+  set familiesData(Stream<List<QuerySnapshot>> familiesData) {
+    _familiesData = familiesData.asBroadcastStream();
+  }
+
+  List<DocumentSnapshot> get items => _items;
+  set items(List<DocumentSnapshot> items) {
+    _items = items;
     notifyListeners();
   }
 
-  void changeSelectionMode(bool selectionMode) {
-    this.selectionMode = selectionMode;
-    notifyListeners();
-  }
+  bool get selectionMode => _selectionMode;
 
-  void changeIsAdmin(bool isAdmin) {
-    this.isAdmin = isAdmin;
+  set selectionMode(bool selectionMode) {
+    _selectionMode = selectionMode;
     notifyListeners();
   }
 }
