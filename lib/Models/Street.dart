@@ -212,7 +212,7 @@ class Street extends DataObject
   }
 
   static Street fromDoc(DocumentSnapshot data) =>
-      Street._createFromData(data.data(), data.id);
+      data.exists ? Street._createFromData(data.data(), data.id) : null;
 
   static Future<Street> fromId(String id) async => Street.fromDoc(
         await FirebaseFirestore.instance.doc('Streets/$id').get(),

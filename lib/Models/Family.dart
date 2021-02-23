@@ -233,7 +233,7 @@ class Family extends DataObject
   }
 
   static Family fromDoc(DocumentSnapshot data) =>
-      Family._createFromData(data.data(), data.id);
+      data.exists ? Family._createFromData(data.data(), data.id) : null;
 
   static Future<Family> fromId(String id) async => Family.fromDoc(
         await FirebaseFirestore.instance.doc('Families/$id').get(),

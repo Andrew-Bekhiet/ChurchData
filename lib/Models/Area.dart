@@ -238,7 +238,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   }
 
   static Area fromDoc(DocumentSnapshot data) =>
-      Area.createFromData(data.data(), data.id);
+      data.exists ? Area.createFromData(data.data(), data.id) : null;
 
   static Future<Area> fromId(String id) async => Area.fromDoc(
         await FirebaseFirestore.instance.doc('Areas/$id').get(),

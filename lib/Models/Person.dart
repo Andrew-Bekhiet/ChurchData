@@ -380,7 +380,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   }
 
   static Person fromDoc(DocumentSnapshot data) =>
-      Person._createFromData(data.data(), data.id);
+      data.exists ? Person._createFromData(data.data(), data.id) : null;
 
   static Future<Person> fromId(String id) async => Person.fromDoc(
         await FirebaseFirestore.instance.doc('Persons/$id').get(),
