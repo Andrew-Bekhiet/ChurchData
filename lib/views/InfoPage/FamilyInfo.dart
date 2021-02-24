@@ -262,7 +262,7 @@ class FamilyInfo extends StatelessWidget {
                                         tooltip: 'تسجيل أخر زيارة اليوم',
                                         heroTag: 'lastVisit',
                                         onPressed: () =>
-                                            recordLastVisit(context),
+                                            recordLastVisit(context, family),
                                       ),
                                     ),
                                     PopupMenuButton<dynamic>(
@@ -328,7 +328,23 @@ class FamilyInfo extends StatelessWidget {
     );
   }
 
-  void recordLastVisit(BuildContext context) async {
+  void recordLastVisit(BuildContext context, Family family) async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('هل تريد تسجيل أخر زيارة ل' + family.name + '?'),
+            actions: [
+              TextButton(
+                  child: Text('تسجيل أخر زيارة'),
+                  onPressed: () => Navigator.pop(context, true)),
+              TextButton(
+                child: Text('رجوع'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ],
+          ),
+        ) !=
+        true) return;
     await family.ref.update({
       'LastVisit': Timestamp.now(),
       'LastEdit': FirebaseAuth.instance.currentUser.uid

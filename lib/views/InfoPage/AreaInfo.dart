@@ -407,7 +407,7 @@ class AreaInfo extends StatelessWidget {
                                           tooltip: 'تسجيل أخر زيارة اليوم',
                                           heroTag: 'lastVisit',
                                           onPressed: () =>
-                                              recordLastVisit(context),
+                                              recordLastVisit(context, area),
                                         ),
                                       ),
                                       FloatingActionButton(
@@ -484,7 +484,23 @@ class AreaInfo extends StatelessWidget {
     );
   }
 
-  void recordLastVisit(BuildContext context) async {
+  void recordLastVisit(BuildContext context, Area area) async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('هل تريد تسجيل أخر زيارة ل' + area.name + '?'),
+            actions: [
+              TextButton(
+                  child: Text('تسجيل أخر زيارة'),
+                  onPressed: () => Navigator.pop(context, true)),
+              TextButton(
+                child: Text('رجوع'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ],
+          ),
+        ) !=
+        true) return;
     await area.ref.update({
       'LastVisit': Timestamp.now(),
       'LastEdit': FirebaseAuth.instance.currentUser.uid
