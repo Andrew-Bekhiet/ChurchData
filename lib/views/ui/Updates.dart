@@ -48,8 +48,7 @@ class Updates {
     Version latest = Version.parse(
       (await UpdateHelper.setupRemoteConfig()).getString('LatestVersion'),
     );
-    if (!(await Permission.storage.request()).isGranted &&
-        (latest > Version.parse((await PackageInfo.fromPlatform()).version))) {
+    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
