@@ -397,6 +397,24 @@ class _UserPState extends State<UserP> {
   }
 
   Future resetPassword() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
+                widget.user.name +
+                '?'),
+            actions: [
+              TextButton(
+                  child: Text('نعم'),
+                  onPressed: () => Navigator.pop(context, true)),
+              TextButton(
+                child: Text('لا'),
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ],
+          ),
+        ) !=
+        true) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: LinearProgressIndicator(),
