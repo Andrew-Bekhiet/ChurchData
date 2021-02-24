@@ -73,7 +73,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
 
   @override
   Future<List<Street>> getChildren(
-      [String orderBy = 'Name', bool tranucate = false, int depth = 1]) async {
+      [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
       return Street.getAll((await FirebaseFirestore.instance
               .collection('Streets')
@@ -256,9 +256,12 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     String orderBy = 'Name',
     bool descending = false,
   }) async {
-    return (await getAllForUser(orderBy: orderBy, descending: descending).first)
+    return (await getAllForUser(orderBy: orderBy, descending: descending)
+            .asBroadcastStream()
+            .first)
         .docs
-        .map(fromDoc);
+        .map(fromDoc)
+        .toList();
   }
 
   static Stream<QuerySnapshot> getAllForUser({

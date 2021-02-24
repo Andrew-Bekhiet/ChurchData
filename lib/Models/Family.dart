@@ -247,33 +247,11 @@ class Family extends DataObject
     String orderBy = 'Name',
     bool descending = false,
   }) async {
-    if (User().superAccess) {
-      return (await FirebaseFirestore.instance
-              .collection('Families')
-              .orderBy(orderBy, descending: descending)
-              .get(dataSource))
-          .docs
-          .map(Family.fromDoc)
-          .toList();
-    }
-    return (await FirebaseFirestore.instance
-            .collection('Families')
-            .where(
-              'AreaId',
-              whereIn: (await FirebaseFirestore.instance
-                      .collection('Areas')
-                      .where('Allowed',
-                          arrayContains:
-                              auth.FirebaseAuth.instance.currentUser.uid)
-                      .get(dataSource))
-                  .docs
-                  .map((e) => e.reference)
-                  .toList(),
-            )
-            .orderBy(orderBy, descending: descending)
-            .get(dataSource))
+    return (await getAllForUser(orderBy: orderBy, descending: descending)
+            .asBroadcastStream()
+            .first)
         .docs
-        .map(Family.fromDoc)
+        .map(fromDoc)
         .toList();
   }
 

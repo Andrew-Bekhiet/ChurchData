@@ -219,7 +219,7 @@ class Street extends DataObject
       );
 
   static List<Street> getAll(List<DocumentSnapshot> streets) {
-    return streets.map(Street.fromDoc);
+    return streets.map(Street.fromDoc).toList();
   }
 
   static Stream<QuerySnapshot> getAllForUser({
@@ -256,33 +256,11 @@ class Street extends DataObject
     String orderBy = 'Name',
     bool descending = false,
   }) async {
-    if (User().superAccess) {
-      return (await FirebaseFirestore.instance
-              .collection('Streets')
-              .orderBy(orderBy, descending: descending)
-              .get(dataSource))
-          .docs
-          .map(Street.fromDoc)
-          .toList();
-    }
-    return (await FirebaseFirestore.instance
-            .collection('Streets')
-            .where(
-              'AreaId',
-              whereIn: (await FirebaseFirestore.instance
-                      .collection('Areas')
-                      .where('Allowed',
-                          arrayContains:
-                              auth.FirebaseAuth.instance.currentUser.uid)
-                      .get(dataSource))
-                  .docs
-                  .map((e) => e.reference)
-                  .toList(),
-            )
-            .orderBy(orderBy, descending: descending)
-            .get(dataSource))
+    return (await getAllForUser(orderBy: orderBy, descending: descending)
+            .asBroadcastStream()
+            .first)
         .docs
-        .map(Street.fromDoc)
+        .map(fromDoc)
         .toList();
   }
 
