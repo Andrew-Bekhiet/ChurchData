@@ -681,6 +681,7 @@ class _RootState extends State<Root>
                     );
                   },
                 ),
+                Divider(),
                 ListTile(
                   leading: DescribedFeatureOverlay(
                     backgroundDismissible: false,
@@ -777,6 +778,7 @@ class _RootState extends State<Root>
                     Navigator.of(context).pushNamed('Search');
                   },
                 ),
+                Divider(),
                 ListTile(
                   leading: DescribedFeatureOverlay(
                     onBackgroundTap: () async {
@@ -1005,6 +1007,7 @@ class _RootState extends State<Root>
                         : Container();
                   },
                 ),
+                Divider(),
                 if (!kIsWeb)
                   ListTile(
                     leading: Icon(Icons.system_update_alt),
