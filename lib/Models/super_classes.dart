@@ -23,15 +23,7 @@ abstract class DataObject {
         color = Color(data['Color'] ?? Colors.transparent.value);
 
   @override
-  int get hashCode => hashList([
-        id,
-        ...getMap()
-            .values
-            .map((e) => e is List
-                ? hashList(e)
-                : (e is DocumentReference ? e?.path : e))
-            .toList()
-      ]);
+  int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);
 
   DocumentReference get ref;
 
@@ -45,6 +37,21 @@ abstract class DataObject {
   Map<String, dynamic> getHumanReadableMap();
 
   Future<String> getSecondLine();
+
+  int _fullyHash(dynamic e) {
+    if (e is Map)
+      return hashValues(
+          _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
+    else if (e is DocumentReference)
+      return e?.path?.hashCode;
+    else if (e is List &&
+        e.whereType<Map>().isEmpty &&
+        e.whereType<DocumentReference>().isEmpty)
+      return hashList(e);
+    else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
+
+    return e.hashCode;
+  }
 }
 
 abstract class ParentObject<T extends DataObject> {
