@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/views/EditPage/EditFamily.dart';
@@ -10,6 +11,7 @@ import 'package:churchdata/views/InfoPage/FamilyInfo.dart';
 import 'package:churchdata/views/InfoPage/PersonInfo.dart';
 import 'package:churchdata/views/InfoPage/StreetInfo.dart';
 import 'package:churchdata/views/InfoPage/UserInfo.dart';
+import 'package:churchdata/views/ui/UserRegisteration.dart';
 import 'package:churchdata/views/utils/DataMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
@@ -268,16 +270,15 @@ class AppState extends State<App> {
   }
 
   Widget buildLoadAppWidget(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: precacheImage(AssetImage('assets/Logo2.png'), context)
-          .then((_) => loadApp(context)),
+    return FutureBuilder<void>(
+      future: loadApp(context),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done)
           return Loading(
             showVersionInfo: true,
           );
 
-        if (snapshot.hasError) {
+        if (snapshot.hasError && User.instance.password != null) {
           if (snapshot.error.toString() ==
               'Exception: Error Update User Data') {
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -294,11 +295,9 @@ class AppState extends State<App> {
         return Consumer<User>(
           builder: (context, user, child) {
             if (user.uid == null) {
-              return LoginScreen();
-            }
-
-            if (user.approved) {
-              return AuthScreen(nextWidget: const Root());
+              return const LoginScreen();
+            } else if (user.approved && user.password != null) {
+              return const AuthScreen(nextWidget: Root());
             } else {
               WidgetsBinding.instance.addPostFrameCallback((_) async {
                 if (user.personRef == null && !showFormOnce) {
@@ -314,65 +313,7 @@ class AppState extends State<App> {
                   }
                 }
               });
-              return Scaffold(
-                resizeToAvoidBottomInset: !kIsWeb,
-                appBar: AppBar(
-                  title: Text('في انتظار الموافقة'),
-                  actions: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.exit_to_app),
-                      tooltip: 'تسجيل الخروج',
-                      onPressed: () async {
-                        var user = User.instance;
-                        await Hive.box('Settings')
-                            .put('FCM_Token_Registered', false);
-                        // ignore: unawaited_futures
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) {
-                              Navigator.of(context)
-                                  .popUntil((route) => route.isFirst);
-                              return App();
-                            },
-                          ),
-                        );
-                        await user.signOut();
-                      },
-                    )
-                  ],
-                ),
-                body: Column(
-                  children: [
-                    Center(
-                      child: Text(
-                        'يجب ان يتم الموافقة على دخولك للبيانات '
-                        'من قبل أحد '
-                        'المشرفين أو المسؤلين في البرنامج',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        if (kIsWeb ||
-                            await Navigator.of(context)
-                                    .pushNamed('EditUserData')
-                                is firestore.DocumentReference) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('تم الحفظ بنجاح'),
-                            ),
-                          );
-                        }
-                      },
-                      icon: Icon(Icons.edit),
-                      label: Text('تعديل بياناتي'),
-                    ),
-                  ],
-                ),
-              );
+              return const UserRegisteration();
             }
           },
         );
@@ -461,13 +402,9 @@ class AppState extends State<App> {
     );
   }
 
-  Future<List<dynamic>> loadApp(BuildContext context) async {
-    List<dynamic> results = await Future.wait([
-      UpdateHelper.setupRemoteConfig(),
-      !kIsWeb ? LocalAuthentication().canCheckBiometrics : Future(() => false),
-    ]);
-    canCheckBio = results[1];
-    if (results[0] != null && results[0].getString('LoadApp') == 'false') {
+  Future<void> loadApp(BuildContext context) async {
+    var result = await UpdateHelper.setupRemoteConfig();
+    if (result != null && result.getString('LoadApp') == 'false') {
       await Updates.showUpdateDialog(context, canCancel: false);
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
@@ -480,7 +417,6 @@ class AppState extends State<App> {
           throw Exception('Error Update User Data');
         }
       }
-      return results;
     }
   }
 }
