@@ -97,9 +97,8 @@ class MapView extends StatelessWidget {
                         });
                       }
                     : null,
-                polygons: (area.locationPoints?.length ?? 0) != 0 && !kIsWeb
-                    ? {
-                        Polygon(
+                polygons: {
+                        if((area.locationPoints?.length ?? 0) != 0 && !kIsWeb)Polygon(
                           polygonId: PolygonId(area.id),
                           strokeWidth: 1,
                           fillColor: area.color == Colors.transparent
@@ -114,8 +113,7 @@ class MapView extends StatelessWidget {
                                   fromGeoPoint(area.locationPoints.first),
                                 ),
                         )
-                      }
-                    : null,
+                      },
                 polylines: !kIsWeb
                     ? streets.data
                         ?.where((s) => s.locationPoints != null)
@@ -157,7 +155,7 @@ class MapView extends StatelessWidget {
                                   ?.toList(),
                             ))
                         ?.toSet()
-                    : null,
+                    : {},
                 markers: families.hasData && families.data.isNotEmpty
                     ? families.data
                         ?.where((f) => f.locationPoint != null)
@@ -188,7 +186,7 @@ class MapView extends StatelessWidget {
                               position: fromGeoPoint(f.locationPoint),
                             ))
                         ?.toSet()
-                    : null,
+                    : {},
                 initialCameraPosition: CameraPosition(
                   zoom: 16,
                   target: initialLocation ?? center,
@@ -246,7 +244,7 @@ class MapView extends StatelessWidget {
                                 ),
                         )
                       }
-                    : null,
+                    : {},
                 polylines: (street.locationPoints?.length ?? 0) != 0 && !kIsWeb
                     ? {
                         Polyline(
@@ -286,7 +284,7 @@ class MapView extends StatelessWidget {
                               .toList(),
                         )
                       }
-                    : null,
+                    : {},
                 markers: family.locationPoint != null
                     ? {
                         Marker(
@@ -299,7 +297,7 @@ class MapView extends StatelessWidget {
                           position: fromGeoPoint(family.locationPoint),
                         )
                       }
-                    : null,
+                    : {},
                 initialCameraPosition: CameraPosition(
                   zoom: 16,
                   target: family.locationPoint != null
@@ -371,7 +369,7 @@ class MapView extends StatelessWidget {
                               ),
                       )
                     }
-                  : null,
+                  : {},
               polylines: (street.locationPoints?.length ?? 0) != 0 && !kIsWeb
                   ? {
                       Polyline(
@@ -394,7 +392,7 @@ class MapView extends StatelessWidget {
                             .toList(),
                       )
                     }
-                  : null,
+                  : {},
               markers: families.data
                   ?.where((f) => f.locationPoint != null)
                   ?.map((f) => Marker(
@@ -421,7 +419,7 @@ class MapView extends StatelessWidget {
                                 : 'غير مؤكد'),
                         position: fromGeoPoint(f.locationPoint),
                       ))
-                  ?.toSet(),
+                  ?.toSet() ?? {},
               initialCameraPosition: CameraPosition(
                 zoom: 16,
                 target: initialLocation ?? center,

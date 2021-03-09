@@ -92,7 +92,7 @@ class MegaMap extends StatelessWidget {
                         ),
                       )
                       ?.toSet()
-                  : null,
+                  : {},
               polylines: !kIsWeb
                   ? streets
                       ?.where((s) => s.locationPoints != null)
@@ -133,7 +133,7 @@ class MegaMap extends StatelessWidget {
                                 ?.toList(),
                           ))
                       ?.toSet()
-                  : null,
+                  : {},
               markers: families
                   ?.where((f) => f.locationPoint != null)
                   ?.map((f) => Marker(
@@ -160,7 +160,7 @@ class MegaMap extends StatelessWidget {
                                 : 'غير مؤكد'),
                         position: fromGeoPoint(f.locationPoint),
                       ))
-                  ?.toSet(),
+                  ?.toSet()??{},
               initialCameraPosition: CameraPosition(
                 zoom: 13,
                 target: initialLocation ?? center,
