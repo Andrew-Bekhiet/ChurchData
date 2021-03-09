@@ -6,7 +6,7 @@
 
 import 'package:cloud_firestore_web/cloud_firestore_web.dart';
 import 'package:cloud_functions_web/cloud_functions_web.dart';
-import 'package:connectivity_for_web/connectivity_for_web.dart';
+import 'package:connectivity_plus_web/connectivity_plus_web.dart';
 import 'package:device_info_plus_web/device_info_plus_web.dart';
 import 'package:file_picker/src/file_picker_web.dart';
 import 'package:firebase_analytics_web/firebase_analytics_web.dart';
