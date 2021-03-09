@@ -313,6 +313,7 @@ class _EditStreetState extends State<EditStreet> {
               ),
             );
           } else {
+            old['LocationConfirmed'] = true;
             street.locationConfirmed = false;
           }
         }

@@ -450,6 +450,7 @@ class _EditAreaState extends State<EditArea> {
               ),
             );
           } else {
+            oldArea['LocationConfirmed'] = true;
             area.locationConfirmed = false;
           }
         }

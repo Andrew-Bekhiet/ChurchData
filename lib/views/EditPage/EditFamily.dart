@@ -484,6 +484,7 @@ class _EditFamilyState extends State<EditFamily> {
               ),
             );
           } else {
+            old['LocationConfirmed'] = true;
             family.locationConfirmed = false;
           }
         }
