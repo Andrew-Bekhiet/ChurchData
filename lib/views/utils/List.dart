@@ -14,7 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contact/contacts.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -166,16 +166,10 @@ class _InnerListState<T extends DataObject> extends State<_InnerList<T>> {
                                     for (Person item
                                         in options.selected.cast<Person>()) {
                                       try {
-                                        await Contacts.addContact(
-                                          Contact(
-                                            givenName: item.name,
-                                            phones: [
-                                              Item(
-                                                  label: 'Mobile',
-                                                  value: item.phone)
-                                            ],
-                                          ),
-                                        );
+                                        final c = Contact()
+                                          ..name.first = item.name
+                                          ..phones = [Phone(item.phone)];
+                                        await c.insert();
                                       } catch (err, stkTrace) {
                                         await FirebaseCrashlytics.instance
                                             .setCustomKey('LastErrorIn',

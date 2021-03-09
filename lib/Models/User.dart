@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/Models/super_classes.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
 import 'package:hive/hive.dart';

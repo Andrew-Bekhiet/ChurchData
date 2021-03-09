@@ -22,7 +22,7 @@ class Update extends StatefulWidget {
 class UpdateHelper {
   static Future<RemoteConfig> setupRemoteConfig() async {
     try {
-      remoteConfig = await RemoteConfig.instance;
+      remoteConfig = RemoteConfig.instance;
       await remoteConfig.setDefaults(<String, dynamic>{
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
@@ -31,11 +31,10 @@ class UpdateHelper {
                 (await PackageInfo.fromPlatform()).version +
                 '/ChurchData.apk',
       });
-      await remoteConfig.fetch(
-        expiration: const Duration(minutes: 2),
-      );
-      await remoteConfig.activateFetched();
-      return remoteConfig;
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 30),
+          minimumFetchInterval: const Duration(minutes: 2)));
+      await remoteConfig.fetchAndActivate();
       // ignore: empty_catches
     } catch (err) {}
     return remoteConfig;

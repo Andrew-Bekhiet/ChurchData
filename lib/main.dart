@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/views/EditPage/EditFamily.dart';
@@ -15,7 +14,7 @@ import 'package:churchdata/views/ui/UserRegisteration.dart';
 import 'package:churchdata/views/utils/DataMap.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -337,8 +336,9 @@ class AppState extends State<App> {
         // ignore: empty_catches
       } catch (e) {}
       try {
-        bool permission =
-            await FirebaseMessaging.instance.requestNotificationPermissions();
+        bool permission = (await FirebaseMessaging.instance.requestPermission())
+                .authorizationStatus ==
+            AuthorizationStatus.authorized;
         if (permission == true || permission == null)
           await FirebaseFunctions.instance
               .httpsCallable('registerFCMToken')
