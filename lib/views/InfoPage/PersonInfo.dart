@@ -11,10 +11,8 @@ import 'package:churchdata/views/utils/DataObjectWidget.dart';
 import 'package:churchdata/views/utils/HistoryProperty.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/material.dart';
-import 'package:flutter_contact/contacts.dart';
-import 'package:flutter_phone_state/flutter_phone_state.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,13 +22,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 class PersonInfo extends StatelessWidget {
   final Person person;
-  final List<String> choices = [
-    'إضافة إلى جهات الاتصال',
-    'نسخ في لوحة الاتصال',
-    'إرسال رسالة',
-    'إرسال رسالة (واتساب)',
-    'ارسال إشعار للمستخدمين عن الشخص'
-  ];
 
   PersonInfo({Key key, this.person}) : super(key: key);
 
@@ -125,6 +116,8 @@ class PersonInfo extends StatelessWidget {
                             Text(
                                 'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الشخص\ىنسخ في لوحة الاتصال\ىاضافة لجهات الاتصال\ىارسال رسالة\ىارسال رسالة من خلال الواتساب'),
                             OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.completeCurrentStep(context),
                               child: Text(
                                 'تخطي',
                                 style: TextStyle(
@@ -134,8 +127,6 @@ class PersonInfo extends StatelessWidget {
                                       .color,
                                 ),
                               ),
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
                             ),
                           ],
                         ),
@@ -184,26 +175,29 @@ class PersonInfo extends StatelessWidget {
                     children: <Widget>[
                       ListTile(
                         title: Hero(
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: Text(
-                                person.name,
-                                style: Theme.of(context).textTheme.headline6,
-                              ),
+                          tag: person.id + '-name',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: Text(
+                              person.name,
+                              style: Theme.of(context).textTheme.headline6,
                             ),
-                            tag: person.id + '-name'),
+                          ),
+                        ),
                       ),
                       PhoneNumberProperty(
                         'رقم الهاتف:',
                         person.phone,
-                        (n, action) => _phoneCall(context, n, action),
+                        (n) => _phoneCall(context, n),
+                        (n) => _contactAdd(context, n),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
                             .map((e) => PhoneNumberProperty(
                                   e.key,
                                   e.value,
-                                  (n, action) => _phoneCall(context, n, action),
+                                  (n) => _phoneCall(context, n),
+                                  (n) => _contactAdd(context, n),
                                 ))
                             .toList(),
                       ListTile(
@@ -430,70 +424,86 @@ class PersonInfo extends StatelessWidget {
     );
   }
 
-  void _phoneCall(
-      BuildContext context, String item, PhoneCallAction action) async {
-    if (action == PhoneCallAction.AddToContacts) {
-      if ((await Permission.contacts.request()).isGranted)
-        await Contacts.addContact(
-          Contact(
-              givenName: person.name,
-              phones: [Item(label: 'Mobile', value: item)]),
-        );
-    } else if (action == PhoneCallAction.Call && (item ?? '') != '') {
-      var result = await showDialog(
+  void _phoneCall(BuildContext context, String number) async {
+    var result = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text('هل تريد اجراء مكالمة الأن'),
+        actions: [
+          OutlinedButton.icon(
+            icon: Icon(Icons.call),
+            label: Text('اجراء مكالمة الأن'),
+            onPressed: () => Navigator.pop(context, true),
+          ),
+          TextButton.icon(
+            icon: Icon(Icons.dialpad),
+            label: Text('نسخ في لوحة الاتصال فقط'),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+        ],
+      ),
+    );
+    if (result == null) return;
+    if (result) {
+      await launch('tel:' + getPhone(number, false));
+      var recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: Text('هل تريد اجراء مكالمة الأن'),
+          content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
-            OutlinedButton.icon(
-              icon: Icon(Icons.call),
-              label: Text('اجراء مكالمة الأن'),
+            TextButton(
               onPressed: () => Navigator.pop(context, true),
+              child: Text('نعم'),
             ),
-            TextButton.icon(
-              icon: Icon(Icons.dialpad),
-              label: Text('نسخ في لوحة الاتصال فقط'),
+            TextButton(
               onPressed: () => Navigator.pop(context, false),
+              child: Text('لا'),
             ),
           ],
         ),
       );
-      if (result == null) return;
-      if (result) {
-        await Permission.phone.request();
-        await FlutterPhoneState.startPhoneCall(getPhone(item, false)).done;
-        var recordLastCall = await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
-            actions: [
-              TextButton(
-                  child: Text('نعم'),
-                  onPressed: () => Navigator.pop(context, true)),
-              TextButton(
-                  child: Text('لا'),
-                  onPressed: () => Navigator.pop(context, false)),
-            ],
+      if (recordLastCall == true) {
+        await person.ref.update(
+            {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم بنجاح'),
           ),
         );
-        if (recordLastCall == true) {
-          await person.ref.update({
-            'LastEdit': auth.FirebaseAuth.instance.currentUser.uid,
-            'LastCall': Timestamp.now()
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('تم بنجاح'),
+      }
+    } else
+      await launch('tel://' + getPhone(number, false));
+  }
+
+  Future<void> _contactAdd(BuildContext context, String phone) async {
+    if ((await Permission.contacts.request()).isGranted) {
+      TextEditingController _name = TextEditingController(text: person.name);
+      if (await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('ادخل اسم جهة الاتصال:'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(controller: _name),
+                  Container(height: 10),
+                  Text(phone ?? ''),
+                ],
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text('حفظ جهة الاتصال'))
+              ],
             ),
-          );
-        }
-      } else
-        await launch('tel://' + getPhone(item, false));
-    } else if (action == PhoneCallAction.Message) {
-      await launch('sms://' + getPhone(item, false));
-    } else if (action == PhoneCallAction.Whatsapp) {
-      await launch(
-          'whatsapp://send?phone=+' + getPhone(item).replaceAll('+', ''));
+          ) ==
+          true) {
+        final c = Contact()
+          ..name.first = _name.text
+          ..phones = [Phone(phone)];
+        await c.insert();
+      }
     }
   }
 }
