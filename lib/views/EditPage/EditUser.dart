@@ -278,7 +278,6 @@ class _UserPState extends State<UserP> {
         content: Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
         actions: <Widget>[
           TextButton(
-            child: Text('متابعة'),
             onPressed: () async {
               try {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -314,12 +313,13 @@ class _UserPState extends State<UserP> {
                 );
               }
             },
+            child: Text('متابعة'),
           ),
           TextButton(
-            child: Text('تراجع'),
             onPressed: () {
               Navigator.of(context).pop();
             },
+            child: Text('تراجع'),
           ),
         ],
       ),
@@ -338,7 +338,6 @@ class _UserPState extends State<UserP> {
             style: Theme.of(context).textButtonTheme.style.copyWith(
                 foregroundColor:
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
-            child: Text('حذف'),
             onPressed: () async {
               try {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -374,12 +373,13 @@ class _UserPState extends State<UserP> {
                 );
               }
             },
+            child: Text('حذف'),
           ),
           TextButton(
-            child: Text('تراجع'),
             onPressed: () {
               Navigator.of(context).pop();
             },
+            child: Text('تراجع'),
           ),
         ],
       ),
@@ -405,11 +405,12 @@ class _UserPState extends State<UserP> {
                 '?'),
             actions: [
               TextButton(
-                  child: Text('نعم'),
-                  onPressed: () => Navigator.pop(context, true)),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('نعم'),
+              ),
               TextButton(
-                child: Text('لا'),
                 onPressed: () => Navigator.pop(context, false),
+                child: Text('لا'),
               ),
             ],
           ),

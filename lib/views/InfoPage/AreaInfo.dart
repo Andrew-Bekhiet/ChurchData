@@ -104,6 +104,8 @@ class AreaInfo extends StatelessWidget {
                                             context),
                                   ),
                                   OutlinedButton(
+                                    onPressed: () =>
+                                        FeatureDiscovery.dismissAll(context),
                                     child: Text(
                                       'تخطي',
                                       style: TextStyle(
@@ -113,8 +115,6 @@ class AreaInfo extends StatelessWidget {
                                             .color,
                                       ),
                                     ),
-                                    onPressed: () =>
-                                        FeatureDiscovery.dismissAll(context),
                                   ),
                                 ],
                               ),
@@ -177,6 +177,8 @@ class AreaInfo extends StatelessWidget {
                                           context),
                                 ),
                                 OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
                                   child: Text(
                                     'تخطي',
                                     style: TextStyle(
@@ -186,8 +188,6 @@ class AreaInfo extends StatelessWidget {
                                           .color,
                                     ),
                                   ),
-                                  onPressed: () =>
-                                      FeatureDiscovery.dismissAll(context),
                                 ),
                               ],
                             ),
@@ -242,6 +242,8 @@ class AreaInfo extends StatelessWidget {
                                         context),
                               ),
                               OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
                                 child: Text(
                                   'تخطي',
                                   style: TextStyle(
@@ -251,8 +253,6 @@ class AreaInfo extends StatelessWidget {
                                         .color,
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
                               ),
                             ],
                           ),
@@ -297,15 +297,15 @@ class AreaInfo extends StatelessWidget {
                         <Widget>[
                           ListTile(
                             title: Hero(
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: Text(
-                                    area.name,
-                                    style:
-                                        Theme.of(context).textTheme.headline6,
-                                  ),
+                              tag: area.id + '-name',
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: Text(
+                                  area.name,
+                                  style: Theme.of(context).textTheme.headline6,
                                 ),
-                                tag: area.id + '-name'),
+                              ),
+                            ),
                           ),
                           if ((area.address ?? '') != '')
                             CopiableProperty('العنوان:', area.address),
@@ -349,6 +349,10 @@ class AreaInfo extends StatelessWidget {
                                       Padding(
                                         padding: EdgeInsets.only(right: 32),
                                         child: FloatingActionButton(
+                                          tooltip: 'تسجيل أخر زيارة اليوم',
+                                          heroTag: 'lastVisit',
+                                          onPressed: () =>
+                                              recordLastVisit(context, area),
                                           child: DescribedFeatureOverlay(
                                             backgroundDismissible: false,
                                             barrierDismissible: false,
@@ -379,6 +383,9 @@ class AreaInfo extends StatelessWidget {
                                                               context),
                                                 ),
                                                 OutlinedButton(
+                                                  onPressed: () =>
+                                                      FeatureDiscovery
+                                                          .dismissAll(context),
                                                   child: Text(
                                                     'تخطي',
                                                     style: TextStyle(
@@ -388,9 +395,6 @@ class AreaInfo extends StatelessWidget {
                                                           .color,
                                                     ),
                                                   ),
-                                                  onPressed: () =>
-                                                      FeatureDiscovery
-                                                          .dismissAll(context),
                                                 ),
                                               ],
                                             ),
@@ -404,10 +408,6 @@ class AreaInfo extends StatelessWidget {
                                                 .color,
                                             child: Icon(Icons.update),
                                           ),
-                                          tooltip: 'تسجيل أخر زيارة اليوم',
-                                          heroTag: 'lastVisit',
-                                          onPressed: () =>
-                                              recordLastVisit(context, area),
                                         ),
                                       ),
                                       FloatingActionButton(
@@ -437,6 +437,10 @@ class AreaInfo extends StatelessWidget {
                                               Text(
                                                   'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا'),
                                               OutlinedButton(
+                                                onPressed: () =>
+                                                    FeatureDiscovery
+                                                        .completeCurrentStep(
+                                                            context),
                                                 child: Text(
                                                   'تخطي',
                                                   style: TextStyle(
@@ -446,10 +450,6 @@ class AreaInfo extends StatelessWidget {
                                                         .color,
                                                   ),
                                                 ),
-                                                onPressed: () =>
-                                                    FeatureDiscovery
-                                                        .completeCurrentStep(
-                                                            context),
                                               ),
                                             ],
                                           ),
@@ -491,11 +491,12 @@ class AreaInfo extends StatelessWidget {
             title: Text('هل تريد تسجيل أخر زيارة ل' + area.name + '?'),
             actions: [
               TextButton(
-                  child: Text('تسجيل أخر زيارة'),
-                  onPressed: () => Navigator.pop(context, true)),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text('تسجيل أخر زيارة'),
+              ),
               TextButton(
-                child: Text('رجوع'),
                 onPressed: () => Navigator.pop(context, false),
+                child: Text('رجوع'),
               ),
             ],
           ),

@@ -364,6 +364,7 @@ class User extends DataObject
                 if (showActiveStatus &&
                     activity.data?.snapshot?.value == 'Active')
                   Align(
+                    alignment: Alignment.bottomLeft,
                     child: Container(
                       height: 15,
                       width: 15,
@@ -373,7 +374,6 @@ class User extends DataObject
                         color: Colors.greenAccent,
                       ),
                     ),
-                    alignment: Alignment.bottomLeft,
                   ),
               ],
             );
@@ -424,6 +424,7 @@ class User extends DataObject
                     if (showActiveStatus &&
                         activity.data?.snapshot?.value == 'Active')
                       Align(
+                        alignment: Alignment.bottomLeft,
                         child: Container(
                           height: 15,
                           width: 15,
@@ -433,7 +434,6 @@ class User extends DataObject
                             color: Colors.greenAccent,
                           ),
                         ),
-                        alignment: Alignment.bottomLeft,
                       ),
                   ],
                 );
@@ -535,7 +535,7 @@ class User extends DataObject
         .set('Active');
   }
 
-  void recordLastSeen() async {
+  Future<void> recordLastSeen() async {
     if (uid == null) return;
     await FirebaseDatabase.instance
         .reference()

@@ -21,7 +21,7 @@ class HivePersistenceProvider extends PersistenceProvider {
 
   @override
   Future<Set<String>> completedSteps(Iterable<String> featuresIds) async {
-    return await _box
+    return _box
         .toMap()
         .entries
         .where((element) =>

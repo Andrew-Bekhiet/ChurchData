@@ -113,15 +113,15 @@ class FamilyInfo extends StatelessWidget {
                         <Widget>[
                           ListTile(
                             title: Hero(
-                                child: Material(
-                                  type: MaterialType.transparency,
-                                  child: Text(
-                                    family.name,
-                                    style:
-                                        Theme.of(context).textTheme.headline6,
-                                  ),
+                              tag: family.id + '-name',
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: Text(
+                                  family.name,
+                                  style: Theme.of(context).textTheme.headline6,
                                 ),
-                                tag: family.id + '-name'),
+                              ),
+                            ),
                           ),
                           if ((family.address ?? '') != '')
                             ListTile(
@@ -258,17 +258,14 @@ class FamilyInfo extends StatelessWidget {
                                     Padding(
                                       padding: EdgeInsets.only(right: 32),
                                       child: FloatingActionButton(
-                                        child: Icon(Icons.update),
                                         tooltip: 'تسجيل أخر زيارة اليوم',
                                         heroTag: 'lastVisit',
                                         onPressed: () =>
                                             recordLastVisit(context, family),
+                                        child: Icon(Icons.update),
                                       ),
                                     ),
                                     PopupMenuButton<dynamic>(
-                                      child: FloatingActionButton(
-                                          child: Icon(Icons.add),
-                                          onPressed: null),
                                       itemBuilder: (_) => [
                                         PopupMenuItem(
                                           child: ListTile(
@@ -303,6 +300,10 @@ class FamilyInfo extends StatelessWidget {
                                                 'IsStore': type as bool
                                               },
                                             ),
+                                      child: FloatingActionButton(
+                                        onPressed: null,
+                                        child: Icon(Icons.add),
+                                      ),
                                     ),
                                   ],
                                 )

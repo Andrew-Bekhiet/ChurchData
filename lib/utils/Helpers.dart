@@ -847,7 +847,7 @@ Future importArea(
   }
 }
 
-void showPendingMessage([BuildContext context]) async {
+Future<void> showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
   var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
@@ -1375,7 +1375,8 @@ void showLoadingDialog(BuildContext context) async {
   );
 }
 
-void showMessage(BuildContext context, no.Notification notification) async {
+Future<void> showMessage(
+    BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
@@ -1862,12 +1863,6 @@ class MessageIcon extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          child: CachedNetworkImage(
-            memCacheHeight: 221,
-            imageUrl: url,
-            progressIndicatorBuilder: (context, url, progress) =>
-                CircularProgressIndicator(value: progress.progress),
-          ),
           onTap: () => showDialog(
             context: context,
             builder: (context) => Dialog(
@@ -1885,6 +1880,12 @@ class MessageIcon extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          child: CachedNetworkImage(
+            memCacheHeight: 221,
+            imageUrl: url,
+            progressIndicatorBuilder: (context, url, progress) =>
+                CircularProgressIndicator(value: progress.progress),
           ),
         ),
       ),

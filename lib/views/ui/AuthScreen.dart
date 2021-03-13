@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+
 export 'package:tuple/tuple.dart';
 
 var authKey = GlobalKey<ScaffoldState>();
@@ -22,11 +23,12 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final TextEditingController passwordText = TextEditingController();
-  final FocusNode passwordFocus = FocusNode();
+  final TextEditingController _passwordText = TextEditingController();
+  final FocusNode _passwordFocus = FocusNode();
 
   Completer<bool> _authCompleter = Completer<bool>();
 
+  bool obscurePassword = true;
   bool ignoreBiometrics = false;
 
   @override
@@ -36,92 +38,6 @@ class _AuthScreenState extends State<AuthScreen> {
       builder: (context, future) {
         bool canCheckBio = false;
         if (future.hasData) canCheckBio = future.data;
-/* 
-        return Selector<User, Tuple2<String, String>>(
-          selector: (_, user) => Tuple2(user.name, user.password),
-          builder: (context, user, child) {
-            try {
-              if (canCheckBio && !ignoreBiometrics) {
-                return FutureBuilder<bool>(
-                  future: _authCompleter.future,
-                  builder: (context, snapshot) {
-                    if (!_authCompleter.isCompleted ||
-                        (snapshot.hasData && snapshot.data))
-                      return Scaffold(
-                        key: authKey,
-                        resizeToAvoidBottomInset: !kIsWeb,
-                        appBar: AppBar(
-                          leading: Container(),
-                          title: Text('جار التحقق...'),
-                        ),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.refresh),
-                                label: Text('إعادة المحاولة'),
-                                onPressed: () {
-                                  _authenticate();
-                                  setState(() {});
-                                },
-                              ),
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.security),
-                                label: Text('إدخال كلمة السر'),
-                                onPressed: () {
-                                  setState(() {
-                                    ignoreBiometrics = true;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    else {
-                      return Scaffold(
-                        key: authKey,
-                        resizeToAvoidBottomInset: !kIsWeb,
-                        appBar: AppBar(
-                          title: Text('فشل التحقق!'),
-                        ),
-                        body: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.refresh),
-                                label: Text('إعادة المحاولة'),
-                                onPressed: () {
-                                  _authenticate();
-                                  setState(() {});
-                                },
-                              ),
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.security),
-                                label: Text('إدخال كلمة السر'),
-                                onPressed: () {
-                                  setState(() {
-                                    ignoreBiometrics = true;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                );
-              }
-            } on PlatformException catch (err, stkTrace) {
-              FirebaseCrashlytics.instance
-                  .setCustomKey('LastErrorIn', 'AuthScreen.build');
-              FirebaseCrashlytics.instance.recordError(err, stkTrace);
-            } */
         return Scaffold(
           key: authKey,
           resizeToAvoidBottomInset: !kIsWeb,
@@ -132,10 +48,19 @@ class _AuthScreenState extends State<AuthScreen> {
           body: ListView(
             padding: const EdgeInsets.all(8.0),
             children: <Widget>[
-              Image.asset('assets/Logo2.png', fit: BoxFit.scaleDown),
+              Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
               Divider(),
               TextFormField(
                 decoration: InputDecoration(
+                  suffix: IconButton(
+                    icon: Icon(obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    tooltip:
+                        obscurePassword ? 'اظهار كلمة السر' : 'اخفاء كلمة السر',
+                    onPressed: () =>
+                        setState(() => obscurePassword = !obscurePassword),
+                  ),
                   labelText: 'كلمة السر',
                   border: OutlineInputBorder(
                     borderSide:
@@ -143,11 +68,11 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
                 textInputAction: TextInputAction.done,
-                obscureText: true,
+                obscureText: obscurePassword,
                 autocorrect: false,
                 autofocus: future.hasData && !future.data,
-                controller: passwordText,
-                focusNode: passwordFocus,
+                controller: _passwordText,
+                focusNode: _passwordFocus,
                 validator: (value) {
                   if (value.isEmpty) {
                     return 'هذا الحقل مطلوب';
@@ -157,7 +82,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 onFieldSubmitted: (v) => _submit(v),
               ),
               ElevatedButton(
-                onPressed: () => _submit(passwordText.text),
+                onPressed: () => _submit(_passwordText.text),
                 child: Text('تسجيل الدخول'),
               ),
               if (canCheckBio)
@@ -188,9 +113,10 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       if (!await _localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
-      bool value = await _localAuthentication.authenticateWithBiometrics(
+      bool value = await _localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
           stickyAuth: true,
+          biometricOnly: true,
           useErrorDialogs: false);
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
       if (value) {
@@ -234,7 +160,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } else {
       encryptedPassword = null;
       await showErrorDialog(context, 'كلمة سر خاطئة!');
-      passwordText.clear();
+      _passwordText.clear();
       setState(() {});
     }
     encryptedPassword = null;

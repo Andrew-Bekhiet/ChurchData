@@ -151,7 +151,30 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                       size: constrains.maxHeight);
                 else
                   return GestureDetector(
-                    child: !(widget.object is User)
+                    onTap: () => showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        child: Hero(
+                          tag:
+                              widget.heroTag ?? widget.object.photoRef.fullPath,
+                          child: CachedNetworkImage(
+                            imageUrl: data.data,
+                            imageBuilder: (context, imageProvider) => PhotoView(
+                              imageProvider: imageProvider,
+                              tightMode: true,
+                              enableRotation: true,
+                            ),
+                            progressIndicatorBuilder:
+                                (context, url, progress) => AspectRatio(
+                              aspectRatio: 1,
+                              child: CircularProgressIndicator(
+                                  value: progress.progress),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: widget.object is! User
                         ? CachedNetworkImage(
                             memCacheHeight: (constrains.maxHeight * 4).toInt(),
                             imageRenderMethodForWeb:
@@ -182,6 +205,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                       ),
                                     ),
                                     Align(
+                                      alignment: Alignment.bottomLeft,
                                       child: Container(
                                         height: 15,
                                         width: 15,
@@ -193,7 +217,6 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                           color: Colors.greenAccent,
                                         ),
                                       ),
-                                      alignment: Alignment.bottomLeft,
                                     ),
                                   ],
                                 );
@@ -204,29 +227,6 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                 );
                             },
                           ),
-                    onTap: () => showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        child: Hero(
-                          tag:
-                              widget.heroTag ?? widget.object.photoRef.fullPath,
-                          child: CachedNetworkImage(
-                            imageUrl: data.data,
-                            imageBuilder: (context, imageProvider) => PhotoView(
-                              imageProvider: imageProvider,
-                              tightMode: true,
-                              enableRotation: true,
-                            ),
-                            progressIndicatorBuilder:
-                                (context, url, progress) => AspectRatio(
-                              aspectRatio: 1,
-                              child: CircularProgressIndicator(
-                                  value: progress.progress),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
                   );
               },
             ),

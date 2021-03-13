@@ -22,7 +22,8 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final _memoizer = AsyncMemoizer<String>();
 
   DataObjectWidget(this.current,
-      {this.isDense = false,
+      {Key key,
+      this.isDense = false,
       this.onLongPress,
       this.onTap,
       this.trailing,
@@ -30,7 +31,8 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       this.title,
       this.wrapInCard = true,
       this.photo,
-      this.showSubtitle = true});
+      this.showSubtitle = true})
+      : super(key: key);
 
   String _getTName() {
     if (T == Area) return 'Area';

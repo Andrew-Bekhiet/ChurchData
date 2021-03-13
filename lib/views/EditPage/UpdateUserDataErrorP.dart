@@ -36,6 +36,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               Flexible(
+                flex: 3,
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
@@ -62,7 +63,6 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                     ),
                   ),
                 ),
-                flex: 3,
               ),
             ],
           ),
@@ -72,6 +72,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
             mainAxisSize: MainAxisSize.max,
             children: <Widget>[
               Flexible(
+                flex: 3,
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 4.0),
                   child: Focus(
@@ -99,7 +100,6 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                     ),
                   ),
                 ),
-                flex: 3,
               ),
             ],
           ),
@@ -108,8 +108,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: save,
-        child: Icon(Icons.save),
         tooltip: 'حفظ',
+        child: Icon(Icons.save),
       ),
     );
   }

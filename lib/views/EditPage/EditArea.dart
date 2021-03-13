@@ -375,32 +375,34 @@ class _EditAreaState extends State<EditArea> {
             'هل أنت متأكد من حذف ${area.name} وكل ما بها من شوارع وعائلات وأشخاص؟'),
         actions: <Widget>[
           TextButton(
-              child: Text('نعم'),
-              onPressed: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('جار حذف المنطقة وما بداخلها من بيانات...'),
-                    duration: Duration(minutes: 20),
-                  ),
-                );
-                if (area.hasPhoto) {
-                  await FirebaseStorage.instance
-                      .ref()
-                      .child('AreasPhotos/${area.id}')
-                      .delete();
-                }
-                await FirebaseFirestore.instance
-                    .collection('Areas')
-                    .doc(area.id)
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('جار حذف المنطقة وما بداخلها من بيانات...'),
+                  duration: Duration(minutes: 20),
+                ),
+              );
+              if (area.hasPhoto) {
+                await FirebaseStorage.instance
+                    .ref()
+                    .child('AreasPhotos/${area.id}')
                     .delete();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop('deleted');
-              }),
+              }
+              await FirebaseFirestore.instance
+                  .collection('Areas')
+                  .doc(area.id)
+                  .delete();
+              Navigator.of(context).pop();
+              Navigator.of(context).pop('deleted');
+            },
+            child: Text('نعم'),
+          ),
           TextButton(
-              child: Text('تراجع'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              }),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('تراجع'),
+          ),
         ],
       ),
     );
@@ -439,12 +441,12 @@ class _EditAreaState extends State<EditArea> {
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
-                    child: Text('نعم'),
                     onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('نعم'),
                   ),
                   TextButton(
-                    child: Text('لا'),
                     onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('لا'),
                   )
                 ],
               ),
@@ -544,7 +546,6 @@ class _EditAreaState extends State<EditArea> {
                       builder: (context, child) => DataDialog(
                         actions: [
                           TextButton(
-                            child: Text('تم'),
                             onPressed: () {
                               Navigator.pop(
                                   context,
@@ -554,6 +555,7 @@ class _EditAreaState extends State<EditArea> {
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
+                            child: Text('تم'),
                           )
                         ],
                         content: Column(

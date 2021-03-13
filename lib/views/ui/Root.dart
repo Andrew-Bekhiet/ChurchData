@@ -442,6 +442,7 @@ class _RootState extends State<Root>
                 selector: (_, o, u) =>
                     Tuple3<String, bool, User>(o.areaOrderBy, o.areaASC, u),
                 builder: (context, options, child) => DataObjectList<Area>(
+                  key: ValueKey(options),
                   options: ListOptions<Area>(
                     floatingActionButton: options.item3.write
                         ? FloatingActionButton(
@@ -461,6 +462,7 @@ class _RootState extends State<Root>
                 selector: (_, o, u) =>
                     Tuple3<String, bool, User>(o.streetOrderBy, o.streetASC, u),
                 builder: (context, options, child) => DataObjectList<Street>(
+                  key: ValueKey(options),
                   options: ListOptions<Street>(
                     floatingActionButton: options.item3.write
                         ? FloatingActionButton(
@@ -480,6 +482,7 @@ class _RootState extends State<Root>
                 selector: (_, o, u) =>
                     Tuple3<String, bool, User>(o.familyOrderBy, o.familyASC, u),
                 builder: (context, options, child) => DataObjectList<Family>(
+                  key: ValueKey(options),
                   options: ListOptions<Family>(
                     floatingActionButton: options.item3.write
                         ? PopupMenuButton<bool>(
@@ -515,6 +518,7 @@ class _RootState extends State<Root>
                 selector: (_, o, u) =>
                     Tuple3<String, bool, User>(o.personOrderBy, o.personASC, u),
                 builder: (context, options, child) => DataObjectList<Person>(
+                  key: ValueKey(options),
                   options: ListOptions<Person>(
                     floatingActionButton: options.item3.write
                         ? FloatingActionButton(

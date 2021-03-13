@@ -18,10 +18,19 @@ class UserRegisteration extends StatefulWidget {
 }
 
 class _UserRegisterationState extends State<UserRegisteration> {
+  final TextEditingController _linkController = TextEditingController();
+
   final TextEditingController _userName = TextEditingController();
   final TextEditingController _passwordText = TextEditingController();
   final FocusNode _passwordFocus = FocusNode();
+
+  final TextEditingController _passwordText2 = TextEditingController();
+  final FocusNode _passwordFocus2 = FocusNode();
+
   final GlobalKey<FormState> _formKey = GlobalKey();
+
+  bool obscurePassword1 = true;
+  bool obscurePassword2 = true;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +54,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
                       helperText:
-                          'يرجى ادخال اسمك الذي سيظهر للمستخدمين الأخرين',
+                          'يرجى ادخال اسمك الذي سيظهر للمستخدمين في البرنامج',
                       labelText: 'اسم المستخدم',
                       border: OutlineInputBorder(
                         borderSide:
@@ -67,6 +76,16 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
                       hintMaxLines: 3,
+                      suffix: IconButton(
+                        icon: Icon(obscurePassword1
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        tooltip: obscurePassword1
+                            ? 'اظهار كلمة السر'
+                            : 'اخفاء كلمة السر',
+                        onPressed: () => setState(
+                            () => obscurePassword1 = !obscurePassword1),
+                      ),
                       helperText:
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
                       labelText: 'كلمة السر',
@@ -75,8 +94,8 @@ class _UserRegisterationState extends State<UserRegisteration> {
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
                     ),
-                    textInputAction: TextInputAction.done,
-                    obscureText: true,
+                    textInputAction: TextInputAction.next,
+                    obscureText: obscurePassword1,
                     autocorrect: false,
                     autofocus: true,
                     controller: _passwordText,
@@ -84,6 +103,40 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     validator: (value) {
                       if (value.isEmpty || value.characters.length < 9) {
                         return 'يرجى كتابة كلمة سر قوية تتكون من أكثر من 10 أحرف وتحتوي على رموز وأرقام';
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: (v) => _passwordFocus2.requestFocus(),
+                  ),
+                  TextFormField(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      hintMaxLines: 3,
+                      suffix: IconButton(
+                        icon: Icon(obscurePassword2
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        tooltip: obscurePassword2
+                            ? 'اظهار كلمة السر'
+                            : 'اخفاء كلمة السر',
+                        onPressed: () => setState(
+                            () => obscurePassword2 = !obscurePassword2),
+                      ),
+                      labelText: 'تأكيد كلمة السر',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                    textInputAction: TextInputAction.done,
+                    obscureText: obscurePassword2,
+                    autocorrect: false,
+                    autofocus: true,
+                    controller: _passwordText2,
+                    focusNode: _passwordFocus2,
+                    validator: (value) {
+                      if (value.isEmpty || value != _passwordText2.text) {
+                        return 'كلمتا السر غير متطابقتين';
                       }
                       return null;
                     },
@@ -138,6 +191,39 @@ class _UserRegisterationState extends State<UserRegisteration> {
                   ),
                 ),
               ),
+              Text('أو'),
+              Text(
+                'يمكنك ادخال لينك الدعوة هنا',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+              Container(height: 10),
+              TextFormField(
+                decoration: InputDecoration(
+                  hintMaxLines: 3,
+                  hintText:
+                      'مثال: https://churchdata.page.link/ZaBc1KnFgh6K3YO92',
+                  helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
+                  labelText: 'لينك الدعوة',
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                ),
+                maxLines: null,
+                textInputAction: TextInputAction.done,
+                controller: _linkController,
+                onFieldSubmitted: _registerUser,
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'برجاء ادخال لينك الدخول لتفعيل حسابك';
+                  }
+                  return null;
+                },
+              ),
+              ElevatedButton(
+                onPressed: () => _registerUser(_linkController.text),
+                child: Text('تفعيل الحساب باللينك'),
+              ),
               ElevatedButton.icon(
                 onPressed: () async {
                   if (kIsWeb ||
@@ -189,5 +275,35 @@ class _UserRegisterationState extends State<UserRegisteration> {
       await showErrorDialog(context, 'حدث خطأ أثناء تسجيل الحساب!');
       setState(() {});
     }
+  }
+
+  void _registerUser(String registerationLink) async {
+    // ignore: unawaited_futures
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        title: FutureBuilder<HttpsCallableResult>(
+          future: FirebaseFunctions.instance
+              .httpsCallable('registerWithLink')
+              .call({'link': registerationLink}),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Text(
+                  (snapshot.error as FirebaseFunctionsException).message);
+            } else if (snapshot.connectionState == ConnectionState.done) {
+              Navigator.pop(context);
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircularProgressIndicator(),
+                Text('جار تفعيل الحساب...'),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 }

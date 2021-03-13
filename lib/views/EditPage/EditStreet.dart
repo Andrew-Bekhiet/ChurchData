@@ -244,26 +244,28 @@ class _EditStreetState extends State<EditStreet> {
             'هل أنت متأكد من حذف ${street.name} وكل ما بداخله من عائلات وأشخاص؟'),
         actions: <Widget>[
           TextButton(
-              child: Text('نعم'),
-              onPressed: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('جار حذف الشارع وما بداخله من بيانات...'),
-                    duration: Duration(minutes: 20),
-                  ),
-                );
-                await FirebaseFirestore.instance
-                    .collection('Streets')
-                    .doc(street.id)
-                    .delete();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop('deleted');
-              }),
+            onPressed: () async {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('جار حذف الشارع وما بداخله من بيانات...'),
+                  duration: Duration(minutes: 20),
+                ),
+              );
+              await FirebaseFirestore.instance
+                  .collection('Streets')
+                  .doc(street.id)
+                  .delete();
+              Navigator.of(context).pop();
+              Navigator.of(context).pop('deleted');
+            },
+            child: Text('نعم'),
+          ),
           TextButton(
-              child: Text('تراجع'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              }),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('تراجع'),
+          ),
         ],
       ),
     );
@@ -302,12 +304,12 @@ class _EditStreetState extends State<EditStreet> {
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
-                    child: Text('نعم'),
                     onPressed: () => Navigator.of(context).pop(true),
+                    child: Text('نعم'),
                   ),
                   TextButton(
-                    child: Text('لا'),
                     onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('لا'),
                   )
                 ],
               ),
@@ -385,8 +387,8 @@ class _EditStreetState extends State<EditStreet> {
                                 street.areaId;
                             setState(() {});
                           },
-                          child: Icon(Icons.add_location),
                           tooltip: 'إضافة منطقة جديدة',
+                          child: Icon(Icons.add_location),
                         ),
                         tap: (area, _) {
                           Navigator.of(context).pop();

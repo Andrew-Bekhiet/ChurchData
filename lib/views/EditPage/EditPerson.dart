@@ -243,13 +243,15 @@ class _EditPersonState extends State<EditPerson> {
                                   builder: (context) => AlertDialog(
                                       actions: [
                                         TextButton(
-                                            child: Text('حفظ'),
-                                            onPressed: () => Navigator.pop(
-                                                context, name.text)),
+                                          onPressed: () =>
+                                              Navigator.pop(context, name.text),
+                                          child: Text('حفظ'),
+                                        ),
                                         TextButton(
-                                            child: Text('حذف'),
-                                            onPressed: () => Navigator.pop(
-                                                context, 'delete')),
+                                          onPressed: () =>
+                                              Navigator.pop(context, 'delete'),
+                                          child: Text('حذف'),
+                                        ),
                                       ],
                                       title: Text('اسم الهاتف'),
                                       content: TextField(controller: name)),
@@ -290,9 +292,10 @@ class _EditPersonState extends State<EditPerson> {
                             builder: (context) => AlertDialog(
                                 actions: [
                                   TextButton(
-                                      child: Text('حفظ'),
-                                      onPressed: () =>
-                                          Navigator.pop(context, name.text))
+                                    onPressed: () =>
+                                        Navigator.pop(context, name.text),
+                                    child: Text('حفظ'),
+                                  ),
                                 ],
                                 title: Text('اسم الهاتف'),
                                 content: TextField(controller: name)),
@@ -306,6 +309,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
@@ -333,17 +337,17 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                       Flexible(
-                          child: TextButton.icon(
-                            icon: Icon(Icons.close),
-                            onPressed: () => setState(() {
-                              person.birthDate = null;
-                            }),
-                            label: Text('حذف التاريخ'),
-                          ),
-                          flex: 2),
+                        flex: 2,
+                        child: TextButton.icon(
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() {
+                            person.birthDate = null;
+                          }),
+                          label: Text('حذف التاريخ'),
+                        ),
+                      ),
                     ],
                   ),
                   Row(
@@ -361,6 +365,7 @@ class _EditPersonState extends State<EditPerson> {
                       children: [
                         Expanded(
                           child: Focus(
+                            focusNode: foci[4],
                             child: FutureBuilder<QuerySnapshot>(
                               future: cache['StudyYears'].fetch(
                                   () async => await StudyYear.getAllForUser()),
@@ -374,16 +379,16 @@ class _EditPersonState extends State<EditPerson> {
                                       items: data.data.docs
                                           .map(
                                             (item) => DropdownMenuItem(
-                                                child:
-                                                    Text(item.data()['Name']),
-                                                value: item.reference.path),
+                                              value: item.reference.path,
+                                              child: Text(item.data()['Name']),
+                                            ),
                                           )
                                           .toList()
                                             ..insert(
                                               0,
                                               DropdownMenuItem(
-                                                child: Text(''),
                                                 value: null,
+                                                child: Text(''),
                                               ),
                                             ),
                                       onChanged: (value) {
@@ -409,7 +414,6 @@ class _EditPersonState extends State<EditPerson> {
                                   return Container();
                               },
                             ),
-                            focusNode: foci[4],
                           ),
                         ),
                         TextButton.icon(
@@ -434,6 +438,7 @@ class _EditPersonState extends State<EditPerson> {
                               children: [
                                 Expanded(
                                   child: Focus(
+                                    focusNode: foci[5],
                                     child: FutureBuilder<QuerySnapshot>(
                                       future: cache['Colleges'].fetch(
                                           () async =>
@@ -450,17 +455,18 @@ class _EditPersonState extends State<EditPerson> {
                                               items: data.data.docs
                                                   .map(
                                                     (item) => DropdownMenuItem(
-                                                        child: Text(item
-                                                            .data()['Name']),
-                                                        value: item
-                                                            .reference.path),
+                                                      value:
+                                                          item.reference.path,
+                                                      child: Text(
+                                                          item.data()['Name']),
+                                                    ),
                                                   )
                                                   .toList()
                                                     ..insert(
                                                       0,
                                                       DropdownMenuItem(
-                                                        child: Text(''),
                                                         value: null,
+                                                        child: Text(''),
                                                       ),
                                                     ),
                                               onChanged: (value) {
@@ -484,7 +490,6 @@ class _EditPersonState extends State<EditPerson> {
                                           return Container();
                                       },
                                     ),
-                                    focusNode: foci[5],
                                   ),
                                 ),
                                 TextButton.icon(
@@ -506,6 +511,7 @@ class _EditPersonState extends State<EditPerson> {
                       children: [
                         Expanded(
                           child: Focus(
+                            focusNode: foci[6],
                             child: FutureBuilder<QuerySnapshot>(
                               future: cache['Jobs']
                                   .fetch(() async => await Job.getAllForUser()),
@@ -519,16 +525,16 @@ class _EditPersonState extends State<EditPerson> {
                                       items: data.data.docs
                                           .map(
                                             (item) => DropdownMenuItem(
-                                                child:
-                                                    Text(item.data()['Name']),
-                                                value: item.reference.path),
+                                              value: item.reference.path,
+                                              child: Text(item.data()['Name']),
+                                            ),
                                           )
                                           .toList()
                                             ..insert(
                                               0,
                                               DropdownMenuItem(
-                                                child: Text(''),
                                                 value: null,
+                                                child: Text(''),
                                               ),
                                             ),
                                       onChanged: (value) {
@@ -552,7 +558,6 @@ class _EditPersonState extends State<EditPerson> {
                                   return Container();
                               },
                             ),
-                            focusNode: foci[6],
                           ),
                         ),
                         TextButton.icon(
@@ -662,6 +667,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: [
                       Expanded(
                         child: Focus(
+                          focusNode: foci[10],
                           child: FutureBuilder<QuerySnapshot>(
                             future: cache['Churches'].fetch(
                                 () async => await Church.getAllForUser()),
@@ -675,16 +681,16 @@ class _EditPersonState extends State<EditPerson> {
                                     items: data.data.docs
                                         .map(
                                           (item) => DropdownMenuItem(
-                                            child: Text(item.data()['Name']),
                                             value: item.reference.path,
+                                            child: Text(item.data()['Name']),
                                           ),
                                         )
                                         .toList()
                                           ..insert(
                                             0,
                                             DropdownMenuItem(
-                                              child: Text(''),
                                               value: null,
+                                              child: Text(''),
                                             ),
                                           ),
                                     onChanged: (value) {
@@ -708,7 +714,6 @@ class _EditPersonState extends State<EditPerson> {
                                 return Container();
                             },
                           ),
-                          focusNode: foci[10],
                         ),
                       ),
                       TextButton.icon(
@@ -747,6 +752,7 @@ class _EditPersonState extends State<EditPerson> {
                     children: [
                       Expanded(
                         child: Focus(
+                          focusNode: foci[12],
                           child: FutureBuilder<QuerySnapshot>(
                             future: cache['Fathers'].fetch(
                                 () async => await Father.getAllForUser()),
@@ -758,15 +764,16 @@ class _EditPersonState extends State<EditPerson> {
                                   items: data.data.docs
                                       .map(
                                         (item) => DropdownMenuItem(
-                                            child: Text(item.data()['Name']),
-                                            value: item.reference.path),
+                                          value: item.reference.path,
+                                          child: Text(item.data()['Name']),
+                                        ),
                                       )
                                       .toList()
                                         ..insert(
                                           0,
                                           DropdownMenuItem(
-                                            child: Text(''),
                                             value: null,
+                                            child: Text(''),
                                           ),
                                         ),
                                   onChanged: (value) {
@@ -789,7 +796,6 @@ class _EditPersonState extends State<EditPerson> {
                                 return Container();
                             },
                           ),
-                          focusNode: foci[12],
                         ),
                       ),
                       TextButton.icon(
@@ -810,6 +816,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
@@ -837,7 +844,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -847,6 +853,7 @@ class _EditPersonState extends State<EditPerson> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
+                        flex: 3,
                         child: Container(
                           padding: EdgeInsets.symmetric(vertical: 10),
                           child: Focus(
@@ -875,7 +882,6 @@ class _EditPersonState extends State<EditPerson> {
                             ),
                           ),
                         ),
-                        flex: 3,
                       ),
                     ],
                   ),
@@ -914,6 +920,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!widget.userData)
                     Focus(
+                      focusNode: foci[16],
                       child: StreamBuilder<QuerySnapshot>(
                         stream: FirebaseFirestore.instance
                             .collection('States')
@@ -927,29 +934,30 @@ class _EditPersonState extends State<EditPerson> {
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: <Widget>[
-                                            Text(item.data()['Name']),
-                                            Container(
-                                              height: 50,
-                                              width: 50,
-                                              color: Color(
-                                                int.parse(
-                                                    "0xff${item.data()['Color']}"),
-                                              ),
-                                            )
-                                          ],
-                                        ),
-                                        value: item.reference.path),
+                                      value: item.reference.path,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: <Widget>[
+                                          Text(item.data()['Name']),
+                                          Container(
+                                            height: 50,
+                                            width: 50,
+                                            color: Color(
+                                              int.parse(
+                                                  "0xff${item.data()['Color']}"),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
                                   )
                                   .toList()
                                     ..insert(
                                       0,
                                       DropdownMenuItem(
-                                        child: Text(''),
                                         value: null,
+                                        child: Text(''),
                                       ),
                                     ),
                               onChanged: (value) {
@@ -970,7 +978,6 @@ class _EditPersonState extends State<EditPerson> {
                             return Container();
                         },
                       ),
-                      focusNode: foci[16],
                     ),
                   if (!widget.userData)
                     Row(
@@ -979,6 +986,7 @@ class _EditPersonState extends State<EditPerson> {
                       mainAxisSize: MainAxisSize.max,
                       children: <Widget>[
                         Flexible(
+                          flex: 3,
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 10),
                             child: Focus(
@@ -1007,7 +1015,6 @@ class _EditPersonState extends State<EditPerson> {
                               ),
                             ),
                           ),
-                          flex: 3,
                         ),
                       ],
                     ),
@@ -1049,6 +1056,7 @@ class _EditPersonState extends State<EditPerson> {
                       children: [
                         Expanded(
                           child: Focus(
+                            focusNode: foci[20],
                             child: FutureBuilder<QuerySnapshot>(
                               future: cache['ServingTypes'].fetch(() async =>
                                   await ServingType.getAllForUser()),
@@ -1060,15 +1068,16 @@ class _EditPersonState extends State<EditPerson> {
                                     items: data.data.docs
                                         .map(
                                           (item) => DropdownMenuItem(
-                                              child: Text(item.data()['Name']),
-                                              value: item.reference.path),
+                                            value: item.reference.path,
+                                            child: Text(item.data()['Name']),
+                                          ),
                                         )
                                         .toList()
                                           ..insert(
                                             0,
                                             DropdownMenuItem(
-                                              child: Text(''),
                                               value: null,
+                                              child: Text(''),
                                             ),
                                           ),
                                     onChanged: (value) {
@@ -1092,7 +1101,6 @@ class _EditPersonState extends State<EditPerson> {
                                   return Container();
                               },
                             ),
-                            focusNode: foci[20],
                           ),
                         ),
                         TextButton.icon(
@@ -1215,26 +1223,28 @@ class _EditPersonState extends State<EditPerson> {
         content: Text('هل أنت متأكد من حذف ${person.name}؟'),
         actions: <Widget>[
           TextButton(
-              child: Text('نعم'),
-              onPressed: () async {
-                if (person.hasPhoto) {
-                  await FirebaseStorage.instance
-                      .ref()
-                      .child('PersonsPhotos/${person.id}')
-                      .delete();
-                }
-                await FirebaseFirestore.instance
-                    .collection('Persons')
-                    .doc(person.id)
+            onPressed: () async {
+              if (person.hasPhoto) {
+                await FirebaseStorage.instance
+                    .ref()
+                    .child('PersonsPhotos/${person.id}')
                     .delete();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop('deleted');
-              }),
+              }
+              await FirebaseFirestore.instance
+                  .collection('Persons')
+                  .doc(person.id)
+                  .delete();
+              Navigator.of(context).pop();
+              Navigator.of(context).pop('deleted');
+            },
+            child: Text('نعم'),
+          ),
           TextButton(
-              child: Text('تراجع'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              }),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('تراجع'),
+          ),
         ],
       ),
     );
@@ -1428,19 +1438,20 @@ class _EditPersonState extends State<EditPerson> {
                             DataObjectList<Area>(
                           options: cd.ListOptions<Area>(
                             floatingActionButton: FloatingActionButton(
-                                onPressed: () async {
-                                  Navigator.of(context).pop();
-                                  person.servingAreaId =
-                                      (await Navigator.of(context)
-                                                  .pushNamed('Data/EditArea'))
-                                              as DocumentReference ??
-                                          person.servingAreaId;
-                                  await person.setStreetIdFromFamily();
-                                  cache['ServingAreaName'].invalidate();
-                                  setState(() {});
-                                },
-                                child: Icon(Icons.add_location),
-                                tooltip: 'إضافة منطقة جديدة'),
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                person.servingAreaId =
+                                    (await Navigator.of(context)
+                                                .pushNamed('Data/EditArea'))
+                                            as DocumentReference ??
+                                        person.servingAreaId;
+                                await person.setStreetIdFromFamily();
+                                cache['ServingAreaName'].invalidate();
+                                setState(() {});
+                              },
+                              tooltip: 'إضافة منطقة جديدة',
+                              child: Icon(Icons.add_location),
+                            ),
                             tap: (area, _) {
                               Navigator.of(context).pop();
                               cache['ServingAreaName'].invalidate();
@@ -1504,18 +1515,19 @@ class _EditPersonState extends State<EditPerson> {
                           DataObjectList<Family>(
                         options: cd.ListOptions<Family>(
                           floatingActionButton: FloatingActionButton(
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                person.familyId = (await Navigator.of(context)
-                                            .pushNamed('Data/EditFamily'))
-                                        as DocumentReference ??
-                                    person.familyId;
-                                await person.setStreetIdFromFamily();
-                                cache['FamilyName'].invalidate();
-                                setState(() {});
-                              },
-                              child: Icon(Icons.group_add),
-                              tooltip: 'إضافة عائلة جديدة'),
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                              person.familyId = (await Navigator.of(context)
+                                          .pushNamed('Data/EditFamily'))
+                                      as DocumentReference ??
+                                  person.familyId;
+                              await person.setStreetIdFromFamily();
+                              cache['FamilyName'].invalidate();
+                              setState(() {});
+                            },
+                            tooltip: 'إضافة عائلة جديدة',
+                            child: Icon(Icons.group_add),
+                          ),
                           tap: (value, _) {
                             Navigator.of(context).pop();
                             cache['FamilyName'].invalidate();
