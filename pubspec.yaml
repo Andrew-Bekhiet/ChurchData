@@ -16,8 +16,6 @@ version: 6.3.2+6
 environment:
   sdk: ">=2.7.0 <3.0.0"
 
-dependency_overrides:
-  firebase: ^9.0.0
 dependencies:
   flutter:
     sdk: flutter
@@ -26,7 +24,7 @@ dependencies:
   android_alarm_manager_plus: ^1.0.0
   battery_optimization: ^0.1.0
   cached_network_image: ^3.0.0-nullsafety
-  cloud_firestore: ^1.0.0
+  cloud_firestore: ^1.0.1
   cloud_functions: ^1.0.0
   connectivity_plus: ^1.0.0
   cupertino_icons: ^1.0.2
@@ -36,9 +34,9 @@ dependencies:
   feature_discovery: ^0.13.0+2
   file_picker: ^3.0.0-nullsafety.4
   firebase: ^9.0.0
-  firebase_analytics: ^7.1.0
-  firebase_auth: ^1.0.0
-  firebase_core: ^1.0.0
+  firebase_analytics: ^7.1.1
+  firebase_auth: ^1.0.1
+  firebase_core: ^1.0.1
   firebase_crashlytics: ^1.0.0
   firebase_database: ^6.1.0
   firebase_dynamic_links: ^0.8.0
@@ -58,20 +56,20 @@ dependencies:
   hive_flutter: ^1.0.0-nullsafety.0
   icon_shadow: ^1.0.1
   image_cropper: ^1.4.0
-  image_picker: ^0.7.2
+  image_picker: ^0.7.2+1
   local_auth: ^1.1.0
   location: ^4.1.1
   open_file: ^3.1.0
   package_info_plus: ^1.0.0
   path_provider: ^2.0.1
-  permission_handler: ^6.0.1
+  permission_handler: ^6.0.1+1
   photo_view: ^0.11.1
   pointycastle: ^3.0.0-nullsafety.2
   provider: ^4.3.3
   rxdart: ^0.26.0-nullsafety.1
   share_plus: ^2.1.0-nullsafety.0
   spreadsheet_decoder: ^2.0.0
-  timeago: ^3.0.1
+  timeago: ^3.0.2
   tinycolor: ^1.0.3
   tuple: ^2.0.0-nullsafety.0
   url_launcher: ^6.0.2
