@@ -75,7 +75,7 @@ class MapView extends StatelessWidget {
     }
 
     return FutureBuilder<List<Street>>(
-      future: childrenDepth >= 1
+      future: childrenDepth >= 1 && area.id != ''
           ? area.getChildren('Location')
           : Future(() => null),
       builder: (context, streets) {
@@ -100,7 +100,7 @@ class MapView extends StatelessWidget {
                       }
                     : null,
                 polygons: {
-                  if ((area.locationPoints?.length ?? 0) != 0 && !kIsWeb)
+                  if ((area?.locationPoints?.length ?? 0) != 0 && !kIsWeb)
                     Polygon(
                       polygonId: PolygonId(area.id),
                       strokeWidth: 1,
@@ -119,76 +119,80 @@ class MapView extends StatelessWidget {
                 },
                 polylines: !kIsWeb
                     ? streets.data
-                        ?.where((s) => s.locationPoints != null)
-                        ?.map((s) => Polyline(
-                              consumeTapEvents: true,
-                              polylineId: PolylineId(s.id),
-                              startCap: Cap.roundCap,
-                              width: 4,
-                              onTap: () {
-                                ScaffoldMessenger.of(context)
-                                    .hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor:
-                                        s.color == Colors.transparent
-                                            ? null
-                                            : s.color,
-                                    content: Text(s.name),
-                                    action: SnackBarAction(
-                                      label: 'فتح',
-                                      onPressed: () => streetTap(s, context),
-                                    ),
-                                  ),
-                                );
-                              },
-                              endCap: Cap.roundCap,
-                              jointType: JointType.round,
-                              color: s.color == Colors.transparent
-                                  ? ((s.locationConfirmed ?? false)
-                                      ? Colors.black
-                                      : Colors.black.withOpacity(0.25))
-                                  : ((s.locationConfirmed ?? false)
-                                      ? s.color
-                                      : s.color.withOpacity(0.25)),
-                              points: s.locationPoints
-                                  ?.map(
-                                    (e) => fromGeoPoint(e),
-                                  )
-                                  ?.toList(),
-                            ))
-                        ?.toSet()
+                            ?.where((s) => s.locationPoints != null)
+                            ?.map((s) => Polyline(
+                                  consumeTapEvents: true,
+                                  polylineId: PolylineId(s.id),
+                                  startCap: Cap.roundCap,
+                                  width: 4,
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        backgroundColor:
+                                            s.color == Colors.transparent
+                                                ? null
+                                                : s.color,
+                                        content: Text(s.name),
+                                        action: SnackBarAction(
+                                          label: 'فتح',
+                                          onPressed: () =>
+                                              streetTap(s, context),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  endCap: Cap.roundCap,
+                                  jointType: JointType.round,
+                                  color: s.color == Colors.transparent
+                                      ? ((s.locationConfirmed ?? false)
+                                          ? Colors.black
+                                          : Colors.black.withOpacity(0.25))
+                                      : ((s.locationConfirmed ?? false)
+                                          ? s.color
+                                          : s.color.withOpacity(0.25)),
+                                  points: s.locationPoints
+                                      ?.map(
+                                        (e) => fromGeoPoint(e),
+                                      )
+                                      ?.toList(),
+                                ))
+                            ?.toSet() ??
+                        {}
                     : {},
                 markers: families.hasData && families.data.isNotEmpty
                     ? families.data
-                        ?.where((f) => f.locationPoint != null)
-                        ?.map((f) => Marker(
-                              onTap: () {
-                                ScaffoldMessenger.of(context)
-                                    .hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(f.name),
-                                    backgroundColor:
-                                        f.color == Colors.transparent
-                                            ? null
-                                            : f.color,
-                                    action: SnackBarAction(
-                                      label: 'فتح',
-                                      onPressed: () => familyTap(f, context),
-                                    ),
-                                  ),
-                                );
-                              },
-                              markerId: MarkerId(f.id),
-                              infoWindow: InfoWindow(
-                                  title: f.name,
-                                  snippet: (f.locationConfirmed ?? false)
-                                      ? null
-                                      : 'غير مؤكد'),
-                              position: fromGeoPoint(f.locationPoint),
-                            ))
-                        ?.toSet()
+                            ?.where((f) => f.locationPoint != null)
+                            ?.map((f) => Marker(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context)
+                                        .hideCurrentSnackBar();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(f.name),
+                                        backgroundColor:
+                                            f.color == Colors.transparent
+                                                ? null
+                                                : f.color,
+                                        action: SnackBarAction(
+                                          label: 'فتح',
+                                          onPressed: () =>
+                                              familyTap(f, context),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  markerId: MarkerId(f.id),
+                                  infoWindow: InfoWindow(
+                                      title: f.name,
+                                      snippet: (f.locationConfirmed ?? false)
+                                          ? null
+                                          : 'غير مؤكد'),
+                                  position: fromGeoPoint(f.locationPoint),
+                                ))
+                            ?.toSet() ??
+                        {}
                     : {},
                 initialCameraPosition: CameraPosition(
                   zoom: 16,
@@ -204,18 +208,20 @@ class MapView extends StatelessWidget {
 
   Widget buildFamilyMap() {
     LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
-    return FutureBuilder(
-      future: family.areaId.get(),
+    return FutureBuilder<Area>(
+      future: family.areaId?.get()?.then((a) => Area.fromDoc(a)) ??
+          Future(() => Area.empty()),
       builder: (context, areaData) {
-        return FutureBuilder(
-          future: family.streetId.get(),
+        return FutureBuilder<Street>(
+          future: family.streetId?.get()?.then((s) => Street.fromDoc(s)) ??
+              Future(() => Street.empty()),
           builder: (context, streetData) {
             if (!areaData.hasData || !streetData.hasData)
               return Center(
                 child: CircularProgressIndicator(),
               );
-            Area area = Area.fromDoc(areaData.data);
-            Street street = Street.fromDoc(streetData.data);
+            Area area = areaData.data;
+            Street street = streetData.data;
             return StatefulBuilder(
               builder: (context, setState) => GoogleMap(
                 compassEnabled: true,
@@ -229,7 +235,7 @@ class MapView extends StatelessWidget {
                         });
                       }
                     : null,
-                polygons: (area.locationPoints?.length ?? 0) != 0 && !kIsWeb
+                polygons: (area?.locationPoints?.length ?? 0) != 0 && !kIsWeb
                     ? {
                         Polygon(
                           polygonId: PolygonId(area.id),
@@ -248,7 +254,7 @@ class MapView extends StatelessWidget {
                         )
                       }
                     : {},
-                polylines: (street.locationPoints?.length ?? 0) != 0 && !kIsWeb
+                polylines: (street?.locationPoints?.length ?? 0) != 0 && !kIsWeb
                     ? {
                         Polyline(
                           consumeTapEvents: true,
@@ -327,10 +333,11 @@ class MapView extends StatelessWidget {
                   street.locationPoints.last.longitude) /
               2);
     }
-    return FutureBuilder(
-      future: street.areaId.get(),
+    return FutureBuilder<Area>(
+      future: street.areaId?.get()?.then((a) => Area.fromDoc(a)) ??
+          Future(() => Area.empty()),
       builder: (context, areaData) => FutureBuilder<List<Family>>(
-        future: childrenDepth >= 1
+        future: childrenDepth >= 1 && street.id != ''
             ? street.getChildren('Location')
             : Future(() => null),
         builder: (context, families) {
@@ -338,7 +345,7 @@ class MapView extends StatelessWidget {
             return Center(
               child: CircularProgressIndicator(),
             );
-          Area area = Area.fromDoc(areaData.data);
+          Area area = areaData.data;
           return StatefulBuilder(
             builder: (context, setState) => GoogleMap(
               compassEnabled: true,
@@ -354,7 +361,7 @@ class MapView extends StatelessWidget {
                       });
                     }
                   : null,
-              polygons: (area.locationPoints?.length ?? 0) != 0 && !kIsWeb
+              polygons: (area?.locationPoints?.length ?? 0) != 0 && !kIsWeb
                   ? {
                       Polygon(
                         polygonId: PolygonId(area.id),
