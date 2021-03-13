@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:churchdata/models/street.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -10,12 +11,12 @@ import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../Models.dart';
-import '../Models/super_classes.dart';
-import '../utils/Helpers.dart';
+import '../models/super_classes.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../views/utils/MapView.dart';
-import 'User.dart';
+import '../models/map_view.dart';
+import 'person.dart';
+import 'user.dart';
 
 class Family extends DataObject
     with PhotoObject, ParentObject<Person>, ChildObject<Street> {

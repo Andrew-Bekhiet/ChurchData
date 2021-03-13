@@ -9,12 +9,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 
-import '../Models.dart';
-import '../Models/super_classes.dart';
-import '../utils/Helpers.dart';
+import '../models/super_classes.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../views/utils/MapView.dart';
-import 'User.dart';
+import '../models/map_view.dart';
+import 'area.dart';
+import 'family.dart';
+import 'person.dart';
+import 'user.dart';
 
 class Street extends DataObject
     with PhotoObject, ParentObject<Family>, ChildObject<Area> {

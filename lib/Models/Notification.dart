@@ -1,9 +1,9 @@
-import 'package:churchdata/Models/super_classes.dart';
+import 'package:churchdata/models/super_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../utils/Helpers.dart';
-import 'User.dart';
+import '../utils/helpers.dart';
+import 'user.dart';
 
 class Notification extends StatelessWidget {
   final String type;

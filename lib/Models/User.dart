@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:churchdata/Models/super_classes.dart';
+import 'package:churchdata/models/super_classes.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
@@ -17,8 +17,8 @@ import 'package:firebase_database/firebase_database.dart'
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../Models.dart';
 import '../utils/globals.dart';
+import 'person.dart';
 
 class User extends DataObject
     with PhotoObject, ChangeNotifier, ChangeNotifierStream<User> {
@@ -527,7 +527,7 @@ class User extends DataObject
     return await User.instance.getPerson() ?? Person();
   }
 
-  void recordActive() async {
+  Future<void> recordActive() async {
     if (uid == null) return;
     await FirebaseDatabase.instance
         .reference()

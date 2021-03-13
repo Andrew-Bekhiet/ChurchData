@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:churchdata/models/street.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
@@ -9,12 +10,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 
-import '../Models.dart';
-import '../Models/super_classes.dart';
-import '../utils/Helpers.dart';
+import '../models/map_view.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../views/utils/MapView.dart';
-import 'User.dart';
+import 'user.dart';
+import 'family.dart';
+import 'person.dart';
+import 'super_classes.dart';
 
 class Area extends DataObject with PhotoObject, ParentObject<Street> {
   String address;

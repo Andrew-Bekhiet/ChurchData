@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 
-import '../utils/Helpers.dart';
-import '../Models.dart';
-import '../Models/super_classes.dart';
-import 'User.dart';
+import '../utils/helpers.dart';
+import '../models/super_classes.dart';
+import 'family.dart';
+import 'user.dart';
 import '../utils/globals.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Family> {

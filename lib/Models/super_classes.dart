@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:photo_view/photo_view.dart';
 
-import 'User.dart';
+import 'user.dart';
 
 abstract class DataObject {
   String id;

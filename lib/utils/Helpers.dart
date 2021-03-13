@@ -1,9 +1,15 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:churchdata/views/MiniLists/UsersList.dart';
-import 'package:churchdata/views/utils/DataDialog.dart';
-import 'package:churchdata/views/utils/SearchFilters.dart';
+import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/family.dart';
+import 'package:churchdata/models/list.dart';
+import 'package:churchdata/models/person.dart';
+import 'package:churchdata/models/street.dart';
+import 'package:churchdata/views/mini_lists/users_list.dart';
+import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/views/search_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -30,17 +36,14 @@ import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 import 'package:tuple/tuple.dart';
 
-import '../Models.dart';
-import '../Models/ListOptions.dart';
-import '../Models/Notification.dart' as no;
-import '../Models/OrderOptions.dart';
-import '../Models/SearchString.dart';
-import '../Models/ThemeNotifier.dart';
-import '../Models/User.dart';
-import '../Models/super_classes.dart';
+import '../models/list_options.dart';
+import '../models/notification.dart' as no;
+import '../models/order_options.dart';
+import '../models/search_string.dart';
+import '../models/theme_notifier.dart';
+import '../models/user.dart';
+import '../models/super_classes.dart';
 import '../main.dart';
-import '../views/ui/Lists.dart';
-import '../views/ui/SearchQuery.dart';
 import 'globals.dart';
 
 void areaTap(Area area, BuildContext context) {
