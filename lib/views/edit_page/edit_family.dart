@@ -538,7 +538,18 @@ class _EditFamilyState extends State<EditFamily> {
   void selectColor() async {
     await showDialog(
       context: context,
-      builder: (context) => DataDialog(
+      builder: (context) => AlertDialog(
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                family.color = Colors.transparent;
+              });
+            },
+            child: Text('بلا لون'),
+          ),
+        ],
         content: ColorsList(
           selectedColor: family.color,
           onSelect: (color) {
