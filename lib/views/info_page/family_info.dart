@@ -325,6 +325,19 @@ class FamilyInfo extends StatelessWidget {
                                 trailing: trailing);
                           throw UnimplementedError();
                         },
+                        getStringCount: (list) {
+                          if (list == null) return '';
+                          int personsCount = list.whereType<Person>().length;
+                          int familiesCount = list.whereType<Family>().length;
+                          if (personsCount == 0)
+                            return familiesCount.toString() + ' عائلة';
+                          if (familiesCount == 0)
+                            return personsCount.toString() + ' شخص';
+                          return personsCount.toString() +
+                              ' شخص و' +
+                              familiesCount.toString() +
+                              ' عائلة';
+                        },
                         documentsData: family
                             .getMembersLive(
                                 orderBy: options.personOrderBy,

@@ -354,8 +354,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                           ? const DoubleCircularNotchedButton()
                           : const CircularNotchedRectangle()
                       : null,
-                  child: Text(
-                      (docs?.length ?? 0).toString() + ' ' + _getStringType(),
+                  child: Text(_getCountString(docs),
                       textAlign: TextAlign.center,
                       strutStyle: StrutStyle(
                           height: MediaQuery.of(context).size.height /
@@ -384,11 +383,13 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     });
   }
 
-  String _getStringType() {
-    if (T == Area) return 'منطقة';
-    if (T == Street) return 'شارع';
-    if (T == Family) return 'عائلة';
-    if (T == Person) return 'شخص';
+  String _getCountString(List<T> list) {
+    if (widget.options.getStringCount != null)
+      widget.options.getStringCount(list);
+    if (T == Area) return (list?.length ?? 0).toString() + ' منطقة';
+    if (T == Street) return (list?.length ?? 0).toString() + ' شارع';
+    if (T == Family) return (list?.length ?? 0).toString() + ' عائلة';
+    if (T == Person) return (list?.length ?? 0).toString() + ' شخص';
     throw UnimplementedError();
   }
 }

@@ -23,6 +23,7 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
 
   final void Function(T) tap;
   final void Function(T) onLongPress;
+  final void Function(List<T>) getStringCount;
 
   final T empty;
   final bool showNull;
@@ -36,6 +37,7 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
   final bool hasNotch;
 
   ListOptions({
+    this.getStringCount,
     this.doubleActionButton = false,
     this.hasNotch = true,
     this.floatingActionButton,
