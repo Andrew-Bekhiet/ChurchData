@@ -48,7 +48,7 @@ class _AuthScreenState extends State<AuthScreen> {
           body: ListView(
             padding: const EdgeInsets.all(8.0),
             children: <Widget>[
-              Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+              Image.asset('assets/Logo2.png', fit: BoxFit.scaleDown),
               Divider(),
               TextFormField(
                 decoration: InputDecoration(
