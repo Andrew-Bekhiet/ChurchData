@@ -22,6 +22,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
 import 'package:firebase_messaging/firebase_messaging.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -473,98 +474,53 @@ String getPhone(String phone, [bool whatsapp = true]) {
 }
 
 void import(BuildContext context) async {
-  Navigator.of(context).pop();
-  bool ver2;
-
-  var decoder = SpreadsheetDecoder.decodeBytes(
-      (await FilePicker.platform
-              .pickFiles(allowedExtensions: ['.xlsx', '.xls'], withData: true))
-          .files[0]
-          .bytes,
-      update: true);
-  mainScfld.currentState.openEndDrawer();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('جار الحصول على البيانات من الملف...'),
-      duration: Duration(hours: 1),
-    ),
-  );
-  ver2 = decoder.tables.containsKey('Main');
-
-  if (!ver2) {
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return DataDialog(
-            actions: <Widget>[
-              TextButton.icon(
-                icon: Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-                label: Text('إلغاء الأمر'),
-              ),
-              TextButton.icon(
-                icon: Icon(Icons.add),
-                onPressed: () =>
-                    Navigator.of(context).pushNamed('Data/EditArea'),
-                label: Text('إضافة'),
-              ),
-            ],
-            content: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SearchFilters(0),
-                  Flexible(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Area>(
-                        options: ListOptions<Area>(
-                          tap: (Area area) =>
-                              _legacyImport(decoder, area.ref, context),
-                          documentsData: Area.getAllForUser(
-                                  orderBy: options.item1,
-                                  descending: !options.item2)
-                              .map((s) => s.docs.map(Area.fromDoc).toList()),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-  } else {
-    List area = decoder.tables['Main'].rows[0];
-    var emptyArea = Area.getEmptyExportMap().keys.toList();
-    area[emptyArea.indexOf('HasPhoto')] = area[3].toString() == 'true';
-    area[emptyArea.indexOf('Location')] =
-        area[emptyArea.indexOf('Location')].toString().split(',');
-    area[emptyArea.indexOf('LocationConfirmed')] =
-        area[emptyArea.indexOf('LocationConfirmed')].toString() == 'true';
-    area[emptyArea.indexOf('LastVisit')] =
-        int.parse(area[emptyArea.indexOf('LastVisit')]);
-    area[emptyArea.indexOf('LastVisit')] =
-        int.parse(area[emptyArea.indexOf('LastVisit')]);
-    area[emptyArea.indexOf('FatherLastVisit')] =
-        int.parse(area[emptyArea.indexOf('FatherLastVisit')]);
-    area[emptyArea.indexOf('Allowed')] =
-        area[emptyArea.indexOf('Allowed')].toString().split(',');
-    await importArea(
-        decoder,
-        Area.createFromData(
-          Area.getEmptyExportMap().map(
-            (key, value) => MapEntry(
-              key,
-              area[emptyArea.indexOf(key)],
-            ),
-          ),
-          area[0],
+  try {
+    final picked = await FilePicker.platform.pickFiles(
+        allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
+    if (picked == null) return;
+    final fileData = picked.files[0].bytes;
+    final decoder = SpreadsheetDecoder.decodeBytes(fileData);
+    if (decoder.tables.containsKey('Areas') &&
+        decoder.tables.containsKey('Streets') &&
+        decoder.tables.containsKey('Families') &&
+        decoder.tables.containsKey('Persons')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار رفع الملف...'),
+          duration: Duration(minutes: 9),
         ),
-        context);
+      );
+      final filename = DateTime.now().toIso8601String();
+      await FirebaseStorage.instance
+          .ref('Imports/' + filename + '.xlsx')
+          .putData(
+              fileData,
+              SettableMetadata(
+                  customMetadata: {'createdBy': User.instance.uid}));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار استيراد الملف...'),
+          duration: Duration(minutes: 9),
+        ),
+      );
+      await FirebaseFunctions.instance
+          .httpsCallable('importFromExcel')
+          .call({'fileId': filename + '.xlsx'});
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم الاستيراد بنجاح'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      await showErrorDialog(context, 'ملف غير صالح');
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    await showErrorDialog(context, e.toString());
   }
 }
 
@@ -1563,277 +1519,6 @@ void userTap(User user, BuildContext context) async {
       }
     }
   }
-}
-
-Future _legacyImport(SpreadsheetDecoder decoder, DocumentReference areaId,
-    BuildContext context) async {
-  List<Street> streets = [];
-  List<Family> families = [];
-  List<Person> persons = [];
-  try {
-    for (List<dynamic> row in decoder.tables['Areas'].rows) {
-      if (decoder.tables.values.elementAt(0).rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      try {
-        var testing = row.elementAt(3);
-        if (row.elementAt(3) == null) {
-          testing.toString();
-        } else {
-          streets.add(
-            Street(
-              row.elementAt(0).toString(),
-              areaId,
-              row.elementAt(2).toString(),
-              Timestamp.fromDate(DateTime.parse(
-                row.elementAt(3),
-              )),
-              auth.FirebaseAuth.instance.currentUser.uid,
-            ),
-          );
-        }
-      } catch (err) {
-        streets.add(
-          Street(
-            row.elementAt(0).toString(),
-            areaId,
-            row.elementAt(2).toString(),
-            Timestamp.now(),
-            auth.FirebaseAuth.instance.currentUser.uid,
-          ),
-        );
-      }
-    }
-
-    for (List<dynamic> row in decoder.tables['Families'].rows) {
-      if (decoder.tables['Families'].rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      try {
-        var testing = row.elementAt(3);
-        if (row.elementAt(3) == null) {
-          print(
-            testing.toString(),
-          );
-        } else {
-          families.add(
-            Family(
-              row.elementAt(0).toString(),
-              areaId,
-              null,
-              row.elementAt(1).toString(),
-              row.elementAt(2).toString(),
-              Timestamp.fromDate(DateTime.parse(
-                row.elementAt(3),
-              )),
-              tranucateToDay(),
-              auth.FirebaseAuth.instance.currentUser.uid,
-            ),
-          );
-        }
-      } catch (e) {
-        families.add(
-          Family(
-            row.elementAt(0).toString(),
-            areaId,
-            null,
-            row.elementAt(1).toString(),
-            '',
-            tranucateToDay(),
-            tranucateToDay(),
-            auth.FirebaseAuth.instance.currentUser.uid,
-          ),
-        );
-      }
-    }
-
-    for (List<dynamic> row in decoder.tables['Contacts'].rows) {
-      if (decoder.tables['Contacts'].rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      families
-          .where(
-        (f) => f.id == row.elementAt(3).toString(),
-      )
-          .forEach((f) {
-        f.streetId = FirebaseFirestore.instance.collection('Streets').doc(
-              row.elementAt(4).toString(),
-            );
-        f.address = row.elementAt(1).toString();
-      });
-      persons.add(
-        Person(
-          areaId: areaId,
-          streetId: FirebaseFirestore.instance.collection('Streets').doc(
-                row.elementAt(4).toString(),
-              ),
-          familyId: FirebaseFirestore.instance.collection('Families').doc(
-                row.elementAt(3).toString(),
-              ),
-          name: row.elementAt(0).toString(),
-          phone: row.elementAt(2).toString(),
-        ),
-      );
-    }
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار إعادة ترتيب البيانات...'),
-        duration: Duration(minutes: 1),
-      ),
-    );
-    for (Street item in streets) {
-      String oldId = item.id;
-      DocumentReference newId =
-          FirebaseFirestore.instance.collection('Streets').doc();
-      item.id = newId.id;
-      families.where((f) => f.streetId.id == oldId).forEach((f) {
-        f.streetId = newId;
-      });
-      persons.where((f) => f.streetId.id == oldId).forEach((f) {
-        f.streetId = newId;
-      });
-
-      for (Family item in families) {
-        String oldId = item.id;
-        DocumentReference newId =
-            FirebaseFirestore.instance.collection('Families').doc();
-        item.id = newId.id;
-        persons.where((f) => f.familyId.id == oldId).forEach((f) {
-          f.familyId = newId;
-        });
-      }
-
-      for (Person item in persons) {
-        item.id = FirebaseFirestore.instance.collection('Persons').doc().id;
-      }
-    }
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار رفع البيانات ...'),
-        duration: Duration(minutes: 5),
-      ),
-    );
-
-    WriteBatch batchUpdate = FirebaseFirestore.instance.batch();
-    int batchCount = 0;
-
-    for (var i = 0; i < streets.length; i++) {
-      if (batchCount % 500 == 0 && batchCount != 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Streets').doc(streets[i].id),
-        streets[i].getMap(),
-      );
-      batchCount++;
-    }
-
-    for (var i = 0; i < families.length; i++) {
-      if (batchCount % 500 == 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Families').doc(families[i].id),
-        families[i].getMap(),
-      );
-      batchCount++;
-    }
-    bool end = false;
-    for (var i = 0; i < persons.length; i++) {
-      if (batchCount % 500 == 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        }).then((k) {
-          if (i == persons.length - 1) {
-            end = true;
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'تم استيراد بيانات ${streets.length} شارع و ${families.length} عائلة و ${persons.length} شخص بنجاح'),
-                duration: Duration(seconds: 4),
-              ),
-            );
-          }
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Persons').doc(persons[i].id),
-        persons[i].getMap(),
-      );
-      batchCount++;
-    }
-    if (!end) {
-      await batchUpdate.commit().catchError((onError) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              onError.toString(),
-            ),
-            duration: Duration(seconds: 10),
-          ),
-        );
-      }).then((k) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'تم استيراد بيانات ${streets.length} شارع و ${families.length} عائلة و ${persons.length} شخص بنجاح'),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      });
-    }
-  } on Exception catch (err, stkTrace) {
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers._legacyImport');
-    await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          err.toString(),
-        ),
-        duration: Duration(seconds: 10),
-      ),
-    );
-  }
-
-  streets = null;
-  families = null;
-  persons = null;
 }
 
 class QueryIcon extends StatelessWidget {
