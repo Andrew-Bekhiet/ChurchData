@@ -53,6 +53,18 @@ abstract class DataObject {
 
     return e.hashCode;
   }
+
+  Future<void> set() async {
+    await ref.set(getMap());
+  }
+
+  Future<void> update({Map<String, dynamic> old}) async {
+    if (old != null)
+      await ref
+          .update(getMap()..removeWhere((key, value) => old[key] == value));
+    else
+      await ref.update(getMap());
+  }
 }
 
 abstract class ParentObject<T extends DataObject> {

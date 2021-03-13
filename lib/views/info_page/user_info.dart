@@ -127,6 +127,12 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                     title: Text('إدارة المستخدمين'),
                   ),
+                if (user.manageAllowedUsers == true)
+                  ListTile(
+                    leading: Icon(
+                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: Text('إدارة مستخدمين محددين'),
+                  ),
                 if (user.superAccess == true)
                   ListTile(
                     leading: Icon(

@@ -110,18 +110,42 @@ class _UserPState extends State<UserP> {
                       },
                     ),
                   ),
+                  if (User.instance.manageUsers)
+                    ListTile(
+                      trailing: Checkbox(
+                        value: widget.user.manageUsers,
+                        onChanged: (v) =>
+                            setState(() => widget.user.manageUsers = v),
+                      ),
+                      leading: Icon(
+                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      title: Text('إدارة المستخدمين'),
+                      onTap: () => setState(() =>
+                          widget.user.manageUsers = !widget.user.manageUsers),
+                    ),
                   ListTile(
                     trailing: Checkbox(
-                      value: widget.user.manageUsers,
+                      value: widget.user.manageAllowedUsers,
                       onChanged: (v) =>
-                          setState(() => widget.user.manageUsers = v),
+                          setState(() => widget.user.manageAllowedUsers = v),
                     ),
                     leading: Icon(
-                      const IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: Text('إدارة مستخدمين محددين'),
+                    onTap: () => setState(() => widget.user.manageAllowedUsers =
+                        !widget.user.manageAllowedUsers),
+                  ),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.user.manageAllowedUsers,
+                      onChanged: (v) =>
+                          setState(() => widget.user.manageAllowedUsers = v),
                     ),
-                    title: Text('إدارة المستخدمين'),
-                    onTap: () => setState(() =>
-                        widget.user.manageUsers = !widget.user.manageUsers),
+                    leading: Icon(
+                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: Text('إدارة مستخدمين محددين'),
+                    onTap: () => setState(() => widget.user.manageAllowedUsers =
+                        !widget.user.manageAllowedUsers),
                   ),
                   ListTile(
                     trailing: Checkbox(
