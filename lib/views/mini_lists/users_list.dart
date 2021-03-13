@@ -2,7 +2,6 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -88,7 +87,7 @@ class _UsersListState extends State<UsersList> {
   @override
   Widget build(BuildContext c) {
     return Consumer2<ListOptions<User>, SearchString>(
-      builder: (context, options, filter, _) => StreamBuilder<QuerySnapshot>(
+      builder: (context, options, filter, _) => StreamBuilder<List<User>>(
         stream: options.documentsData,
         builder: (context, stream) {
           if (stream.hasError) return Center(child: ErrorWidget(stream.error));
@@ -101,11 +100,9 @@ class _UsersListState extends State<UsersList> {
             },
             child: Builder(
               builder: (context) {
-                List<DocumentSnapshot> documentData =
-                    stream.data.docs.sublist(0);
+                List<User> documentData = stream.data.sublist(0);
                 if (filter.value != '')
-                  documentData.retainWhere((element) => element
-                      .data()['Name']
+                  documentData.retainWhere((element) => element.name
                       .toLowerCase()
                       .replaceAll(
                           RegExp(
@@ -124,12 +121,12 @@ class _UsersListState extends State<UsersList> {
                   cacheExtent: 200,
                   itemCount: documentData?.length ?? 0,
                   itemBuilder: (context, i) {
-                    var current = User.fromDoc(documentData[i]);
+                    var current = documentData[i];
                     return DataObjectWidget<User>(
                       current,
                       showSubtitle: false,
                       photo: current.getPhoto(),
-                      onLongPress: options.isAdmin
+                      onLongPress: User.instance.manageUsers
                           ? () => userTap(current, context)
                           : null,
                       onTap: () {

@@ -3,6 +3,7 @@ import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_string.dart';
+import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/models/data_dialog.dart';
@@ -249,77 +250,93 @@ class FamilyInfo extends StatelessWidget {
                 },
                 body: SafeArea(
                   child: Consumer<OrderOptions>(
-                    builder: (context, options, _) => DataObjectList<Person>(
-                      options: ListOptions<Person>(
-                          doubleActionButton: true,
-                          floatingActionButton: permission
-                              ? Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.only(right: 32),
-                                      child: FloatingActionButton(
-                                        tooltip: 'تسجيل أخر زيارة اليوم',
-                                        heroTag: 'lastVisit',
-                                        onPressed: () =>
-                                            recordLastVisit(context, family),
-                                        child: Icon(Icons.update),
-                                      ),
+                    builder: (context, options, _) =>
+                        DataObjectList<DataObject>(
+                      options: ListOptions<DataObject>(
+                        doubleActionButton: true,
+                        floatingActionButton: permission
+                            ? Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 32),
+                                    child: FloatingActionButton(
+                                      tooltip: 'تسجيل أخر زيارة اليوم',
+                                      heroTag: 'lastVisit',
+                                      onPressed: () =>
+                                          recordLastVisit(context, family),
+                                      child: Icon(Icons.update),
                                     ),
-                                    PopupMenuButton<dynamic>(
-                                      itemBuilder: (_) => [
-                                        PopupMenuItem(
-                                          value: true,
-                                          child: ListTile(
-                                            leading: Icon(Icons.add_business),
-                                            title: Text('اضافة محل'),
-                                          ),
+                                  ),
+                                  PopupMenuButton<dynamic>(
+                                    itemBuilder: (_) => [
+                                      PopupMenuItem(
+                                        value: true,
+                                        child: ListTile(
+                                          leading: Icon(Icons.add_business),
+                                          title: Text('اضافة محل'),
                                         ),
-                                        PopupMenuItem(
-                                          value: false,
-                                          child: ListTile(
-                                            leading: Icon(Icons.group_add),
-                                            title: Text('اضافة عائلة'),
-                                          ),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'null',
-                                          child: ListTile(
-                                            leading: Icon(Icons.person_add),
-                                            title: Text('اضافة شخص'),
-                                          ),
-                                        )
-                                      ],
-                                      onSelected: (type) => type == 'null'
-                                          ? Navigator.of(context).pushNamed(
-                                              'Data/EditPerson',
-                                              arguments: family.ref)
-                                          : Navigator.of(context).pushNamed(
-                                              'Data/EditFamily',
-                                              arguments: {
-                                                'Family': family.ref,
-                                                'IsStore': type as bool
-                                              },
-                                            ),
-                                      child: FloatingActionButton(
-                                        onPressed: null,
-                                        child: Icon(Icons.add),
                                       ),
+                                      PopupMenuItem(
+                                        value: false,
+                                        child: ListTile(
+                                          leading: Icon(Icons.group_add),
+                                          title: Text('اضافة عائلة'),
+                                        ),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'null',
+                                        child: ListTile(
+                                          leading: Icon(Icons.person_add),
+                                          title: Text('اضافة شخص'),
+                                        ),
+                                      )
+                                    ],
+                                    onSelected: (type) => type == 'null'
+                                        ? Navigator.of(context).pushNamed(
+                                            'Data/EditPerson',
+                                            arguments: family.ref)
+                                        : Navigator.of(context).pushNamed(
+                                            'Data/EditFamily',
+                                            arguments: {
+                                              'Family': family.ref,
+                                              'IsStore': type as bool
+                                            },
+                                          ),
+                                    child: FloatingActionButton(
+                                      onPressed: null,
+                                      child: Icon(Icons.add),
                                     ),
-                                  ],
-                                )
-                              : null,
-                          generate: (doc) {
-                            if (doc.reference.parent.id == 'Persons')
-                              return Person.fromDoc(doc);
-                            if (doc.reference.parent.id == 'Families')
-                              return Family.fromDoc(doc);
-                            throw UnimplementedError();
-                          },
-                          familiesData: family.getMembersLive(
-                              orderBy: options.personOrderBy,
-                              descending: !options.personASC)),
+                                  ),
+                                ],
+                              )
+                            : null,
+                        itemBuilder: (o, {onLongPress, onTap, trailing}) {
+                          if (o.ref.parent.id == 'Persons')
+                            return DataObjectWidget<Person>(o,
+                                onLongPress: onLongPress,
+                                onTap: onTap,
+                                trailing: trailing);
+                          if (o.ref.parent.id == 'Families')
+                            return DataObjectWidget<Family>(o,
+                                onLongPress: onLongPress,
+                                onTap: onTap,
+                                trailing: trailing);
+                          throw UnimplementedError();
+                        },
+                        documentsData: family
+                            .getMembersLive(
+                                orderBy: options.personOrderBy,
+                                descending: !options.personASC)
+                            .map((s) => s
+                                .map((s) => s.docs.map((e) =>
+                                    e.reference.parent.id == 'Persons'
+                                        ? Person.fromDoc(e)
+                                        : Family.fromDoc(e)))
+                                .expand((e) => e)
+                                .toList()),
+                      ),
                     ),
                   ),
                 ),

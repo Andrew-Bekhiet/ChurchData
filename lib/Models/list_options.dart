@@ -1,11 +1,8 @@
-import 'package:async/async.dart';
 import 'package:churchdata/models/super_classes.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'data_object_widget.dart';
-import 'user.dart';
 
 class ListOptions<T extends DataObject> with ChangeNotifier {
   BehaviorSubject<List<T>> _documentsData;

@@ -509,16 +509,17 @@ class _UserPState extends State<UserP> {
                     builder: (context, options, child) =>
                         DataObjectList<Person>(
                       options: ListOptions<Person>(
-                        tap: (person, _) {
+                        tap: (person) {
                           setState(() {
                             if (person != null)
                               widget.user.personRef = 'Persons/${person.id}';
                           });
                           Navigator.of(context).pop();
                         },
-                        generate: Person.fromDoc,
                         documentsData: Person.getAllForUser(
-                            orderBy: options.item1, descending: !options.item2),
+                                orderBy: options.item1,
+                                descending: !options.item2)
+                            .map((s) => s.docs.map(Person.fromDoc).toList()),
                       ),
                     ),
                   )),

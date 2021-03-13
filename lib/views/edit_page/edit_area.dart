@@ -536,11 +536,13 @@ class _EditAreaState extends State<EditArea> {
                           create: (_) => SearchString(''),
                         ),
                         ListenableProvider(
-                            create: (_) => ListOptions<User>(
-                                isAdmin: User().manageUsers,
-                                documentsData:
-                                    Stream.fromFuture(User.getAllUsersLive()))
-                              ..selected = users.data)
+                          create: (_) => ListOptions<User>(
+                            selected: users.data,
+                            documentsData:
+                                Stream.fromFuture(User.getAllUsersLive()).map(
+                                    (s) => s.docs.map(User.fromDoc).toList()),
+                          ),
+                        )
                       ],
                       builder: (context, child) => DataDialog(
                         actions: [

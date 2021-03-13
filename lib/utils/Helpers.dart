@@ -522,12 +522,12 @@ void import(BuildContext context) async {
                       builder: (context, options, child) =>
                           DataObjectList<Area>(
                         options: ListOptions<Area>(
-                          tap: (Area area, _) =>
+                          tap: (Area area) =>
                               _legacyImport(decoder, area.ref, context),
-                          generate: Area.fromDoc,
                           documentsData: Area.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
+                                  orderBy: options.item1,
+                                  descending: !options.item2)
+                              .map((s) => s.docs.map(Area.fromDoc).toList()),
                         ),
                       ),
                     ),
@@ -1061,9 +1061,11 @@ void sendNotification(BuildContext context, dynamic attachement) async {
             create: (_) => SearchString(''),
           ),
           ListenableProvider(
-              create: (_) => ListOptions<User>(
-                  isAdmin: User().manageUsers,
-                  documentsData: Stream.fromFuture(User.getAllUsersLive())))
+            create: (_) => ListOptions<User>(
+              documentsData: Stream.fromFuture(User.getAllUsersLive())
+                  .map((s) => s.docs.map(User.fromDoc).toList()),
+            ),
+          ),
         ],
         builder: (context, child) => DataDialog(
           actions: [

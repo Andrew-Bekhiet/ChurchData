@@ -214,11 +214,12 @@ class StreetInfo extends StatelessWidget {
                                   ],
                                 )
                               : null,
-                          generate: Family.fromDoc,
-                          tap: familyTap,
-                          documentsData: street.getMembersLive(
-                              orderBy: options.familyOrderBy,
-                              descending: !options.familyASC)),
+                          tap: (f) => familyTap(f, context),
+                          documentsData: street
+                              .getMembersLive(
+                                  orderBy: options.familyOrderBy,
+                                  descending: !options.familyASC)
+                              .map((s) => s.docs.map(Family.fromDoc).toList())),
                     ),
                   ),
                 ),

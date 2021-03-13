@@ -455,10 +455,10 @@ class _RootState extends State<Root>
                             child: Icon(Icons.add_location),
                           )
                         : null,
-                    tap: areaTap,
-                    generate: Area.fromDoc,
+                    tap: (a) => areaTap(a, context),
                     documentsData: Area.getAllForUser(
-                        orderBy: options.item1, descending: !options.item2),
+                            orderBy: options.item1, descending: !options.item2)
+                        .map((s) => s.docs.map(Area.fromDoc).toList()),
                   ),
                 ),
               ),
@@ -475,10 +475,10 @@ class _RootState extends State<Root>
                             child: Icon(Icons.add_road),
                           )
                         : null,
-                    tap: streetTap,
-                    generate: Street.fromDoc,
+                    tap: (s) => streetTap(s, context),
                     documentsData: Street.getAllForUser(
-                        orderBy: options.item1, descending: !options.item2),
+                            orderBy: options.item1, descending: !options.item2)
+                        .map((s) => s.docs.map(Street.fromDoc).toList()),
                   ),
                 ),
               ),
@@ -513,10 +513,10 @@ class _RootState extends State<Root>
                             ),
                           )
                         : null,
-                    tap: familyTap,
-                    generate: Family.fromDoc,
+                    tap: (f) => familyTap(f, context),
                     documentsData: Family.getAllForUser(
-                        orderBy: options.item1, descending: !options.item2),
+                            orderBy: options.item1, descending: !options.item2)
+                        .map((s) => s.docs.map(Family.fromDoc).toList()),
                   ),
                 ),
               ),
@@ -533,10 +533,10 @@ class _RootState extends State<Root>
                             child: Icon(Icons.person_add),
                           )
                         : null,
-                    tap: personTap,
-                    generate: Person.fromDoc,
+                    tap: (p) => personTap(p, context),
                     documentsData: Person.getAllForUser(
-                        orderBy: options.item1, descending: !options.item2),
+                            orderBy: options.item1, descending: !options.item2)
+                        .map((s) => s.docs.map(Person.fromDoc).toList()),
                   ),
                 ),
               ),
@@ -872,13 +872,12 @@ class _RootState extends State<Root>
                                           child: DataObjectList<Area>(
                                             options: ListOptions(
                                               documentsData:
-                                                  Area.getAllForUser(),
-                                              generate: Area.fromDoc,
-                                              tap: (area, context) =>
-                                                  Navigator.pop(
-                                                context,
-                                                area,
-                                              ),
+                                                  Area.getAllForUser().map(
+                                                      (s) => s.docs
+                                                          .map(Area.fromDoc)
+                                                          .toList()),
+                                              tap: (area) =>
+                                                  Navigator.pop(context, area),
                                             ),
                                           ),
                                         ),

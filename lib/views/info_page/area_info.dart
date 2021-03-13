@@ -467,11 +467,13 @@ class AreaInfo extends StatelessWidget {
                                     ],
                                   )
                                 : null,
-                            generate: Street.fromDoc,
-                            tap: streetTap,
-                            documentsData: area.getMembersLive(
-                                orderBy: options.streetOrderBy,
-                                descending: !options.streetASC)),
+                            tap: (street) => streetTap(street, context),
+                            documentsData: area
+                                .getMembersLive(
+                                    orderBy: options.streetOrderBy,
+                                    descending: !options.streetASC)
+                                .map((s) =>
+                                    s.docs.map(Street.fromDoc).toList())),
                       ),
                     ),
                   ),

@@ -191,10 +191,13 @@ class _UserInfoState extends State<UserInfo> {
                             Expanded(
                               child: DataObjectList<Area>(
                                 options: ListOptions(
-                                  generate: Area.fromDoc,
-                                  tap: areaTap,
+                                  tap: (a) => areaTap(a, context),
                                   documentsData: Area.getAllForUser(
-                                      uid: user.superAccess ? null : user.uid),
+                                          uid: user.superAccess
+                                              ? null
+                                              : user.uid)
+                                      .map((s) =>
+                                          s.docs.map(Area.fromDoc).toList()),
                                 ),
                               ),
                             )

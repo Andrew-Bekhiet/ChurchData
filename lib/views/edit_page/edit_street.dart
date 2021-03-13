@@ -391,7 +391,7 @@ class _EditStreetState extends State<EditStreet> {
                           tooltip: 'إضافة منطقة جديدة',
                           child: Icon(Icons.add_location),
                         ),
-                        tap: (area, _) {
+                        tap: (area) {
                           Navigator.of(context).pop();
                           setState(() {
                             street.areaId = FirebaseFirestore.instance
@@ -401,9 +401,10 @@ class _EditStreetState extends State<EditStreet> {
                           foci[2].requestFocus();
                           _selectDate();
                         },
-                        generate: Area.fromDoc,
                         documentsData: Area.getAllForUser(
-                            orderBy: options.item1, descending: !options.item2),
+                                orderBy: options.item1,
+                                descending: !options.item2)
+                            .map((s) => s.docs.map(Area.fromDoc).toList()),
                       ),
                     ),
                   ),

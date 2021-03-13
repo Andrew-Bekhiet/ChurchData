@@ -1027,39 +1027,39 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             options: ListOptions<Area>(
-              tap: areaTap,
-              generate: Area.fromDoc,
+              tap: (a) => areaTap(a, context),
               documentsData: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Area.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             options: ListOptions<Street>(
-              tap: streetTap,
-              generate: Street.fromDoc,
+              tap: (s) => streetTap(s, context),
               documentsData: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Street.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             options: ListOptions<Family>(
-              tap: familyTap,
-              generate: Family.fromDoc,
+              tap: (f) => familyTap(f, context),
               documentsData: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
                       isNull: queryValue == null ? true : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Family.fromDoc).toList()),
             ),
           );
           break;
@@ -1067,8 +1067,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
@@ -1084,20 +1083,21 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day + 1),
                             )
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isEqualTo: queryValue,
                     isNull: queryValue == null ? true : null)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1105,36 +1105,36 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             options: ListOptions<Area>(
-              tap: areaTap,
-              generate: Area.fromDoc,
+              tap: (a) => areaTap(a, context),
               documentsData: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Area.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             options: ListOptions<Street>(
-              tap: streetTap,
-              generate: Street.fromDoc,
+              tap: (s) => streetTap(s, context),
               documentsData: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Street.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             options: ListOptions<Family>(
-              tap: familyTap,
-              generate: Family.fromDoc,
+              tap: (f) => familyTap(f, context),
               documentsData: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Family.fromDoc).toList()),
             ),
           );
           break;
@@ -1142,8 +1142,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       arrayContains: queryValue != null
@@ -1152,19 +1151,20 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day),
                             )
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     arrayContains: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1172,36 +1172,36 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             options: ListOptions<Area>(
-              tap: areaTap,
-              generate: Area.fromDoc,
+              tap: (a) => areaTap(a, context),
               documentsData: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Area.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             options: ListOptions<Street>(
-              tap: streetTap,
-              generate: Street.fromDoc,
+              tap: (s) => streetTap(s, context),
               documentsData: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Street.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             options: ListOptions<Family>(
-              tap: familyTap,
-              generate: Family.fromDoc,
+              tap: (f) => familyTap(f, context),
               documentsData: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Family.fromDoc).toList()),
             ),
           );
           break;
@@ -1209,8 +1209,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
@@ -1219,19 +1218,20 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day),
                             )
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isGreaterThanOrEqualTo: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1239,36 +1239,36 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             options: ListOptions<Area>(
-              tap: areaTap,
-              generate: Area.fromDoc,
+              tap: (a) => areaTap(a, context),
               documentsData: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Area.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             options: ListOptions<Street>(
-              tap: streetTap,
-              generate: Street.fromDoc,
+              tap: (s) => streetTap(s, context),
               documentsData: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Street.fromDoc).toList()),
             ),
           );
           break;
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             options: ListOptions<Family>(
-              tap: familyTap,
-              generate: Family.fromDoc,
+              tap: (f) => familyTap(f, context),
               documentsData: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Family.fromDoc).toList()),
             ),
           );
           break;
@@ -1276,8 +1276,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             options: ListOptions<Person>(
-              tap: personTap,
-              generate: Person.fromDoc,
+              tap: (p) => personTap(p, context),
               documentsData: persons
                   .where('BirthDay',
                       isLessThanOrEqualTo: queryValue != null
@@ -1286,19 +1285,20 @@ class _SearchQueryState extends State<SearchQuery> {
                                   queryValue.toDate().day),
                             )
                           : null)
-                  .snapshots(),
+                  .snapshots()
+                  .map((s) => s.docs.map(Person.fromDoc).toList()),
             ),
           );
           break;
         }
         body = DataObjectList<Person>(
           options: ListOptions<Person>(
-            tap: personTap,
-            generate: Person.fromDoc,
+            tap: (p) => personTap(p, context),
             documentsData: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isLessThanOrEqualTo: queryValue)
-                .snapshots(),
+                .snapshots()
+                .map((s) => s.docs.map(Person.fromDoc).toList()),
           ),
         );
         break;
@@ -1465,7 +1465,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       options: ListOptions<Area>(
                         showNull: true,
                         empty: (Area.empty()..name = 'لا يوجد')..id = 'null',
-                        tap: (areaSelected, _) {
+                        tap: (areaSelected) {
                           Navigator.of(context).pop();
                           setState(() {
                             queryValue = FirebaseFirestore.instance
@@ -1474,9 +1474,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             queryText = areaSelected.name;
                           });
                         },
-                        generate: Area.fromDoc,
                         documentsData: Area.getAllForUser(
-                            orderBy: options.item1, descending: !options.item2),
+                                orderBy: options.item1,
+                                descending: !options.item2)
+                            .map((s) => s.docs.map(Area.fromDoc).toList()),
                       ),
                     ),
                   ),
@@ -1522,7 +1523,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       options: ListOptions<Family>(
                         showNull: true,
                         empty: (Family.empty()..name = 'لا يوجد')..id = 'null',
-                        tap: (familySelected, _) {
+                        tap: (familySelected) {
                           Navigator.of(context).pop();
                           setState(() {
                             queryValue = FirebaseFirestore.instance
@@ -1531,9 +1532,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             queryText = familySelected.name;
                           });
                         },
-                        generate: Family.fromDoc,
                         documentsData: Family.getAllForUser(
-                            orderBy: options.item1, descending: !options.item2),
+                                orderBy: options.item1,
+                                descending: !options.item2)
+                            .map((s) => s.docs.map(Family.fromDoc).toList()),
                       ),
                     ),
                   ),
@@ -1565,7 +1567,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       options: ListOptions<Street>(
                         showNull: true,
                         empty: (Street.empty()..name = 'لا يوجد')..id = 'null',
-                        tap: (streetSelected, _) {
+                        tap: (streetSelected) {
                           Navigator.of(context).pop();
                           setState(() {
                             queryValue = FirebaseFirestore.instance
@@ -1574,9 +1576,10 @@ class _SearchQueryState extends State<SearchQuery> {
                             queryText = streetSelected.name;
                           });
                         },
-                        generate: Street.fromDoc,
                         documentsData: Street.getAllForUser(
-                            orderBy: options.item1, descending: !options.item2),
+                                orderBy: options.item1,
+                                descending: !options.item2)
+                            .map((s) => s.docs.map(Street.fromDoc).toList()),
                       ),
                     ),
                   ),

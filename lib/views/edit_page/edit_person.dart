@@ -1454,7 +1454,7 @@ class _EditPersonState extends State<EditPerson> {
                               tooltip: 'إضافة منطقة جديدة',
                               child: Icon(Icons.add_location),
                             ),
-                            tap: (area, _) {
+                            tap: (area) {
                               Navigator.of(context).pop();
                               cache['ServingAreaName'].invalidate();
                               setState(() {
@@ -1464,10 +1464,10 @@ class _EditPersonState extends State<EditPerson> {
                                     .doc(area.id);
                               });
                             },
-                            generate: Area.fromDoc,
                             documentsData: Area.getAllForUser(
-                                orderBy: options.item1,
-                                descending: !options.item2),
+                                    orderBy: options.item1,
+                                    descending: !options.item2)
+                                .map((s) => s.docs.map(Area.fromDoc).toList()),
                           ),
                         ),
                       ),
@@ -1530,7 +1530,7 @@ class _EditPersonState extends State<EditPerson> {
                             tooltip: 'إضافة عائلة جديدة',
                             child: Icon(Icons.group_add),
                           ),
-                          tap: (value, _) {
+                          tap: (value) {
                             Navigator.of(context).pop();
                             cache['FamilyName'].invalidate();
                             setState(() {
@@ -1541,10 +1541,10 @@ class _EditPersonState extends State<EditPerson> {
                             });
                             foci[14].requestFocus();
                           },
-                          generate: Family.fromDoc,
                           documentsData: Family.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
+                                  orderBy: options.item1,
+                                  descending: !options.item2)
+                              .map((s) => s.docs.map(Family.fromDoc).toList()),
                         ),
                       ),
                     ),

@@ -585,7 +585,7 @@ class _EditFamilyState extends State<EditFamily> {
                             tooltip: 'إضافة عائلة جديدة',
                             child: Icon(Icons.group_add),
                           ),
-                          tap: (value, _) {
+                          tap: (value) {
                             Navigator.of(context).pop();
                             setState(() {
                               widget.family.insideFamily = FirebaseFirestore
@@ -595,10 +595,10 @@ class _EditFamilyState extends State<EditFamily> {
                             });
                             foci[7].requestFocus();
                           },
-                          generate: Family.fromDoc,
                           documentsData: Family.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
+                                  orderBy: options.item1,
+                                  descending: !options.item2)
+                              .map((s) => s.docs.map(Family.fromDoc).toList()),
                         ),
                       ),
                     ),
@@ -645,7 +645,7 @@ class _EditFamilyState extends State<EditFamily> {
                             tooltip: 'إضافة عائلة جديدة',
                             child: Icon(Icons.group_add),
                           ),
-                          tap: (value, _) {
+                          tap: (value) {
                             Navigator.of(context).pop();
                             setState(() {
                               widget.family.insideFamily2 = FirebaseFirestore
@@ -655,10 +655,10 @@ class _EditFamilyState extends State<EditFamily> {
                             });
                             foci[7].requestFocus();
                           },
-                          generate: Family.fromDoc,
                           documentsData: Family.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
+                                  orderBy: options.item1,
+                                  descending: !options.item2)
+                              .map((s) => s.docs.map(Family.fromDoc).toList()),
                         ),
                       ),
                     ),
@@ -705,7 +705,7 @@ class _EditFamilyState extends State<EditFamily> {
                             tooltip: 'إضافة شارع جديد',
                             child: Icon(Icons.add_road),
                           ),
-                          tap: (street, _) {
+                          tap: (street) {
                             Navigator.of(context).pop();
                             setState(() {
                               family.streetId = FirebaseFirestore.instance
@@ -716,10 +716,10 @@ class _EditFamilyState extends State<EditFamily> {
                             foci[3].requestFocus();
                             _selectDate();
                           },
-                          generate: Street.fromDoc,
                           documentsData: Street.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
+                                  orderBy: options.item1,
+                                  descending: !options.item2)
+                              .map((s) => s.docs.map(Street.fromDoc).toList()),
                         ),
                       ),
                     ),
