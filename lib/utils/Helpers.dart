@@ -1065,11 +1065,11 @@ void sendNotification(BuildContext context, dynamic attachement) async {
         builder: (context, child) => DataDialog(
           actions: [
             TextButton(
-              child: Text('تم'),
               onPressed: () {
                 Navigator.pop(
                     context, context.read<ListOptions<User>>().selected);
               },
+              child: Text('تم'),
             )
           ],
           content: Column(
@@ -1288,10 +1288,10 @@ Future showErrorDialog(BuildContext context, String message,
       content: Text(message),
       actions: <Widget>[
         TextButton(
-          child: Text('حسنًا'),
           onPressed: () {
             Navigator.of(context).pop();
           },
+          child: Text('حسنًا'),
         ),
       ],
     ),
