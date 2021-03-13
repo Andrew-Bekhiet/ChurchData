@@ -6,13 +6,7 @@ class ColorsList extends StatelessWidget {
 
   final Color selectedColor;
   final void Function(Color) onSelect;
-  final bool onlyPrimaries;
-  ColorsList(
-      {Key key,
-      this.colors,
-      this.selectedColor,
-      this.onSelect,
-      this.onlyPrimaries = false})
+  ColorsList({Key key, this.colors, this.selectedColor, this.onSelect})
       : super(key: key);
 
   @override
@@ -20,12 +14,12 @@ class ColorsList extends StatelessWidget {
     if (colors == null)
       return BlockPicker(
         pickerColor: selectedColor,
-        onColorChanged: (v) => onSelect(v),
+        onColorChanged: onSelect,
       );
     else
       return BlockPicker(
         pickerColor: selectedColor,
-        onColorChanged: (v) => onSelect(v),
+        onColorChanged: onSelect,
         availableColors: colors,
       );
   }
