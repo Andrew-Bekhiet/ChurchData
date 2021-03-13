@@ -39,18 +39,18 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       : super(key: key);
 
   String _getTName() {
-    if (T == Area) return 'Area';
-    if (T == Street) return 'Street';
-    if (T == Family) return 'Family';
-    if (T == Person) return 'Person';
+    if (current is Area) return 'Area';
+    if (current is Street) return 'Street';
+    if (current is Family) return 'Family';
+    if (current is Person) return 'Person';
     throw UnimplementedError();
   }
 
   String _getArabicTName() {
-    if (T == Area) return 'المنطقة';
-    if (T == Street) return 'الشارع';
-    if (T == Family) return 'العائلة';
-    if (T == Person) return 'الشخص';
+    if (current is Area) return 'المنطقة';
+    if (current is Street) return 'الشارع';
+    if (current is Family) return 'العائلة';
+    if (current is Person) return 'الشخص';
     throw UnimplementedError();
   }
 

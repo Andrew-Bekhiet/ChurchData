@@ -23,7 +23,7 @@ class ListOptions<T extends DataObject> with ChangeNotifier {
 
   final void Function(T) tap;
   final void Function(T) onLongPress;
-  final void Function(List<T>) getStringCount;
+  final String Function(List<T>) getStringCount;
 
   final T empty;
   final bool showNull;

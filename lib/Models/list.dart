@@ -385,7 +385,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
 
   String _getCountString(List<T> list) {
     if (widget.options.getStringCount != null)
-      widget.options.getStringCount(list);
+      return widget.options.getStringCount(list);
     if (T == Area) return (list?.length ?? 0).toString() + ' منطقة';
     if (T == Street) return (list?.length ?? 0).toString() + ' شارع';
     if (T == Family) return (list?.length ?? 0).toString() + ' عائلة';

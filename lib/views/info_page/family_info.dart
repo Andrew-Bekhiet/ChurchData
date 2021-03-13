@@ -343,12 +343,15 @@ class FamilyInfo extends StatelessWidget {
                                 orderBy: options.personOrderBy,
                                 descending: !options.personASC)
                             .map((s) => s
-                                .map((s) => s.docs.map((e) =>
-                                    e.reference.parent.id == 'Persons'
-                                        ? Person.fromDoc(e)
-                                        : Family.fromDoc(e)))
+                                .map((s) => s.docs
+                                    .map((e) =>
+                                        e.reference.parent.id == 'Persons'
+                                            ? Person.fromDoc(e)
+                                            : Family.fromDoc(e))
+                                    .toList())
                                 .expand((e) => e)
-                                .toList()),
+                                .toList()
+                                .cast<DataObject>()),
                       ),
                     ),
                   ),
