@@ -575,7 +575,8 @@ class _EditFamilyState extends State<EditFamily> {
               create: (_) => SearchString(''),
               builder: (context, child) => Column(
                 children: [
-                  SearchFilters(1),
+                  SearchFilters(1,
+                      textStyle: Theme.of(context).textTheme.bodyText2),
                   Expanded(
                     child: Selector<OrderOptions, Tuple2<String, bool>>(
                       selector: (_, o) =>
@@ -635,7 +636,8 @@ class _EditFamilyState extends State<EditFamily> {
               create: (_) => SearchString(''),
               builder: (context, child) => Column(
                 children: [
-                  SearchFilters(1),
+                  SearchFilters(1,
+                      textStyle: Theme.of(context).textTheme.bodyText2),
                   Expanded(
                     child: Selector<OrderOptions, Tuple2<String, bool>>(
                       selector: (_, o) =>
@@ -695,7 +697,8 @@ class _EditFamilyState extends State<EditFamily> {
               create: (_) => SearchString(''),
               builder: (context, child) => Column(
                 children: [
-                  SearchFilters(1),
+                  SearchFilters(1,
+                      textStyle: Theme.of(context).textTheme.bodyText2),
                   Expanded(
                     child: Selector<OrderOptions, Tuple2<String, bool>>(
                       selector: (_, o) =>

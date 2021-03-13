@@ -242,7 +242,8 @@ class FamilyInfo extends StatelessWidget {
                                   (family.isStore ? 'محل' : 'عائلة') +
                                   '',
                               style: Theme.of(context).textTheme.bodyText1),
-                          SearchFilters(3),
+                          SearchFilters(3,
+                              textStyle: Theme.of(context).textTheme.bodyText2),
                         ],
                       ),
                     ),

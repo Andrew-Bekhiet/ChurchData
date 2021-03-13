@@ -372,7 +372,8 @@ class _EditStreetState extends State<EditStreet> {
             builder: (context, child) => Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SearchFilters(0),
+                SearchFilters(0,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: Selector<OrderOptions, Tuple2<String, bool>>(
                     selector: (_, o) =>

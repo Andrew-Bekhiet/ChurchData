@@ -1339,7 +1339,8 @@ class _SearchQueryState extends State<SearchQuery> {
                     tooltip: 'مشاركة النتائج برابط',
                   ),
                 ],
-                title: SearchFilters(parentIndex),
+                title: SearchFilters(parentIndex,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
               ),
               body: body,
             ),
@@ -1456,7 +1457,8 @@ class _SearchQueryState extends State<SearchQuery> {
             create: (_) => SearchString(''),
             builder: (context, child) => Column(
               children: [
-                SearchFilters(0),
+                SearchFilters(0,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: Selector<OrderOptions, Tuple2<String, bool>>(
                     selector: (_, o) =>
@@ -1513,7 +1515,8 @@ class _SearchQueryState extends State<SearchQuery> {
             create: (_) => SearchString(''),
             builder: (context, child) => Column(
               children: [
-                SearchFilters(2),
+                SearchFilters(2,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: Selector<OrderOptions, Tuple2<String, bool>>(
                     selector: (_, o) =>
@@ -1557,7 +1560,8 @@ class _SearchQueryState extends State<SearchQuery> {
             create: (_) => SearchString(''),
             builder: (context, child) => Column(
               children: [
-                SearchFilters(1),
+                SearchFilters(1,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
                 Expanded(
                   child: Selector<OrderOptions, Tuple2<String, bool>>(
                     selector: (_, o) =>

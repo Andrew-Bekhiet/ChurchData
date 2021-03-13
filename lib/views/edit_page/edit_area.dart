@@ -573,7 +573,9 @@ class _EditAreaState extends State<EditArea> {
                         content: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SearchField(),
+                            SearchField(
+                                textStyle:
+                                    Theme.of(context).textTheme.bodyText2),
                             Expanded(
                               child:
                                   Selector<OrderOptions, Tuple2<String, bool>>(

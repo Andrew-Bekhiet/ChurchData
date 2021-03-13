@@ -45,13 +45,21 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  const SearchField({Key key}) : super(key: key);
+  const SearchField({Key key, @required this.textStyle}) : super(key: key);
+  final TextStyle textStyle;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
-      decoration:
-          InputDecoration(icon: Icon(Icons.search), hintText: 'بحث ...'),
+      style: textStyle,
+      decoration: InputDecoration(
+          suffixIcon: IconButton(
+            icon: Icon(Icons.close, color: textStyle.color),
+            onPressed: () => context.read<SearchString>().value = '',
+          ),
+          hintStyle: textStyle,
+          icon: Icon(Icons.search, color: textStyle.color),
+          hintText: 'بحث ...'),
       onChanged: (t) => context.read<SearchString>().value = t,
     );
   }
@@ -59,14 +67,20 @@ class SearchField extends StatelessWidget {
 
 class SearchFilters extends StatelessWidget {
   final int index;
-  const SearchFilters(this.index, {Key key}) : super(key: key);
+  final TextStyle textStyle;
+  const SearchFilters(this.index, {Key key, @required this.textStyle})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-          child: SearchField(),
+          child: SearchField(
+            textStyle: textStyle ??
+                Theme.of(context).textTheme.headline6.copyWith(
+                    color: Theme.of(context).primaryTextTheme.headline6.color),
+          ),
         ),
         FilterButton(index)
       ],
