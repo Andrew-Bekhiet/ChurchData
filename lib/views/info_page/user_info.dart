@@ -1,5 +1,7 @@
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/list.dart';
+import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -213,6 +215,60 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   ),
                 ),
+                ElevatedButton.icon(
+                  label: Text(
+                      'المستخدمين المسموح لهم بتعديل صلاحيات ' + user.name,
+                      textScaleFactor: 0.95,
+                      overflow: TextOverflow.fade),
+                  icon: Icon(Icons.shield),
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (context) {
+                      return FutureBuilder<List<User>>(
+                        future: User.getUsers(user.allowedUsers),
+                        builder: (c, users) => users.hasData
+                            ? MultiProvider(
+                                providers: [
+                                  ListenableProvider<SearchString>(
+                                    create: (_) => SearchString(''),
+                                  ),
+                                  ListenableProvider(
+                                      create: (_) => ListOptions<User>(
+                                          documentsData: Stream.fromFuture(
+                                              User.getAllSemiManagers()),
+                                          selected: users.data))
+                                ],
+                                builder: (context, child) => AlertDialog(
+                                  content: Container(
+                                    width: 280,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        SearchField(
+                                            textStyle: Theme.of(context)
+                                                .textTheme
+                                                .bodyText2),
+                                        Expanded(
+                                          child: Selector<OrderOptions,
+                                              Tuple2<String, bool>>(
+                                            selector: (_, o) =>
+                                                Tuple2<String, bool>(
+                                                    o.areaOrderBy, o.areaASC),
+                                            builder:
+                                                (context, options, child) =>
+                                                    UsersList(),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                  ),
+                )
               ],
             ),
           );

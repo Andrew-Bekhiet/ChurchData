@@ -8,6 +8,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -123,18 +124,6 @@ class _UserPState extends State<UserP> {
                       onTap: () => setState(() =>
                           widget.user.manageUsers = !widget.user.manageUsers),
                     ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.manageAllowedUsers,
-                      onChanged: (v) =>
-                          setState(() => widget.user.manageAllowedUsers = v),
-                    ),
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة مستخدمين محددين'),
-                    onTap: () => setState(() => widget.user.manageAllowedUsers =
-                        !widget.user.manageAllowedUsers),
-                  ),
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.manageAllowedUsers,
@@ -267,6 +256,14 @@ class _UserPState extends State<UserP> {
                         ),
                       ),
                     ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: editAllowedUsers,
+                    icon: Icon(Icons.shield),
+                    label: Text('تعديل المستخدمين المسموح لهم بتعديل المستخدم',
+                        softWrap: false,
+                        textScaleFactor: 0.95,
+                        overflow: TextOverflow.fade),
                   ),
                   ElevatedButton.icon(
                     onPressed: resetPassword,
@@ -525,7 +522,8 @@ class _UserPState extends State<UserP> {
               create: (_) => SearchString(''),
               builder: (context, child) => Column(
                 children: [
-                  SearchFilters(3),
+                  SearchFilters(3,
+                      textStyle: Theme.of(context).textTheme.bodyText2),
                   Expanded(
                       child: Selector<OrderOptions, Tuple2<String, bool>>(
                     selector: (_, o) =>
@@ -554,5 +552,67 @@ class _UserPState extends State<UserP> {
         );
       },
     );
+  }
+
+  void editAllowedUsers() async {
+    widget.user.allowedUsers = await showDialog(
+          context: context,
+          builder: (context) {
+            return FutureBuilder<List<User>>(
+              future: User.getUsers(widget.user.allowedUsers),
+              builder: (c, users) => users.hasData
+                  ? MultiProvider(
+                      providers: [
+                        ListenableProvider<SearchString>(
+                          create: (_) => SearchString(''),
+                        ),
+                        ListenableProvider(
+                            create: (_) => ListOptions<User>(
+                                documentsData: Stream.fromFuture(
+                                    User.getAllSemiManagers()),
+                                selected: users.data))
+                      ],
+                      builder: (context, child) => AlertDialog(
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(
+                                  context,
+                                  context
+                                      .read<ListOptions<User>>()
+                                      .selected
+                                      ?.map((f) => f.uid)
+                                      ?.toList());
+                            },
+                            child: Text('تم'),
+                          )
+                        ],
+                        content: Container(
+                          width: 280,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SearchField(
+                                  textStyle:
+                                      Theme.of(context).textTheme.bodyText2),
+                              Expanded(
+                                child: Selector<OrderOptions,
+                                    Tuple2<String, bool>>(
+                                  selector: (_, o) => Tuple2<String, bool>(
+                                      o.areaOrderBy, o.areaASC),
+                                  builder: (context, options, child) =>
+                                      UsersList(),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  : Center(child: CircularProgressIndicator()),
+            );
+          },
+        ) ??
+        widget.user.allowedUsers;
   }
 }

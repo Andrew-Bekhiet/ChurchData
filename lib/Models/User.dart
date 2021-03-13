@@ -633,4 +633,13 @@ class User extends DataObject
             .get(dataSource))
         .data()['Name'];
   }
+
+  static Future<List<User>> getUsers(List<String> users) async {
+    return (await Future.wait(users.map((s) => FirebaseFirestore.instance
+            .collection('Users')
+            .doc(s)
+            .get(dataSource))))
+        .map((e) => User.fromDoc(e))
+        .toList();
+  }
 }
