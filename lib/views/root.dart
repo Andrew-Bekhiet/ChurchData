@@ -854,7 +854,7 @@ class _RootState extends State<Root>
                     return permission
                         ? ListTile(
                             leading: Icon(Icons.cloud_download),
-                            title: Text('تصدير إلى ملف اكسل'),
+                            title: Text('تصدير منطقة إلى ملف اكسل'),
                             onTap: () async {
                               mainScfld.currentState.openEndDrawer();
                               Area rslt = await showDialog(
