@@ -338,7 +338,7 @@ class PersonInfo extends StatelessWidget {
                           },
                         ),
                       ),
-                      HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
+                      TimeHistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
                           person.ref.collection('CallHistory')),
                       if ((person.notes ?? '') != '')
                         CopiableProperty('ملاحظات:', person.notes),
