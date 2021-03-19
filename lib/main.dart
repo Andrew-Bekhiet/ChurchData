@@ -37,6 +37,7 @@ import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
 import 'models/hive_persistence_provider.dart';
+import 'models/invitation.dart';
 import 'models/order_options.dart';
 import 'models/theme_notifier.dart';
 import 'models/user.dart';
@@ -48,6 +49,9 @@ import 'utils/globals.dart';
 import 'views/edit_page/edit_area.dart';
 import 'views/additional_settings.dart';
 import 'views/auth_screen.dart';
+import 'views/edit_page/edit_invitation.dart';
+import 'views/info_page/invitation_info.dart';
+import 'views/invitations_page.dart';
 import 'views/login.dart';
 import 'views/my_account.dart';
 import 'views/notifications_page.dart';
@@ -209,6 +213,9 @@ class AppState extends State<App> {
               return EditPerson(person: person);
             }
           },
+          'EditInvitation': (context) => EditInvitation(
+              invitation: ModalRoute.of(context).settings.arguments ??
+                  Invitation.empty()),
           'MyAccount': (context) => MyAccount(),
           'Notifications': (context) => NotificationsPage(),
           'Update': (context) => Update(),
@@ -224,6 +231,8 @@ class AppState extends State<App> {
               PersonInfo(person: ModalRoute.of(context).settings.arguments),
           'UserInfo': (context) =>
               UserInfo(user: ModalRoute.of(context).settings.arguments),
+          'InvitationInfo': (context) => InvitationInfo(
+              invitation: ModalRoute.of(context).settings.arguments),
           'Settings': (context) => settingsui.Settings(),
           'Settings/Churches': (context) => ChurchesPage(),
           'Settings/Fathers': (context) => FathersPage(),
@@ -234,6 +243,7 @@ class AppState extends State<App> {
           'Settings/PersonTypes': (context) => PersonTypesPage(),
           'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
               person: ModalRoute.of(context).settings.arguments),
+          'Invitations': (context) => InvitationsPage(),
           'EditUserData': (context) => FutureBuilder<Person>(
                 future: User.getCurrentPerson(),
                 builder: (context, data) {

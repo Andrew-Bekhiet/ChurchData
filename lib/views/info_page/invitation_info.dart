@@ -82,9 +82,11 @@ class InvitationInfo extends StatelessWidget {
                           ),
                         ),
                       ),
-                      onPressed: () async {
-                        await Share.share(invitation.link);
-                      },
+                      onPressed: (invitation.link ?? '').isNotEmpty
+                          ? () async {
+                              await Share.share(invitation.link);
+                            }
+                          : null,
                       tooltip: 'مشاركة الدعوة',
                     ),
                   ],
@@ -119,9 +121,11 @@ class InvitationInfo extends StatelessWidget {
                         invitation.link,
                         items: [
                           IconButton(
-                              onPressed: () async {
-                                await Share.share(invitation.link);
-                              },
+                              onPressed: (invitation.link ?? '').isNotEmpty
+                                  ? () async {
+                                      await Share.share(invitation.link);
+                                    }
+                                  : null,
                               icon: Icon(Icons.share)),
                         ],
                       ),

@@ -16,9 +16,9 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final void Function() onLongPress;
   final void Function() onTap;
   final Widget trailing;
+  final Widget photo;
   final Widget subtitle;
   final Widget title;
-  final Widget photo;
   final bool wrapInCard;
   final bool isDense;
   final bool showSubtitle;
@@ -26,8 +26,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final _memoizer = AsyncMemoizer<String>();
 
   DataObjectWidget(this.current,
-      {Key key,
-      this.isDense = false,
+      {this.isDense = false,
       this.onLongPress,
       this.onTap,
       this.trailing,
@@ -35,65 +34,77 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       this.title,
       this.wrapInCard = true,
       this.photo,
-      this.showSubtitle = true})
-      : super(key: key);
-
-  String _getTName() {
-    if (current is Area) return 'Area';
-    if (current is Street) return 'Street';
-    if (current is Family) return 'Family';
-    if (current is Person) return 'Person';
-    throw UnimplementedError();
-  }
-
-  String _getArabicTName() {
-    if (current is Area) return 'المنطقة';
-    if (current is Street) return 'الشارع';
-    if (current is Family) return 'العائلة';
-    if (current is Person) return 'الشخص';
-    throw UnimplementedError();
-  }
+      this.showSubtitle = true});
 
   @override
   Widget build(BuildContext context) {
-    final tile = ListTile(
-      dense: isDense,
-      onLongPress: onLongPress,
-      onTap: current.name != null
-          ? (onTap ?? () => dataObjectTap(current, context))
-          : null,
-      trailing: trailing,
-      title: title ??
-          Text(current.name ?? 'حدث خطأ: لا يمكن إيجاد $_getArabicTName()'),
-      subtitle: showSubtitle
-          ? (subtitle ??
-              (Hive.box('Settings').get(_getTName() + 'SecondLine') != null
-                  ? FutureBuilder(
-                      future: _memoizer
-                          .runOnce(() async => await current.getSecondLine()),
-                      builder: (cont, subT) {
-                        if (subT.hasData) {
-                          return Text(subT.data ?? '',
-                              maxLines: 1, overflow: TextOverflow.ellipsis);
-                        } else {
-                          return LinearProgressIndicator(
-                              backgroundColor:
-                                  current.color != Colors.transparent
-                                      ? current.color
-                                      : null,
-                              valueColor: AlwaysStoppedAnimation(
-                                  current.color != Colors.transparent
-                                      ? current.color
-                                      : Theme.of(context).primaryColor));
-                        }
-                      },
-                    )
-                  : null))
-          : null,
-      leading: photo ??
-          (current is PhotoObject ? (current as PhotoObject).photo : null),
-    );
-    return wrapInCard ? Card(color: _getColor(context), child: tile) : tile;
+    return wrapInCard
+        ? Card(
+            color: _getColor(context),
+            child: ListTile(
+              dense: isDense,
+              onLongPress: onLongPress,
+              onTap: onTap ?? () => dataObjectTap(current, context),
+              trailing: trailing,
+              title: title ?? Text(current.name),
+              subtitle: showSubtitle
+                  ? subtitle ??
+                      FutureBuilder(
+                        future: _memoizer
+                            .runOnce(() async => await current.getSecondLine()),
+                        builder: (cont, subT) {
+                          if (subT.hasData) {
+                            return Text(subT.data ?? '',
+                                maxLines: 1, overflow: TextOverflow.ellipsis);
+                          } else {
+                            return LinearProgressIndicator(
+                                backgroundColor:
+                                    current.color != Colors.transparent
+                                        ? current.color
+                                        : null,
+                                valueColor: AlwaysStoppedAnimation(
+                                    current.color != Colors.transparent
+                                        ? current.color
+                                        : Theme.of(context).primaryColor));
+                          }
+                        },
+                      )
+                  : null,
+              leading: photo ??
+                  (current is PhotoObject
+                      ? (current as PhotoObject).photo
+                      : null),
+            ),
+          )
+        : ListTile(
+            dense: isDense,
+            onLongPress: onLongPress,
+            onTap: onTap ?? () => dataObjectTap(current, context),
+            trailing: trailing,
+            title: title ?? Text(current.name),
+            subtitle: subtitle ??
+                FutureBuilder(
+                  future: _memoizer
+                      .runOnce(() async => await current.getSecondLine()),
+                  builder: (cont, subT) {
+                    if (subT.hasData) {
+                      return Text(subT.data,
+                          maxLines: 1, overflow: TextOverflow.ellipsis);
+                    } else {
+                      return LinearProgressIndicator(
+                          backgroundColor: current.color != Colors.transparent
+                              ? current.color
+                              : null,
+                          valueColor: AlwaysStoppedAnimation(
+                              current.color != Colors.transparent
+                                  ? current.color
+                                  : Theme.of(context).primaryColor));
+                    }
+                  },
+                ),
+            leading:
+                current is PhotoObject ? (current as PhotoObject).photo : null,
+          );
   }
 
   Color _getColor(BuildContext context) {

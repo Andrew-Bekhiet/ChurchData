@@ -619,7 +619,8 @@ class _RootState extends State<Root>
                   },
                 ),
                 Selector<User, bool>(
-                  selector: (_, user) => user.manageUsers,
+                  selector: (_, user) =>
+                      user.manageUsers || user.manageAllowedUsers,
                   builder: (context, permission, _) {
                     if (!permission)
                       return Container(
@@ -1191,7 +1192,8 @@ class _RootState extends State<Root>
       'Persons',
       'Search',
       'MyAccount',
-      if (User.instance.manageUsers) 'ManageUsers',
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+        'ManageUsers',
       'DataMap',
       'AdvancedSearch',
       'Settings'

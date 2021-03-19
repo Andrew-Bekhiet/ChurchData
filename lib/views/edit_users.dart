@@ -19,6 +19,10 @@ class _UsersPageState extends State<UsersPage> {
       builder: (context, child) => Scaffold(
         appBar: AppBar(
           actions: [
+            IconButton(
+                icon: Icon(Icons.link),
+                tooltip: 'لينكات الدعوة',
+                onPressed: () => Navigator.pushNamed(context, 'Invitations')),
             if (!_showSearch)
               IconButton(
                   icon: Icon(Icons.search),

@@ -21,6 +21,8 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'invitation.dart';
+
 export 'package:churchdata/models/list_options.dart' show ListOptions;
 export 'package:churchdata/models/order_options.dart';
 export 'package:churchdata/models/search_string.dart';
@@ -390,6 +392,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == Street) return (list?.length ?? 0).toString() + ' شارع';
     if (T == Family) return (list?.length ?? 0).toString() + ' عائلة';
     if (T == Person) return (list?.length ?? 0).toString() + ' شخص';
+    if (T == Invitation) return (list?.length ?? 0).toString() + ' دعوة';
     throw UnimplementedError();
   }
 }

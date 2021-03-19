@@ -9,6 +9,7 @@ import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -486,10 +487,17 @@ class _UserPState extends State<UserP> {
           await FirebaseFunctions.instance.httpsCallable('changeUserName').call(
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         update.remove('name');
+        update.remove('allowedUsers');
         if (update.isNotEmpty)
           await FirebaseFunctions.instance
               .httpsCallable('updatePermissions')
               .call({'affectedUser': widget.user.uid, 'permissions': update});
+        if (old['allowedUsers'] != widget.user.allowedUsers) {
+          await FirebaseFirestore.instance
+              .collection('Users')
+              .doc(widget.user.uid)
+              .update({'allowedUsers': widget.user.allowedUsers});
+        }
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(widget.user.uid);
       }
