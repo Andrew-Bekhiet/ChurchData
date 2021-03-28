@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/order_options.dart';
-import 'package:churchdata/models/search_string.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
@@ -16,8 +15,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
+import 'package:rxdart/rxdart.dart';
 
 class EditStreet extends StatefulWidget {
   final Street street;
@@ -363,54 +361,63 @@ class _EditStreetState extends State<EditStreet> {
   }
 
   void selectArea() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
       context: context,
       builder: (context) {
+        var listOptions = DataObjectListOptions<Area>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              street.areaId =
+                  FirebaseFirestore.instance.collection('Areas').doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Area.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Area.fromDoc).toList()),
+        );
         return Dialog(
-          child: ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-            builder: (context, child) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SearchFilters(0,
-                    textStyle: Theme.of(context).textTheme.bodyText2),
-                Expanded(
-                  child: Selector<OrderOptions, Tuple2<String, bool>>(
-                    selector: (_, o) =>
-                        Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                    builder: (context, options, child) => DataObjectList<Area>(
-                      options: ListOptions<Area>(
-                        floatingActionButton: FloatingActionButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            street.areaId = (await Navigator.of(context)
-                                        .pushNamed('Data/EditArea'))
-                                    as DocumentReference ??
-                                street.areaId;
-                            setState(() {});
-                          },
-                          tooltip: 'إضافة منطقة جديدة',
-                          child: Icon(Icons.add_location),
-                        ),
-                        tap: (area) {
-                          Navigator.of(context).pop();
-                          setState(() {
-                            street.areaId = FirebaseFirestore.instance
-                                .collection('Areas')
-                                .doc(area.id);
-                          });
-                          foci[2].requestFocus();
-                          _selectDate();
-                        },
-                        documentsData: Area.getAllForUser(
-                                orderBy: options.item1,
-                                descending: !options.item2)
-                            .map((s) => s.docs.map(Area.fromDoc).toList()),
-                      ),
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                street.areaId = (await Navigator.of(context)
+                        .pushNamed('Data/EditArea')) as DocumentReference ??
+                    street.areaId;
+                setState(() {});
+              },
+              tooltip: 'إضافة منطقة جديدة',
+              child: Icon(Icons.add_location),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
+                children: [
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
+                  Expanded(
+                    child: DataObjectList<Area>(
+                      options: listOptions,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

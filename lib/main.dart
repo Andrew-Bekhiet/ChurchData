@@ -38,7 +38,6 @@ import 'package:timeago/timeago.dart';
 
 import 'models/hive_persistence_provider.dart';
 import 'models/invitation.dart';
-import 'models/order_options.dart';
 import 'models/theme_notifier.dart';
 import 'models/user.dart';
 import 'models/family.dart';
@@ -69,11 +68,14 @@ void main() {
     if (kReleaseMode) {
       FirebaseCrashlytics.instance.recordFlutterError(error);
     }
-    return Container(
+    return Material(
+      child: Container(
         color: Colors.white,
         child: Text(
           'حدث خطأ:' '\n' + error.summary.toString(),
-        ));
+        ),
+      ),
+    );
   };
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -91,10 +93,7 @@ void main() {
       runApp(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider<OrderOptions>(
-              create: (_) => OrderOptions(),
-            ),
-            ChangeNotifierProvider<User>.value(value: user),
+            StreamProvider<User>.value(initialData: user, value: user.stream),
             ChangeNotifierProvider<ThemeNotifier>(
               create: (_) => ThemeNotifier(
                 ThemeData(

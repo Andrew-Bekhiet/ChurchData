@@ -1,19 +1,25 @@
-import 'package:churchdata/models/order_options.dart';
-import 'package:churchdata/models/search_string.dart';
-import 'package:churchdata/utils/helpers.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
+
+import '../utils/helpers.dart';
+import 'list_options.dart';
+import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
   final int index;
-  const FilterButton(this.index, {Key key}) : super(key: key);
+  final BaseListOptions controller;
+  final BehaviorSubject<OrderOptions> orderOptions;
+  final bool disableOrdering;
+  const FilterButton(this.index, this.controller, this.orderOptions,
+      {Key key, this.disableOrdering = false})
+      : assert(orderOptions != null || disableOrdering),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
       icon: Icon(Icons.filter_list),
       onPressed: () {
-        var orderOptions = context.read<OrderOptions>();
         showDialog(
           context: context,
           builder: (context) => SimpleDialog(
@@ -22,7 +28,7 @@ class FilterButton extends StatelessWidget {
                 icon: Icon(Icons.select_all),
                 label: Text('تحديد الكل'),
                 onPressed: () {
-                  orderOptions.personSelectAll.add(true);
+                  controller.selectAll();
                   Navigator.pop(context);
                 },
               ),
@@ -30,12 +36,15 @@ class FilterButton extends StatelessWidget {
                 icon: Icon(Icons.select_all),
                 label: Text('تحديد لا شئ'),
                 onPressed: () {
-                  orderOptions.personSelectAll.add(false);
+                  controller.selectNone();
                   Navigator.pop(context);
                 },
               ),
-              Text('ترتيب حسب:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...getOrderingOptions(context, orderOptions, index)
+              if (!disableOrdering)
+                Text('ترتيب حسب:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              if (!disableOrdering)
+                ...getOrderingOptions(context, orderOptions, index)
             ],
           ),
         );
@@ -45,22 +54,29 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  const SearchField({Key key, @required this.textStyle}) : super(key: key);
+  SearchField({Key key, @required this.textStyle, @required this.searchStream})
+      : super(key: key);
   final TextStyle textStyle;
+  final TextEditingController _textController = TextEditingController();
+  final BehaviorSubject<String> searchStream;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       style: textStyle,
+      controller: _textController,
       decoration: InputDecoration(
           suffixIcon: IconButton(
             icon: Icon(Icons.close, color: textStyle.color),
-            onPressed: () => context.read<SearchString>().value = '',
+            onPressed: () {
+              _textController.text = '';
+              searchStream.add('');
+            },
           ),
           hintStyle: textStyle,
           icon: Icon(Icons.search, color: textStyle.color),
           hintText: 'بحث ...'),
-      onChanged: (t) => context.read<SearchString>().value = t,
+      onChanged: (_) => searchStream.add(_),
     );
   }
 }
@@ -68,7 +84,17 @@ class SearchField extends StatelessWidget {
 class SearchFilters extends StatelessWidget {
   final int index;
   final TextStyle textStyle;
-  const SearchFilters(this.index, {Key key, @required this.textStyle})
+  final BaseListOptions options;
+  final BehaviorSubject<OrderOptions> orderOptions;
+  final BehaviorSubject<String> searchStream;
+  final bool disableOrdering;
+  const SearchFilters(this.index,
+      {Key key,
+      @required this.textStyle,
+      @required this.options,
+      @required this.searchStream,
+      this.disableOrdering = false,
+      this.orderOptions})
       : super(key: key);
 
   @override
@@ -77,12 +103,18 @@ class SearchFilters extends StatelessWidget {
       children: [
         Expanded(
           child: SearchField(
+            searchStream: searchStream,
             textStyle: textStyle ??
                 Theme.of(context).textTheme.headline6.copyWith(
                     color: Theme.of(context).primaryTextTheme.headline6.color),
           ),
         ),
-        FilterButton(index)
+        FilterButton(
+          index,
+          options,
+          orderOptions,
+          disableOrdering: disableOrdering,
+        ),
       ],
     );
   }

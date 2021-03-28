@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/family.dart';
@@ -13,7 +14,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class EditFamily extends StatefulWidget {
   final Family family;
@@ -564,55 +565,60 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   void selectFamily() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
       context: context,
       builder: (context) {
+        var listOptions = DataObjectListOptions<Family>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              family.insideFamily = FirebaseFirestore.instance
+                  .collection('Families')
+                  .doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Family.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Family.fromDoc).toList()),
+        );
         return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width - 55,
-            height: MediaQuery.of(context).size.height - 110,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                family.insideFamily = (await Navigator.of(context)
+                        .pushNamed('Data/EditFamily')) as DocumentReference ??
+                    family.insideFamily;
+                setState(() {});
+              },
+              tooltip: 'إضافة عائلة جديدة',
+              child: Icon(Icons.group_add),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
                 children: [
-                  SearchFilters(1,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
                   Expanded(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.familyOrderBy, o.familyASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Family>(
-                        options: ListOptions<Family>(
-                          floatingActionButton: FloatingActionButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              widget.family.insideFamily =
-                                  (await Navigator.of(context)
-                                              .pushNamed('Data/EditFamily'))
-                                          as DocumentReference ??
-                                      family.insideFamily;
-                              setState(() {});
-                            },
-                            tooltip: 'إضافة عائلة جديدة',
-                            child: Icon(Icons.group_add),
-                          ),
-                          tap: (value) {
-                            Navigator.of(context).pop();
-                            setState(() {
-                              widget.family.insideFamily = FirebaseFirestore
-                                  .instance
-                                  .collection('Families')
-                                  .doc(value.id);
-                            });
-                            foci[7].requestFocus();
-                          },
-                          documentsData: Family.getAllForUser(
-                                  orderBy: options.item1,
-                                  descending: !options.item2)
-                              .map((s) => s.docs.map(Family.fromDoc).toList()),
-                        ),
-                      ),
+                    child: DataObjectList<Family>(
+                      options: listOptions,
                     ),
                   ),
                 ],
@@ -625,55 +631,60 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   void selectFamily2() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
       context: context,
       builder: (context) {
+        var listOptions = DataObjectListOptions<Family>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              family.insideFamily2 = FirebaseFirestore.instance
+                  .collection('Families')
+                  .doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Family.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Family.fromDoc).toList()),
+        );
         return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width - 55,
-            height: MediaQuery.of(context).size.height - 110,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                family.insideFamily2 = (await Navigator.of(context)
+                        .pushNamed('Data/EditFamily')) as DocumentReference ??
+                    family.insideFamily2;
+                setState(() {});
+              },
+              tooltip: 'إضافة عائلة جديدة',
+              child: Icon(Icons.group_add),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
                 children: [
-                  SearchFilters(1,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
                   Expanded(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.familyOrderBy, o.familyASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Family>(
-                        options: ListOptions<Family>(
-                          floatingActionButton: FloatingActionButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              widget.family.insideFamily2 =
-                                  (await Navigator.of(context)
-                                              .pushNamed('Data/EditFamily'))
-                                          as DocumentReference ??
-                                      family.insideFamily2;
-                              setState(() {});
-                            },
-                            tooltip: 'إضافة عائلة جديدة',
-                            child: Icon(Icons.group_add),
-                          ),
-                          tap: (value) {
-                            Navigator.of(context).pop();
-                            setState(() {
-                              widget.family.insideFamily2 = FirebaseFirestore
-                                  .instance
-                                  .collection('Families')
-                                  .doc(value.id);
-                            });
-                            foci[7].requestFocus();
-                          },
-                          documentsData: Family.getAllForUser(
-                                  orderBy: options.item1,
-                                  descending: !options.item2)
-                              .map((s) => s.docs.map(Family.fromDoc).toList()),
-                        ),
-                      ),
+                    child: DataObjectList<Family>(
+                      options: listOptions,
                     ),
                   ),
                 ],
@@ -686,56 +697,60 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   void selectStreet() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
       context: context,
       builder: (context) {
+        var listOptions = DataObjectListOptions<Street>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              family.streetId = FirebaseFirestore.instance
+                  .collection('Streets')
+                  .doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Street.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Street.fromDoc).toList()),
+        );
         return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width - 55,
-            height: MediaQuery.of(context).size.height - 110,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                family.streetId = (await Navigator.of(context)
+                        .pushNamed('Data/EditStreet')) as DocumentReference ??
+                    family.streetId;
+                setState(() {});
+              },
+              tooltip: 'إضافة شارع جديد جديدة',
+              child: Icon(Icons.add_road),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
                 children: [
-                  SearchFilters(1,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
                   Expanded(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.streetOrderBy, o.streetASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Street>(
-                        options: ListOptions<Street>(
-                          floatingActionButton: FloatingActionButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              family.streetId = (await Navigator.of(context)
-                                          .pushNamed('Data/EditStreet'))
-                                      as DocumentReference ??
-                                  family.streetId;
-                              await family.setAreaIdFromStreet();
-                              setState(() {});
-                            },
-                            tooltip: 'إضافة شارع جديد',
-                            child: Icon(Icons.add_road),
-                          ),
-                          tap: (street) {
-                            Navigator.of(context).pop();
-                            setState(() {
-                              family.streetId = FirebaseFirestore.instance
-                                  .collection('Streets')
-                                  .doc(street.id);
-                              family.setAreaIdFromStreet();
-                            });
-                            foci[3].requestFocus();
-                            _selectDate();
-                          },
-                          documentsData: Street.getAllForUser(
-                                  orderBy: options.item1,
-                                  descending: !options.item2)
-                              .map((s) => s.docs.map(Street.fromDoc).toList()),
-                        ),
-                      ),
+                    child: DataObjectList<Street>(
+                      options: listOptions,
                     ),
                   ),
                 ],

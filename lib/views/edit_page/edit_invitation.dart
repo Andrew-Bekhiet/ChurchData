@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:churchdata/models/person.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:churchdata/models/invitation.dart';
 
-import '../../models/mini_models.dart';
 import '../../models/user.dart';
 
 class EditInvitation extends StatefulWidget {

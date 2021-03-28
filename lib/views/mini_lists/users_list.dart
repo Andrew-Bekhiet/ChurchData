@@ -1,164 +1,97 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/models/data_object_widget.dart';
-import 'package:churchdata/models/list.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-class UsersEditList extends StatefulWidget {
-  UsersEditList({Key key}) : super(key: key);
-
-  @override
-  _UsersEditListState createState() => _UsersEditListState();
-}
+import 'package:rxdart/rxdart.dart';
 
 class UsersList extends StatefulWidget {
-  UsersList({Key key}) : super(key: key);
+  final DataObjectListOptions<User> listOptions;
+
+  const UsersList({Key key, this.listOptions}) : super(key: key);
 
   @override
   _UsersListState createState() => _UsersListState();
 }
 
-class _UsersEditListState extends State<UsersEditList> {
+class _UsersListState extends State<UsersList> {
+  DataObjectListOptions<User> _listOptions;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _listOptions =
+        widget.listOptions ?? context.read<DataObjectListOptions<User>>();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<SearchString>(
-      builder: (context, filter, _) => FutureBuilder<List<User>>(
-        future: User.getUsersForEdit(),
-        builder: (context, future) {
-          if (future.hasError) return Center(child: ErrorWidget(future.error));
-          if (!future.hasData)
-            return Center(child: CircularProgressIndicator());
+    return StreamBuilder<List<User>>(
+      stream: _listOptions.objectsData,
+      builder: (context, options) {
+        if (options.hasError) return Center(child: ErrorWidget(options.error));
+        if (!options.hasData)
+          return const Center(child: CircularProgressIndicator());
 
-          return RefreshIndicator(
-            onRefresh: () {
-              setState(() {});
-              return User.getUsersForEdit();
-            },
-            child: Builder(
-              builder: (context) {
-                List<User> documentData = future.data.sublist(0)
-                  ..sort((u1, u2) => u1.name.compareTo(u2.name));
-                if (filter.value != '')
-                  documentData.retainWhere((element) => element.name
-                      .toLowerCase()
-                      .replaceAll(
-                          RegExp(
-                            r'[أإآ]',
-                          ),
-                          'ا')
-                      .replaceAll(
-                          RegExp(
-                            r'[ى]',
-                          ),
-                          'ي')
-                      .contains(filter.value));
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 6),
-                  addAutomaticKeepAlives: (documentData?.length ?? 0) < 300,
-                  cacheExtent: 200,
-                  itemCount: documentData?.length ?? 0,
-                  itemBuilder: (context, i) {
-                    var current = documentData[i];
-                    return DataObjectWidget<User>(
-                      current,
-                      photo: current.getPhoto(),
-                      onTap: () {
-                        userTap(current, context);
-                      },
-                      subtitle: Text(
-                        current.getPermissions(),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
+        final List<User> _data = options.data;
+        if (_data.isEmpty) return const Center(child: Text('لا يوجد مستخدمين'));
 
-class _UsersListState extends State<UsersList> {
-  @override
-  Widget build(BuildContext c) {
-    return Consumer2<ListOptions<User>, SearchString>(
-      builder: (context, options, filter, _) => StreamBuilder<List<User>>(
-        stream: options.documentsData,
-        builder: (context, stream) {
-          if (stream.hasError) return Center(child: ErrorWidget(stream.error));
-          if (!stream.hasData)
-            return Center(child: CircularProgressIndicator());
-          return RefreshIndicator(
-            onRefresh: () {
-              setState(() {});
-              return options.documentsData.last;
-            },
-            child: Builder(
-              builder: (context) {
-                List<User> documentData = stream.data.sublist(0);
-                if (filter.value != '')
-                  documentData.retainWhere((element) => element.name
-                      .toLowerCase()
-                      .replaceAll(
-                          RegExp(
-                            r'[أإآ]',
-                          ),
-                          'ا')
-                      .replaceAll(
-                          RegExp(
-                            r'[ى]',
-                          ),
-                          'ي')
-                      .contains(filter.value));
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 6),
-                  addAutomaticKeepAlives: (documentData?.length ?? 0) < 300,
-                  cacheExtent: 200,
-                  itemCount: documentData?.length ?? 0,
-                  itemBuilder: (context, i) {
-                    var current = documentData[i];
-                    return DataObjectWidget<User>(
-                      current,
-                      showSubtitle: false,
-                      photo: current.getPhoto(),
-                      onLongPress: User.instance.manageUsers
-                          ? () => userTap(current, context)
-                          : null,
-                      onTap: () {
-                        if (options.selected.contains(current)) {
-                          setState(() {
-                            options.selected.remove(current);
-                          });
-                        } else {
-                          setState(() {
-                            options.selected.add(current);
-                          });
-                        }
-                      },
-                      trailing: Checkbox(
-                          value: options.selected.contains(current),
-                          onChanged: (v) {
-                            setState(() {
-                              if (v) {
-                                options.selected.add(current);
-                              } else {
-                                options.selected.remove(current);
-                              }
-                            });
-                          }),
-                    );
+        mergeSort(_data, compare: (u1, u2) => u1.name.compareTo(u2.name));
+
+        return ListView.builder(
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          itemCount: _data.length + 1,
+          cacheExtent: 500,
+          itemBuilder: (context, i) {
+            if (i == _data.length)
+              return Container(height: MediaQuery.of(context).size.height / 38);
+
+            final User current = _data[i];
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(3, 0, 9, 0),
+              child: _listOptions.itemBuilder(
+                current,
+                onLongPress: _listOptions.onLongPress ??
+                    (u) {
+                      _listOptions.selectionMode
+                          .add(!_listOptions.selectionModeLatest);
+                      if (_listOptions.selectionModeLatest)
+                        _listOptions.select(current);
+                    },
+                onTap: (User current) {
+                  if (!_listOptions.selectionModeLatest) {
+                    _listOptions.tap == null
+                        ? dataObjectTap(current, context)
+                        : _listOptions.tap(current);
+                  } else {
+                    _listOptions.toggleSelected(current);
+                  }
+                },
+                trailing: StreamBuilder<Map<String, User>>(
+                  stream: Rx.combineLatest2(_listOptions.selected,
+                      _listOptions.selectionMode, (a, b) => b ? a : null),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return Checkbox(
+                        value: snapshot.data.containsKey(current.id),
+                        onChanged: (v) {
+                          if (v) {
+                            _listOptions.select(current);
+                          } else {
+                            _listOptions.deselect(current);
+                          }
+                        },
+                      );
+                    }
+                    return Container(width: 1, height: 1);
                   },
-                );
-              },
-            ),
-          );
-        },
-      ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

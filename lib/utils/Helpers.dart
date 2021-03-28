@@ -8,7 +8,6 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:churchdata/models/data_dialog.dart';
-import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/views/search_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -33,14 +32,13 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
-import 'package:tuple/tuple.dart';
 
 import '../models/list_options.dart';
 import '../models/notification.dart' as no;
 import '../models/order_options.dart';
-import '../models/search_string.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
 import '../models/super_classes.dart';
@@ -272,6 +270,8 @@ void dataObjectTap(DataObject obj, BuildContext context) {
     familyTap(obj, context);
   else if (obj is Person)
     personTap(obj, context);
+  else if (obj is User)
+    userTap(obj, context);
   else
     throw UnimplementedError();
 }
@@ -313,156 +313,54 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
   return null;
 }
 
-List<RadioListTile> getOrderingOptions(
-    BuildContext context, OrderOptions orderOptions, int index) {
-  if (index == 0) {
-    return Area.getStaticHumanReadableMap()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.areaOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setAreaOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.areaASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setAreaASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.areaASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setAreaASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else if (index == 1) {
-    return Street.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.streetOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setStreetOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else if (index == 2) {
-    return Family.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.familyOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setFamilyOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.familyASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setFamilyASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.familyASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setFamilyASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else //if(_tabController.index == 3){
-    return Person.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.streetOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setStreetOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
+List<RadioListTile> getOrderingOptions(BuildContext context,
+    BehaviorSubject<OrderOptions> orderOptions, int index) {
+  Map source = index == 0
+      ? Area.getStaticHumanReadableMap()
+      : index == 1
+          ? Street.getHumanReadableMap2()
+          : index == 2
+              ? Family.getHumanReadableMap2()
+              : Person.getHumanReadableMap2();
+
+  return source.entries
+      .map(
+        (e) => RadioListTile(
+          value: e.key,
+          groupValue: orderOptions.value.orderBy,
+          title: Text(e.value),
+          onChanged: (value) {
+            orderOptions
+                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
+            Navigator.pop(context);
+          },
+        ),
+      )
+      .toList()
+        ..addAll(
+          [
+            RadioListTile(
+              value: 'true',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تصاعدي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile(
+              value: 'false',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تنازلي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
 }
 
 String getPhone(String phone, [bool whatsapp = true]) {
@@ -865,7 +763,6 @@ Future processClickedNotification(BuildContext context,
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -889,7 +786,6 @@ Future processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -915,7 +811,6 @@ Future processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -1008,43 +903,37 @@ Future processLink(Uri deepLink, BuildContext context) async {
 }
 
 void sendNotification(BuildContext context, dynamic attachement) async {
+  BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
   List<User> users = await showDialog(
     context: context,
     builder: (context) {
       return MultiProvider(
         providers: [
-          ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-          ),
-          ListenableProvider(
-            create: (_) => ListOptions<User>(
-              documentsData: Stream.fromFuture(User.getAllUsersLive())
-                  .map((s) => s.docs.map(User.fromDoc).toList()),
-            ),
-          ),
+          Provider(
+              create: (_) => DataObjectListOptions<User>(
+                  selectionMode: true,
+                  searchQuery: search,
+                  itemsStream: Stream.fromFuture(User.getAllUsersLive())
+                      .map((s) => s.docs.map(User.fromDoc).toList()))),
         ],
-        builder: (context, child) => DataDialog(
+        builder: (context, child) => AlertDialog(
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(
-                    context, context.read<ListOptions<User>>().selected);
+                    context,
+                    context
+                        .read<DataObjectListOptions<User>>()
+                        .selectedLatest
+                        .values
+                        .toList());
               },
               child: Text('تم'),
             )
           ],
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SearchField(textStyle: Theme.of(context).textTheme.bodyText2),
-              Expanded(
-                child: Selector<OrderOptions, Tuple2<String, bool>>(
-                  selector: (_, o) =>
-                      Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                  builder: (context, options, child) => UsersList(),
-                ),
-              ),
-            ],
+          content: Container(
+            width: 280,
+            child: UsersList(),
           ),
         ),
       );

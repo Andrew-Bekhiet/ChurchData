@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
-import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/views/mini_lists.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,6 +21,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 
 class EditArea extends StatefulWidget {
   final Area area;
@@ -535,6 +536,7 @@ class _EditAreaState extends State<EditArea> {
   }
 
   void showUsers() async {
+    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     area.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
@@ -543,49 +545,48 @@ class _EditAreaState extends State<EditArea> {
               builder: (c, users) => users.hasData
                   ? MultiProvider(
                       providers: [
-                        ListenableProvider<SearchString>(
-                          create: (_) => SearchString(''),
-                        ),
-                        ListenableProvider(
-                          create: (_) => ListOptions<User>(
-                            selected: users.data,
-                            documentsData:
-                                Stream.fromFuture(User.getAllUsersLive()).map(
-                                    (s) => s.docs.map(User.fromDoc).toList()),
-                          ),
+                        Provider(
+                          create: (_) => DataObjectListOptions<User>(
+                              searchQuery: searchStream,
+                              selectionMode: true,
+                              itemsStream:
+                                  Stream.fromFuture(User.getAllUsersLive()).map(
+                                      (s) => s.docs.map(User.fromDoc).toList()),
+                              selected: {
+                                for (var item in users.data) item.uid: item
+                              }),
                         )
                       ],
-                      builder: (context, child) => DataDialog(
+                      builder: (context, child) => AlertDialog(
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.pop(
                                   context,
                                   context
-                                      .read<ListOptions<User>>()
-                                      .selected
+                                      .read<DataObjectListOptions<User>>()
+                                      .selectedLatest
+                                      .values
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
                             child: Text('تم'),
                           )
                         ],
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SearchField(
-                                textStyle:
-                                    Theme.of(context).textTheme.bodyText2),
-                            Expanded(
-                              child:
-                                  Selector<OrderOptions, Tuple2<String, bool>>(
-                                selector: (_, o) => Tuple2<String, bool>(
-                                    o.areaOrderBy, o.areaASC),
-                                builder: (context, options, child) =>
-                                    UsersList(),
+                        content: Container(
+                          width: 280,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SearchField(
+                                  searchStream: searchStream,
+                                  textStyle:
+                                      Theme.of(context).textTheme.bodyText2),
+                              Expanded(
+                                child: UsersList(),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     )

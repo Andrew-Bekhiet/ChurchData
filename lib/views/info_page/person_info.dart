@@ -338,7 +338,7 @@ class PersonInfo extends StatelessWidget {
                           },
                         ),
                       ),
-                      TimeHistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
+                      HistoryProperty('تاريخ أخر مكالمة:', person.lastCall,
                           person.ref.collection('CallHistory')),
                       if ((person.notes ?? '') != '')
                         CopiableProperty('ملاحظات:', person.notes),
@@ -378,38 +378,24 @@ class PersonInfo extends StatelessWidget {
                         title: Text('داخل منطقة:'),
                         subtitle: person.areaId != null &&
                                 person.areaId.parent.id != 'null'
-                            ? FutureBuilder<Area>(
-                                future: Area.fromId(person.areaId.id),
-                                builder: (context, area) => area.hasData
-                                    ? DataObjectWidget<Area>(area.data,
-                                        isDense: true)
-                                    : LinearProgressIndicator(),
-                              )
+                            ? AsyncDataObjectWidget<Area>(
+                                person.areaId, Area.fromDoc)
                             : Text('غير موجودة'),
                       ),
                       ListTile(
                         title: Text('داخل شارع:'),
                         subtitle: person.streetId != null &&
                                 person.streetId.parent.id != 'null'
-                            ? FutureBuilder<Street>(
-                                future: Street.fromId(person.streetId.id),
-                                builder: (context, street) => street.hasData
-                                    ? DataObjectWidget<Street>(street.data,
-                                        isDense: true)
-                                    : LinearProgressIndicator(),
-                              )
+                            ? AsyncDataObjectWidget<Street>(
+                                person.streetId, Street.fromDoc)
                             : Text('غير موجود'),
                       ),
                       if (person.familyId != null &&
                           person.familyId.parent.id != 'null')
                         ListTile(
                           title: Text('داخل عائلة:'),
-                          subtitle: FutureBuilder<Family>(
-                            future: Family.fromId(person.familyId.id),
-                            builder: (context, family) => family.hasData
-                                ? DataObjectWidget<Family>(family.data)
-                                : LinearProgressIndicator(),
-                          ),
+                          subtitle: AsyncDataObjectWidget<Family>(
+                              person.familyId, Family.fromDoc),
                         ),
                       EditHistoryProperty(
                           'أخر تحديث للبيانات:',

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
-import 'package:churchdata/models/search_string.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
@@ -16,7 +15,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
+import 'package:rxdart/rxdart.dart';
 
 class UserP extends StatefulWidget {
   final User user;
@@ -519,40 +518,60 @@ class _UserPState extends State<UserP> {
   }
 
   Future _selectPerson() async {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     await showDialog(
       context: context,
       builder: (context) {
-        return DataDialog(
-          content: Container(
-            width: MediaQuery.of(context).size.width - 55,
-            height: MediaQuery.of(context).size.height - 110,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
+        var listOptions = DataObjectListOptions<Person>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              widget.user.personRef = 'Persons/${value.id}';
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Person.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Person.fromDoc).toList()),
+        );
+        return Dialog(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                widget.user.personRef = (await Navigator.of(context)
+                        .pushNamed('Data/EditPerson')) as DocumentReference ??
+                    widget.user.personRef;
+                setState(() {});
+              },
+              tooltip: 'إضافة شخص جديد',
+              child: Icon(Icons.person_add),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
                 children: [
-                  SearchFilters(3,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
-                  Expanded(
-                      child: Selector<OrderOptions, Tuple2<String, bool>>(
-                    selector: (_, o) =>
-                        Tuple2<String, bool>(o.personOrderBy, o.personASC),
-                    builder: (context, options, child) =>
-                        DataObjectList<Person>(
-                      options: ListOptions<Person>(
-                        tap: (person) {
-                          setState(() {
-                            if (person != null)
-                              widget.user.personRef = 'Persons/${person.id}';
-                          });
-                          Navigator.of(context).pop();
-                        },
-                        documentsData: Person.getAllForUser(
-                                orderBy: options.item1,
-                                descending: !options.item2)
-                            .map((s) => s.docs.map(Person.fromDoc).toList()),
-                      ),
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
                     ),
-                  )),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
+                  Expanded(
+                    child: DataObjectList<Person>(
+                      options: listOptions,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -563,6 +582,7 @@ class _UserPState extends State<UserP> {
   }
 
   void editAllowedUsers() async {
+    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
     widget.user.allowedUsers = await showDialog(
           context: context,
           builder: (context) {
@@ -571,14 +591,17 @@ class _UserPState extends State<UserP> {
               builder: (c, users) => users.hasData
                   ? MultiProvider(
                       providers: [
-                        ListenableProvider<SearchString>(
-                          create: (_) => SearchString(''),
-                        ),
-                        ListenableProvider(
-                            create: (_) => ListOptions<User>(
-                                documentsData: Stream.fromFuture(
-                                    User.getAllSemiManagers()),
-                                selected: users.data))
+                        Provider(
+                          create: (_) => DataObjectListOptions<User>(
+                            searchQuery: searchStream,
+                            selectionMode: true,
+                            itemsStream:
+                                Stream.fromFuture(User.getAllSemiManagers()),
+                            selected: {
+                              for (var item in users.data) item.uid: item
+                            },
+                          ),
+                        )
                       ],
                       builder: (context, child) => AlertDialog(
                         actions: [
@@ -587,8 +610,9 @@ class _UserPState extends State<UserP> {
                               Navigator.pop(
                                   context,
                                   context
-                                      .read<ListOptions<User>>()
-                                      .selected
+                                      .read<DataObjectListOptions<User>>()
+                                      .selectedLatest
+                                      .values
                                       ?.map((f) => f.uid)
                                       ?.toList());
                             },
@@ -601,16 +625,11 @@ class _UserPState extends State<UserP> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SearchField(
+                                  searchStream: searchStream,
                                   textStyle:
                                       Theme.of(context).textTheme.bodyText2),
                               Expanded(
-                                child: Selector<OrderOptions,
-                                    Tuple2<String, bool>>(
-                                  selector: (_, o) => Tuple2<String, bool>(
-                                      o.areaOrderBy, o.areaASC),
-                                  builder: (context, options, child) =>
-                                      UsersList(),
-                                ),
+                                child: UsersList(),
                               ),
                             ],
                           ),

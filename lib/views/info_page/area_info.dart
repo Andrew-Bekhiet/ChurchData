@@ -1,5 +1,6 @@
 import 'package:churchdata/models/area.dart';
-import 'package:churchdata/models/search_string.dart';
+import 'package:churchdata/models/double_circular_notched_bhape.dart';
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
@@ -17,11 +18,17 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/material.dart';
 import 'package:icon_shadow/icon_shadow.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 class AreaInfo extends StatelessWidget {
   final Area area;
   final Map showWarning = <String, bool>{'p1': true};
+
+  final BehaviorSubject<String> _searchStream =
+      BehaviorSubject<String>.seeded('');
+  final BehaviorSubject<OrderOptions> _orderOptions =
+      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   AreaInfo({Key key, this.area}) : super(key: key);
 
@@ -64,103 +71,37 @@ class AreaInfo extends StatelessWidget {
                   child: Text('تم حذف المنطقة'),
                 ),
               );
+            var _listOptions = DataObjectListOptions<Street>(
+              searchQuery: _searchStream,
+              tap: (street) => streetTap(street, context),
+              itemsStream: _orderOptions.flatMap(
+                (o) => area
+                    .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
+                    .map((s) => s.docs.map(Street.fromDoc).toList()),
+              ),
+            );
             return Scaffold(
-              body: ListenableProvider<SearchString>(
-                create: (_) => SearchString(''),
-                builder: (context, child) => NestedScrollView(
-                  headerSliverBuilder: (context, _) => <Widget>[
-                    SliverAppBar(
-                      backgroundColor:
-                          area.color != Colors.transparent ? area.color : null,
-                      actions: <Widget>[
-                        if (permission)
-                          IconButton(
-                            icon: DescribedFeatureOverlay(
-                              backgroundDismissible: false,
-                              barrierDismissible: false,
-                              contentLocation: ContentLocation.below,
-                              featureId: 'Edit',
-                              tapTarget: Icon(
-                                Icons.edit,
-                                color: IconTheme.of(context).color,
-                              ),
-                              title: Text('تعديل'),
-                              description: Column(
-                                children: <Widget>[
-                                  Text('يمكنك تعديل البيانات من هنا'),
-                                  OutlinedButton.icon(
-                                    icon: Icon(Icons.forward),
-                                    label: Text(
-                                      'التالي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                    onPressed: () =>
-                                        FeatureDiscovery.completeCurrentStep(
-                                            context),
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () =>
-                                        FeatureDiscovery.dismissAll(context),
-                                    child: Text(
-                                      'تخطي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Theme.of(context).accentColor,
-                              targetColor: Colors.transparent,
-                              textColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .bodyText1
-                                  .color,
-                              child: Builder(
-                                builder: (context) => IconShadowWidget(
-                                  Icon(
-                                    Icons.edit,
-                                    color: IconTheme.of(context).color,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            onPressed: () async {
-                              dynamic result = await Navigator.of(context)
-                                  .pushNamed('Data/EditArea', arguments: area);
-                              if (result is DocumentReference) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('تم الحفظ بنجاح'),
-                                  ),
-                                );
-                              } else if (result == 'deleted')
-                                Navigator.of(context).pop();
-                            },
-                            tooltip: 'تعديل',
-                          ),
+              body: NestedScrollView(
+                headerSliverBuilder: (context, _) => <Widget>[
+                  SliverAppBar(
+                    backgroundColor:
+                        area.color != Colors.transparent ? area.color : null,
+                    actions: <Widget>[
+                      if (permission)
                         IconButton(
                           icon: DescribedFeatureOverlay(
                             backgroundDismissible: false,
                             barrierDismissible: false,
                             contentLocation: ContentLocation.below,
-                            featureId: 'Share',
+                            featureId: 'Edit',
                             tapTarget: Icon(
-                              Icons.share,
+                              Icons.edit,
+                              color: IconTheme.of(context).color,
                             ),
-                            title: Text('مشاركة البيانات'),
+                            title: Text('تعديل'),
                             description: Column(
                               children: <Widget>[
-                                Text(
-                                    'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
+                                Text('يمكنك تعديل البيانات من هنا'),
                                 OutlinedButton.icon(
                                   icon: Icon(Icons.forward),
                                   label: Text(
@@ -200,32 +141,40 @@ class AreaInfo extends StatelessWidget {
                             child: Builder(
                               builder: (context) => IconShadowWidget(
                                 Icon(
-                                  Icons.share,
+                                  Icons.edit,
                                   color: IconTheme.of(context).color,
                                 ),
                               ),
                             ),
                           ),
                           onPressed: () async {
-                            await Share.share(
-                              await shareArea(area),
-                            );
+                            dynamic result = await Navigator.of(context)
+                                .pushNamed('Data/EditArea', arguments: area);
+                            if (result is DocumentReference) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحفظ بنجاح'),
+                                ),
+                              );
+                            } else if (result == 'deleted')
+                              Navigator.of(context).pop();
                           },
-                          tooltip: 'مشاركة برابط',
+                          tooltip: 'تعديل',
                         ),
-                        DescribedFeatureOverlay(
+                      IconButton(
+                        icon: DescribedFeatureOverlay(
                           backgroundDismissible: false,
                           barrierDismissible: false,
                           contentLocation: ContentLocation.below,
-                          featureId: 'MoreOptions',
+                          featureId: 'Share',
                           tapTarget: Icon(
-                            Icons.more_vert,
+                            Icons.share,
                           ),
-                          title: Text('المزيد من الخيارات'),
+                          title: Text('مشاركة البيانات'),
                           description: Column(
                             children: <Widget>[
                               Text(
-                                  'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة'),
+                                  'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
                               OutlinedButton.icon(
                                 icon: Icon(Icons.forward),
                                 label: Text(
@@ -262,224 +211,284 @@ class AreaInfo extends StatelessWidget {
                               .primaryTextTheme
                               .bodyText1
                               .color,
-                          child: PopupMenuButton(
-                            onSelected: (_) => sendNotification(context, area),
-                            itemBuilder: (context) {
-                              return [
-                                PopupMenuItem(
-                                  value: '',
-                                  child:
-                                      Text('ارسال إشعار للمستخدمين عن المنطقة'),
-                                ),
-                              ];
-                            },
-                          ),
-                        ),
-                      ],
-                      expandedHeight: 250.0,
-                      stretch: true,
-                      pinned: true,
-                      flexibleSpace: LayoutBuilder(
-                        builder: (context, constraints) => FlexibleSpaceBar(
-                            title: AnimatedOpacity(
-                              duration: Duration(milliseconds: 300),
-                              opacity: constraints.biggest.height >
-                                      kToolbarHeight * 1.7
-                                  ? 0
-                                  : 1,
-                              child: Text(area.name),
-                            ),
-                            background: area.photo),
-                      ),
-                    ),
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        <Widget>[
-                          ListTile(
-                            title: Hero(
-                              tag: area.id + '-name',
-                              child: Material(
-                                type: MaterialType.transparency,
-                                child: Text(
-                                  area.name,
-                                  style: Theme.of(context).textTheme.headline6,
-                                ),
+                          child: Builder(
+                            builder: (context) => IconShadowWidget(
+                              Icon(
+                                Icons.share,
+                                color: IconTheme.of(context).color,
                               ),
                             ),
                           ),
-                          if ((area.address ?? '') != '')
-                            CopiableProperty('العنوان:', area.address),
-                          if (area.locationPoints != null)
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.map),
-                              onPressed: () => showMap(context, area),
-                              label: Text('إظهار على الخريطة'),
+                        ),
+                        onPressed: () async {
+                          await Share.share(
+                            await shareArea(area),
+                          );
+                        },
+                        tooltip: 'مشاركة برابط',
+                      ),
+                      DescribedFeatureOverlay(
+                        backgroundDismissible: false,
+                        barrierDismissible: false,
+                        contentLocation: ContentLocation.below,
+                        featureId: 'MoreOptions',
+                        tapTarget: Icon(
+                          Icons.more_vert,
+                        ),
+                        title: Text('المزيد من الخيارات'),
+                        description: Column(
+                          children: <Widget>[
+                            Text(
+                                'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة'),
+                            OutlinedButton.icon(
+                              icon: Icon(Icons.forward),
+                              label: Text(
+                                'التالي',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyText2
+                                      .color,
+                                ),
+                              ),
+                              onPressed: () =>
+                                  FeatureDiscovery.completeCurrentStep(context),
                             ),
-                          Divider(thickness: 1),
-                          HistoryProperty('تاريخ أخر زيارة:', area.lastVisit,
-                              area.ref.collection('VisitHistory')),
-                          HistoryProperty(
-                              'تاريخ أخر زيارة (لللأب الكاهن):',
-                              area.fatherLastVisit,
-                              area.ref.collection('FatherVisitHistory')),
-                          EditHistoryProperty(
-                            'أخر تحديث للبيانات:',
-                            area.lastEdit,
-                            area.ref.collection('EditHistory'),
-                            discoverFeature: true,
+                            OutlinedButton(
+                              onPressed: () =>
+                                  FeatureDiscovery.dismissAll(context),
+                              child: Text(
+                                'تخطي',
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyText2
+                                      .color,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Theme.of(context).accentColor,
+                        targetColor: Colors.transparent,
+                        textColor:
+                            Theme.of(context).primaryTextTheme.bodyText1.color,
+                        child: PopupMenuButton(
+                          onSelected: (_) => sendNotification(context, area),
+                          itemBuilder: (context) {
+                            return [
+                              PopupMenuItem(
+                                value: '',
+                                child:
+                                    Text('ارسال إشعار للمستخدمين عن المنطقة'),
+                              ),
+                            ];
+                          },
+                        ),
+                      ),
+                    ],
+                    expandedHeight: 250.0,
+                    stretch: true,
+                    pinned: true,
+                    flexibleSpace: LayoutBuilder(
+                      builder: (context, constraints) => FlexibleSpaceBar(
+                          title: AnimatedOpacity(
+                            duration: Duration(milliseconds: 300),
+                            opacity: constraints.biggest.height >
+                                    kToolbarHeight * 1.7
+                                ? 0
+                                : 1,
+                            child: Text(area.name),
                           ),
-                          Divider(thickness: 1),
-                          Text('الشوارع بالمنطقة:',
-                              style: Theme.of(context).textTheme.bodyText1),
-                          SearchFilters(1,
-                              textStyle: Theme.of(context).textTheme.bodyText2),
-                        ],
-                      ),
+                          background: area.photo),
                     ),
-                  ],
-                  body: SafeArea(
-                    child: Consumer<OrderOptions>(
-                      builder: (context, options, _) => DataObjectList<Street>(
-                        options: ListOptions<Street>(
-                            doubleActionButton: true,
-                            floatingActionButton: permission
-                                ? Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: <Widget>[
-                                      Padding(
-                                        padding: EdgeInsets.only(right: 32),
-                                        child: FloatingActionButton(
-                                          tooltip: 'تسجيل أخر زيارة اليوم',
-                                          heroTag: 'lastVisit',
-                                          onPressed: () =>
-                                              recordLastVisit(context, area),
-                                          child: DescribedFeatureOverlay(
-                                            backgroundDismissible: false,
-                                            barrierDismissible: false,
-                                            contentLocation:
-                                                ContentLocation.above,
-                                            featureId: 'LastVisit',
-                                            tapTarget: Icon(Icons.update),
-                                            title:
-                                                Text('تسجيل تاريخ أخر زيارة'),
-                                            description: Column(
-                                              children: <Widget>[
-                                                Text(
-                                                    'يمكنك تسجيل تاريخ أخر زيارة من هنا بشكل مباشر'),
-                                                OutlinedButton.icon(
-                                                  icon: Icon(Icons.forward),
-                                                  label: Text(
-                                                    'التالي',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyText2
-                                                          .color,
-                                                    ),
-                                                  ),
-                                                  onPressed: () =>
-                                                      FeatureDiscovery
-                                                          .completeCurrentStep(
-                                                              context),
-                                                ),
-                                                OutlinedButton(
-                                                  onPressed: () =>
-                                                      FeatureDiscovery
-                                                          .dismissAll(context),
-                                                  child: Text(
-                                                    'تخطي',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyText2
-                                                          .color,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            backgroundColor:
-                                                Theme.of(context).accentColor,
-                                            targetColor:
-                                                Theme.of(context).primaryColor,
-                                            textColor: Theme.of(context)
-                                                .primaryTextTheme
-                                                .bodyText1
-                                                .color,
-                                            child: Icon(Icons.update),
-                                          ),
-                                        ),
-                                      ),
-                                      FloatingActionButton(
-                                        heroTag: null,
-                                        onPressed: () => Navigator.of(context)
-                                            .pushNamed('Data/EditStreet',
-                                                arguments: area.ref),
-                                        child: DescribedFeatureOverlay(
-                                          onBackgroundTap: () async {
-                                            await FeatureDiscovery
-                                                .completeCurrentStep(context);
-                                            return true;
-                                          },
-                                          onDismiss: () async {
-                                            await FeatureDiscovery
-                                                .completeCurrentStep(context);
-                                            return true;
-                                          },
-                                          backgroundDismissible: true,
-                                          contentLocation:
-                                              ContentLocation.above,
-                                          featureId: 'Add',
-                                          tapTarget: Icon(Icons.add_road),
-                                          title: Text('اضافة شارع'),
-                                          description: Column(
-                                            children: [
-                                              Text(
-                                                  'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا'),
-                                              OutlinedButton(
-                                                onPressed: () =>
-                                                    FeatureDiscovery
-                                                        .completeCurrentStep(
-                                                            context),
-                                                child: Text(
-                                                  'تخطي',
-                                                  style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyText2
-                                                        .color,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          backgroundColor:
-                                              Theme.of(context).accentColor,
-                                          targetColor:
-                                              Theme.of(context).primaryColor,
-                                          textColor: Theme.of(context)
-                                              .primaryTextTheme
-                                              .bodyText1
-                                              .color,
-                                          child: Icon(Icons.add_road),
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : null,
-                            tap: (street) => streetTap(street, context),
-                            documentsData: area
-                                .getMembersLive(
-                                    orderBy: options.streetOrderBy,
-                                    descending: !options.streetASC)
-                                .map((s) =>
-                                    s.docs.map(Street.fromDoc).toList())),
-                      ),
+                  ),
+                  SliverList(
+                    delegate: SliverChildListDelegate(
+                      <Widget>[
+                        ListTile(
+                          title: Hero(
+                            tag: area.id + '-name',
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Text(
+                                area.name,
+                                style: Theme.of(context).textTheme.headline6,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if ((area.address ?? '') != '')
+                          CopiableProperty('العنوان:', area.address),
+                        if (area.locationPoints != null)
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.map),
+                            onPressed: () => showMap(context, area),
+                            label: Text('إظهار على الخريطة'),
+                          ),
+                        Divider(thickness: 1),
+                        HistoryProperty('تاريخ أخر زيارة:', area.lastVisit,
+                            area.ref.collection('VisitHistory')),
+                        HistoryProperty(
+                            'تاريخ أخر زيارة (لللأب الكاهن):',
+                            area.fatherLastVisit,
+                            area.ref.collection('FatherVisitHistory')),
+                        EditHistoryProperty(
+                          'أخر تحديث للبيانات:',
+                          area.lastEdit,
+                          area.ref.collection('EditHistory'),
+                          discoverFeature: true,
+                        ),
+                        Divider(thickness: 1),
+                        Text('الشوارع بالمنطقة:',
+                            style: Theme.of(context).textTheme.bodyText1),
+                        SearchFilters(1,
+                            orderOptions: _orderOptions,
+                            options: _listOptions,
+                            searchStream: _searchStream,
+                            textStyle: Theme.of(context).textTheme.bodyText2),
+                      ],
                     ),
+                  ),
+                ],
+                body: SafeArea(
+                  child: DataObjectList<Street>(
+                    options: _listOptions,
                   ),
                 ),
               ),
+              bottomNavigationBar: BottomAppBar(
+                color: Theme.of(context).primaryColor,
+                shape: const DoubleCircularNotchedButton(),
+                child: StreamBuilder(
+                  stream: _listOptions.objectsData,
+                  builder: (context, snapshot) {
+                    return Text(
+                      (snapshot.data?.length ?? 0).toString() + ' شخص',
+                      textAlign: TextAlign.center,
+                      strutStyle:
+                          StrutStyle(height: IconTheme.of(context).size / 7.5),
+                      style: Theme.of(context).primaryTextTheme.bodyText1,
+                    );
+                  },
+                ),
+              ),
+              floatingActionButtonLocation:
+                  FloatingActionButtonLocation.endDocked,
+              floatingActionButton: permission
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.only(right: 32),
+                          child: FloatingActionButton(
+                            tooltip: 'تسجيل أخر زيارة اليوم',
+                            heroTag: 'lastVisit',
+                            onPressed: () => recordLastVisit(context, area),
+                            child: DescribedFeatureOverlay(
+                              backgroundDismissible: false,
+                              barrierDismissible: false,
+                              contentLocation: ContentLocation.above,
+                              featureId: 'LastVisit',
+                              tapTarget: Icon(Icons.update),
+                              title: Text('تسجيل تاريخ أخر زيارة'),
+                              description: Column(
+                                children: <Widget>[
+                                  Text(
+                                      'يمكنك تسجيل تاريخ أخر زيارة من هنا بشكل مباشر'),
+                                  OutlinedButton.icon(
+                                    icon: Icon(Icons.forward),
+                                    label: Text(
+                                      'التالي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .color,
+                                      ),
+                                    ),
+                                    onPressed: () =>
+                                        FeatureDiscovery.completeCurrentStep(
+                                            context),
+                                  ),
+                                  OutlinedButton(
+                                    onPressed: () =>
+                                        FeatureDiscovery.dismissAll(context),
+                                    child: Text(
+                                      'تخطي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .color,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Theme.of(context).accentColor,
+                              targetColor: Theme.of(context).primaryColor,
+                              textColor: Theme.of(context)
+                                  .primaryTextTheme
+                                  .bodyText1
+                                  .color,
+                              child: Icon(Icons.update),
+                            ),
+                          ),
+                        ),
+                        FloatingActionButton(
+                          heroTag: null,
+                          onPressed: () => Navigator.of(context).pushNamed(
+                              'Data/EditStreet',
+                              arguments: area.ref),
+                          child: DescribedFeatureOverlay(
+                            onBackgroundTap: () async {
+                              await FeatureDiscovery.completeCurrentStep(
+                                  context);
+                              return true;
+                            },
+                            onDismiss: () async {
+                              await FeatureDiscovery.completeCurrentStep(
+                                  context);
+                              return true;
+                            },
+                            backgroundDismissible: true,
+                            contentLocation: ContentLocation.above,
+                            featureId: 'Add',
+                            tapTarget: Icon(Icons.add_road),
+                            title: Text('اضافة شارع'),
+                            description: Column(
+                              children: [
+                                Text(
+                                    'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا'),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.completeCurrentStep(
+                                          context),
+                                  child: Text(
+                                    'تخطي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          .color,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Theme.of(context).accentColor,
+                            targetColor: Theme.of(context).primaryColor,
+                            textColor: Theme.of(context)
+                                .primaryTextTheme
+                                .bodyText1
+                                .color,
+                            child: Icon(Icons.add_road),
+                          ),
+                        ),
+                      ],
+                    )
+                  : null,
             );
           },
         );
@@ -539,8 +548,10 @@ class AreaInfo extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: LinearProgressIndicator(),
                         ));
-                        await area.ref.update(
-                            {'LocationConfirmed': !area.locationConfirmed});
+                        await area.ref.update({
+                          'LocationConfirmed': !area.locationConfirmed,
+                          'LastEdit': User.instance.uid
+                        });
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(

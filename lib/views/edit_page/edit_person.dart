@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:async/async.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
-import 'package:churchdata/models/list_options.dart' as cd;
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
@@ -29,7 +29,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:tuple/tuple.dart';
+import 'package:rxdart/rxdart.dart';
 
 class EditPerson extends StatefulWidget {
   final Person person;
@@ -1431,65 +1431,69 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _selectArea() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
-        context: context,
-        builder: (context) {
-          return Dialog(
-            child: Container(
+      context: context,
+      builder: (context) {
+        var listOptions = DataObjectListOptions<Area>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              person.servingAreaId =
+                  FirebaseFirestore.instance.collection('Areas').doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Area.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Area.fromDoc).toList()),
+        );
+        return Dialog(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                person.servingAreaId = (await Navigator.of(context)
+                        .pushNamed('Data/EditArea')) as DocumentReference ??
+                    person.servingAreaId;
+                cache['ServingAreaName'].invalidate();
+                setState(() {});
+              },
+              tooltip: 'إضافة منطقة جديدة',
+              child: Icon(Icons.add_location),
+            ),
+            body: Container(
               width: MediaQuery.of(context).size.width - 55,
               height: MediaQuery.of(context).size.height - 110,
-              child: ListenableProvider<SearchString>(
-                create: (_) => SearchString(''),
-                builder: (context, child) => Column(
-                  children: [
-                    SearchFilters(0,
-                        textStyle: Theme.of(context).textTheme.bodyText2),
-                    Expanded(
-                      child: Selector<OrderOptions, Tuple2<String, bool>>(
-                        selector: (_, o) =>
-                            Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                        builder: (context, options, child) =>
-                            DataObjectList<Area>(
-                          options: cd.ListOptions<Area>(
-                            floatingActionButton: FloatingActionButton(
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                person.servingAreaId =
-                                    (await Navigator.of(context)
-                                                .pushNamed('Data/EditArea'))
-                                            as DocumentReference ??
-                                        person.servingAreaId;
-                                await person.setStreetIdFromFamily();
-                                cache['ServingAreaName'].invalidate();
-                                setState(() {});
-                              },
-                              tooltip: 'إضافة منطقة جديدة',
-                              child: Icon(Icons.add_location),
-                            ),
-                            tap: (area) {
-                              Navigator.of(context).pop();
-                              cache['ServingAreaName'].invalidate();
-                              setState(() {
-                                person.servingAreaId = FirebaseFirestore
-                                    .instance
-                                    .collection('Areas')
-                                    .doc(area.id);
-                              });
-                            },
-                            documentsData: Area.getAllForUser(
-                                    orderBy: options.item1,
-                                    descending: !options.item2)
-                                .map((s) => s.docs.map(Area.fromDoc).toList()),
-                          ),
-                        ),
-                      ),
+              child: Column(
+                children: [
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
                     ),
-                  ],
-                ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
+                  Expanded(
+                    child: DataObjectList<Area>(
+                      options: listOptions,
+                    ),
+                  ),
+                ],
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
@@ -1509,57 +1513,61 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   void _selectFamily() {
+    final BehaviorSubject<String> _searchStream =
+        BehaviorSubject<String>.seeded('');
+    final BehaviorSubject<OrderOptions> _orderOptions =
+        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
     showDialog(
       context: context,
       builder: (context) {
+        var listOptions = DataObjectListOptions<Family>(
+          searchQuery: _searchStream,
+          tap: (value) {
+            Navigator.of(context).pop();
+            setState(() {
+              person.familyId = FirebaseFirestore.instance
+                  .collection('Families')
+                  .doc(value.id);
+            });
+            FocusScope.of(context).nextFocus();
+          },
+          itemsStream: _orderOptions
+              .flatMap((value) => Family.getAllForUser(
+                  orderBy: value.orderBy, descending: !value.asc))
+              .map((s) => s.docs.map(Family.fromDoc).toList()),
+        );
         return Dialog(
-          child: Container(
-            width: MediaQuery.of(context).size.width - 55,
-            height: MediaQuery.of(context).size.height - 110,
-            child: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
+          child: Scaffold(
+            floatingActionButton: FloatingActionButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                person.familyId = (await Navigator.of(context)
+                        .pushNamed('Data/EditFamily')) as DocumentReference ??
+                    person.familyId;
+                cache['FamilyName'].invalidate();
+                setState(() {});
+              },
+              tooltip: 'إضافة عائلة جديدة',
+              child: Icon(Icons.group_add),
+            ),
+            body: Container(
+              width: MediaQuery.of(context).size.width - 55,
+              height: MediaQuery.of(context).size.height - 110,
+              child: Column(
                 children: [
-                  SearchFilters(1,
-                      textStyle: Theme.of(context).textTheme.bodyText2),
+                  SearchFilters(
+                    1,
+                    searchStream: _searchStream,
+                    options: listOptions,
+                    orderOptions: BehaviorSubject<OrderOptions>.seeded(
+                      OrderOptions(),
+                    ),
+                    textStyle: Theme.of(context).textTheme.bodyText2,
+                  ),
                   Expanded(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.familyOrderBy, o.familyASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Family>(
-                        options: cd.ListOptions<Family>(
-                          floatingActionButton: FloatingActionButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              person.familyId = (await Navigator.of(context)
-                                          .pushNamed('Data/EditFamily'))
-                                      as DocumentReference ??
-                                  person.familyId;
-                              await person.setStreetIdFromFamily();
-                              cache['FamilyName'].invalidate();
-                              setState(() {});
-                            },
-                            tooltip: 'إضافة عائلة جديدة',
-                            child: Icon(Icons.group_add),
-                          ),
-                          tap: (value) {
-                            Navigator.of(context).pop();
-                            cache['FamilyName'].invalidate();
-                            setState(() {
-                              person.familyId = FirebaseFirestore.instance
-                                  .collection('Families')
-                                  .doc(value.id);
-                              person.setStreetIdFromFamily();
-                            });
-                            foci[14].requestFocus();
-                          },
-                          documentsData: Family.getAllForUser(
-                                  orderBy: options.item1,
-                                  descending: !options.item2)
-                              .map((s) => s.docs.map(Family.fromDoc).toList()),
-                        ),
-                      ),
+                    child: DataObjectList<Family>(
+                      options: listOptions,
                     ),
                   ),
                 ],

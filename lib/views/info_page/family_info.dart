@@ -1,8 +1,9 @@
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/double_circular_notched_bhape.dart';
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
-import 'package:churchdata/models/search_string.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
@@ -19,11 +20,17 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
 class FamilyInfo extends StatelessWidget {
   final Family family;
   final Map showWarning = <String, bool>{'p1': true};
+
+  final BehaviorSubject<String> _searchStream =
+      BehaviorSubject<String>.seeded('');
+  final BehaviorSubject<OrderOptions> _orderOptions =
+      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   FamilyInfo({Key key, this.family}) : super(key: key);
 
@@ -59,6 +66,23 @@ class FamilyInfo extends StatelessWidget {
                 child: Text('تم حذف العائلة'),
               ),
             );
+          var _listOptions = DataObjectListOptions(
+            searchQuery: _searchStream,
+            tap: (person) => personTap(person, context),
+            itemsStream: _orderOptions.flatMap(
+              (o) => family
+                  .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
+                  .map((s) => s
+                      .map((s) => s.docs
+                          .map((e) => e.reference.parent.id == 'Persons'
+                              ? Person.fromDoc(e)
+                              : Family.fromDoc(e))
+                          .toList())
+                      .expand((e) => e)
+                      .toList()
+                      .cast<DataObject>()),
+            ),
+          );
           return Scaffold(
             appBar: AppBar(
               backgroundColor:
@@ -106,259 +130,217 @@ class FamilyInfo extends StatelessWidget {
                 ),
               ],
             ),
-            body: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => NestedScrollView(
-                headerSliverBuilder: (context, x) {
-                  return <Widget>[
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        <Widget>[
-                          ListTile(
-                            title: Hero(
-                              tag: family.id + '-name',
-                              child: Material(
-                                type: MaterialType.transparency,
-                                child: Text(
-                                  family.name,
-                                  style: Theme.of(context).textTheme.headline6,
-                                ),
+            body: NestedScrollView(
+              headerSliverBuilder: (context, x) {
+                return <Widget>[
+                  SliverList(
+                    delegate: SliverChildListDelegate(
+                      <Widget>[
+                        ListTile(
+                          title: Hero(
+                            tag: family.id + '-name',
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Text(
+                                family.name,
+                                style: Theme.of(context).textTheme.headline6,
                               ),
                             ),
                           ),
-                          if ((family.address ?? '') != '')
-                            ListTile(
-                              title: Text('العنوان'),
-                              subtitle: Text(family.address),
-                              trailing: IconButton(
-                                icon: Icon(Icons.copy),
-                                tooltip: 'نسخ',
-                                onPressed: () => Clipboard.setData(
-                                    ClipboardData(text: family.address ?? '')),
-                              ),
-                            ),
-                          if ((family.notes ?? '') != '')
-                            ListTile(
-                              title: Text('ملاحظات'),
-                              subtitle: Text(family.notes),
-                              trailing: IconButton(
-                                icon: Icon(Icons.copy),
-                                tooltip: 'نسخ',
-                                onPressed: () => Clipboard.setData(
-                                    ClipboardData(text: family.notes ?? '')),
-                              ),
-                            ),
-                          if (family.locationPoint != null)
-                            ElevatedButton.icon(
-                              icon: Icon(Icons.map),
-                              onPressed: () => showMap(context),
-                              label: Text('إظهار على الخريطة'),
-                            ),
-                          Divider(thickness: 1),
-                          HistoryProperty('تاريخ أخر زيارة:', family.lastVisit,
-                              family.ref.collection('VisitHistory')),
-                          HistoryProperty(
-                              'تاريخ أخر زيارة (لللأب الكاهن):',
-                              family.fatherLastVisit,
-                              family.ref.collection('FatherVisitHistory')),
-                          EditHistoryProperty(
-                              'أخر تحديث للبيانات:',
-                              family.lastEdit,
-                              family.ref.collection('EditHistory')),
-                          Divider(thickness: 1),
+                        ),
+                        if ((family.address ?? '') != '')
                           ListTile(
-                            title: Text('داخل منطقة'),
-                            subtitle: family.areaId != null &&
-                                    family.areaId.parent.id != 'null'
-                                ? FutureBuilder<Area>(
-                                    future: Area.fromId(family.areaId.id),
-                                    builder: (context, area) => area.hasData
-                                        ? DataObjectWidget<Area>(area.data,
-                                            isDense: true)
-                                        : LinearProgressIndicator(),
-                                  )
-                                : Text('غير موجودة'),
+                            title: Text('العنوان'),
+                            subtitle: Text(family.address),
+                            trailing: IconButton(
+                              icon: Icon(Icons.copy),
+                              tooltip: 'نسخ',
+                              onPressed: () => Clipboard.setData(
+                                  ClipboardData(text: family.address ?? '')),
+                            ),
                           ),
+                        if ((family.notes ?? '') != '')
                           ListTile(
-                            title: Text('داخل شارع'),
-                            subtitle: family.streetId != null &&
-                                    family.streetId.parent.id != 'null'
-                                ? FutureBuilder<Street>(
-                                    future: Street.fromId(family.streetId.id),
-                                    builder: (context, street) => street.hasData
-                                        ? DataObjectWidget<Street>(street.data,
-                                            isDense: true)
-                                        : LinearProgressIndicator(),
-                                  )
-                                : Text('غير موجود'),
+                            title: Text('ملاحظات'),
+                            subtitle: Text(family.notes),
+                            trailing: IconButton(
+                              icon: Icon(Icons.copy),
+                              tooltip: 'نسخ',
+                              onPressed: () => Clipboard.setData(
+                                  ClipboardData(text: family.notes ?? '')),
+                            ),
                           ),
-                          if (family.insideFamily != null &&
-                              family.insideFamily.parent.id != 'null')
-                            ListTile(
-                              title: Text(family.isStore
-                                  ? 'ادارة المحل'
-                                  : 'داخل ' +
-                                      (family.isStore ? 'محل' : 'عائلة') +
-                                      ''),
-                              subtitle: FutureBuilder<Family>(
-                                future: Family.fromId(family.insideFamily.id),
-                                builder: (context, family) => family.hasData
-                                    ? DataObjectWidget<Family>(family.data)
-                                    : (!family.hasError
-                                        ? LinearProgressIndicator()
-                                        : (family.error
-                                                .toString()
-                                                .toLowerCase()
-                                                .contains('denied')
-                                            ? Text('لا يمكن اظهار ال' +
-                                                (this.family.isStore
-                                                    ? 'محل'
-                                                    : 'عائلة') +
-                                                '')
-                                            : Text('حدث خطأ'))),
-                              ),
-                            ),
-                          if (family.insideFamily2 != null &&
-                              family.insideFamily2.parent.id != 'null')
-                            ListTile(
-                              title: Text('داخل عائلة 2'),
-                              subtitle: FutureBuilder<Family>(
-                                future: Family.fromId(family.insideFamily2.id),
-                                builder: (context, family) => family.hasData
-                                    ? DataObjectWidget<Family>(family.data)
-                                    : (!family.hasError
-                                        ? LinearProgressIndicator()
-                                        : (family.error
-                                                .toString()
-                                                .toLowerCase()
-                                                .contains('denied')
-                                            ? Text('لا يمكن اظهار العائلة')
-                                            : Text('حدث خطأ'))),
-                              ),
-                            ),
-                          Divider(thickness: 1),
-                          Text(
-                              'الأشخاص بال' +
-                                  (family.isStore ? 'محل' : 'عائلة') +
-                                  '',
-                              style: Theme.of(context).textTheme.bodyText1),
-                          SearchFilters(3,
-                              textStyle: Theme.of(context).textTheme.bodyText2),
-                        ],
-                      ),
-                    ),
-                  ];
-                },
-                body: SafeArea(
-                  child: Consumer<OrderOptions>(
-                    builder: (context, options, _) =>
-                        DataObjectList<DataObject>(
-                      options: ListOptions<DataObject>(
-                        doubleActionButton: true,
-                        floatingActionButton: permission
-                            ? Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 32),
-                                    child: FloatingActionButton(
-                                      tooltip: 'تسجيل أخر زيارة اليوم',
-                                      heroTag: 'lastVisit',
-                                      onPressed: () =>
-                                          recordLastVisit(context, family),
-                                      child: Icon(Icons.update),
-                                    ),
-                                  ),
-                                  PopupMenuButton<dynamic>(
-                                    itemBuilder: (_) => [
-                                      PopupMenuItem(
-                                        value: true,
-                                        child: ListTile(
-                                          leading: Icon(Icons.add_business),
-                                          title: Text('اضافة محل'),
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: false,
-                                        child: ListTile(
-                                          leading: Icon(Icons.group_add),
-                                          title: Text('اضافة عائلة'),
-                                        ),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'null',
-                                        child: ListTile(
-                                          leading: Icon(Icons.person_add),
-                                          title: Text('اضافة شخص'),
-                                        ),
-                                      )
-                                    ],
-                                    onSelected: (type) => type == 'null'
-                                        ? Navigator.of(context).pushNamed(
-                                            'Data/EditPerson',
-                                            arguments: family.ref)
-                                        : Navigator.of(context).pushNamed(
-                                            'Data/EditFamily',
-                                            arguments: {
-                                              'Family': family.ref,
-                                              'IsStore': type as bool
-                                            },
-                                          ),
-                                    child: FloatingActionButton(
-                                      onPressed: null,
-                                      child: Icon(Icons.add),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : null,
-                        itemBuilder: (o, {onLongPress, onTap, trailing}) {
-                          if (o.ref.parent.id == 'Persons')
-                            return DataObjectWidget<Person>(o,
-                                onLongPress: onLongPress,
-                                onTap: onTap,
-                                trailing: trailing);
-                          if (o.ref.parent.id == 'Families')
-                            return DataObjectWidget<Family>(o,
-                                onLongPress: onLongPress,
-                                onTap: onTap,
-                                trailing: trailing);
-                          throw UnimplementedError();
-                        },
-                        getStringCount: (list) {
-                          if (list == null) return '';
-                          int personsCount = list.whereType<Person>().length;
-                          int familiesCount = list.whereType<Family>().length;
-                          if (personsCount == 0)
-                            return familiesCount.toString() + ' عائلة';
-                          if (familiesCount == 0)
-                            return personsCount.toString() + ' شخص';
-                          return personsCount.toString() +
-                              ' شخص و' +
-                              familiesCount.toString() +
-                              ' عائلة';
-                        },
-                        documentsData: family
-                            .getMembersLive(
-                                orderBy: options.personOrderBy,
-                                descending: !options.personASC)
-                            .map((s) => s
-                                .map((s) => s.docs
-                                    .map((e) =>
-                                        e.reference.parent.id == 'Persons'
-                                            ? Person.fromDoc(e)
-                                            : Family.fromDoc(e))
-                                    .toList())
-                                .expand((e) => e)
-                                .toList()
-                                .cast<DataObject>()),
-                      ),
+                        if (family.locationPoint != null)
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.map),
+                            onPressed: () => showMap(context),
+                            label: Text('إظهار على الخريطة'),
+                          ),
+                        Divider(thickness: 1),
+                        HistoryProperty('تاريخ أخر زيارة:', family.lastVisit,
+                            family.ref.collection('VisitHistory')),
+                        HistoryProperty(
+                            'تاريخ أخر زيارة (لللأب الكاهن):',
+                            family.fatherLastVisit,
+                            family.ref.collection('FatherVisitHistory')),
+                        EditHistoryProperty(
+                            'أخر تحديث للبيانات:',
+                            family.lastEdit,
+                            family.ref.collection('EditHistory')),
+                        Divider(thickness: 1),
+                        ListTile(
+                          title: Text('داخل منطقة'),
+                          subtitle: family.areaId != null &&
+                                  family.areaId.parent.id != 'null'
+                              ? AsyncDataObjectWidget<Area>(
+                                  family.areaId, Area.fromDoc)
+                              : Text('غير موجودة'),
+                        ),
+                        ListTile(
+                          title: Text('داخل شارع'),
+                          subtitle: family.streetId != null &&
+                                  family.streetId.parent.id != 'null'
+                              ? AsyncDataObjectWidget<Street>(
+                                  family.streetId, Street.fromDoc)
+                              : Text('غير موجود'),
+                        ),
+                        if (family.insideFamily != null &&
+                            family.insideFamily.parent.id != 'null')
+                          ListTile(
+                            title: Text(family.isStore
+                                ? 'ادارة المحل'
+                                : 'داخل ' +
+                                    (family.isStore ? 'محل' : 'عائلة') +
+                                    ''),
+                            subtitle: AsyncDataObjectWidget<Family>(
+                                family.insideFamily, Family.fromDoc),
+                          ),
+                        if (family.insideFamily2 != null &&
+                            family.insideFamily2.parent.id != 'null')
+                          ListTile(
+                            title: Text('داخل عائلة 2'),
+                            subtitle: AsyncDataObjectWidget<Family>(
+                                family.insideFamily2, Family.fromDoc),
+                          ),
+                        Divider(thickness: 1),
+                        Text(
+                            'الأشخاص بال' +
+                                (family.isStore ? 'محل' : 'عائلة') +
+                                '',
+                            style: Theme.of(context).textTheme.bodyText1),
+                        SearchFilters(3,
+                            orderOptions: _orderOptions,
+                            options: _listOptions,
+                            searchStream: _searchStream,
+                            textStyle: Theme.of(context).textTheme.bodyText2),
+                      ],
                     ),
                   ),
+                ];
+              },
+              body: SafeArea(
+                child: DataObjectList(
+                  options: _listOptions,
                 ),
               ),
             ),
+            bottomNavigationBar: BottomAppBar(
+              color: Theme.of(context).primaryColor,
+              shape: const DoubleCircularNotchedButton(),
+              child: StreamBuilder<List<DataObject>>(
+                stream: _listOptions.objectsData,
+                builder: (context, snapshot) {
+                  StringBuffer text = StringBuffer(
+                      (snapshot.data?.whereType<Person>()?.length ?? 0)
+                              .toString() +
+                          ' شخص');
+                  final int familiesCount = snapshot.data
+                          ?.whereType<Family>()
+                          ?.where((f) => !f.isStore)
+                          ?.length ??
+                      0;
+                  if (familiesCount > 0) {
+                    text.write(' و');
+                    text.write(familiesCount.toString());
+                    text.write(' عائلة');
+                  }
+                  final int storesCount = snapshot.data
+                          ?.whereType<Family>()
+                          ?.where((f) => f.isStore)
+                          ?.length ??
+                      0;
+                  if (storesCount > 0) {
+                    text.write(' و');
+                    text.write(storesCount.toString());
+                    text.write(' محل');
+                  }
+                  return Text(
+                    text.toString(),
+                    textAlign: TextAlign.center,
+                    strutStyle:
+                        StrutStyle(height: IconTheme.of(context).size / 7.5),
+                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                  );
+                },
+              ),
+            ),
+            floatingActionButton: permission
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(right: 32),
+                        child: FloatingActionButton(
+                          tooltip: 'تسجيل أخر زيارة اليوم',
+                          heroTag: 'lastVisit',
+                          onPressed: () => recordLastVisit(context, family),
+                          child: Icon(Icons.update),
+                        ),
+                      ),
+                      PopupMenuButton<dynamic>(
+                        itemBuilder: (_) => [
+                          PopupMenuItem(
+                            value: true,
+                            child: ListTile(
+                              leading: Icon(Icons.add_business),
+                              title: Text('اضافة محل'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: false,
+                            child: ListTile(
+                              leading: Icon(Icons.group_add),
+                              title: Text('اضافة عائلة'),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'null',
+                            child: ListTile(
+                              leading: Icon(Icons.person_add),
+                              title: Text('اضافة شخص'),
+                            ),
+                          )
+                        ],
+                        onSelected: (type) => type == 'null'
+                            ? Navigator.of(context).pushNamed('Data/EditPerson',
+                                arguments: family.ref)
+                            : Navigator.of(context).pushNamed(
+                                'Data/EditFamily',
+                                arguments: {
+                                  'Family': family.ref,
+                                  'IsStore': type as bool
+                                },
+                              ),
+                        child: FloatingActionButton(
+                          onPressed: null,
+                          child: Icon(Icons.add),
+                        ),
+                      ),
+                    ],
+                  )
+                : null,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
           );
         },
       ),
@@ -417,8 +399,10 @@ class FamilyInfo extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: LinearProgressIndicator(),
                         ));
-                        await family.ref.update(
-                            {'LocationConfirmed': !family.locationConfirmed});
+                        await family.ref.update({
+                          'LocationConfirmed': !family.locationConfirmed,
+                          'LastEdit': User.instance.uid
+                        });
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
