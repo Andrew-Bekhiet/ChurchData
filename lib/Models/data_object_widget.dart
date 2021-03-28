@@ -1,14 +1,69 @@
 import 'package:async/async.dart';
 import 'package:churchdata/models/super_classes.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:tinycolor/tinycolor.dart';
 
-import 'area.dart';
-import 'family.dart';
-import 'person.dart';
-import 'street.dart';
+class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
+  final DocumentReference doc;
+  final T Function(DocumentSnapshot) transform;
+
+  final void Function() onLongPress;
+  final void Function() onTap;
+  final Widget trailing;
+  final Widget photo;
+  final Widget subtitle;
+  final Widget title;
+  final bool wrapInCard;
+  final bool isDense;
+  final bool showSubtitle;
+  const AsyncDataObjectWidget(this.doc, this.transform,
+      {this.isDense,
+      this.onLongPress,
+      this.onTap,
+      this.trailing,
+      this.subtitle,
+      this.title,
+      this.wrapInCard = true,
+      this.photo,
+      this.showSubtitle = true,
+      Key key})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<T>(
+      future: doc.get(dataSource).then(transform),
+      builder: (context, snapshot) {
+        if (snapshot.hasError &&
+            !snapshot.error.toString().toLowerCase().contains('denied'))
+          return ErrorWidget.builder(snapshot.error);
+        if (snapshot.hasError) return Text('لا يمكن اظهار العنصر المطلوب');
+
+        if (snapshot.connectionState != ConnectionState.done)
+          return const LinearProgressIndicator();
+
+        if (!snapshot.hasData) {
+          return Text('لا يوجد بيانات');
+        }
+        return DataObjectWidget<T>(
+          snapshot.data,
+          isDense: isDense,
+          onLongPress: onLongPress,
+          onTap: onTap,
+          photo: photo,
+          showSubtitle: showSubtitle,
+          subtitle: subtitle,
+          title: title,
+          trailing: trailing,
+          wrapInCard: wrapInCard,
+        );
+      },
+    );
+  }
+}
 
 class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final T current;
