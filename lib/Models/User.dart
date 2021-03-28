@@ -378,6 +378,9 @@ class User extends DataObject
     return 'حساب غير منشط';
   }
 
+  @override
+  Widget get photo => getPhoto();
+
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,

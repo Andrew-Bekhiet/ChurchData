@@ -171,7 +171,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                   return Icon(widget.object.defaultIcon,
                       size: constrains.maxHeight);
                 else {
-                  var photo = Material(
+                  final photo = Material(
                     type: MaterialType.transparency,
                     child: InkWell(
                       onTap: () => showDialog(
