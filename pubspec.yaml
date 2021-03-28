@@ -11,6 +11,7 @@ description: null
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+publish_to: "none"
 version: 6.4.0+6
 
 environment:
@@ -21,58 +22,67 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  battery_optimization:
+    git:
+      url: git://github.com/ChangJoo-Park/battery_optimization.git
+      ref: master
+  feature_discovery:
+    git:
+      url: git://github.com/nilsreichardt/feature_discovery
+      ref: migrate-null-safety
+  tinycolor:
+    git:
+      url: git://github.com/lslv1243/tinycolor.git
+      ref: master
   android_alarm_manager_plus: ^1.0.0
-  battery_optimization: ^0.1.0
   cached_network_image: ^3.0.0-nullsafety
-  cloud_firestore: ^1.0.1
-  cloud_functions: ^1.0.0
+  cloud_firestore: ^1.0.3
+  cloud_functions: ^1.0.2
   connectivity_plus: ^1.0.0
   cupertino_icons: ^1.0.2
   datetime_picker_formfield: ^2.0.0
   device_info_plus: ^1.0.0
-  expandable: ^4.1.4
-  feature_discovery: ^0.13.0+2
+  expandable: ^5.0.1
   file_picker: ^3.0.0-nullsafety.4
-  firebase: ^9.0.0
-  firebase_analytics: ^7.1.1
+  firebase: ^9.0.1
+  firebase_analytics: ^8.0.0-dev.0
   firebase_auth: ^1.0.1
-  firebase_core: ^1.0.1
+  firebase_core: ^1.0.2
   firebase_crashlytics: ^1.0.0
-  firebase_database: ^6.1.0
-  firebase_dynamic_links: ^0.8.0
+  firebase_database: ^6.1.1
+  firebase_dynamic_links: ^2.0.0-dev.0
   firebase_in_app_messaging: ^0.4.0
-  firebase_messaging: ^9.0.0
-  firebase_remote_config: ^0.9.0-dev.0
-  firebase_storage: ^8.0.0
+  firebase_messaging: ^9.1.0
+  firebase_remote_config: ^0.9.0-dev.1
+  firebase_storage: ^8.0.1
   flutter_colorpicker: ^0.4.0-nullsafety.0
-  flutter_contacts: ^0.3.3
-  flutter_local_notifications: ^5.0.0-nullsafety.0
+  flutter_contacts: ^0.3.3+1
+  flutter_local_notifications: ^5.0.0
   flutter_secure_storage: ^4.1.0
   flutter_stream_notifiers: ^0.3.0-nullsafety.0
   google_maps_flutter: ^2.0.1
-  google_sign_in: ^5.0.0
   google_maps_flutter_web: ^0.2.1
-  hive: ^2.0.0
+  google_sign_in: ^5.0.1
+  hive: ^2.0.1
   hive_flutter: ^1.0.0-nullsafety.0
   icon_shadow: ^1.0.1
   image_cropper: ^1.4.0
-  image_picker: ^0.7.2+1
+  image_picker: ^0.7.3
   local_auth: ^1.1.0
   location: ^4.1.1
   open_file: ^3.1.0
   package_info_plus: ^1.0.0
   path_provider: ^2.0.1
-  permission_handler: ^6.0.1+1
+  permission_handler: ^6.1.1
   photo_view: ^0.11.1
   pointycastle: ^3.0.0-nullsafety.2
-  provider: ^4.3.3
+  provider: ^5.0.0
   rxdart: ^0.26.0-nullsafety.1
   share_plus: ^2.1.0-nullsafety.0
   spreadsheet_decoder: ^2.0.0
   timeago: ^3.0.2
-  tinycolor: ^1.0.3
   tuple: ^2.0.0-nullsafety.0
-  url_launcher: ^6.0.2
+  url_launcher: ^6.0.3
   version: ^2.0.0-nullsafety
 
 dev_dependencies:
