@@ -3,6 +3,7 @@ import 'package:churchdata/models/double_circular_notched_bhape.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_dialog.dart';
@@ -21,48 +22,60 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
-class AreaInfo extends StatelessWidget {
+class AreaInfo extends StatefulWidget {
   final Area area;
-  final Map showWarning = <String, bool>{'p1': true};
-
-  final BehaviorSubject<String> _searchStream =
-      BehaviorSubject<String>.seeded('');
-  final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   AreaInfo({Key key, this.area}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!area.locationConfirmed &&
-          area.locationPoints != null &&
-          showWarning['p1']) {
-        showWarning['p1'] = false;
-        await showDialog(
-          context: context,
-          builder: (context) => DataDialog(
-            content: Text('لم يتم تأكيد موقع المنطقة الموجود على الخريطة'),
-            title: Text('تحذير'),
-          ),
-        );
-      }
-      FeatureDiscovery.discoverFeatures(context, [
-        if (User.instance.write) 'Edit',
-        'Share',
-        'MoreOptions',
-        'EditHistory',
-        if (User.instance.write) 'LastVisit',
-        if (User.instance.write) 'Add'
-      ]);
-    });
+  _AreaInfoState createState() => _AreaInfoState();
+}
 
+class _AreaInfoState extends State<AreaInfo> {
+  final BehaviorSubject<String> _searchStream =
+      BehaviorSubject<String>.seeded('');
+
+  final BehaviorSubject<OrderOptions> _orderOptions =
+      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
+  bool showWarning = true;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) async {
+        if (!widget.area.locationConfirmed &&
+            widget.area.locationPoints != null &&
+            showWarning) {
+          showWarning = false;
+          await showDialog(
+            context: context,
+            builder: (context) => DataDialog(
+              content: Text('لم يتم تأكيد موقع المنطقة الموجود على الخريطة'),
+              title: Text('تحذير'),
+            ),
+          );
+        }
+        FeatureDiscovery.discoverFeatures(context, [
+          if (User.instance.write) 'Edit',
+          'Share',
+          'MoreOptions',
+          'EditHistory',
+          if (User.instance.write) 'LastVisit',
+          if (User.instance.write) 'Add'
+        ]);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Selector<User, bool>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) {
         return StreamBuilder<Area>(
-          initialData: area,
-          stream: area.ref.snapshots().map(Area.fromDoc),
+          initialData: widget.area,
+          stream: widget.area.ref.snapshots().map(Area.fromDoc),
           builder: (context, snapshot) {
             final Area area = snapshot.data;
             if (area == null)
@@ -71,7 +84,7 @@ class AreaInfo extends StatelessWidget {
                   child: Text('تم حذف المنطقة'),
                 ),
               );
-            var _listOptions = DataObjectListOptions<Street>(
+            final _listOptions = DataObjectListOptions<Street>(
               searchQuery: _searchStream,
               tap: (street) => streetTap(street, context),
               itemsStream: _orderOptions.flatMap(
@@ -150,14 +163,26 @@ class AreaInfo extends StatelessWidget {
                           onPressed: () async {
                             dynamic result = await Navigator.of(context)
                                 .pushNamed('Data/EditArea', arguments: area);
+                            if (result == null) return;
+
+                            ScaffoldMessenger.of(mainScfld.currentContext)
+                                .hideCurrentSnackBar();
                             if (result is DocumentReference) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
                                 SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
-                            } else if (result == 'deleted')
-                              Navigator.of(context).pop();
+                            } else if (result == 'deleted') {
+                              Navigator.of(mainScfld.currentContext).pop();
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحذف بنجاح'),
+                                ),
+                              );
+                            }
                           },
                           tooltip: 'تعديل',
                         ),

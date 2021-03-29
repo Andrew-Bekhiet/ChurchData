@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:ui';
-
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
@@ -70,14 +67,26 @@ class PersonInfo extends StatelessWidget {
                             dynamic result = await Navigator.of(context)
                                 .pushNamed('Data/EditPerson',
                                     arguments: person);
+                            if (result == null) return;
+
+                            ScaffoldMessenger.of(mainScfld.currentContext)
+                                .hideCurrentSnackBar();
                             if (result is DocumentReference) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
                                 SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
-                            } else if (result == 'deleted')
-                              Navigator.of(context).pop();
+                            } else if (result == 'deleted') {
+                              Navigator.of(mainScfld.currentContext).pop();
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحذف بنجاح'),
+                                ),
+                              );
+                            }
                           },
                           tooltip: 'تعديل',
                         ),

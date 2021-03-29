@@ -6,6 +6,7 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -23,41 +24,54 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
-class FamilyInfo extends StatelessWidget {
+class FamilyInfo extends StatefulWidget {
   final Family family;
-  final Map showWarning = <String, bool>{'p1': true};
-
-  final BehaviorSubject<String> _searchStream =
-      BehaviorSubject<String>.seeded('');
-  final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   FamilyInfo({Key key, this.family}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!family.locationConfirmed &&
-          family.locationPoint != null &&
-          showWarning['p1']) {
-        showWarning['p1'] = false;
-        showDialog(
-          context: context,
-          builder: (context) => DataDialog(
-            content: Text('لم يتم تأكيد موقع ال' +
-                (family.isStore ? 'محل' : 'عائلة') +
-                ' الموجود على الخريطة'),
-            title: Text('تحذير'),
-          ),
-        );
-      }
-    });
+  _FamilyInfoState createState() => _FamilyInfoState();
+}
 
+class _FamilyInfoState extends State<FamilyInfo> {
+  final BehaviorSubject<String> _searchStream =
+      BehaviorSubject<String>.seeded('');
+
+  final BehaviorSubject<OrderOptions> _orderOptions =
+      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
+  bool showWarning = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.family.locationConfirmed &&
+        widget.family.locationPoint != null &&
+        showWarning) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          showWarning = false;
+          showDialog(
+            context: context,
+            builder: (context) => DataDialog(
+              content: Text('لم يتم تأكيد موقع ال' +
+                  (widget.family.isStore ? 'محل' : 'عائلة') +
+                  ' الموجود على الخريطة'),
+              title: Text('تحذير'),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Selector<User, bool>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Family>(
-        initialData: family,
-        stream: family.ref.snapshots().map(Family.fromDoc),
+        initialData: widget.family,
+        stream: widget.family.ref.snapshots().map(Family.fromDoc),
         builder: (context, snapshot) {
           final Family family = snapshot.data;
           if (family == null)
@@ -66,7 +80,8 @@ class FamilyInfo extends StatelessWidget {
                 child: Text('تم حذف العائلة'),
               ),
             );
-          var _listOptions = DataObjectListOptions(
+
+          final _listOptions = DataObjectListOptions(
             searchQuery: _searchStream,
             tap: (person) => personTap(person, context),
             itemsStream: _orderOptions.flatMap(
@@ -83,6 +98,7 @@ class FamilyInfo extends StatelessWidget {
                       .cast<DataObject>()),
             ),
           );
+
           return Scaffold(
             appBar: AppBar(
               backgroundColor:
@@ -95,14 +111,26 @@ class FamilyInfo extends StatelessWidget {
                     onPressed: () async {
                       dynamic result = await Navigator.of(context)
                           .pushNamed('Data/EditFamily', arguments: family);
+                      if (result == null) return;
+
+                      ScaffoldMessenger.of(mainScfld.currentContext)
+                          .hideCurrentSnackBar();
                       if (result is DocumentReference) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(mainScfld.currentContext)
+                            .showSnackBar(
                           SnackBar(
                             content: Text('تم الحفظ بنجاح'),
                           ),
                         );
-                      } else if (result == 'deleted')
-                        Navigator.of(context).pop();
+                      } else if (result == 'deleted') {
+                        Navigator.of(mainScfld.currentContext).pop();
+                        ScaffoldMessenger.of(mainScfld.currentContext)
+                            .showSnackBar(
+                          SnackBar(
+                            content: Text('تم الحذف بنجاح'),
+                          ),
+                        );
+                      }
                     },
                     tooltip: 'تعديل',
                   ),
@@ -173,7 +201,7 @@ class FamilyInfo extends StatelessWidget {
                         if (family.locationPoint != null)
                           ElevatedButton.icon(
                             icon: Icon(Icons.map),
-                            onPressed: () => showMap(context),
+                            onPressed: () => showMap(context, family),
                             label: Text('إظهار على الخريطة'),
                           ),
                         Divider(thickness: 1),
@@ -374,7 +402,7 @@ class FamilyInfo extends StatelessWidget {
     ));
   }
 
-  void showMap(BuildContext context) {
+  void showMap(BuildContext context, Family family) {
     bool approve = User.instance.approveLocations;
     Navigator.of(context).push(
       MaterialPageRoute(

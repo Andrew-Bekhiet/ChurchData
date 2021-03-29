@@ -6,6 +6,7 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
@@ -62,18 +63,29 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  void addTap([bool type = false]) {
+  void addTap([bool type = false]) async {
+    dynamic result;
     if (_tabController.index == 0) {
-      Navigator.of(context).pushNamed('Data/EditArea');
+      result = await Navigator.of(context).pushNamed('Data/EditArea');
     } else if (_tabController.index == 1) {
-      Navigator.of(context).pushNamed('Data/EditStreet');
+      result = await Navigator.of(context).pushNamed('Data/EditStreet');
     } else if (_tabController.index == 2) {
-      Navigator.of(context).pushNamed(
+      result = await Navigator.of(context).pushNamed(
         'Data/EditFamily',
         arguments: {'IsStore': type},
       );
     } else if (_tabController.index == 3) {
-      Navigator.of(context).pushNamed('Data/EditPerson');
+      result = await Navigator.of(context).pushNamed('Data/EditPerson');
+    }
+    if (result == null) return;
+
+    ScaffoldMessenger.of(mainScfld.currentContext).hideCurrentSnackBar();
+    if (result is DocumentReference) {
+      ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
+        SnackBar(
+          content: Text('تم الحفظ بنجاح'),
+        ),
+      );
     }
   }
 

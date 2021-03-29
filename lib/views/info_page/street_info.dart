@@ -4,6 +4,7 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -20,49 +21,52 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
 
-class StreetInfo extends StatelessWidget {
+class StreetInfo extends StatefulWidget {
   final Street street;
-  final Map showWarning = <String, bool>{'p1': true};
-
-  final BehaviorSubject<String> _searchStream =
-      BehaviorSubject<String>.seeded('');
-  final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
   StreetInfo({Key key, this.street}) : super(key: key);
 
   @override
+  _StreetInfoState createState() => _StreetInfoState();
+}
+
+class _StreetInfoState extends State<StreetInfo> {
+  bool showWarning = true;
+
+  final BehaviorSubject<String> _searchStream =
+      BehaviorSubject<String>.seeded('');
+
+  final BehaviorSubject<OrderOptions> _orderOptions =
+      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.street.locationConfirmed &&
+        widget.street.locationPoints != null &&
+        showWarning) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) {
+          showWarning = false;
+          showDialog(
+            context: context,
+            builder: (context) => DataDialog(
+              content: Text('لم يتم تأكيد موقع الشارع الموجود على الخريطة'),
+              title: Text('تحذير'),
+            ),
+          );
+        },
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!street.locationConfirmed &&
-          street.locationPoints != null &&
-          showWarning['p1']) {
-        showWarning['p1'] = false;
-        showDialog(
-          context: context,
-          builder: (context) => DataDialog(
-            content: Text('لم يتم تأكيد موقع الشارع الموجود على الخريطة'),
-            title: Text('تحذير'),
-          ),
-        );
-      }
-    });
-
-    var _listOptions = DataObjectListOptions<Family>(
-      searchQuery: _searchStream,
-      tap: (family) => familyTap(family, context),
-      itemsStream: _orderOptions.flatMap(
-        (o) => street
-            .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
-            .map((s) => s.docs.map(Family.fromDoc).toList()),
-      ),
-    );
-
     return Selector<User, bool>(
       selector: (_, user) => user.write,
       builder: (context, permission, _) => StreamBuilder<Street>(
-        initialData: street,
-        stream: street.ref.snapshots().map(Street.fromDoc),
+        initialData: widget.street,
+        stream: widget.street.ref.snapshots().map(Street.fromDoc),
         builder: (context, snapshot) {
           final Street street = snapshot.data;
           if (street == null)
@@ -71,6 +75,17 @@ class StreetInfo extends StatelessWidget {
                 child: Text('تم حذف الشارع'),
               ),
             );
+
+          final _listOptions = DataObjectListOptions<Family>(
+            searchQuery: _searchStream,
+            tap: (family) => familyTap(family, context),
+            itemsStream: _orderOptions.flatMap(
+              (o) => street
+                  .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
+                  .map((s) => s.docs.map(Family.fromDoc).toList()),
+            ),
+          );
+
           return Scaffold(
             appBar: AppBar(
               backgroundColor:
@@ -83,14 +98,26 @@ class StreetInfo extends StatelessWidget {
                     onPressed: () async {
                       dynamic result = await Navigator.of(context)
                           .pushNamed('Data/EditStreet', arguments: street);
+                      if (result == null) return;
+
+                      ScaffoldMessenger.of(mainScfld.currentContext)
+                          .hideCurrentSnackBar();
                       if (result is DocumentReference) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        ScaffoldMessenger.of(mainScfld.currentContext)
+                            .showSnackBar(
                           SnackBar(
                             content: Text('تم الحفظ بنجاح'),
                           ),
                         );
-                      } else if (result == 'deleted')
-                        Navigator.of(context).pop();
+                      } else if (result == 'deleted') {
+                        Navigator.of(mainScfld.currentContext).pop();
+                        ScaffoldMessenger.of(mainScfld.currentContext)
+                            .showSnackBar(
+                          SnackBar(
+                            content: Text('تم الحذف بنجاح'),
+                          ),
+                        );
+                      }
                     },
                     tooltip: 'تعديل',
                   ),
@@ -137,7 +164,7 @@ class StreetInfo extends StatelessWidget {
                         if (street.locationPoints != null)
                           ElevatedButton.icon(
                             icon: Icon(Icons.map),
-                            onPressed: () => showMap(context),
+                            onPressed: () => showMap(context, street),
                             label: Text('إظهار على الخريطة'),
                           ),
                         Divider(thickness: 1),
@@ -274,7 +301,7 @@ class StreetInfo extends StatelessWidget {
     ));
   }
 
-  void showMap(BuildContext context) {
+  void showMap(BuildContext context, Street street) {
     bool approve = User.instance.approveLocations;
     Navigator.of(context).push(
       MaterialPageRoute(
