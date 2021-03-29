@@ -17,6 +17,7 @@ import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -42,8 +43,6 @@ class EditPerson extends StatefulWidget {
 }
 
 class _EditPersonState extends State<EditPerson> {
-  List<FocusNode> foci = List.generate(22, (_) => FocusNode());
-
   Map<String, AsyncCache> cache = {
     'StudyYears': AsyncCache<QuerySnapshot>(Duration(minutes: 2)),
     'StudyYear': AsyncCache<DocumentSnapshot>(Duration(minutes: 2)),
@@ -176,593 +175,193 @@ class _EditPersonState extends State<EditPerson> {
           key: form,
           child: Padding(
             padding: EdgeInsets.all(5),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'الاسم',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
-                      ),
-                      focusNode: foci[0],
-                      textInputAction: TextInputAction.next,
-                      initialValue: person.name,
-                      onChanged: _nameChanged,
-                      onFieldSubmitted: (_) => foci[1].requestFocus(),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'هذا الحقل مطلوب';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'رقم الهاتف',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
-                      ),
-                      focusNode: foci[1],
-                      keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.next,
-                      initialValue: person.phone,
-                      onChanged: _phoneChanged,
-                      onFieldSubmitted: (_) {
-                        foci[2].requestFocus();
-                      },
-                      validator: (value) {
-                        return null;
-                      },
-                    ),
-                  ),
-                  if (person.phones.isNotEmpty)
-                    ...person.phones.entries.map(
-                      (e) => Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: e.key,
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.edit),
-                              tooltip: 'تعديل اسم الهاتف',
-                              onPressed: () async {
-                                TextEditingController name =
-                                    TextEditingController(text: e.key);
-                                var rslt = await showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, name.text),
-                                          child: Text('حفظ'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'delete'),
-                                          child: Text('حذف'),
-                                        ),
-                                      ],
-                                      title: Text('اسم الهاتف'),
-                                      content: TextField(controller: name)),
-                                );
-                                if (rslt == 'delete') {
-                                  person.phones.remove(e.key);
-                                  setState(() {});
-                                } else if (rslt != null) {
-                                  person.phones.remove(e.key);
-                                  person.phones[name.text] = e.value;
-                                  setState(() {});
-                                }
-                              },
-                            ),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                          ),
-                          keyboardType: TextInputType.phone,
-                          textInputAction: TextInputAction.next,
-                          initialValue: e.value,
-                          onChanged: (s) => person.phones[e.key] = s,
-                          validator: (value) {
-                            return null;
-                          },
-                        ),
+            child: ListView(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'الاسم',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
                       ),
                     ),
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.add),
-                    label: Text('اضافة رقم هاتف أخر'),
-                    onPressed: () async {
-                      TextEditingController name =
-                          TextEditingController(text: '');
-                      if (await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, name.text),
-                                    child: Text('حفظ'),
-                                  ),
-                                ],
-                                title: Text('اسم الهاتف'),
-                                content: TextField(controller: name)),
-                          ) !=
-                          null) setState(() => person.phones[name.text] = '');
+                    textInputAction: TextInputAction.next,
+                    initialValue: person.name,
+                    onChanged: _nameChanged,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
                     },
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Focus(
-                            focusNode: foci[2],
-                            child: InkWell(
-                              onTap: () async => person.birthDate =
-                                  await _selectDate(
-                                      'تاريخ الميلاد',
-                                      person.birthDate?.toDate() ??
-                                          DateTime.now()),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'تاريخ الميلاد',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                ),
-                                child: person.birthDate != null
-                                    ? Text(DateFormat('yyyy/M/d').format(
-                                        person.birthDate.toDate(),
-                                      ))
-                                    : Text('(فارغ)'),
-                              ),
-                            ),
-                          ),
-                        ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'رقم الهاتف',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      Flexible(
-                        flex: 2,
-                        child: TextButton.icon(
-                          icon: Icon(Icons.close),
-                          onPressed: () => setState(() {
-                            person.birthDate = null;
-                          }),
-                          label: Text('حذف التاريخ'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Text('طالب؟'),
-                      Switch(
-                        focusNode: foci[3],
-                        value: person.isStudent,
-                        onChanged: _isStudentChanged,
-                      ),
-                    ],
-                  ),
-                  if (person.isStudent)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Focus(
-                            focusNode: foci[4],
-                            child: FutureBuilder<QuerySnapshot>(
-                              future: cache['StudyYears'].fetch(
-                                  () async => await StudyYear.getAllForUser()),
-                              builder: (context, data) {
-                                if (data.hasData) {
-                                  return Container(
-                                    padding: EdgeInsets.symmetric(vertical: 10),
-                                    child: DropdownButtonFormField(
-                                      isDense: true,
-                                      value: person.studyYear?.path,
-                                      items: data.data.docs
-                                          .map(
-                                            (item) => DropdownMenuItem(
-                                              value: item.reference.path,
-                                              child: Text(item.data()['Name']),
-                                            ),
-                                          )
-                                          .toList()
-                                            ..insert(
-                                              0,
-                                              DropdownMenuItem(
-                                                value: null,
-                                                child: Text(''),
-                                              ),
-                                            ),
-                                      onChanged: (value) {
-                                        cache['StudyYear'].invalidate();
-                                        setState(() {});
-                                        person.studyYear = value != null
-                                            ? FirebaseFirestore.instance
-                                                .doc(value)
-                                            : null;
-                                        foci[5].requestFocus();
-                                      },
-                                      decoration: InputDecoration(
-                                        labelText: 'السنة الدراسية',
-                                        border: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                } else
-                                  return Container();
-                              },
-                            ),
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
-                          onPressed: () async {
-                            await Navigator.of(context)
-                                .pushNamed('Settings/StudyYears');
-                            cache['StudyYears'].invalidate();
-                            setState(() {});
-                          },
-                        ),
-                      ],
                     ),
-                  if (person.isStudent)
-                    FutureBuilder<DocumentSnapshot>(
-                        future: cache['StudyYear'].fetch(() async =>
-                            await person.studyYear?.get(dataSource)),
-                        builder: (context, data) {
-                          if (data.hasData && data.data.data()['IsCollegeYear'])
-                            return Row(
-                              children: [
-                                Expanded(
-                                  child: Focus(
-                                    focusNode: foci[5],
-                                    child: FutureBuilder<QuerySnapshot>(
-                                      future: cache['Colleges'].fetch(
-                                          () async =>
-                                              await College.getAllForUser()),
-                                      builder: (context, data) {
-                                        if (data.hasData) {
-                                          return Container(
-                                            padding: EdgeInsets.symmetric(
-                                                vertical: 4.0),
-                                            child: DropdownButtonFormField(
-                                              isDense: true,
-                                              value:
-                                                  widget.person.college?.path,
-                                              items: data.data.docs
-                                                  .map(
-                                                    (item) => DropdownMenuItem(
-                                                      value:
-                                                          item.reference.path,
-                                                      child: Text(
-                                                          item.data()['Name']),
-                                                    ),
-                                                  )
-                                                  .toList()
-                                                    ..insert(
-                                                      0,
-                                                      DropdownMenuItem(
-                                                        value: null,
-                                                        child: Text(''),
-                                                      ),
-                                                    ),
-                                              onChanged: (value) {
-                                                person.college = value != null
-                                                    ? FirebaseFirestore.instance
-                                                        .doc(value)
-                                                    : null;
-                                                foci[6].requestFocus();
-                                              },
-                                              decoration: InputDecoration(
-                                                labelText: 'الكلية',
-                                                border: OutlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Theme.of(context)
-                                                          .primaryColor),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        } else
-                                          return Container();
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  icon: Icon(Icons.add),
-                                  label: Text('اضافة'),
-                                  onPressed: () async {
-                                    await Navigator.of(context)
-                                        .pushNamed('Settings/Colleges');
-                                    cache['Colleges'].invalidate();
-                                    setState(() {});
-                                  },
-                                ),
-                              ],
-                            );
-                          return Container();
-                        }),
-                  if (!person.isStudent)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Focus(
-                            focusNode: foci[6],
-                            child: FutureBuilder<QuerySnapshot>(
-                              future: cache['Jobs']
-                                  .fetch(() async => await Job.getAllForUser()),
-                              builder: (context, data) {
-                                if (data.hasData) {
-                                  return Container(
-                                    padding: EdgeInsets.symmetric(vertical: 10),
-                                    child: DropdownButtonFormField(
-                                      isDense: true,
-                                      value: person.job?.path,
-                                      items: data.data.docs
-                                          .map(
-                                            (item) => DropdownMenuItem(
-                                              value: item.reference.path,
-                                              child: Text(item.data()['Name']),
-                                            ),
-                                          )
-                                          .toList()
-                                            ..insert(
-                                              0,
-                                              DropdownMenuItem(
-                                                value: null,
-                                                child: Text(''),
-                                              ),
-                                            ),
-                                      onChanged: (value) {
-                                        person.job = value != null
-                                            ? FirebaseFirestore.instance
-                                                .doc(value)
-                                            : null;
-                                        foci[7].requestFocus();
-                                      },
-                                      decoration: InputDecoration(
-                                        labelText: 'الوظيفة',
-                                        border: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Theme.of(context)
-                                                  .primaryColor),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                } else
-                                  return Container();
-                              },
-                            ),
-                          ),
-                        ),
-                        TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
-                          onPressed: () async {
-                            await Navigator.of(context)
-                                .pushNamed('Settings/Jobs');
-                            cache['Jobs'].invalidate();
-                            setState(() {});
-                          },
-                        ),
-                      ],
-                    ),
-                  if (!person.isStudent)
-                    Container(
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    initialValue: person.phone,
+                    onChanged: _phoneChanged,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                if (person.phones.isNotEmpty)
+                  ...person.phones.entries.map(
+                    (e) => Container(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
                         decoration: InputDecoration(
-                          labelText: 'تفاصيل الوظيفة',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        focusNode: foci[7],
-                        textInputAction: TextInputAction.next,
-                        initialValue: person.jobDescription,
-                        onChanged: _jobDescriptionChanged,
-                        onFieldSubmitted: (_) => foci[8].requestFocus(),
-                        validator: (value) {
-                          return null;
-                        },
-                      ),
-                    ),
-                  if (!person.isStudent)
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: 'المؤهل',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        focusNode: foci[8],
-                        textInputAction: TextInputAction.next,
-                        initialValue: person.qualification,
-                        onChanged: _qualificationChanged,
-                        onFieldSubmitted: (_) {
-                          foci[9].requestFocus();
-                          _selectType();
-                        },
-                        validator: (value) {
-                          return null;
-                        },
-                      ),
-                    ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Focus(
-                            focusNode: foci[9],
-                            child: InkWell(
-                              onTap: _selectType,
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'نوع الفرد',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                ),
-                                child: FutureBuilder<String>(
-                                    future: cache['PersonStringType'].fetch(
-                                        () async =>
-                                            await person.getStringType()),
-                                    builder: (cote, ty) {
-                                      if (ty.connectionState ==
-                                          ConnectionState.done) {
-                                        return Text(ty.data);
-                                      } else {
-                                        return LinearProgressIndicator();
-                                      }
-                                    }),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
-                        onPressed: () async {
-                          await Navigator.of(context)
-                              .pushNamed('Settings/PersonTypes');
-                          cache['StudyYears'].invalidate();
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Focus(
-                          focusNode: foci[10],
-                          child: FutureBuilder<QuerySnapshot>(
-                            future: cache['Churches'].fetch(
-                                () async => await Church.getAllForUser()),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
-                                  child: DropdownButtonFormField(
-                                    isDense: true,
-                                    value: person.church?.path,
-                                    items: data.data.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference.path,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
-                                    onChanged: (value) {
-                                      person.church = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
-                                          : null;
-                                      foci[11].requestFocus();
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'الكنيسة',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Theme.of(context).primaryColor),
+                          labelText: e.key,
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.edit),
+                            tooltip: 'تعديل اسم الهاتف',
+                            onPressed: () async {
+                              TextEditingController name =
+                                  TextEditingController(text: e.key);
+                              var rslt = await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, name.text),
+                                        child: Text('حفظ'),
                                       ),
-                                    ),
-                                  ),
-                                );
-                              } else
-                                return Container();
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, 'delete'),
+                                        child: Text('حذف'),
+                                      ),
+                                    ],
+                                    title: Text('اسم الهاتف'),
+                                    content: TextField(controller: name)),
+                              );
+                              if (rslt == 'delete') {
+                                person.phones.remove(e.key);
+                                setState(() {});
+                              } else if (rslt != null) {
+                                person.phones.remove(e.key);
+                                person.phones[name.text] = e.value;
+                                setState(() {});
+                              }
                             },
                           ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                          ),
                         ),
-                      ),
-                      TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
-                        onPressed: () async {
-                          await Navigator.of(context)
-                              .pushNamed('Settings/Churches');
-                          cache['Churches'].invalidate();
-                          setState(() {});
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                        initialValue: e.value,
+                        onChanged: (s) => person.phones[e.key] = s,
+                        validator: (value) {
+                          return null;
                         },
                       ),
-                    ],
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'الاجتماع المشارك به',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
-                      ),
-                      focusNode: foci[11],
-                      textInputAction: TextInputAction.next,
-                      initialValue: person.meeting,
-                      onChanged: _meetingChanged,
-                      onFieldSubmitted: (_) => foci[12].requestFocus(),
-                      validator: (value) {
-                        return null;
-                      },
                     ),
                   ),
+                ElevatedButton.icon(
+                  icon: Icon(Icons.add),
+                  label: Text('اضافة رقم هاتف أخر'),
+                  onPressed: () async {
+                    TextEditingController name =
+                        TextEditingController(text: '');
+                    if (await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, name.text),
+                                  child: Text('حفظ'),
+                                ),
+                              ],
+                              title: Text('اسم الهاتف'),
+                              content: TextField(controller: name)),
+                        ) !=
+                        null) setState(() => person.phones[name.text] = '');
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Flexible(
+                      flex: 3,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: InkWell(
+                          onTap: () async => person.birthDate =
+                              await _selectDate('تاريخ الميلاد',
+                                  person.birthDate?.toDate() ?? DateTime.now()),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'تاريخ الميلاد',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                            ),
+                            child: person.birthDate != null
+                                ? Text(DateFormat('yyyy/M/d').format(
+                                    person.birthDate.toDate(),
+                                  ))
+                                : Text('(فارغ)'),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 2,
+                      child: TextButton.icon(
+                        icon: Icon(Icons.close),
+                        onPressed: () => setState(() {
+                          person.birthDate = null;
+                        }),
+                        label: Text('حذف التاريخ'),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    Text('طالب؟'),
+                    Switch(
+                      value: person.isStudent,
+                      onChanged: _isStudentChanged,
+                    ),
+                  ],
+                ),
+                if (person.isStudent)
                   Row(
                     children: [
                       Expanded(
-                        child: Focus(
-                          focusNode: foci[12],
-                          child: FutureBuilder<QuerySnapshot>(
-                            future: cache['Fathers'].fetch(
-                                () async => await Father.getAllForUser()),
-                            builder: (context, data) {
-                              if (data.hasData) {
-                                return DropdownButtonFormField(
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: cache['StudyYears'].fetch(
+                              () async => await StudyYear.getAllForUser()),
+                          builder: (context, data) {
+                            if (data.hasData) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(vertical: 10),
+                                child: DropdownButtonFormField(
                                   isDense: true,
-                                  value: person.cFather?.path,
+                                  value: person.studyYear?.path,
                                   items: data.data.docs
                                       .map(
                                         (item) => DropdownMenuItem(
@@ -779,25 +378,26 @@ class _EditPersonState extends State<EditPerson> {
                                           ),
                                         ),
                                   onChanged: (value) {
-                                    person.cFather = value != null
+                                    cache['StudyYear'].invalidate();
+                                    setState(() {});
+                                    person.studyYear = value != null
                                         ? FirebaseFirestore.instance.doc(value)
                                         : null;
-                                    foci[13].requestFocus();
-                                    if (!widget.userData) _selectFamily();
+                                    FocusScope.of(context).nextFocus();
                                   },
                                   decoration: InputDecoration(
-                                    labelText: 'أب الاعتراف',
+                                    labelText: 'السنة الدراسية',
                                     border: OutlineInputBorder(
                                       borderSide: BorderSide(
                                           color:
                                               Theme.of(context).primaryColor),
                                     ),
                                   ),
-                                );
-                              } else
-                                return Container();
-                            },
-                          ),
+                                ),
+                              );
+                            } else
+                              return Container();
+                          },
                         ),
                       ),
                       TextButton.icon(
@@ -805,153 +405,328 @@ class _EditPersonState extends State<EditPerson> {
                         label: Text('اضافة'),
                         onPressed: () async {
                           await Navigator.of(context)
-                              .pushNamed('Settings/Fathers');
-                          cache['Fathers'].invalidate();
+                              .pushNamed('Settings/StudyYears');
+                          cache['StudyYears'].invalidate();
                           setState(() {});
                         },
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Focus(
-                            focusNode: foci[13],
-                            child: InkWell(
-                              onTap: () async => person.lastTanawol =
-                                  await _selectDate(
-                                      'تاريخ أخر تناول',
-                                      person.lastTanawol?.toDate() ??
-                                          DateTime.now()),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'تاريخ أخر تناول',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                ),
-                                child: person.lastTanawol != null
-                                    ? Text(DateFormat('yyyy/M/d').format(
-                                        person.lastTanawol.toDate(),
-                                      ))
-                                    : Text('(فارغ)'),
+                if (person.isStudent)
+                  FutureBuilder<DocumentSnapshot>(
+                    future: cache['StudyYear'].fetch(
+                        () async => await person.studyYear?.get(dataSource)),
+                    builder: (context, data) {
+                      if (data.hasData && data.data.data()['IsCollegeYear'])
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: FutureBuilder<QuerySnapshot>(
+                                future: cache['Colleges'].fetch(
+                                    () async => await College.getAllForUser()),
+                                builder: (context, data) {
+                                  if (data.hasData) {
+                                    return Container(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 4.0),
+                                      child: DropdownButtonFormField(
+                                        isDense: true,
+                                        value: widget.person.college?.path,
+                                        items: data.data.docs
+                                            .map(
+                                              (item) => DropdownMenuItem(
+                                                value: item.reference.path,
+                                                child:
+                                                    Text(item.data()['Name']),
+                                              ),
+                                            )
+                                            .toList()
+                                              ..insert(
+                                                0,
+                                                DropdownMenuItem(
+                                                  value: null,
+                                                  child: Text(''),
+                                                ),
+                                              ),
+                                        onChanged: (value) {
+                                          person.college = value != null
+                                              ? FirebaseFirestore.instance
+                                                  .doc(value)
+                                              : null;
+                                          FocusScope.of(context).nextFocus();
+                                        },
+                                        decoration: InputDecoration(
+                                          labelText: 'الكلية',
+                                          border: OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Theme.of(context)
+                                                    .primaryColor),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  } else
+                                    return Container();
+                                },
                               ),
                             ),
-                          ),
+                            TextButton.icon(
+                              icon: Icon(Icons.add),
+                              label: Text('اضافة'),
+                              onPressed: () async {
+                                await Navigator.of(context)
+                                    .pushNamed('Settings/Colleges');
+                                cache['Colleges'].invalidate();
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        );
+                      return Container();
+                    },
+                  ),
+                if (!person.isStudent)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: cache['Jobs']
+                              .fetch(() async => await Job.getAllForUser()),
+                          builder: (context, data) {
+                            if (data.hasData) {
+                              return Container(
+                                padding: EdgeInsets.symmetric(vertical: 10),
+                                child: DropdownButtonFormField(
+                                  isDense: true,
+                                  value: person.job?.path,
+                                  items: data.data.docs
+                                      .map(
+                                        (item) => DropdownMenuItem(
+                                          value: item.reference.path,
+                                          child: Text(item.data()['Name']),
+                                        ),
+                                      )
+                                      .toList()
+                                        ..insert(
+                                          0,
+                                          DropdownMenuItem(
+                                            value: null,
+                                            child: Text(''),
+                                          ),
+                                        ),
+                                  onChanged: (value) {
+                                    person.job = value != null
+                                        ? FirebaseFirestore.instance.doc(value)
+                                        : null;
+                                    FocusScope.of(context).nextFocus();
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: 'الوظيفة',
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color:
+                                              Theme.of(context).primaryColor),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            } else
+                              return Container();
+                          },
                         ),
+                      ),
+                      TextButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text('اضافة'),
+                        onPressed: () async {
+                          await Navigator.of(context)
+                              .pushNamed('Settings/Jobs');
+                          cache['Jobs'].invalidate();
+                          setState(() {});
+                        },
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Focus(
-                            focusNode: foci[14],
-                            child: InkWell(
-                              onTap: () async =>
-                                  person.lastConfession = await _selectDate(
-                                'تاريخ أخر اعتراف',
-                                person.lastConfession?.toDate() ??
-                                    DateTime.now(),
-                              ),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'تاريخ أخر اعتراف',
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Theme.of(context).primaryColor),
-                                  ),
-                                ),
-                                child: person.lastConfession != null
-                                    ? Text(DateFormat('yyyy/M/d').format(
-                                        person.lastConfession.toDate(),
-                                      ))
-                                    : Text('(فارغ)'),
-                              ),
-                            ),
-                          ),
+                if (!person.isStudent)
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'تفاصيل الوظيفة',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
                         ),
                       ),
-                    ],
+                      textInputAction: TextInputAction.next,
+                      initialValue: person.jobDescription,
+                      onChanged: _jobDescriptionChanged,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      validator: (value) {
+                        return null;
+                      },
+                    ),
                   ),
-                  if (!widget.userData)
-                    Focus(
-                      focusNode: foci[15],
-                      child: InkWell(
-                        onTap: _selectFamily,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                if (!person.isStudent)
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'المؤهل',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
+                      textInputAction: TextInputAction.next,
+                      initialValue: person.qualification,
+                      onChanged: _qualificationChanged,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      validator: (value) {
+                        return null;
+                      },
+                    ),
+                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: InkWell(
+                          onTap: _selectType,
                           child: InputDecorator(
                             decoration: InputDecoration(
-                              labelText: 'داخل عائلة',
+                              labelText: 'نوع الفرد',
                               border: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: Theme.of(context).primaryColor),
                               ),
                             ),
                             child: FutureBuilder<String>(
-                                future: cache['FamilyName'].fetch(
-                                    () async => await person.getFamilyName()),
-                                builder: (con, data) {
-                                  if (data.connectionState ==
-                                      ConnectionState.done) {
-                                    return Text(data.data);
-                                  } else if (data.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return LinearProgressIndicator();
-                                  } else {
-                                    return Text('');
-                                  }
-                                }),
+                              future: cache['PersonStringType'].fetch(
+                                  () async => await person.getStringType()),
+                              builder: (cote, ty) {
+                                if (ty.connectionState ==
+                                    ConnectionState.done) {
+                                  return Text(ty.data);
+                                } else {
+                                  return LinearProgressIndicator();
+                                }
+                              },
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  if (!widget.userData)
-                    Focus(
-                      focusNode: foci[16],
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('States')
-                            .orderBy('Name')
-                            .snapshots(),
+                    TextButton.icon(
+                      icon: Icon(Icons.add),
+                      label: Text('اضافة'),
+                      onPressed: () async {
+                        await Navigator.of(context)
+                            .pushNamed('Settings/PersonTypes');
+                        cache['StudyYears'].invalidate();
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<QuerySnapshot>(
+                        future: cache['Churches']
+                            .fetch(() async => await Church.getAllForUser()),
+                        builder: (context, data) {
+                          if (data.hasData) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: DropdownButtonFormField(
+                                isDense: true,
+                                value: person.church?.path,
+                                items: data.data.docs
+                                    .map(
+                                      (item) => DropdownMenuItem(
+                                        value: item.reference.path,
+                                        child: Text(item.data()['Name']),
+                                      ),
+                                    )
+                                    .toList()
+                                      ..insert(
+                                        0,
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
+                                onChanged: (value) {
+                                  person.church = value != null
+                                      ? FirebaseFirestore.instance.doc(value)
+                                      : null;
+                                  FocusScope.of(context).nextFocus();
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'الكنيسة',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else
+                            return Container();
+                        },
+                      ),
+                    ),
+                    TextButton.icon(
+                      icon: Icon(Icons.add),
+                      label: Text('اضافة'),
+                      onPressed: () async {
+                        await Navigator.of(context)
+                            .pushNamed('Settings/Churches');
+                        cache['Churches'].invalidate();
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'الاجتماع المشارك به',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    initialValue: person.meeting,
+                    onChanged: _meetingChanged,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<QuerySnapshot>(
+                        future: cache['Fathers']
+                            .fetch(() async => await Father.getAllForUser()),
                         builder: (context, data) {
                           if (data.hasData) {
                             return DropdownButtonFormField(
                               isDense: true,
-                              value: person.state?.path,
+                              value: person.cFather?.path,
                               items: data.data.docs
                                   .map(
                                     (item) => DropdownMenuItem(
                                       value: item.reference.path,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: <Widget>[
-                                          Text(item.data()['Name']),
-                                          Container(
-                                            height: 50,
-                                            width: 50,
-                                            color: Color(
-                                              int.parse(
-                                                  "0xff${item.data()['Color']}"),
-                                            ),
-                                          )
-                                        ],
-                                      ),
+                                      child: Text(item.data()['Name']),
                                     ),
                                   )
                                   .toList()
@@ -963,13 +738,13 @@ class _EditPersonState extends State<EditPerson> {
                                       ),
                                     ),
                               onChanged: (value) {
-                                person.state = value != null
+                                person.cFather = value != null
                                     ? FirebaseFirestore.instance.doc(value)
                                     : null;
-                                foci[17].requestFocus();
+                                FocusScope.of(context).nextFocus();
                               },
                               decoration: InputDecoration(
-                                labelText: 'الحالة',
+                                labelText: 'أب الاعتراف',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
                                       color: Theme.of(context).primaryColor),
@@ -981,191 +756,343 @@ class _EditPersonState extends State<EditPerson> {
                         },
                       ),
                     ),
-                  if (!widget.userData)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Flexible(
-                          flex: 3,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: Focus(
-                              focusNode: foci[16],
-                              child: InkWell(
-                                onTap: () async => person.lastCall =
-                                    await _selectDate(
-                                        'تاريخ أخر مكالمة',
-                                        person.lastCall?.toDate() ??
-                                            DateTime.now()),
-                                child: InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: 'تاريخ أخر مكالمة',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    ),
-                                  ),
-                                  child: person.lastCall != null
-                                      ? Text(DateFormat('yyyy/M/d').format(
-                                          person.lastCall.toDate(),
-                                        ))
-                                      : Text('(فارغ)'),
-                                ),
+                    TextButton.icon(
+                      icon: Icon(Icons.add),
+                      label: Text('اضافة'),
+                      onPressed: () async {
+                        await Navigator.of(context)
+                            .pushNamed('Settings/Fathers');
+                        cache['Fathers'].invalidate();
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Flexible(
+                      flex: 3,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: InkWell(
+                          onTap: () async => person.lastTanawol =
+                              await _selectDate(
+                                  'تاريخ أخر تناول',
+                                  person.lastTanawol?.toDate() ??
+                                      DateTime.now()),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'تاريخ أخر تناول',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
                               ),
                             ),
+                            child: person.lastTanawol != null
+                                ? Text(DateFormat('yyyy/M/d').format(
+                                    person.lastTanawol.toDate(),
+                                  ))
+                                : Text('(فارغ)'),
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  if (!widget.userData)
-                    Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: TextFormField(
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Flexible(
+                      flex: 3,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10),
+                        child: InkWell(
+                          onTap: () async =>
+                              person.lastConfession = await _selectDate(
+                            'تاريخ أخر اعتراف',
+                            person.lastConfession?.toDate() ?? DateTime.now(),
+                          ),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'تاريخ أخر اعتراف',
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).primaryColor),
+                              ),
+                            ),
+                            child: person.lastConfession != null
+                                ? Text(DateFormat('yyyy/M/d').format(
+                                    person.lastConfession.toDate(),
+                                  ))
+                                : Text('(فارغ)'),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (!widget.userData)
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: InkWell(
+                      onTap: _selectFamily,
+                      child: InputDecorator(
                         decoration: InputDecoration(
-                          labelText: 'ملاحظات',
+                          labelText: 'داخل عائلة',
                           border: OutlineInputBorder(
                             borderSide: BorderSide(
                                 color: Theme.of(context).primaryColor),
                           ),
                         ),
-                        focusNode: foci[18],
-                        maxLines: null,
-                        textInputAction: TextInputAction.newline,
-                        initialValue: person.notes,
-                        onChanged: _notesChanged,
-                        onFieldSubmitted: (_) => foci[19].requestFocus(),
-                        validator: (value) {
-                          return null;
-                        },
+                        child: FutureBuilder<String>(
+                          future: cache['FamilyName']
+                              .fetch(() async => await person.getFamilyName()),
+                          builder: (con, data) {
+                            if (data.connectionState == ConnectionState.done) {
+                              return Text(data.data);
+                            } else if (data.connectionState ==
+                                ConnectionState.waiting) {
+                              return LinearProgressIndicator();
+                            } else {
+                              return Text('');
+                            }
+                          },
+                        ),
                       ),
                     ),
-                  if (!widget.userData)
-                    Row(
-                      children: <Widget>[
-                        Text('خادم؟'),
-                        Switch(
-                          focusNode: foci[19],
-                          value: person.isServant,
-                          onChanged: (value) => _isServantChanged(value),
-                        ),
-                      ],
-                    ),
-                  if (person.isServant || widget.userData)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Focus(
-                            focusNode: foci[20],
-                            child: FutureBuilder<QuerySnapshot>(
-                              future: cache['ServingTypes'].fetch(() async =>
-                                  await ServingType.getAllForUser()),
-                              builder: (conext, data) {
-                                if (data.hasData) {
-                                  return DropdownButtonFormField(
-                                    isDense: true,
-                                    value: person.servingType?.path,
-                                    items: data.data.docs
-                                        .map(
-                                          (item) => DropdownMenuItem(
-                                            value: item.reference.path,
-                                            child: Text(item.data()['Name']),
-                                          ),
-                                        )
-                                        .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
-                                    onChanged: (value) {
-                                      person.servingType = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
-                                          : null;
-                                      foci[21].requestFocus();
-                                      if (!widget.userData) _selectArea();
-                                    },
-                                    decoration: InputDecoration(
-                                      labelText: 'نوع الخدمة',
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color:
-                                                Theme.of(context).primaryColor),
-                                      ),
-                                    ),
-                                  );
-                                } else
-                                  return Container();
-                              },
+                  ),
+                if (!widget.userData)
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('States')
+                        .orderBy('Name')
+                        .snapshots(),
+                    builder: (context, data) {
+                      if (data.hasData) {
+                        return DropdownButtonFormField(
+                          isDense: true,
+                          value: person.state?.path,
+                          items: data.data.docs
+                              .map(
+                                (item) => DropdownMenuItem(
+                                  value: item.reference.path,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(item.data()['Name']),
+                                      Container(
+                                        height: 50,
+                                        width: 50,
+                                        color: Color(
+                                          int.parse(
+                                              "0xff${item.data()['Color']}"),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList()
+                                ..insert(
+                                  0,
+                                  DropdownMenuItem(
+                                    value: null,
+                                    child: Text(''),
+                                  ),
+                                ),
+                          onChanged: (value) {
+                            person.state = value != null
+                                ? FirebaseFirestore.instance.doc(value)
+                                : null;
+                            FocusScope.of(context).nextFocus();
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'الحالة',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
+                        );
+                      } else
+                        return Container();
+                    },
+                  ),
+                if (!widget.userData)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Flexible(
+                        flex: 3,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: InkWell(
+                            onTap: () async => person.lastCall =
+                                await _selectDate(
+                                    'تاريخ أخر مكالمة',
+                                    person.lastCall?.toDate() ??
+                                        DateTime.now()),
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'تاريخ أخر مكالمة',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                              ),
+                              child: person.lastCall != null
+                                  ? Text(DateFormat('yyyy/M/d').format(
+                                      person.lastCall.toDate(),
+                                    ))
+                                  : Text('(فارغ)'),
                             ),
                           ),
                         ),
-                        TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
-                          onPressed: () async {
-                            await Navigator.of(context)
-                                .pushNamed('Settings/ServingTypes');
-                            cache['ServingTypes'].invalidate();
-                            setState(() {});
-                          },
+                      ),
+                    ],
+                  ),
+                if (!widget.userData)
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'ملاحظات',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
                         ),
-                      ],
-                    ),
-                  if (person.isServant && !widget.userData)
-                    Selector<User, bool>(
-                      selector: (_, user) => user.superAccess,
-                      builder: (context, permission, _) {
-                        if (permission) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: Focus(
-                              focusNode: foci[21],
-                              child: InkWell(
-                                onTap: _selectArea,
-                                child: InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: 'منطقة الخدمة',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color:
-                                              Theme.of(context).primaryColor),
-                                    ),
-                                  ),
-                                  child: FutureBuilder<String>(
-                                    future: cache['ServingAreaName'].fetch(
-                                        () async =>
-                                            await person.getServingAreaName()),
-                                    builder: (contextt, dataServ) {
-                                      if (dataServ.connectionState ==
-                                          ConnectionState.done) {
-                                        return Text(dataServ.data);
-                                      } else {
-                                        return LinearProgressIndicator();
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                        return Container();
+                      ),
+                      maxLines: null,
+                      textInputAction: TextInputAction.newline,
+                      initialValue: person.notes,
+                      onChanged: _notesChanged,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      validator: (value) {
+                        return null;
                       },
                     ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(primary: person.color),
-                    onPressed: selectColor,
-                    icon: Icon(Icons.color_lens),
-                    label: Text('اللون'),
                   ),
-                ],
-              ),
+                if (!widget.userData)
+                  Row(
+                    children: <Widget>[
+                      Text('خادم؟'),
+                      Switch(
+                        value: person.isServant,
+                        onChanged: (value) => _isServantChanged(value),
+                      ),
+                    ],
+                  ),
+                if (person.isServant || widget.userData)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FutureBuilder<QuerySnapshot>(
+                          future: cache['ServingTypes'].fetch(
+                              () async => await ServingType.getAllForUser()),
+                          builder: (conext, data) {
+                            if (data.hasData) {
+                              return DropdownButtonFormField(
+                                isDense: true,
+                                value: person.servingType?.path,
+                                items: data.data.docs
+                                    .map(
+                                      (item) => DropdownMenuItem(
+                                        value: item.reference.path,
+                                        child: Text(item.data()['Name']),
+                                      ),
+                                    )
+                                    .toList()
+                                      ..insert(
+                                        0,
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
+                                onChanged: (value) {
+                                  person.servingType = value != null
+                                      ? FirebaseFirestore.instance.doc(value)
+                                      : null;
+                                  FocusScope.of(context).nextFocus();
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'نوع الخدمة',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Theme.of(context).primaryColor),
+                                  ),
+                                ),
+                              );
+                            } else
+                              return Container();
+                          },
+                        ),
+                      ),
+                      TextButton.icon(
+                        icon: Icon(Icons.add),
+                        label: Text('اضافة'),
+                        onPressed: () async {
+                          await Navigator.of(context)
+                              .pushNamed('Settings/ServingTypes');
+                          cache['ServingTypes'].invalidate();
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                if (person.isServant && !widget.userData)
+                  Selector<User, bool>(
+                    selector: (_, user) => user.superAccess,
+                    builder: (context, permission, _) {
+                      if (permission) {
+                        return Container(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: InkWell(
+                            onTap: _selectArea,
+                            child: InputDecorator(
+                              decoration: InputDecoration(
+                                labelText: 'منطقة الخدمة',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: Theme.of(context).primaryColor),
+                                ),
+                              ),
+                              child: FutureBuilder<String>(
+                                future: cache['ServingAreaName'].fetch(
+                                    () async =>
+                                        await person.getServingAreaName()),
+                                builder: (contextt, dataServ) {
+                                  if (dataServ.connectionState ==
+                                      ConnectionState.done) {
+                                    return Text(dataServ.data);
+                                  } else {
+                                    return LinearProgressIndicator();
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(primary: person.color),
+                  onPressed: selectColor,
+                  icon: Icon(Icons.color_lens),
+                  label: Text('اللون'),
+                ),
+              ].map((w) => Focus(child: w)).toList(),
             ),
           ),
         ),
@@ -1211,6 +1138,7 @@ class _EditPersonState extends State<EditPerson> {
               setState(() {
                 person.color = Colors.transparent;
               });
+              FocusScope.of(context).nextFocus();
             },
             child: Text('بلا لون'),
           ),
@@ -1228,52 +1156,66 @@ class _EditPersonState extends State<EditPerson> {
     );
   }
 
-  void _delete() {
-    showDialog(
-      context: context,
-      builder: (context) => DataDialog(
-        title: Text(person.name),
-        content: Text('هل أنت متأكد من حذف ${person.name}؟'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              if (person.hasPhoto) {
-                await FirebaseStorage.instance
-                    .ref()
-                    .child('PersonsPhotos/${person.id}')
-                    .delete();
-              }
-              await FirebaseFirestore.instance
-                  .collection('Persons')
-                  .doc(person.id)
-                  .delete();
-              Navigator.of(context).pop();
-              Navigator.of(context).pop('deleted');
-            },
-            child: Text('نعم'),
+  void _delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => DataDialog(
+            title: Text(person.name),
+            content: Text('هل أنت متأكد من حذف ${person.name}؟'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('تراجع'),
-          ),
-        ],
-      ),
-    );
+        ) ==
+        true) {
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+        if (person.hasPhoto) {
+          await FirebaseStorage.instance
+              .ref()
+              .child('PersonPhotos/${person.id}')
+              .delete();
+        }
+        await FirebaseFirestore.instance
+            .collection('Person')
+            .doc(person.id)
+            .delete();
+      } else {
+        if (person.hasPhoto) {
+          // ignore: unawaited_futures
+          FirebaseStorage.instance
+              .ref()
+              .child('PersonPhotos/${person.id}')
+              .delete();
+        }
+        // ignore: unawaited_futures
+        FirebaseFirestore.instance.collection('Person').doc(person.id).delete();
+      }
+      Navigator.of(context).pop('deleted');
+    }
   }
 
   void _isServantChanged(bool value) {
     setState(() {
       person.isServant = value;
-      foci[19].requestFocus();
+      FocusScope.of(context).nextFocus();
     });
   }
 
   void _isStudentChanged(bool value) {
     setState(() {
       person.isStudent = value;
-      foci[4].requestFocus();
+      FocusScope.of(context).nextFocus();
     });
   }
 
@@ -1352,16 +1294,30 @@ class _EditPersonState extends State<EditPerson> {
 
         person.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        if (update) {
+        if (update &&
+            await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
           await person.ref.update(
             person.getMap()..removeWhere((key, value) => old[key] == value),
           );
-        } else {
+        } else if (update) {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          person.ref.update(
+            person.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
           await person.ref.set(
             person.getMap(),
           );
+        } else {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          person.ref.set(
+            person.getMap(),
+          );
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         Navigator.of(context).pop(person.ref);
       } else {
         await showDialog(
@@ -1507,6 +1463,7 @@ class _EditPersonState extends State<EditPerson> {
     );
     if (picked != null && picked != initialDate) {
       setState(() {});
+      FocusScope.of(context).nextFocus();
       return Timestamp.fromDate(picked);
     }
     return Timestamp.fromDate(initialDate);
@@ -1594,7 +1551,7 @@ class _EditPersonState extends State<EditPerson> {
                 setState(() {
                   person.type = type?.id;
                 });
-                foci[10].requestFocus();
+                FocusScope.of(context).nextFocus();
               },
             ),
           );

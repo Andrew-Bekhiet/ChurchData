@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:churchdata/models/area.dart';
@@ -8,6 +7,7 @@ import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/views/mini_lists.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -33,14 +33,6 @@ class EditArea extends StatefulWidget {
 }
 
 class _EditAreaState extends State<EditArea> {
-  List<FocusNode> foci = [
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode(),
-    FocusNode()
-  ];
-
   Area area;
 
   Map<String, dynamic> oldArea;
@@ -48,7 +40,8 @@ class _EditAreaState extends State<EditArea> {
   String changedImage;
   bool deletePhoto = false;
 
-  FormState form;
+  final GlobalKey<FormState> _formKey = GlobalKey();
+
   void addressChange(String value) {
     area.address = value;
   }
@@ -162,184 +155,160 @@ class _EditAreaState extends State<EditArea> {
           ];
         },
         body: Form(
-          child: Builder(
-            builder: (context) {
-              form = Form.of(context);
-              return Padding(
-                padding: EdgeInsets.all(5),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'اسم المنطقة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                          ),
-                          focusNode: foci[0],
-                          textInputAction: TextInputAction.next,
-                          onFieldSubmitted: (_) => foci[1].requestFocus(),
-                          initialValue: area.name,
-                          onChanged: nameChanged,
-                          validator: (value) {
-                            if (value.isEmpty) {
-                              return 'هذا الحقل مطلوب';
-                            }
-                            return null;
-                          },
-                        ),
+          key: _formKey,
+          child: Padding(
+            padding: EdgeInsets.all(5),
+            child: ListView(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'اسم المنطقة',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: TextFormField(
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            labelText: 'العنوان',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
-                          ),
-                          focusNode: foci[1],
-                          textInputAction: TextInputAction.next,
-                          onFieldSubmitted: (_) {
-                            foci[2].requestFocus();
-                            _selectDate();
-                          },
-                          initialValue: area.address,
-                          onChanged: addressChange,
-                          validator: (value) {
-                            return null;
-                          },
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                          icon: Icon(
-                            const IconData(0xe568,
-                                fontFamily: 'MaterialIconsR'),
-                          ),
-                          label: Text('تعديل مكان المنطقة على الخريطة'),
-                          onPressed: () async {
-                            List<GeoPoint> oldPoints =
-                                area.locationPoints?.sublist(0);
-                            var rslt = await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => Scaffold(
-                                  resizeToAvoidBottomInset: !kIsWeb,
-                                  appBar: AppBar(
-                                    actions: <Widget>[
-                                      IconButton(
-                                        icon: Icon(Icons.done),
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        tooltip: 'حفظ',
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete),
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                        tooltip: 'حذف التحديد',
-                                      )
-                                    ],
-                                    title: Text(
-                                        'تعديل مكان ${area.name} على الخريطة'),
-                                  ),
-                                  body: area.getMapView(
-                                      editMode: true, useGPSIfNull: true),
-                                ),
-                              ),
-                            );
-                            if (rslt == null) {
-                              area.locationPoints = oldPoints;
-                            } else if (rslt == false) {
-                              area.locationPoints = null;
-                            }
-                          }),
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: Focus(
-                          focusNode: foci[2],
-                          child: InkWell(
-                            onTap: _selectDate,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'تاريخ أخر زيارة',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
-                                ),
-                              ),
-                              child: Text(DateFormat('yyyy/M/d').format(
-                                area.lastVisit.toDate(),
-                              )),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
-                        child: Focus(
-                          focusNode: foci[3],
-                          child: InkWell(
-                            onTap: _selectDate2,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
-                                ),
-                              ),
-                              child: area.fatherLastVisit != null
-                                  ? Text(DateFormat('yyyy/M/d').format(
-                                      area.fatherLastVisit.toDate(),
-                                    ))
-                                  : Text(DateFormat('yyyy/M/d').format(
-                                      DateTime(
-                                          DateTime.now().year,
-                                          DateTime.now().month,
-                                          DateTime.now().day),
-                                    )),
-                            ),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(primary: area.color),
-                        onPressed: selectColor,
-                        icon: Icon(Icons.color_lens),
-                        label: Text('اللون'),
-                      ),
-                      Selector<User, bool>(
-                        selector: (_, user) => user.manageUsers,
-                        builder: (context, permission, _) {
-                          if (permission) {
-                            return ElevatedButton.icon(
-                              style:
-                                  ElevatedButton.styleFrom(primary: area.color),
-                              icon: Icon(Icons.visibility),
-                              onPressed: showUsers,
-                              label: Text(
-                                  'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
-                                  softWrap: false,
-                                  textScaleFactor: 0.95,
-                                  overflow: TextOverflow.fade),
-                            );
-                          }
-                          return Container();
-                        },
-                      ),
-                    ],
+                    ),
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    initialValue: area.name,
+                    onChanged: nameChanged,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
+                    },
                   ),
                 ),
-              );
-            },
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      labelText: 'العنوان',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    initialValue: area.address,
+                    onChanged: addressChange,
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                ElevatedButton.icon(
+                    icon: Icon(
+                      const IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                    ),
+                    label: Text('تعديل مكان المنطقة على الخريطة'),
+                    onPressed: () async {
+                      List<GeoPoint> oldPoints =
+                          area.locationPoints?.sublist(0);
+                      var rslt = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                            resizeToAvoidBottomInset: !kIsWeb,
+                            appBar: AppBar(
+                              actions: <Widget>[
+                                IconButton(
+                                  icon: Icon(Icons.done),
+                                  onPressed: () => Navigator.pop(context, true),
+                                  tooltip: 'حفظ',
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  tooltip: 'حذف التحديد',
+                                )
+                              ],
+                              title:
+                                  Text('تعديل مكان ${area.name} على الخريطة'),
+                            ),
+                            body: area.getMapView(
+                                editMode: true, useGPSIfNull: true),
+                          ),
+                        ),
+                      );
+                      if (rslt == null) {
+                        area.locationPoints = oldPoints;
+                      } else if (rslt == false) {
+                        area.locationPoints = null;
+                      }
+                    }),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _selectDate(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'تاريخ أخر زيارة',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
+                      child: Text(DateFormat('yyyy/M/d').format(
+                        area.lastVisit.toDate(),
+                      )),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _selectDate2(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Theme.of(context).primaryColor),
+                        ),
+                      ),
+                      child: area.fatherLastVisit != null
+                          ? Text(DateFormat('yyyy/M/d').format(
+                              area.fatherLastVisit.toDate(),
+                            ))
+                          : Text(DateFormat('yyyy/M/d').format(
+                              DateTime(DateTime.now().year,
+                                  DateTime.now().month, DateTime.now().day),
+                            )),
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(primary: area.color),
+                  onPressed: selectColor,
+                  icon: Icon(Icons.color_lens),
+                  label: Text('اللون'),
+                ),
+                Selector<User, bool>(
+                  selector: (_, user) => user.manageUsers,
+                  builder: (context, permission, _) {
+                    if (permission) {
+                      return ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(primary: area.color),
+                        icon: Icon(Icons.visibility),
+                        onPressed: showUsers,
+                        label: Text(
+                            'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
+                            softWrap: false,
+                            textScaleFactor: 0.95,
+                            overflow: TextOverflow.fade),
+                      );
+                    }
+                    return Container();
+                  },
+                ),
+              ].map((w) => Focus(child: w)).toList(),
+            ),
           ),
         ),
       ),
@@ -366,46 +335,60 @@ class _EditAreaState extends State<EditArea> {
     );
   }
 
-  void delete() {
-    showDialog(
-      context: context,
-      builder: (context) => DataDialog(
-        title: Text(area.name),
-        content: Text(
-            'هل أنت متأكد من حذف ${area.name} وكل ما بها من شوارع وعائلات وأشخاص؟'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('جار حذف المنطقة وما بداخلها من بيانات...'),
-                  duration: Duration(minutes: 20),
-                ),
-              );
-              if (area.hasPhoto) {
-                await FirebaseStorage.instance
-                    .ref()
-                    .child('AreasPhotos/${area.id}')
-                    .delete();
-              }
-              await FirebaseFirestore.instance
-                  .collection('Areas')
-                  .doc(area.id)
-                  .delete();
-              Navigator.of(context).pop();
-              Navigator.of(context).pop('deleted');
-            },
-            child: Text('نعم'),
+  void delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => DataDialog(
+            title: Text(area.name),
+            content: Text(
+                'هل أنت متأكد من حذف ${area.name} وكل ما بها من شوارع وعائلات وأشخاص؟'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('تراجع'),
-          ),
-        ],
-      ),
-    );
+        ) ==
+        true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار حذف المنطقة وما بداخلها من بيانات...'),
+          duration: Duration(minutes: 20),
+        ),
+      );
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+        if (area.hasPhoto) {
+          await FirebaseStorage.instance
+              .ref()
+              .child('AreasPhotos/${area.id}')
+              .delete();
+        }
+        await FirebaseFirestore.instance
+            .collection('Areas')
+            .doc(area.id)
+            .delete();
+      } else {
+        if (area.hasPhoto) {
+          // ignore: unawaited_futures
+          FirebaseStorage.instance
+              .ref()
+              .child('AreasPhotos/${area.id}')
+              .delete();
+        }
+        // ignore: unawaited_futures
+        FirebaseFirestore.instance.collection('Areas').doc(area.id).delete();
+      }
+      Navigator.of(context).pop('deleted');
+    }
   }
 
   @override
@@ -419,9 +402,9 @@ class _EditAreaState extends State<EditArea> {
     area.name = value;
   }
 
-  Future save() async {
+  Future<void> save() async {
     try {
-      if (form.validate()) {
+      if (_formKey.currentState.validate()) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
@@ -477,16 +460,30 @@ class _EditAreaState extends State<EditArea> {
 
         area.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        if (update) {
+        if (update &&
+            await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
           await area.ref.update(
             area.getMap()..removeWhere((key, value) => oldArea[key] == value),
           );
-        } else {
+        } else if (update) {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          area.ref.update(
+            area.getMap()..removeWhere((key, value) => oldArea[key] == value),
+          );
+        } else if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
           await area.ref.set(
             area.getMap(),
           );
+        } else {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          area.ref.set(
+            area.getMap(),
+          );
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
         Navigator.of(context).pop(area.ref);
       }
@@ -518,6 +515,7 @@ class _EditAreaState extends State<EditArea> {
               setState(() {
                 area.color = Colors.transparent;
               });
+              FocusScope.of(context).nextFocus();
             },
             child: Text('بلا لون'),
           ),
@@ -597,7 +595,7 @@ class _EditAreaState extends State<EditArea> {
         area.allowedUsers;
   }
 
-  Future _selectDate() async {
+  Future _selectDate(BuildContext context) async {
     DateTime picked = await showDatePicker(
       context: context,
       initialDate: area.lastVisit.toDate(),
@@ -607,11 +605,11 @@ class _EditAreaState extends State<EditArea> {
     if (picked != null && Timestamp.fromDate(picked) != area.lastVisit)
       setState(() {
         area.lastVisit = Timestamp.fromDate(picked);
+        FocusScope.of(context).nextFocus();
       });
-    foci[2].unfocus();
   }
 
-  Future _selectDate2() async {
+  Future _selectDate2(BuildContext context) async {
     DateTime picked = await showDatePicker(
       context: context,
       initialDate: area.fatherLastVisit?.toDate() ?? DateTime.now(),
@@ -621,6 +619,7 @@ class _EditAreaState extends State<EditArea> {
     if (picked != null && Timestamp.fromDate(picked) != area.fatherLastVisit)
       setState(() {
         area.fatherLastVisit = Timestamp.fromDate(picked);
+        FocusScope.of(context).nextFocus();
       });
   }
 }

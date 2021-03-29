@@ -9,6 +9,7 @@ import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -25,8 +26,6 @@ class EditFamily extends StatefulWidget {
 }
 
 class _EditFamilyState extends State<EditFamily> {
-  List<FocusNode> foci = List.generate(8, (_) => FocusNode());
-
   Map<String, dynamic> old;
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -48,331 +47,300 @@ class _EditFamilyState extends State<EditFamily> {
         key: form,
         child: Padding(
           padding: EdgeInsets.all(5),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Row(
+          child: ListView(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Text('محل'),
+                  Switch(
+                    value: widget.family.isStore,
+                    onChanged: (v) {
+                      family.isStore = v;
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'اسم ال' + (family.isStore ? 'محل' : 'عائلة'),
+                    border: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  initialValue: family.name,
+                  onChanged: nameChanged,
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'هذا الحقل مطلوب';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: TextFormField(
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    labelText: 'العنوان',
+                    border: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  initialValue: family.address,
+                  onChanged: addressChanged,
+                  validator: (value) {
+                    return null;
+                  },
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: TextFormField(
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    labelText: 'ملاحظات',
+                    border: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Theme.of(context).primaryColor),
+                    ),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                  initialValue: family.notes,
+                  onChanged: notesChanged,
+                  validator: (value) {
+                    return null;
+                  },
+                ),
+              ),
+              ElevatedButton.icon(
+                icon: Icon(
+                  const IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                ),
+                label: Text('تعديل مكان ال' +
+                    (family.isStore ? 'محل' : 'عائلة') +
+                    ' على الخريطة'),
+                onPressed: () async {
+                  var oldPoint = family.locationPoint != null
+                      ? GeoPoint(family.locationPoint.latitude,
+                          family.locationPoint.longitude)
+                      : null;
+                  var rslt = await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => Scaffold(
+                        appBar: AppBar(
+                          actions: <Widget>[
+                            IconButton(
+                              icon: Icon(Icons.done),
+                              onPressed: () => Navigator.pop(context, true),
+                              tooltip: 'حفظ',
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () => Navigator.pop(context, false),
+                              tooltip: 'حذف التحديد',
+                            )
+                          ],
+                          title: Text('تعديل مكان ${family.name} على الخريطة'),
+                        ),
+                        body: family.getMapView(
+                            editMode: true, useGPSIfNull: true),
+                      ),
+                    ),
+                  );
+                  if (rslt == null) {
+                    family.locationPoint = oldPoint;
+                  } else if (rslt == false) {
+                    family.locationPoint = null;
+                  }
+                },
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: InkWell(
+                  onTap: selectStreet,
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'داخل شارع',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                    ),
+                    child: FutureBuilder(
+                        future: family.streetId == null
+                            ? null
+                            : family.getStreetName(),
+                        builder: (con, data) {
+                          if (data.connectionState == ConnectionState.done) {
+                            return Text(data.data);
+                          } else if (data.connectionState ==
+                              ConnectionState.waiting) {
+                            return LinearProgressIndicator();
+                          } else {
+                            return Text('لا يوجد');
+                          }
+                        }),
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
                   children: <Widget>[
-                    Text('محل'),
-                    Switch(
-                      value: widget.family.isStore,
-                      onChanged: (v) {
-                        family.isStore = v;
-                        setState(() {});
-                      },
+                    Flexible(
+                      flex: 3,
+                      child: InkWell(
+                        onTap: selectFamily,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText:
+                                family.isStore ? 'ادارة المحل' : 'داخل عائلة',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
+                          child: FutureBuilder(
+                              future: family.insideFamily == null
+                                  ? Future(() => null)
+                                  : family.getInsideFamilyName(),
+                              builder: (con, data) {
+                                if (data.hasData) {
+                                  return Text(data.data);
+                                } else if (data.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return LinearProgressIndicator();
+                                } else {
+                                  return Text('لا يوجد');
+                                }
+                              }),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 2,
+                      child: TextButton.icon(
+                        icon: Icon(Icons.close),
+                        onPressed: () => setState(() {
+                          family.insideFamily = null;
+                        }),
+                        label: Text('حذف العائلة'),
+                      ),
                     ),
                   ],
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    Flexible(
+                      flex: 3,
+                      child: InkWell(
+                        onTap: selectFamily2,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'داخل عائلة 2',
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).primaryColor),
+                            ),
+                          ),
+                          child: FutureBuilder(
+                              future: family.insideFamily2 == null
+                                  ? Future(() => null)
+                                  : family.getInsideFamily2Name(),
+                              builder: (con, data) {
+                                if (data.hasData) {
+                                  return Text(data.data);
+                                } else if (data.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return LinearProgressIndicator();
+                                } else {
+                                  return Text('لا يوجد');
+                                }
+                              }),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 2,
+                      child: TextButton.icon(
+                        icon: Icon(Icons.close),
+                        onPressed: () => setState(() {
+                          family.insideFamily2 = null;
+                        }),
+                        label: Text('حذف العائلة'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: InkWell(
+                  onTap: () => _selectDate(context),
+                  child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'اسم ال' + (family.isStore ? 'محل' : 'عائلة'),
+                      labelText: 'تاريخ أخر زيارة',
                       border: OutlineInputBorder(
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
                     ),
-                    focusNode: foci[0],
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => foci[1].requestFocus(),
-                    initialValue: family.name,
-                    onChanged: nameChanged,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'هذا الحقل مطلوب';
-                      }
-                      return null;
-                    },
+                    child: Text(DateFormat('yyyy/M/d').format(
+                      family.lastVisit.toDate(),
+                    )),
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
-                    maxLines: null,
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: InkWell(
+                  onTap: () => _selectDate2(context),
+                  child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'العنوان',
+                      labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       border: OutlineInputBorder(
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
                     ),
-                    focusNode: foci[1],
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) {
-                      foci[2].requestFocus();
-                      selectStreet();
-                    },
-                    initialValue: family.address,
-                    onChanged: addressChanged,
-                    validator: (value) {
-                      return null;
-                    },
+                    child: family.fatherLastVisit != null
+                        ? Text(DateFormat('yyyy/M/d').format(
+                            family.fatherLastVisit.toDate(),
+                          ))
+                        : Text(DateFormat('yyyy/M/d').format(
+                            DateTime(DateTime.now().year, DateTime.now().month,
+                                DateTime.now().day),
+                          )),
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      labelText: 'ملاحظات',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                    ),
-                    focusNode: foci[2],
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) {
-                      foci[3].requestFocus();
-                      selectStreet();
-                    },
-                    initialValue: family.notes,
-                    onChanged: notesChanged,
-                    validator: (value) {
-                      return null;
-                    },
-                  ),
-                ),
-                ElevatedButton.icon(
-                    icon: Icon(
-                      const IconData(0xe568, fontFamily: 'MaterialIconsR'),
-                    ),
-                    label: Text('تعديل مكان ال' +
-                        (family.isStore ? 'محل' : 'عائلة') +
-                        ' على الخريطة'),
-                    onPressed: () async {
-                      var oldPoint = family.locationPoint != null
-                          ? GeoPoint(family.locationPoint.latitude,
-                              family.locationPoint.longitude)
-                          : null;
-                      var rslt = await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                            appBar: AppBar(
-                              actions: <Widget>[
-                                IconButton(
-                                  icon: Icon(Icons.done),
-                                  onPressed: () => Navigator.pop(context, true),
-                                  tooltip: 'حفظ',
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  tooltip: 'حذف التحديد',
-                                )
-                              ],
-                              title:
-                                  Text('تعديل مكان ${family.name} على الخريطة'),
-                            ),
-                            body: family.getMapView(
-                                editMode: true, useGPSIfNull: true),
-                          ),
-                        ),
-                      );
-                      if (rslt == null) {
-                        family.locationPoint = oldPoint;
-                      } else if (rslt == false) {
-                        family.locationPoint = null;
-                      }
-                    }),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[3],
-                    child: InkWell(
-                      onTap: selectStreet,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'داخل شارع',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        child: FutureBuilder(
-                            future: family.streetId == null
-                                ? null
-                                : family.getStreetName(),
-                            builder: (con, data) {
-                              if (data.connectionState ==
-                                  ConnectionState.done) {
-                                return Text(data.data);
-                              } else if (data.connectionState ==
-                                  ConnectionState.waiting) {
-                                return LinearProgressIndicator();
-                              } else {
-                                return Text('لا يوجد');
-                              }
-                            }),
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[4],
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Flexible(
-                          flex: 3,
-                          child: InkWell(
-                            onTap: selectFamily,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: family.isStore
-                                    ? 'ادارة المحل'
-                                    : 'داخل عائلة',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
-                                ),
-                              ),
-                              child: FutureBuilder(
-                                  future: family.insideFamily == null
-                                      ? Future(() => null)
-                                      : family.getInsideFamilyName(),
-                                  builder: (con, data) {
-                                    if (data.hasData) {
-                                      return Text(data.data);
-                                    } else if (data.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return LinearProgressIndicator();
-                                    } else {
-                                      return Text('لا يوجد');
-                                    }
-                                  }),
-                            ),
-                          ),
-                        ),
-                        Flexible(
-                          flex: 2,
-                          child: TextButton.icon(
-                            icon: Icon(Icons.close),
-                            onPressed: () => setState(() {
-                              family.insideFamily = null;
-                            }),
-                            label: Text('حذف العائلة'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[5],
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Flexible(
-                          flex: 3,
-                          child: InkWell(
-                            onTap: selectFamily2,
-                            child: InputDecorator(
-                              decoration: InputDecoration(
-                                labelText: 'داخل عائلة 2',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: Theme.of(context).primaryColor),
-                                ),
-                              ),
-                              child: FutureBuilder(
-                                  future: family.insideFamily2 == null
-                                      ? Future(() => null)
-                                      : family.getInsideFamily2Name(),
-                                  builder: (con, data) {
-                                    if (data.hasData) {
-                                      return Text(data.data);
-                                    } else if (data.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return LinearProgressIndicator();
-                                    } else {
-                                      return Text('لا يوجد');
-                                    }
-                                  }),
-                            ),
-                          ),
-                        ),
-                        Flexible(
-                          flex: 2,
-                          child: TextButton.icon(
-                            icon: Icon(Icons.close),
-                            onPressed: () => setState(() {
-                              family.insideFamily2 = null;
-                            }),
-                            label: Text('حذف العائلة'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[6],
-                    child: InkWell(
-                      onTap: _selectDate,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'تاريخ أخر زيارة',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        child: Text(DateFormat('yyyy/M/d').format(
-                          family.lastVisit.toDate(),
-                        )),
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    focusNode: foci[7],
-                    child: InkWell(
-                      onTap: _selectDate2,
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
-                        ),
-                        child: family.fatherLastVisit != null
-                            ? Text(DateFormat('yyyy/M/d').format(
-                                family.fatherLastVisit.toDate(),
-                              ))
-                            : Text(DateFormat('yyyy/M/d').format(
-                                DateTime(DateTime.now().year,
-                                    DateTime.now().month, DateTime.now().day),
-                              )),
-                      ),
-                    ),
-                  ),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(primary: family.color),
-                  onPressed: selectColor,
-                  icon: Icon(Icons.color_lens),
-                  label: Text('اللون'),
-                ),
-              ],
-            ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(primary: family.color),
+                onPressed: selectColor,
+                icon: Icon(Icons.color_lens),
+                label: Text('اللون'),
+              ),
+            ].map((w) => Focus(child: w)).toList(),
           ),
         ),
       ),
@@ -403,42 +371,52 @@ class _EditFamilyState extends State<EditFamily> {
     family.lastVisit = Timestamp.fromDate(value);
   }
 
-  void delete() {
-    showDialog(
-      context: context,
-      builder: (context) => DataDialog(
-        title: Text(family.name),
-        content:
-            Text('هل أنت متأكد من حذف ${family.name} وكل الأشخاص بداخلها؟'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('جار حذف ال' +
-                      (family.isStore ? 'محل' : 'عائلة') +
-                      ' وما بداخلها من بيانات...'),
-                  duration: Duration(minutes: 20),
-                ),
-              );
-              await FirebaseFirestore.instance
-                  .collection('Families')
-                  .doc(family.id)
-                  .delete();
-              Navigator.of(context).pop();
-              Navigator.of(context).pop('deleted');
-            },
-            child: Text('نعم'),
+  void delete() async {
+    if (await showDialog(
+          context: context,
+          builder: (context) => DataDialog(
+            title: Text(family.name),
+            content:
+                Text('هل أنت متأكد من حذف ${family.name} وكل الأشخاص بداخلها؟'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context, true);
+                },
+                child: Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('تراجع'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text('تراجع'),
-          ),
-        ],
-      ),
-    );
+        ) ==
+        true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار حذف ال' +
+              (family.isStore ? 'محل' : 'عائلة') +
+              ' وما بداخلها من بيانات...'),
+          duration: Duration(minutes: 20),
+        ),
+      );
+      if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
+        await FirebaseFirestore.instance
+            .collection('Families')
+            .doc(family.id)
+            .delete();
+      else {
+        // ignore: unawaited_futures
+        FirebaseFirestore.instance
+            .collection('Families')
+            .doc(family.id)
+            .delete();
+      }
+      Navigator.of(context).pop('deleted');
+    }
   }
 
   @override
@@ -497,18 +475,37 @@ class _EditFamilyState extends State<EditFamily> {
 
         family.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
+        bool update = family.id != '';
         if (family.id == '') {
           family.id =
-              (await FirebaseFirestore.instance.collection('Families').add(
-                        family.getMap(),
-                      ))
-                  .id;
-        } else {
+              FirebaseFirestore.instance.collection('Families').doc().id;
+        }
+
+        if (update &&
+            await Connectivity().checkConnectivity() !=
+                ConnectivityResult.none) {
           await family.ref.update(
             family.getMap()..removeWhere((key, value) => old[key] == value),
           );
+        } else if (update) {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          family.ref.update(
+            family.getMap()..removeWhere((key, value) => old[key] == value),
+          );
+        } else if (await Connectivity().checkConnectivity() !=
+            ConnectivityResult.none) {
+          await family.ref.set(
+            family.getMap(),
+          );
+        } else {
+          //Intentionally unawaited because of no internet connection
+          // ignore: unawaited_futures
+          family.ref.set(
+            family.getMap(),
+          );
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
         Navigator.of(context).pop(family.ref);
       } else {
         await showDialog(
@@ -558,6 +555,7 @@ class _EditFamilyState extends State<EditFamily> {
             setState(() {
               family.color = color;
             });
+            FocusScope.of(context).nextFocus();
           },
         ),
       ),
@@ -762,7 +760,7 @@ class _EditFamilyState extends State<EditFamily> {
     );
   }
 
-  Future _selectDate() async {
+  Future _selectDate(BuildContext context) async {
     DateTime picked = await showDatePicker(
       context: context,
       initialDate: family.lastVisit.toDate(),
@@ -772,10 +770,11 @@ class _EditFamilyState extends State<EditFamily> {
     if (picked != null && Timestamp.fromDate(picked) != family.lastVisit)
       setState(() {
         family.lastVisit = Timestamp.fromDate(picked);
+        FocusScope.of(context).nextFocus();
       });
   }
 
-  Future _selectDate2() async {
+  Future _selectDate2(BuildContext context) async {
     DateTime picked = await showDatePicker(
       context: context,
       initialDate: family.fatherLastVisit?.toDate() ?? DateTime.now(),
@@ -785,6 +784,7 @@ class _EditFamilyState extends State<EditFamily> {
     if (picked != null && Timestamp.fromDate(picked) != family.fatherLastVisit)
       setState(() {
         family.fatherLastVisit = Timestamp.fromDate(picked);
+        FocusScope.of(context).nextFocus();
       });
   }
 }
