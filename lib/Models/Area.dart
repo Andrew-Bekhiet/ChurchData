@@ -280,6 +280,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
         : FirebaseFirestore.instance
             .collection('Areas')
             .where('Allowed', arrayContains: u.uid)
+            .orderBy(orderBy, descending: descending)
             .snapshots());
   }
 
@@ -291,6 +292,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
           'AreaId',
           isEqualTo: FirebaseFirestore.instance.collection('Areas').doc(id),
         )
+        .orderBy(orderBy, descending: descending)
         .snapshots();
   }
 
