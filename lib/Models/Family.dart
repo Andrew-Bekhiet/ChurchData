@@ -259,30 +259,34 @@ class Family extends DataObject
   static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream)
-      if (u.superAccess) {
-        await for (var s in FirebaseFirestore.instance
-            .collection('Families')
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
-      } else
-        await for (var s in FirebaseFirestore.instance
-            .collection('Families')
-            .where(
-              'AreaId',
-              whereIn: (await FirebaseFirestore.instance
+  }) {
+    return User.instance.stream
+        .asyncMap(
+          (u) async => u.superAccess
+              ? null
+              : (await FirebaseFirestore.instance
                       .collection('Areas')
-                      .where('Allowed',
-                          arrayContains:
-                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
                   .docs
                   .map((e) => e.reference)
                   .toList(),
-            )
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
+        )
+        .switchMap(
+          (a) => a == null
+              ? FirebaseFirestore.instance
+                  .collection('Families')
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Families')
+                  .where(
+                    'AreaId',
+                    whereIn: a,
+                  )
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots(),
+        );
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {
@@ -302,73 +306,90 @@ class Family extends DataObject
 
   static Stream<List<QuerySnapshot>> getFamilyMembersLive(
       DocumentReference areaId, String id,
-      [String orderBy = 'Name', bool descending = false]) async* {
-    await for (var u in User.instance.stream) {
-      if (u.superAccess)
-        await for (var s in Rx.combineLatest3(
-            FirebaseFirestore.instance
-                .collection('Persons')
-                .where('AreaId', isEqualTo: areaId)
-                .where(
-                  'FamilyId',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy(orderBy, descending: descending)
-                .snapshots(),
-            FirebaseFirestore.instance
-                .collection('Families')
-                .where(
-                  'InsideFamily',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy('Name')
-                .snapshots(),
-            FirebaseFirestore.instance
-                .collection('Families')
-                .where(
-                  'InsideFamily2',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy('Name')
-                .snapshots(),
-            (a, b, c) => <QuerySnapshot>[a, b, c])) yield s;
-      else
-        await for (var s in Rx.combineLatest3(
-            FirebaseFirestore.instance
-                .collection('Persons')
-                .where('AreaId', isEqualTo: areaId)
-                .where(
-                  'FamilyId',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy(orderBy, descending: descending)
-                .snapshots(),
-            FirebaseFirestore.instance
-                .collection('Families')
-                .where('AreaId', isEqualTo: areaId)
-                .where(
-                  'InsideFamily',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy('Name')
-                .snapshots(),
-            FirebaseFirestore.instance
-                .collection('Families')
-                .where('AreaId', isEqualTo: areaId)
-                .where(
-                  'InsideFamily2',
-                  isEqualTo:
-                      FirebaseFirestore.instance.collection('Families').doc(id),
-                )
-                .orderBy('Name')
-                .snapshots(),
-            (a, b, c) => <QuerySnapshot>[a, b, c])) yield s;
-    }
+      [String orderBy = 'Name', bool descending = false]) {
+    return User.instance.stream
+        .asyncMap(
+          (u) async => u.superAccess
+              ? null
+              : (await FirebaseFirestore.instance
+                      .collection('Areas')
+                      .where('Allowed', arrayContains: u.uid)
+                      .get(dataSource))
+                  .docs
+                  .map((e) => e.reference)
+                  .toList(),
+        )
+        .switchMap(
+          (a) => a == null
+              ? Rx.combineLatest3(
+                  FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('AreaId', isEqualTo: areaId)
+                      .where(
+                        'FamilyId',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy(orderBy, descending: descending)
+                      .snapshots(),
+                  FirebaseFirestore.instance
+                      .collection('Families')
+                      .where(
+                        'InsideFamily',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy('Name')
+                      .snapshots(),
+                  FirebaseFirestore.instance
+                      .collection('Families')
+                      .where(
+                        'InsideFamily2',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy('Name')
+                      .snapshots(),
+                  (a, b, c) => <QuerySnapshot>[a, b, c])
+              : Rx.combineLatest3(
+                  FirebaseFirestore.instance
+                      .collection('Persons')
+                      .where('AreaId', isEqualTo: areaId)
+                      .where(
+                        'FamilyId',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy(orderBy, descending: descending)
+                      .snapshots(),
+                  FirebaseFirestore.instance
+                      .collection('Families')
+                      .where('AreaId', isEqualTo: areaId)
+                      .where(
+                        'InsideFamily',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy('Name')
+                      .snapshots(),
+                  FirebaseFirestore.instance
+                      .collection('Families')
+                      .where('AreaId', isEqualTo: areaId)
+                      .where(
+                        'InsideFamily2',
+                        isEqualTo: FirebaseFirestore.instance
+                            .collection('Families')
+                            .doc(id),
+                      )
+                      .orderBy('Name')
+                      .snapshots(),
+                  (a, b, c) => <QuerySnapshot>[a, b, c]),
+        );
   }
 
   // @override

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:intl/intl.dart';
 
 import '../utils/helpers.dart';
@@ -393,30 +393,34 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream)
-      if (u.superAccess)
-        await for (var s in FirebaseFirestore.instance
-            .collection('Persons')
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
-      else
-        await for (var s in FirebaseFirestore.instance
-            .collection('Persons')
-            .where(
-              'AreaId',
-              whereIn: (await FirebaseFirestore.instance
+  }) {
+    return User.instance.stream
+        .asyncMap(
+          (u) async => u.superAccess
+              ? null
+              : (await FirebaseFirestore.instance
                       .collection('Areas')
-                      .where('Allowed',
-                          arrayContains:
-                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
                   .docs
                   .map((e) => e.reference)
                   .toList(),
-            )
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
+        )
+        .switchMap(
+          (a) => a == null
+              ? FirebaseFirestore.instance
+                  .collection('Persons')
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Persons')
+                  .where(
+                    'AreaId',
+                    whereIn: a,
+                  )
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots(),
+        );
   }
 
   static Map<String, dynamic> getEmptyExportMap() => {

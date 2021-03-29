@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:location/location.dart';
 
 import '../models/map_view.dart';
@@ -270,25 +271,16 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     String uid,
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream) {
-      if (u.superAccess && (uid == null || uid == u.uid)) {
-        await for (var s in FirebaseFirestore.instance
-            .collection('Areas')
+  }) {
+    return User.instance.stream.switchMap((u) => u.superAccess
+        ? FirebaseFirestore.instance
+            .collection('Persons')
             .orderBy(orderBy, descending: descending)
-            .snapshots()) {
-          yield s;
-        }
-      } else {
-        await for (var s in FirebaseFirestore.instance
+            .snapshots()
+        : FirebaseFirestore.instance
             .collection('Areas')
-            .where('Allowed', arrayContains: uid ?? u.uid)
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) {
-          yield s;
-        }
-      }
-    }
+            .where('Allowed', arrayContains: u.uid)
+            .snapshots());
   }
 
   static Stream<QuerySnapshot> getAreaChildrenLive(String id,
