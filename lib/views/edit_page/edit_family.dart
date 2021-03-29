@@ -583,7 +583,7 @@ class _EditFamilyState extends State<EditFamily> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Family.getAllForUser(
+              .switchMap((value) => Family.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Family.fromDoc).toList()),
         );
@@ -649,7 +649,7 @@ class _EditFamilyState extends State<EditFamily> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Family.getAllForUser(
+              .switchMap((value) => Family.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Family.fromDoc).toList()),
         );
@@ -715,7 +715,7 @@ class _EditFamilyState extends State<EditFamily> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Street.getAllForUser(
+              .switchMap((value) => Street.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Street.fromDoc).toList()),
         );

@@ -87,7 +87,7 @@ class _AreaInfoState extends State<AreaInfo> {
             final _listOptions = DataObjectListOptions<Street>(
               searchQuery: _searchStream,
               tap: (street) => streetTap(street, context),
-              itemsStream: _orderOptions.flatMap(
+              itemsStream: _orderOptions.switchMap(
                 (o) => area
                     .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
                     .map((s) => s.docs.map(Street.fromDoc).toList()),

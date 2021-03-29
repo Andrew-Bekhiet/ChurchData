@@ -79,7 +79,7 @@ class _StreetInfoState extends State<StreetInfo> {
           final _listOptions = DataObjectListOptions<Family>(
             searchQuery: _searchStream,
             tap: (family) => familyTap(family, context),
-            itemsStream: _orderOptions.flatMap(
+            itemsStream: _orderOptions.switchMap(
               (o) => street
                   .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
                   .map((s) => s.docs.map(Family.fromDoc).toList()),

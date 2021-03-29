@@ -536,7 +536,7 @@ class _UserPState extends State<UserP> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Person.getAllForUser(
+              .switchMap((value) => Person.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Person.fromDoc).toList()),
         );

@@ -1406,7 +1406,7 @@ class _EditPersonState extends State<EditPerson> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Area.getAllForUser(
+              .switchMap((value) => Area.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Area.fromDoc).toList()),
         );
@@ -1490,7 +1490,7 @@ class _EditPersonState extends State<EditPerson> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Family.getAllForUser(
+              .switchMap((value) => Family.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Family.fromDoc).toList()),
         );

@@ -384,7 +384,7 @@ class _EditStreetState extends State<EditStreet> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .flatMap((value) => Area.getAllForUser(
+              .switchMap((value) => Area.getAllForUser(
                   orderBy: value.orderBy, descending: !value.asc))
               .map((s) => s.docs.map(Area.fromDoc).toList()),
         );

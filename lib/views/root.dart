@@ -95,7 +95,7 @@ class _RootState extends State<Root>
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
-      itemsStream: _areasOrder.flatMap(
+      itemsStream: _areasOrder.switchMap(
         (order) =>
             Area.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
@@ -105,7 +105,7 @@ class _RootState extends State<Root>
     );
     var _streetsOptions = DataObjectListOptions<Street>(
       searchQuery: _searchQuery,
-      itemsStream: _streetsOrder.flatMap(
+      itemsStream: _streetsOrder.switchMap(
         (order) =>
             Street.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
@@ -115,7 +115,7 @@ class _RootState extends State<Root>
     );
     var _familiesOptions = DataObjectListOptions<Family>(
       searchQuery: _searchQuery,
-      itemsStream: _familiesOrder.flatMap(
+      itemsStream: _familiesOrder.switchMap(
         (order) =>
             Family.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
@@ -125,7 +125,7 @@ class _RootState extends State<Root>
     );
     var _personsOptions = DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
-      itemsStream: _personsOrder.flatMap(
+      itemsStream: _personsOrder.switchMap(
         (order) =>
             Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
