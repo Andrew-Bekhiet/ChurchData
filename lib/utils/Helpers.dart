@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/person.dart';
+import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:churchdata/models/data_dialog.dart';
@@ -904,40 +906,63 @@ Future processLink(Uri deepLink, BuildContext context) async {
 
 void sendNotification(BuildContext context, dynamic attachement) async {
   BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
-  List<User> users = await showDialog(
-    context: context,
-    builder: (context) {
-      return MultiProvider(
-        providers: [
-          Provider(
+  List<User> users = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        return MultiProvider(
+          providers: [
+            Provider(
               create: (_) => DataObjectListOptions<User>(
-                  selectionMode: true,
-                  searchQuery: search,
-                  itemsStream: Stream.fromFuture(User.getAllUsersLive())
-                      .map((s) => s.docs.map(User.fromDoc).toList()))),
-        ],
-        builder: (context, child) => AlertDialog(
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(
-                    context,
-                    context
-                        .read<DataObjectListOptions<User>>()
-                        .selectedLatest
-                        .values
-                        .toList());
-              },
-              child: Text('تم'),
-            )
+                itemBuilder: (current,
+                        {onLongPress, onTap, subtitle, trailing}) =>
+                    DataObjectWidget(
+                  current,
+                  onTap: () => onTap(current),
+                  trailing: trailing,
+                  showSubtitle: false,
+                ),
+                selectionMode: true,
+                searchQuery: search,
+                itemsStream: Stream.fromFuture(User.getAllUsersLive())
+                    .map((s) => s.docs.map(User.fromDoc).toList()),
+              ),
+            ),
           ],
-          content: Container(
-            width: 280,
-            child: UsersList(),
+          builder: (context, child) => Scaffold(
+            appBar: AppBar(
+              title: Text('اختيار مستخدمين'),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(
+                        context,
+                        context
+                            .read<DataObjectListOptions<User>>()
+                            .selectedLatest
+                            .values
+                            .toList());
+                  },
+                  icon: Icon(Icons.done),
+                  tooltip: 'تم',
+                ),
+              ],
+            ),
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SearchField(
+                    searchStream: search,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
+                Expanded(
+                  child: UsersList(),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
+        );
+      },
+    ),
   );
   var title = TextEditingController();
   var content = TextEditingController();

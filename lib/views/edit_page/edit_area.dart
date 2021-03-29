@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
@@ -535,16 +536,28 @@ class _EditAreaState extends State<EditArea> {
 
   void showUsers() async {
     BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
-    area.allowedUsers = await showDialog(
-          context: context,
-          builder: (context) {
-            return FutureBuilder<List<User>>(
-              future: User.getAllUsers(area.allowedUsers),
-              builder: (c, users) => users.hasData
-                  ? MultiProvider(
-                      providers: [
-                        Provider(
-                          create: (_) => DataObjectListOptions<User>(
+    area.allowedUsers = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) {
+              return FutureBuilder<List<User>>(
+                future: User.getAllUsers(area.allowedUsers),
+                builder: (c, users) => users.hasData
+                    ? MultiProvider(
+                        providers: [
+                          Provider(
+                            create: (_) => DataObjectListOptions<User>(
+                              itemBuilder: (current,
+                                      {onLongPress,
+                                      onTap,
+                                      subtitle,
+                                      trailing}) =>
+                                  DataObjectWidget(
+                                current,
+                                onTap: () => onTap(current),
+                                trailing: trailing,
+                                showSubtitle: false,
+                              ),
                               searchQuery: searchStream,
                               selectionMode: true,
                               itemsStream:
@@ -552,28 +565,31 @@ class _EditAreaState extends State<EditArea> {
                                       (s) => s.docs.map(User.fromDoc).toList()),
                               selected: {
                                 for (var item in users.data) item.uid: item
-                              }),
-                        )
-                      ],
-                      builder: (context, child) => AlertDialog(
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(
-                                  context,
-                                  context
-                                      .read<DataObjectListOptions<User>>()
-                                      .selectedLatest
-                                      .values
-                                      ?.map((f) => f.uid)
-                                      ?.toList());
-                            },
-                            child: Text('تم'),
+                              },
+                            ),
                           )
                         ],
-                        content: Container(
-                          width: 280,
-                          child: Column(
+                        builder: (context, child) => Scaffold(
+                          appBar: AppBar(
+                            title: Text('اختيار مستخدمين'),
+                            actions: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.pop(
+                                      context,
+                                      context
+                                          .read<DataObjectListOptions<User>>()
+                                          .selectedLatest
+                                          .values
+                                          ?.map((f) => f.uid)
+                                          ?.toList());
+                                },
+                                icon: Icon(Icons.done),
+                                tooltip: 'تم',
+                              )
+                            ],
+                          ),
+                          body: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               SearchField(
@@ -586,11 +602,11 @@ class _EditAreaState extends State<EditArea> {
                             ],
                           ),
                         ),
-                      ),
-                    )
-                  : Center(child: CircularProgressIndicator()),
-            );
-          },
+                      )
+                    : Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
         ) ??
         area.allowedUsers;
   }
