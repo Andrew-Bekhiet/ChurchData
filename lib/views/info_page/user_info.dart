@@ -144,6 +144,11 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                     title: Text('رؤية جميع البيانات'),
                   ),
+                if (user.manageDeleted == true)
+                  ListTile(
+                    leading: Icon(Icons.delete_outlined),
+                    title: Text('استرجاع المحذوفات'),
+                  ),
                 if (user.write == true)
                   ListTile(
                     leading: Icon(Icons.edit),

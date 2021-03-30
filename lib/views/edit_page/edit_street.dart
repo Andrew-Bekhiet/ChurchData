@@ -309,7 +309,7 @@ class _EditStreetState extends State<EditStreet> {
 
         bool update = street.id != '';
         if (street.id == '') {
-          street.id = FirebaseFirestore.instance.collection('Streets').doc().id;
+          street.ref = FirebaseFirestore.instance.collection('Streets').doc();
         }
 
         if (update &&

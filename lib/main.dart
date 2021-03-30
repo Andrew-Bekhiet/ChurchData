@@ -10,6 +10,7 @@ import 'package:churchdata/views/info_page/family_info.dart';
 import 'package:churchdata/views/info_page/person_info.dart';
 import 'package:churchdata/views/info_page/street_info.dart';
 import 'package:churchdata/views/info_page/user_info.dart';
+import 'package:churchdata/views/trash.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:churchdata/models/data_map.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -219,6 +220,7 @@ class AppState extends State<App> {
           'Notifications': (context) => NotificationsPage(),
           'Update': (context) => Update(),
           'Search': (context) => SearchQuery(),
+          'Trash': (context) => Trash(),
           'DataMap': (context) => DataMap(),
           'AreaInfo': (context) =>
               AreaInfo(area: ModalRoute.of(context).settings.arguments),

@@ -52,114 +52,138 @@ class PersonInfo extends StatelessWidget {
                     backgroundColor: person.color != Colors.transparent
                         ? person.color
                         : null,
-                    actions: <Widget>[
-                      if (permission)
-                        IconButton(
-                          icon: Builder(
-                            builder: (context) => IconShadowWidget(
-                              Icon(
-                                Icons.edit,
-                                color: IconTheme.of(context).color,
-                              ),
-                            ),
-                          ),
-                          onPressed: () async {
-                            dynamic result = await Navigator.of(context)
-                                .pushNamed('Data/EditPerson',
-                                    arguments: person);
-                            if (result == null) return;
+                    actions: person.ref.path.startsWith('Deleted')
+                        ? <Widget>[
+                            if (permission)
+                              IconButton(
+                                icon: Icon(Icons.restore),
+                                tooltip: 'استعادة',
+                                onPressed: () {
+                                  person.lastEdit = User.instance.uid;
+                                  FirebaseFirestore.instance
+                                      .collection('Persons')
+                                      .doc(person.id)
+                                      .set(person.getMap());
+                                },
+                              )
+                          ]
+                        : <Widget>[
+                            if (permission)
+                              IconButton(
+                                icon: Builder(
+                                  builder: (context) => IconShadowWidget(
+                                    Icon(
+                                      Icons.edit,
+                                      color: IconTheme.of(context).color,
+                                    ),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  dynamic result = await Navigator.of(context)
+                                      .pushNamed('Data/EditPerson',
+                                          arguments: person);
+                                  if (result == null) return;
 
-                            ScaffoldMessenger.of(mainScfld.currentContext)
-                                .hideCurrentSnackBar();
-                            if (result is DocumentReference) {
-                              ScaffoldMessenger.of(mainScfld.currentContext)
-                                  .showSnackBar(
-                                SnackBar(
-                                  content: Text('تم الحفظ بنجاح'),
+                                  ScaffoldMessenger.of(mainScfld.currentContext)
+                                      .hideCurrentSnackBar();
+                                  if (result is DocumentReference) {
+                                    ScaffoldMessenger.of(
+                                            mainScfld.currentContext)
+                                        .showSnackBar(
+                                      SnackBar(
+                                        content: Text('تم الحفظ بنجاح'),
+                                      ),
+                                    );
+                                  } else if (result == 'deleted') {
+                                    Navigator.of(mainScfld.currentContext)
+                                        .pop();
+                                    ScaffoldMessenger.of(
+                                            mainScfld.currentContext)
+                                        .showSnackBar(
+                                      SnackBar(
+                                        content: Text('تم الحذف بنجاح'),
+                                      ),
+                                    );
+                                  }
+                                },
+                                tooltip: 'تعديل',
+                              ),
+                            IconButton(
+                              icon: Builder(
+                                builder: (context) => IconShadowWidget(
+                                  Icon(
+                                    Icons.share,
+                                    color: IconTheme.of(context).color,
+                                  ),
                                 ),
-                              );
-                            } else if (result == 'deleted') {
-                              Navigator.of(mainScfld.currentContext).pop();
-                              ScaffoldMessenger.of(mainScfld.currentContext)
-                                  .showSnackBar(
-                                SnackBar(
-                                  content: Text('تم الحذف بنجاح'),
-                                ),
-                              );
-                            }
-                          },
-                          tooltip: 'تعديل',
-                        ),
-                      IconButton(
-                        icon: Builder(
-                          builder: (context) => IconShadowWidget(
-                            Icon(
-                              Icons.share,
-                              color: IconTheme.of(context).color,
+                              ),
+                              onPressed: () async {
+                                await Share.share(
+                                  await sharePerson(person),
+                                );
+                              },
+                              tooltip: 'مشاركة برابط',
                             ),
-                          ),
-                        ),
-                        onPressed: () async {
-                          await Share.share(
-                            await sharePerson(person),
-                          );
-                        },
-                        tooltip: 'مشاركة برابط',
-                      ),
-                      DescribedFeatureOverlay(
-                        onBackgroundTap: () async {
-                          await FeatureDiscovery.completeCurrentStep(context);
-                          return true;
-                        },
-                        onDismiss: () async {
-                          await FeatureDiscovery.completeCurrentStep(context);
-                          return true;
-                        },
-                        backgroundDismissible: true,
-                        contentLocation: ContentLocation.below,
-                        featureId: 'Person.MoreOptions',
-                        tapTarget: Icon(
-                          Icons.more_vert,
-                        ),
-                        title: Text('المزيد من الخيارات'),
-                        description: Column(
-                          children: <Widget>[
-                            Text(
-                                'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الشخص\ىنسخ في لوحة الاتصال\ىاضافة لجهات الاتصال\ىارسال رسالة\ىارسال رسالة من خلال الواتساب'),
-                            OutlinedButton(
-                              onPressed: () =>
-                                  FeatureDiscovery.completeCurrentStep(context),
-                              child: Text(
-                                'تخطي',
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyText2
-                                      .color,
-                                ),
+                            DescribedFeatureOverlay(
+                              onBackgroundTap: () async {
+                                await FeatureDiscovery.completeCurrentStep(
+                                    context);
+                                return true;
+                              },
+                              onDismiss: () async {
+                                await FeatureDiscovery.completeCurrentStep(
+                                    context);
+                                return true;
+                              },
+                              backgroundDismissible: true,
+                              contentLocation: ContentLocation.below,
+                              featureId: 'Person.MoreOptions',
+                              tapTarget: Icon(
+                                Icons.more_vert,
+                              ),
+                              title: Text('المزيد من الخيارات'),
+                              description: Column(
+                                children: <Widget>[
+                                  Text(
+                                      'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الشخص\ىنسخ في لوحة الاتصال\ىاضافة لجهات الاتصال\ىارسال رسالة\ىارسال رسالة من خلال الواتساب'),
+                                  OutlinedButton(
+                                    onPressed: () =>
+                                        FeatureDiscovery.completeCurrentStep(
+                                            context),
+                                    child: Text(
+                                      'تخطي',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyText2
+                                            .color,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              backgroundColor: Theme.of(context).accentColor,
+                              targetColor: Colors.transparent,
+                              textColor: Theme.of(context)
+                                  .primaryTextTheme
+                                  .bodyText1
+                                  .color,
+                              child: PopupMenuButton(
+                                onSelected: (p) {
+                                  sendNotification(context, person);
+                                },
+                                itemBuilder: (BuildContext context) {
+                                  return [
+                                    PopupMenuItem(
+                                      value: '',
+                                      child: Text(
+                                          'ارسال اشعار للمستخدمين عن الشخص'),
+                                    )
+                                  ];
+                                },
                               ),
                             ),
                           ],
-                        ),
-                        backgroundColor: Theme.of(context).accentColor,
-                        targetColor: Colors.transparent,
-                        textColor:
-                            Theme.of(context).primaryTextTheme.bodyText1.color,
-                        child: PopupMenuButton(
-                          onSelected: (p) {
-                            sendNotification(context, person);
-                          },
-                          itemBuilder: (BuildContext context) {
-                            return [
-                              PopupMenuItem(
-                                value: '',
-                                child: Text('ارسال اشعار للمستخدمين عن الشخص'),
-                              )
-                            ];
-                          },
-                        ),
-                      ),
-                    ],
                     expandedHeight: 250.0,
                     floating: false,
                     pinned: true,

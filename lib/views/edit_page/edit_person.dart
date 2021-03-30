@@ -1275,7 +1275,7 @@ class _EditPersonState extends State<EditPerson> {
         }
         bool update = person.id != '';
         if (person.id == '') {
-          person.id = FirebaseFirestore.instance.collection('Persons').doc().id;
+          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -1348,7 +1348,7 @@ class _EditPersonState extends State<EditPerson> {
   Future _saveUserData() async {
     try {
       if (person.id == '') {
-        person.id = FirebaseFirestore.instance.collection('Persons').doc().id;
+        person.ref = FirebaseFirestore.instance.collection('Persons').doc();
       }
       if (changedImage != null) {
         await FirebaseStorage.instance

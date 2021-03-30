@@ -442,7 +442,7 @@ class _EditAreaState extends State<EditArea> {
         }
         bool update = area.id != '';
         if (area.id == '') {
-          area.id = FirebaseFirestore.instance.collection('Areas').doc().id;
+          area.ref = FirebaseFirestore.instance.collection('Areas').doc();
         }
         if (changedImage != null) {
           await FirebaseStorage.instance

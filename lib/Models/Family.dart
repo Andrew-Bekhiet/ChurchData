@@ -42,19 +42,21 @@ class Family extends DataObject
   Family(String id, this.areaId, this.streetId, String name, this.address,
       this.lastVisit, this.fatherLastVisit, this.lastEdit,
       {Color color = Colors.transparent,
+      DocumentReference ref,
       this.isStore = false,
       this.locationPoint,
       this.insideFamily,
       this.insideFamily2,
       this.locationConfirmed,
       this.notes})
-      : super(id, name, color) {
+      : super(ref ?? FirebaseFirestore.instance.collection('Families').doc(id),
+            name, color) {
     hasPhoto = false;
     defaultIcon = Icons.group;
   }
 
-  Family._createFromData(Map<dynamic, dynamic> data, String id)
-      : super.createFromData(data, id) {
+  Family._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
     areaId = data['AreaId'];
     streetId = data['StreetId'];
     insideFamily = data['InsideFamily'];
@@ -81,9 +83,6 @@ class Family extends DataObject
 
   @override
   Reference get photoRef => throw UnimplementedError();
-
-  @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Families/$id');
 
   Future<String> getAreaName() async {
     return (await areaId.get(dataSource)).data()['Name'];
@@ -234,7 +233,7 @@ class Family extends DataObject
   }
 
   static Family fromDoc(DocumentSnapshot data) =>
-      data.exists ? Family._createFromData(data.data(), data.id) : null;
+      data.exists ? Family._createFromData(data.data(), data.reference) : null;
 
   static Future<Family> fromId(String id) async => Family.fromDoc(
         await FirebaseFirestore.instance.doc('Families/$id').get(),

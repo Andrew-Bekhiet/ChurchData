@@ -9,19 +9,17 @@ import '../utils/globals.dart';
 abstract class MiniModel extends DataObject {
   final String collectionName;
   MiniModel(this.collectionName, String id, [String name = '', Color color])
-      : super(id, name, color);
+      : super(FirebaseFirestore.instance.collection(collectionName).doc(id),
+            name, color);
 
   MiniModel.createFromData(
       this.collectionName, Map<String, dynamic> data, String id)
-      : super.createFromData(data, id);
+      : super.createFromData(data,
+            FirebaseFirestore.instance.collection(collectionName).doc(id));
 
   MiniModel.createNew(this.collectionName)
-      : super(FirebaseFirestore.instance.collection(collectionName).doc().id,
-            '', null);
-
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection(collectionName).doc(id);
+      : super(FirebaseFirestore.instance.collection(collectionName).doc(), '',
+            null);
 
   @override
   Map<String, dynamic> getHumanReadableMap() {
@@ -154,11 +152,6 @@ class Father extends MiniModel with ChildObject<Church> {
   }
 
   Father.createNew() : super.createNew('Fathers');
-
-  @override
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('Fathers').doc(id);
 
   @override
   bool operator ==(dynamic other) {

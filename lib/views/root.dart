@@ -91,7 +91,8 @@ class _RootState extends State<Root>
 
   @override
   Widget build(BuildContext context) {
-    var _areasOptions = DataObjectListOptions<Area>(
+    final DataObjectListOptions<Area> _areasOptions =
+        DataObjectListOptions<Area>(
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
@@ -103,7 +104,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _streetsOptions = DataObjectListOptions<Street>(
+    final DataObjectListOptions<Street> _streetsOptions =
+        DataObjectListOptions<Street>(
       searchQuery: _searchQuery,
       itemsStream: _streetsOrder.switchMap(
         (order) =>
@@ -113,7 +115,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _familiesOptions = DataObjectListOptions<Family>(
+    final DataObjectListOptions<Family> _familiesOptions =
+        DataObjectListOptions<Family>(
       searchQuery: _searchQuery,
       itemsStream: _familiesOrder.switchMap(
         (order) =>
@@ -123,7 +126,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _personsOptions = DataObjectListOptions<Person>(
+    final DataObjectListOptions<Person> _personsOptions =
+        DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
       itemsStream: _personsOrder.switchMap(
         (order) =>
@@ -293,7 +297,6 @@ class _RootState extends State<Root>
               controller: _tabController,
               tabs: [
                 Tab(
-                  text: 'المناطق',
                   icon: DescribedFeatureOverlay(
                     backgroundDismissible: false,
                     barrierDismissible: false,
@@ -336,83 +339,55 @@ class _RootState extends State<Root>
                   ),
                 ),
                 Tab(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 11,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          child: DescribedFeatureOverlay(
-                            backgroundDismissible: false,
-                            barrierDismissible: false,
-                            contentLocation: ContentLocation.below,
-                            featureId: 'Streets',
-                            tapTarget: Image.asset('assets/streets.png',
-                                width: IconTheme.of(context).size,
-                                height: IconTheme.of(context).size,
-                                color: Theme.of(context).iconTheme.color),
-                            title: Text('الشوارع'),
-                            description: Column(
-                              children: [
-                                Text('هنا تجد قائمة بكل الشوارع بالبرنامج'),
-                                OutlinedButton.icon(
-                                  icon: Icon(Icons.forward),
-                                  label: Text(
-                                    'التالي',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText2
-                                          .color,
-                                    ),
-                                  ),
-                                  onPressed: () =>
-                                      FeatureDiscovery.completeCurrentStep(
-                                          context),
-                                ),
-                                OutlinedButton(
-                                  onPressed: () =>
-                                      FeatureDiscovery.dismissAll(context),
-                                  child: Text(
-                                    'تخطي',
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodyText2
-                                          .color,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                  child: DescribedFeatureOverlay(
+                    backgroundDismissible: false,
+                    barrierDismissible: false,
+                    contentLocation: ContentLocation.below,
+                    featureId: 'Streets',
+                    tapTarget: Image.asset('assets/streets.png',
+                        width: IconTheme.of(context).size,
+                        height: IconTheme.of(context).size,
+                        color: Theme.of(context).iconTheme.color),
+                    title: Text('الشوارع'),
+                    description: Column(
+                      children: [
+                        Text('هنا تجد قائمة بكل الشوارع بالبرنامج'),
+                        OutlinedButton.icon(
+                          icon: Icon(Icons.forward),
+                          label: Text(
+                            'التالي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2.color,
                             ),
-                            backgroundColor: Theme.of(context).accentColor,
-                            targetColor: Colors.transparent,
-                            textColor: Theme.of(context)
-                                .primaryTextTheme
-                                .bodyText1
-                                .color,
-                            child: Image.asset('assets/streets.png',
-                                width: IconTheme.of(context).size,
-                                height: IconTheme.of(context).size,
-                                color: Theme.of(context)
-                                    .primaryTextTheme
-                                    .bodyText1
-                                    .color),
+                          ),
+                          onPressed: () =>
+                              FeatureDiscovery.completeCurrentStep(context),
+                        ),
+                        OutlinedButton(
+                          onPressed: () => FeatureDiscovery.dismissAll(context),
+                          child: Text(
+                            'تخطي',
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).textTheme.bodyText2.color,
+                            ),
                           ),
                         ),
-                      ),
-                      Flexible(
-                        flex: 15,
-                        child: Text('الشوارع',
-                            softWrap: false, overflow: TextOverflow.fade),
-                      ),
-                    ],
+                      ],
+                    ),
+                    backgroundColor: Theme.of(context).accentColor,
+                    targetColor: Colors.transparent,
+                    textColor:
+                        Theme.of(context).primaryTextTheme.bodyText1.color,
+                    child: Image.asset('assets/streets.png',
+                        width: IconTheme.of(context).size,
+                        height: IconTheme.of(context).size,
+                        color:
+                            Theme.of(context).primaryTextTheme.bodyText1.color),
                   ),
                 ),
                 Tab(
-                  text: 'العائلات',
                   icon: DescribedFeatureOverlay(
                     backgroundDismissible: false,
                     barrierDismissible: false,
@@ -455,7 +430,6 @@ class _RootState extends State<Root>
                   ),
                 ),
                 Tab(
-                  text: 'الأشخاص',
                   icon: DescribedFeatureOverlay(
                     backgroundDismissible: false,
                     barrierDismissible: false,
@@ -820,6 +794,66 @@ class _RootState extends State<Root>
                 onTap: () {
                   mainScfld.currentState.openEndDrawer();
                   Navigator.of(context).pushNamed('Search');
+                },
+              ),
+              Selector<User, bool>(
+                selector: (_, user) =>
+                    user.manageUsers || user.manageAllowedUsers,
+                builder: (context, permission, _) {
+                  if (!permission)
+                    return Container(
+                      width: 0,
+                      height: 0,
+                    );
+                  return ListTile(
+                    leading: DescribedFeatureOverlay(
+                      backgroundDismissible: false,
+                      barrierDismissible: false,
+                      featureId: 'ManageDeleted',
+                      tapTarget: Icon(Icons.delete_outline),
+                      contentLocation: ContentLocation.below,
+                      title: Text('سلة المحذوفات'),
+                      description: Column(
+                        children: <Widget>[
+                          Text(
+                              'يمكنك الأن استرجاع المحذوفات خلال مدة أسبوع من حذفها من هنا'),
+                          OutlinedButton.icon(
+                            icon: Icon(Icons.forward),
+                            label: Text(
+                              'التالي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                            onPressed: () =>
+                                FeatureDiscovery.completeCurrentStep(context),
+                          ),
+                          OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
+                            child: Text(
+                              'تخطي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Theme.of(context).accentColor,
+                      targetColor: Colors.transparent,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                      child: Icon(Icons.delete_outline),
+                    ),
+                    onTap: () {
+                      mainScfld.currentState.openEndDrawer();
+                      Navigator.pushNamed(context, 'Trash');
+                    },
+                    title: Text('سلة المحذوفات'),
+                  );
                 },
               ),
               Divider(),
@@ -1219,6 +1253,7 @@ class _RootState extends State<Root>
         'ManageUsers',
       'DataMap',
       'AdvancedSearch',
+      if (User.instance.manageDeleted) 'ManageDeleted',
       'Settings'
     ]);
   }
