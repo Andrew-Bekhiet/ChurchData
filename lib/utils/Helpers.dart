@@ -1,9 +1,16 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:churchdata/views/MiniLists/UsersList.dart';
-import 'package:churchdata/views/utils/DataDialog.dart';
-import 'package:churchdata/views/utils/SearchFilters.dart';
+import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_object_widget.dart';
+import 'package:churchdata/models/family.dart';
+import 'package:churchdata/models/list.dart';
+import 'package:churchdata/models/person.dart';
+import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/models/street.dart';
+import 'package:churchdata/views/mini_lists/users_list.dart';
+import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/views/search_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -16,6 +23,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
 import 'package:firebase_messaging/firebase_messaging.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -26,21 +34,17 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
-import 'package:tuple/tuple.dart';
 
-import '../Models.dart';
-import '../Models/ListOptions.dart';
-import '../Models/Notification.dart' as no;
-import '../Models/OrderOptions.dart';
-import '../Models/SearchString.dart';
-import '../Models/ThemeNotifier.dart';
-import '../Models/User.dart';
-import '../Models/super_classes.dart';
+import '../models/list_options.dart';
+import '../models/notification.dart' as no;
+import '../models/order_options.dart';
+import '../models/theme_notifier.dart';
+import '../models/user.dart';
+import '../models/super_classes.dart';
 import '../main.dart';
-import '../views/ui/Lists.dart';
-import '../views/ui/SearchQuery.dart';
 import 'globals.dart';
 
 void areaTap(Area area, BuildContext context) {
@@ -268,6 +272,8 @@ void dataObjectTap(DataObject obj, BuildContext context) {
     familyTap(obj, context);
   else if (obj is Person)
     personTap(obj, context);
+  else if (obj is User)
+    userTap(obj, context);
   else
     throw UnimplementedError();
 }
@@ -309,156 +315,54 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
   return null;
 }
 
-List<RadioListTile> getOrderingOptions(
-    BuildContext context, OrderOptions orderOptions, int index) {
-  if (index == 0) {
-    return Area.getStaticHumanReadableMap()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.areaOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setAreaOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.areaASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setAreaASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.areaASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setAreaASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else if (index == 1) {
-    return Street.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.streetOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setStreetOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else if (index == 2) {
-    return Family.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.familyOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setFamilyOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.familyASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setFamilyASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.familyASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setFamilyASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
-  } else //if(_tabController.index == 3){
-    return Person.getHumanReadableMap2()
-        .entries
-        .map(
-          (e) => RadioListTile(
-            value: e.key,
-            groupValue: orderOptions.streetOrderBy,
-            title: Text(e.value),
-            onChanged: (value) {
-              orderOptions.setStreetOrderBy(value);
-              Navigator.pop(context);
-            },
-          ),
-        )
-        .toList()
-          ..addAll(
-            [
-              RadioListTile(
-                value: 'true',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تصاعدي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-              RadioListTile(
-                value: 'false',
-                groupValue: orderOptions.streetASC.toString(),
-                title: Text('تنازلي'),
-                onChanged: (value) {
-                  orderOptions.setStreetASC(value == 'true');
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          );
+List<RadioListTile> getOrderingOptions(BuildContext context,
+    BehaviorSubject<OrderOptions> orderOptions, int index) {
+  Map source = index == 0
+      ? Area.getStaticHumanReadableMap()
+      : index == 1
+          ? Street.getHumanReadableMap2()
+          : index == 2
+              ? Family.getHumanReadableMap2()
+              : Person.getHumanReadableMap2();
+
+  return source.entries
+      .map(
+        (e) => RadioListTile(
+          value: e.key,
+          groupValue: orderOptions.value.orderBy,
+          title: Text(e.value),
+          onChanged: (value) {
+            orderOptions
+                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
+            Navigator.pop(context);
+          },
+        ),
+      )
+      .toList()
+        ..addAll(
+          [
+            RadioListTile(
+              value: 'true',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تصاعدي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+            RadioListTile(
+              value: 'false',
+              groupValue: orderOptions.value.asc.toString(),
+              title: Text('تنازلي'),
+              onChanged: (value) {
+                orderOptions.add(OrderOptions(
+                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
 }
 
 String getPhone(String phone, [bool whatsapp = true]) {
@@ -470,98 +374,53 @@ String getPhone(String phone, [bool whatsapp = true]) {
 }
 
 void import(BuildContext context) async {
-  Navigator.of(context).pop();
-  bool ver2;
-
-  var decoder = SpreadsheetDecoder.decodeBytes(
-      (await FilePicker.platform
-              .pickFiles(allowedExtensions: ['.xlsx', '.xls'], withData: true))
-          .files[0]
-          .bytes,
-      update: true);
-  mainScfld.currentState.openEndDrawer();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('جار الحصول على البيانات من الملف...'),
-      duration: Duration(hours: 1),
-    ),
-  );
-  ver2 = decoder.tables.containsKey('Main');
-
-  if (!ver2) {
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return DataDialog(
-            actions: <Widget>[
-              TextButton.icon(
-                icon: Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-                label: Text('إلغاء الأمر'),
-              ),
-              TextButton.icon(
-                icon: Icon(Icons.add),
-                onPressed: () =>
-                    Navigator.of(context).pushNamed('Data/EditArea'),
-                label: Text('إضافة'),
-              ),
-            ],
-            content: ListenableProvider<SearchString>(
-              create: (_) => SearchString(''),
-              builder: (context, child) => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SearchFilters(0),
-                  Flexible(
-                    child: Selector<OrderOptions, Tuple2<String, bool>>(
-                      selector: (_, o) =>
-                          Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                      builder: (context, options, child) =>
-                          DataObjectList<Area>(
-                        options: ListOptions<Area>(
-                          tap: (Area area, _) =>
-                              _legacyImport(decoder, area.ref, context),
-                          generate: Area.fromDoc,
-                          documentsData: Area.getAllForUser(
-                              orderBy: options.item1,
-                              descending: !options.item2),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-  } else {
-    List area = decoder.tables['Main'].rows[0];
-    var emptyArea = Area.getEmptyExportMap().keys.toList();
-    area[emptyArea.indexOf('HasPhoto')] = area[3].toString() == 'true';
-    area[emptyArea.indexOf('Location')] =
-        area[emptyArea.indexOf('Location')].toString().split(',');
-    area[emptyArea.indexOf('LocationConfirmed')] =
-        area[emptyArea.indexOf('LocationConfirmed')].toString() == 'true';
-    area[emptyArea.indexOf('LastVisit')] =
-        int.parse(area[emptyArea.indexOf('LastVisit')]);
-    area[emptyArea.indexOf('LastVisit')] =
-        int.parse(area[emptyArea.indexOf('LastVisit')]);
-    area[emptyArea.indexOf('FatherLastVisit')] =
-        int.parse(area[emptyArea.indexOf('FatherLastVisit')]);
-    area[emptyArea.indexOf('Allowed')] =
-        area[emptyArea.indexOf('Allowed')].toString().split(',');
-    await importArea(
-        decoder,
-        Area.createFromData(
-          Area.getEmptyExportMap().map(
-            (key, value) => MapEntry(
-              key,
-              area[emptyArea.indexOf(key)],
-            ),
-          ),
-          area[0],
+  try {
+    final picked = await FilePicker.platform.pickFiles(
+        allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
+    if (picked == null) return;
+    final fileData = picked.files[0].bytes;
+    final decoder = SpreadsheetDecoder.decodeBytes(fileData);
+    if (decoder.tables.containsKey('Areas') &&
+        decoder.tables.containsKey('Streets') &&
+        decoder.tables.containsKey('Families') &&
+        decoder.tables.containsKey('Persons')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار رفع الملف...'),
+          duration: Duration(minutes: 9),
         ),
-        context);
+      );
+      final filename = DateTime.now().toIso8601String();
+      await FirebaseStorage.instance
+          .ref('Imports/' + filename + '.xlsx')
+          .putData(
+              fileData,
+              SettableMetadata(
+                  customMetadata: {'createdBy': User.instance.uid}));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('جار استيراد الملف...'),
+          duration: Duration(minutes: 9),
+        ),
+      );
+      await FirebaseFunctions.instance
+          .httpsCallable('importFromExcel')
+          .call({'fileId': filename + '.xlsx'});
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم الاستيراد بنجاح'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      await showErrorDialog(context, 'ملف غير صالح');
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    await showErrorDialog(context, e.toString());
   }
 }
 
@@ -847,7 +706,7 @@ Future importArea(
   }
 }
 
-void showPendingMessage([BuildContext context]) async {
+Future<void> showPendingMessage([BuildContext context]) async {
   context ??= mainScfld.currentContext;
   var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
@@ -906,7 +765,6 @@ Future processClickedNotification(BuildContext context,
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -930,7 +788,6 @@ Future processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -956,7 +813,6 @@ Future processClickedNotification(BuildContext context,
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
       WidgetsBinding.instance.addPostFrameCallback(
         (_) async {
-          await Future.delayed(Duration(milliseconds: 900), () => null);
           await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) {
@@ -1049,45 +905,64 @@ Future processLink(Uri deepLink, BuildContext context) async {
 }
 
 void sendNotification(BuildContext context, dynamic attachement) async {
-  List<User> users = await showDialog(
-    context: context,
-    builder: (context) {
-      return MultiProvider(
-        providers: [
-          ListenableProvider<SearchString>(
-            create: (_) => SearchString(''),
-          ),
-          ListenableProvider(
-              create: (_) => ListOptions<User>(
-                  isAdmin: User().manageUsers,
-                  documentsData: Stream.fromFuture(User.getAllUsersLive())))
-        ],
-        builder: (context, child) => DataDialog(
-          actions: [
-            TextButton(
-              child: Text('تم'),
-              onPressed: () {
-                Navigator.pop(
-                    context, context.read<ListOptions<User>>().selected);
-              },
-            )
-          ],
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SearchField(),
-              Expanded(
-                child: Selector<OrderOptions, Tuple2<String, bool>>(
-                  selector: (_, o) =>
-                      Tuple2<String, bool>(o.areaOrderBy, o.areaASC),
-                  builder: (context, options, child) => UsersList(),
+  BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
+  List<User> users = await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) {
+        return MultiProvider(
+          providers: [
+            Provider(
+              create: (_) => DataObjectListOptions<User>(
+                itemBuilder: (current,
+                        {onLongPress, onTap, subtitle, trailing}) =>
+                    DataObjectWidget(
+                  current,
+                  onTap: () => onTap(current),
+                  trailing: trailing,
+                  showSubtitle: false,
                 ),
+                selectionMode: true,
+                searchQuery: search,
+                itemsStream: Stream.fromFuture(User.getAllUsersLive())
+                    .map((s) => s.docs.map(User.fromDoc).toList()),
               ),
-            ],
+            ),
+          ],
+          builder: (context, child) => Scaffold(
+            appBar: AppBar(
+              title: Text('اختيار مستخدمين'),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(
+                        context,
+                        context
+                            .read<DataObjectListOptions<User>>()
+                            .selectedLatest
+                            .values
+                            .toList());
+                  },
+                  icon: Icon(Icons.done),
+                  tooltip: 'تم',
+                ),
+              ],
+            ),
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SearchField(
+                    searchStream: search,
+                    textStyle: Theme.of(context).textTheme.bodyText2),
+                Expanded(
+                  child: UsersList(),
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
+        );
+      },
+    ),
   );
   var title = TextEditingController();
   var content = TextEditingController();
@@ -1288,10 +1163,10 @@ Future showErrorDialog(BuildContext context, String message,
       content: Text(message),
       actions: <Widget>[
         TextButton(
-          child: Text('حسنًا'),
           onPressed: () {
             Navigator.of(context).pop();
           },
+          child: Text('حسنًا'),
         ),
       ],
     ),
@@ -1375,7 +1250,8 @@ void showLoadingDialog(BuildContext context) async {
   );
 }
 
-void showMessage(BuildContext context, no.Notification notification) async {
+Future<void> showMessage(
+    BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
     Uri.parse(notification.attachement),
   );
@@ -1559,277 +1435,6 @@ void userTap(User user, BuildContext context) async {
   }
 }
 
-Future _legacyImport(SpreadsheetDecoder decoder, DocumentReference areaId,
-    BuildContext context) async {
-  List<Street> streets = [];
-  List<Family> families = [];
-  List<Person> persons = [];
-  try {
-    for (List<dynamic> row in decoder.tables['Areas'].rows) {
-      if (decoder.tables.values.elementAt(0).rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      try {
-        var testing = row.elementAt(3);
-        if (row.elementAt(3) == null) {
-          testing.toString();
-        } else {
-          streets.add(
-            Street(
-              row.elementAt(0).toString(),
-              areaId,
-              row.elementAt(2).toString(),
-              Timestamp.fromDate(DateTime.parse(
-                row.elementAt(3),
-              )),
-              auth.FirebaseAuth.instance.currentUser.uid,
-            ),
-          );
-        }
-      } catch (err) {
-        streets.add(
-          Street(
-            row.elementAt(0).toString(),
-            areaId,
-            row.elementAt(2).toString(),
-            Timestamp.now(),
-            auth.FirebaseAuth.instance.currentUser.uid,
-          ),
-        );
-      }
-    }
-
-    for (List<dynamic> row in decoder.tables['Families'].rows) {
-      if (decoder.tables['Families'].rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      try {
-        var testing = row.elementAt(3);
-        if (row.elementAt(3) == null) {
-          print(
-            testing.toString(),
-          );
-        } else {
-          families.add(
-            Family(
-              row.elementAt(0).toString(),
-              areaId,
-              null,
-              row.elementAt(1).toString(),
-              row.elementAt(2).toString(),
-              Timestamp.fromDate(DateTime.parse(
-                row.elementAt(3),
-              )),
-              tranucateToDay(),
-              auth.FirebaseAuth.instance.currentUser.uid,
-            ),
-          );
-        }
-      } catch (e) {
-        families.add(
-          Family(
-            row.elementAt(0).toString(),
-            areaId,
-            null,
-            row.elementAt(1).toString(),
-            '',
-            tranucateToDay(),
-            tranucateToDay(),
-            auth.FirebaseAuth.instance.currentUser.uid,
-          ),
-        );
-      }
-    }
-
-    for (List<dynamic> row in decoder.tables['Contacts'].rows) {
-      if (decoder.tables['Contacts'].rows.indexOf(row) == 0) continue;
-      if (row.elementAt(0) == null) break;
-      families
-          .where(
-        (f) => f.id == row.elementAt(3).toString(),
-      )
-          .forEach((f) {
-        f.streetId = FirebaseFirestore.instance.collection('Streets').doc(
-              row.elementAt(4).toString(),
-            );
-        f.address = row.elementAt(1).toString();
-      });
-      persons.add(
-        Person(
-          areaId: areaId,
-          streetId: FirebaseFirestore.instance.collection('Streets').doc(
-                row.elementAt(4).toString(),
-              ),
-          familyId: FirebaseFirestore.instance.collection('Families').doc(
-                row.elementAt(3).toString(),
-              ),
-          name: row.elementAt(0).toString(),
-          phone: row.elementAt(2).toString(),
-        ),
-      );
-    }
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار إعادة ترتيب البيانات...'),
-        duration: Duration(minutes: 1),
-      ),
-    );
-    for (Street item in streets) {
-      String oldId = item.id;
-      DocumentReference newId =
-          FirebaseFirestore.instance.collection('Streets').doc();
-      item.id = newId.id;
-      families.where((f) => f.streetId.id == oldId).forEach((f) {
-        f.streetId = newId;
-      });
-      persons.where((f) => f.streetId.id == oldId).forEach((f) {
-        f.streetId = newId;
-      });
-
-      for (Family item in families) {
-        String oldId = item.id;
-        DocumentReference newId =
-            FirebaseFirestore.instance.collection('Families').doc();
-        item.id = newId.id;
-        persons.where((f) => f.familyId.id == oldId).forEach((f) {
-          f.familyId = newId;
-        });
-      }
-
-      for (Person item in persons) {
-        item.id = FirebaseFirestore.instance.collection('Persons').doc().id;
-      }
-    }
-
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('جار رفع البيانات ...'),
-        duration: Duration(minutes: 5),
-      ),
-    );
-
-    WriteBatch batchUpdate = FirebaseFirestore.instance.batch();
-    int batchCount = 0;
-
-    for (var i = 0; i < streets.length; i++) {
-      if (batchCount % 500 == 0 && batchCount != 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Streets').doc(streets[i].id),
-        streets[i].getMap(),
-      );
-      batchCount++;
-    }
-
-    for (var i = 0; i < families.length; i++) {
-      if (batchCount % 500 == 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Families').doc(families[i].id),
-        families[i].getMap(),
-      );
-      batchCount++;
-    }
-    bool end = false;
-    for (var i = 0; i < persons.length; i++) {
-      if (batchCount % 500 == 0) {
-        await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                onError.toString(),
-              ),
-              duration: Duration(seconds: 10),
-            ),
-          );
-        }).then((k) {
-          if (i == persons.length - 1) {
-            end = true;
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'تم استيراد بيانات ${streets.length} شارع و ${families.length} عائلة و ${persons.length} شخص بنجاح'),
-                duration: Duration(seconds: 4),
-              ),
-            );
-          }
-        });
-        batchUpdate = FirebaseFirestore.instance.batch();
-      }
-      batchUpdate.set(
-        FirebaseFirestore.instance.collection('Persons').doc(persons[i].id),
-        persons[i].getMap(),
-      );
-      batchCount++;
-    }
-    if (!end) {
-      await batchUpdate.commit().catchError((onError) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              onError.toString(),
-            ),
-            duration: Duration(seconds: 10),
-          ),
-        );
-      }).then((k) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'تم استيراد بيانات ${streets.length} شارع و ${families.length} عائلة و ${persons.length} شخص بنجاح'),
-            duration: Duration(seconds: 4),
-          ),
-        );
-      });
-    }
-  } on Exception catch (err, stkTrace) {
-    await FirebaseCrashlytics.instance
-        .setCustomKey('LastErrorIn', 'Helpers._legacyImport');
-    await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          err.toString(),
-        ),
-        duration: Duration(seconds: 10),
-      ),
-    );
-  }
-
-  streets = null;
-  families = null;
-  persons = null;
-}
-
 class QueryIcon extends StatelessWidget {
   Color get color => Colors.transparent;
   String get name => 'نتائج بحث';
@@ -1862,12 +1467,6 @@ class MessageIcon extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          child: CachedNetworkImage(
-            memCacheHeight: 221,
-            imageUrl: url,
-            progressIndicatorBuilder: (context, url, progress) =>
-                CircularProgressIndicator(value: progress.progress),
-          ),
           onTap: () => showDialog(
             context: context,
             builder: (context) => Dialog(
@@ -1885,6 +1484,12 @@ class MessageIcon extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+          child: CachedNetworkImage(
+            memCacheHeight: 221,
+            imageUrl: url,
+            progressIndicatorBuilder: (context, url, progress) =>
+                CircularProgressIndicator(value: progress.progress),
           ),
         ),
       ),

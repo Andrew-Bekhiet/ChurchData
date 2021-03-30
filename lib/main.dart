@@ -1,17 +1,17 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:churchdata/views/EditPage/EditFamily.dart';
-import 'package:churchdata/views/EditPage/EditPerson.dart';
-import 'package:churchdata/views/EditPage/EditStreet.dart';
-import 'package:churchdata/views/EditPage/UpdateUserDataErrorP.dart';
-import 'package:churchdata/views/InfoPage/AreaInfo.dart';
-import 'package:churchdata/views/InfoPage/FamilyInfo.dart';
-import 'package:churchdata/views/InfoPage/PersonInfo.dart';
-import 'package:churchdata/views/InfoPage/StreetInfo.dart';
-import 'package:churchdata/views/InfoPage/UserInfo.dart';
-import 'package:churchdata/views/ui/UserRegisteration.dart';
-import 'package:churchdata/views/utils/DataMap.dart';
+import 'package:churchdata/views/edit_page/edit_family.dart';
+import 'package:churchdata/views/edit_page/edit_person.dart';
+import 'package:churchdata/views/edit_page/edit_street.dart';
+import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
+import 'package:churchdata/views/info_page/area_info.dart';
+import 'package:churchdata/views/info_page/family_info.dart';
+import 'package:churchdata/views/info_page/person_info.dart';
+import 'package:churchdata/views/info_page/street_info.dart';
+import 'package:churchdata/views/info_page/user_info.dart';
+import 'package:churchdata/views/user_registeration.dart';
+import 'package:churchdata/models/data_map.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -33,28 +33,32 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:local_auth/local_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
-import 'Models/HivePersistenceProvider.dart';
-import 'Models/OrderOptions.dart';
-import 'Models/ThemeNotifier.dart';
-import 'Models/User.dart';
-import 'Models.dart';
-import 'utils/Helpers.dart';
+import 'models/hive_persistence_provider.dart';
+import 'models/invitation.dart';
+import 'models/theme_notifier.dart';
+import 'models/user.dart';
+import 'models/family.dart';
+import 'models/person.dart';
+import 'models/street.dart';
+import 'utils/helpers.dart';
 import 'utils/globals.dart';
-import 'views/EditPage/EditArea.dart';
-import 'views/ui/AdditionalSettings.dart';
-import 'views/ui/AuthScreen.dart';
-import 'views/ui/Login.dart';
-import 'views/ui/MyAccount.dart';
-import 'views/ui/NotificationsPage.dart';
-import 'views/ui/Root.dart';
-import 'views/ui/SearchQuery.dart';
-import 'views/ui/Settings.dart' as settingsui;
-import 'views/ui/Updates.dart';
-import 'views/utils/LoadingWidget.dart';
+import 'views/edit_page/edit_area.dart';
+import 'views/additional_settings.dart';
+import 'views/auth_screen.dart';
+import 'views/edit_page/edit_invitation.dart';
+import 'views/info_page/invitation_info.dart';
+import 'views/invitations_page.dart';
+import 'views/login.dart';
+import 'views/my_account.dart';
+import 'views/notifications_page.dart';
+import 'views/root.dart';
+import 'views/search_query.dart';
+import 'views/settings.dart' as settingsui;
+import 'views/updates.dart';
+import 'models/loading_widget.dart';
 
 void main() {
   FlutterError.onError = (flutterError) {
@@ -64,11 +68,14 @@ void main() {
     if (kReleaseMode) {
       FirebaseCrashlytics.instance.recordFlutterError(error);
     }
-    return Container(
+    return Material(
+      child: Container(
         color: Colors.white,
         child: Text(
           'حدث خطأ:' '\n' + error.summary.toString(),
-        ));
+        ),
+      ),
+    );
   };
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,10 +93,7 @@ void main() {
       runApp(
         MultiProvider(
           providers: [
-            ChangeNotifierProvider<OrderOptions>(
-              create: (_) => OrderOptions(),
-            ),
-            ChangeNotifierProvider<User>.value(value: user),
+            StreamProvider<User>.value(initialData: user, value: user.stream),
             ChangeNotifierProvider<ThemeNotifier>(
               create: (_) => ThemeNotifier(
                 ThemeData(
@@ -208,6 +212,9 @@ class AppState extends State<App> {
               return EditPerson(person: person);
             }
           },
+          'EditInvitation': (context) => EditInvitation(
+              invitation: ModalRoute.of(context).settings.arguments ??
+                  Invitation.empty()),
           'MyAccount': (context) => MyAccount(),
           'Notifications': (context) => NotificationsPage(),
           'Update': (context) => Update(),
@@ -223,6 +230,8 @@ class AppState extends State<App> {
               PersonInfo(person: ModalRoute.of(context).settings.arguments),
           'UserInfo': (context) =>
               UserInfo(user: ModalRoute.of(context).settings.arguments),
+          'InvitationInfo': (context) => InvitationInfo(
+              invitation: ModalRoute.of(context).settings.arguments),
           'Settings': (context) => settingsui.Settings(),
           'Settings/Churches': (context) => ChurchesPage(),
           'Settings/Fathers': (context) => FathersPage(),
@@ -233,6 +242,7 @@ class AppState extends State<App> {
           'Settings/PersonTypes': (context) => PersonTypesPage(),
           'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
               person: ModalRoute.of(context).settings.arguments),
+          'Invitations': (context) => InvitationsPage(),
           'EditUserData': (context) => FutureBuilder<Person>(
                 future: User.getCurrentPerson(),
                 builder: (context, data) {

@@ -16,6 +16,7 @@ import 'package:firebase_messaging_web/firebase_messaging_web.dart';
 import 'package:firebase_storage_web/firebase_storage_web.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
 import 'package:google_sign_in_web/google_sign_in_web.dart';
+import 'package:image_picker_for_web/image_picker_for_web.dart';
 import 'package:location_web/location_web.dart';
 import 'package:package_info_plus_web/package_info_plus_web.dart';
 import 'package:share_plus_web/share_plus_web.dart';
@@ -38,6 +39,7 @@ void registerPlugins(Registrar registrar) {
   FirebaseStorageWeb.registerWith(registrar);
   GoogleMapsPlugin.registerWith(registrar);
   GoogleSignInPlugin.registerWith(registrar);
+  ImagePickerPlugin.registerWith(registrar);
   LocationWebPlugin.registerWith(registrar);
   PackageInfoPlugin.registerWith(registrar);
   SharePlusPlugin.registerWith(registrar);

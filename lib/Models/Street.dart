@@ -7,14 +7,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:location/location.dart';
 
-import '../Models.dart';
-import '../Models/super_classes.dart';
-import '../utils/Helpers.dart';
+import '../models/super_classes.dart';
+import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../views/utils/MapView.dart';
-import 'User.dart';
+import '../models/map_view.dart';
+import 'area.dart';
+import 'family.dart';
+import 'person.dart';
+import 'user.dart';
 
 class Street extends DataObject
     with PhotoObject, ParentObject<Family>, ChildObject<Area> {
@@ -225,31 +228,34 @@ class Street extends DataObject
   static Stream<QuerySnapshot> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
-  }) async* {
-    await for (var u in User.instance.stream) {
-      if (u.superAccess)
-        await for (var s in FirebaseFirestore.instance
-            .collection('Streets')
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
-      else
-        await for (var s in FirebaseFirestore.instance
-            .collection('Streets')
-            .where(
-              'AreaId',
-              whereIn: (await FirebaseFirestore.instance
+  }) {
+    return User.instance.stream
+        .asyncMap(
+          (u) async => u.superAccess
+              ? null
+              : (await FirebaseFirestore.instance
                       .collection('Areas')
-                      .where('Allowed',
-                          arrayContains:
-                              auth.FirebaseAuth.instance.currentUser.uid)
+                      .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
                   .docs
                   .map((e) => e.reference)
                   .toList(),
-            )
-            .orderBy(orderBy, descending: descending)
-            .snapshots()) yield s;
-    }
+        )
+        .switchMap(
+          (a) => a == null
+              ? FirebaseFirestore.instance
+                  .collection('Streets')
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Streets')
+                  .where(
+                    'AreaId',
+                    whereIn: a,
+                  )
+                  .orderBy(orderBy, descending: descending)
+                  .snapshots(),
+        );
   }
 
   static Future<List<Street>> getAllStreetsForUser({
