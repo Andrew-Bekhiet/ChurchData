@@ -7,6 +7,7 @@ import 'package:churchdata/models/user.dart';
 class Invitation extends DataObject {
   Invitation({
     String id,
+    DocumentReference ref,
     String title,
     this.link,
     this.usedBy,
@@ -14,14 +15,17 @@ class Invitation extends DataObject {
     this.permissions,
     this.generatedOn,
     this.expiryDate,
-  }) : super(id, title, null);
+  }) : super(
+            ref ?? FirebaseFirestore.instance.collection('Invitations').doc(id),
+            title,
+            null);
 
   static Invitation fromDoc(DocumentSnapshot doc) =>
-      Invitation.createFromData(doc.data(), doc.id);
+      Invitation.createFromData(doc.data(), doc.reference);
 
-  Invitation.createFromData(Map<String, dynamic> data, String id)
+  Invitation.createFromData(Map<String, dynamic> data, DocumentReference ref)
       : link = data['Link'],
-        super.createFromData(data, id) {
+        super.createFromData(data, ref) {
     name = data['Title'];
     usedBy = data['UsedBy'];
     generatedBy = data['GeneratedBy'];
@@ -70,13 +74,10 @@ class Invitation extends DataObject {
         DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
   }
 
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('Invitations').doc(id);
-
   Invitation.empty()
       : link = '',
-        super('', '', null) {
+        super(FirebaseFirestore.instance.collection('Invitations').doc(''), '',
+            null) {
     name = '';
     expiryDate =
         Timestamp.fromDate(DateTime.now().add(Duration(days: 1, minutes: 10)));

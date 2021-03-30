@@ -33,12 +33,14 @@ class Street extends DataObject
 
   Street(String id, this.areaId, String name, this.lastVisit, this.lastEdit,
       {Color color = Colors.transparent,
+      DocumentReference ref,
       this.locationPoints,
       this.locationConfirmed})
-      : super(id, name, color);
+      : super(ref ?? FirebaseFirestore.instance.collection('Streets').doc(id),
+            name, color);
 
-  Street._createFromData(Map<dynamic, dynamic> data, id)
-      : super.createFromData(data, id) {
+  Street._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
     areaId = data['AreaId'];
 
     locationPoints = data['Location']?.cast<GeoPoint>();
@@ -69,9 +71,6 @@ class Street extends DataObject
 
   @override
   Reference get photoRef => throw UnimplementedError();
-
-  @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Streets/$id');
 
   Future<String> getAreaName() async {
     return (await areaId.get(dataSource)).data()['Name'];
@@ -215,7 +214,7 @@ class Street extends DataObject
   }
 
   static Street fromDoc(DocumentSnapshot data) =>
-      data.exists ? Street._createFromData(data.data(), data.id) : null;
+      data.exists ? Street._createFromData(data.data(), data.reference) : null;
 
   static Future<Street> fromId(String id) async => Street.fromDoc(
         await FirebaseFirestore.instance.doc('Streets/$id').get(),

@@ -12,20 +12,20 @@ import 'person.dart';
 import 'user.dart';
 
 abstract class DataObject {
-  String id;
+  DocumentReference ref;
   String name;
   Color color;
 
-  DataObject(this.id, this.name, this.color);
+  DataObject(this.ref, this.name, this.color);
 
-  DataObject.createFromData(Map<dynamic, dynamic> data, this.id)
+  DataObject.createFromData(Map<dynamic, dynamic> data, this.ref)
       : name = data['Name'],
         color = Color(data['Color'] ?? Colors.transparent.value);
 
   @override
   int get hashCode => hashList([id, _fullyHash(getMap().values.toList())]);
 
-  DocumentReference get ref;
+  String get id => ref.id;
 
   @override
   bool operator ==(dynamic other) {

@@ -46,6 +46,7 @@ class User extends DataObject
   bool manageUsers;
   bool manageAllowedUsers;
   bool superAccess;
+  bool manageDeleted;
   bool exportAreas;
   bool write;
   List<String> allowedUsers = [];
@@ -134,6 +135,7 @@ class User extends DataObject
             manageAllowedUsers =
                 idTokenClaims['manageAllowedUsers'].toString() == 'true';
             superAccess = idTokenClaims['superAccess'].toString() == 'true';
+            manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
             write = idTokenClaims['write'].toString() == 'true';
             exportAreas = idTokenClaims['exportAreas'].toString() == 'true';
             birthdayNotify =
@@ -203,6 +205,7 @@ class User extends DataObject
           manageAllowedUsers =
               idTokenClaims['manageAllowedUsers'].toString() == 'true';
           superAccess = idTokenClaims['superAccess'].toString() == 'true';
+          manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
           write = idTokenClaims['write'].toString() == 'true';
           exportAreas = idTokenClaims['exportAreas'].toString() == 'true';
           birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
@@ -242,6 +245,7 @@ class User extends DataObject
       String name,
       String password,
       bool manageUsers,
+      bool manageDeleted,
       bool manageAllowedUsers,
       bool superAccess,
       bool write,
@@ -264,6 +268,7 @@ class User extends DataObject
         manageUsers,
         manageAllowedUsers,
         superAccess,
+        manageDeleted,
         write,
         exportAreas,
         birthdayNotify,
@@ -283,6 +288,7 @@ class User extends DataObject
       this.manageUsers,
       bool manageAllowedUsers,
       this.superAccess,
+      this.manageDeleted,
       this.write,
       this.exportAreas,
       this.birthdayNotify,
@@ -292,8 +298,10 @@ class User extends DataObject
       this.approved,
       this.personRef,
       List<String> allowedUsers,
-      {this.email})
-      : super(_uid, name, null) {
+      {this.email,
+      DocumentReference ref})
+      : super(ref ?? FirebaseFirestore.instance.collection('Users').doc(_uid),
+            name, null) {
     hasPhoto = true;
     defaultIcon = Icons.account_circle;
     this.manageAllowedUsers = manageAllowedUsers ?? false;
@@ -309,13 +317,15 @@ class User extends DataObject
   }
 
   User._createFromData(this._uid, Map<String, dynamic> data)
-      : super.createFromData(data, _uid) {
+      : super.createFromData(
+            data, FirebaseFirestore.instance.collection('Users').doc(_uid)) {
     name = data['Name'] ?? data['name'];
     uid = data['uid'] ?? _uid;
     password = data['password'];
     manageUsers = data['manageUsers'];
     manageAllowedUsers = data['manageAllowedUsers'];
     allowedUsers = data['allowedUsers']?.cast<String>();
+    manageDeleted = data['manageDeleted'];
     superAccess = data['superAccess'];
     write = data['write'];
     exportAreas = data['exportAreas'];
@@ -340,6 +350,7 @@ class User extends DataObject
       manageUsers,
       manageAllowedUsers,
       superAccess,
+      manageDeleted,
       write,
       exportAreas,
       birthdayNotify,
@@ -367,6 +378,7 @@ class User extends DataObject
       if (manageUsers ?? false) permissions += 'تعديل المستخدمين،';
       if (manageAllowedUsers ?? false) permissions += 'تعديل مستخدمين محددين،';
       if (superAccess ?? false) permissions += 'رؤية جميع البيانات،';
+      if (manageDeleted ?? false) permissions += 'استرجاع المحئوفات،';
       if (write ?? false) permissions += 'تعديل البيانات،';
       if (exportAreas ?? false) permissions += 'تصدير منطقة،';
       if (approveLocations ?? false) permissions += 'تأكيد المواقع،';
@@ -488,6 +500,7 @@ class User extends DataObject
         'manageUsers': manageUsers ?? false,
         'manageAllowedUsers': manageAllowedUsers,
         'superAccess': superAccess ?? false,
+        'manageDeleted': manageDeleted ?? false,
         'write': write ?? false,
         'exportAreas': exportAreas ?? false,
         'approveLocations': approveLocations ?? false,
@@ -545,6 +558,7 @@ class User extends DataObject
             manageUsers: u['manageUsers'],
             manageAllowedUsers: u['manageAllowedUsers'],
             superAccess: u['superAccess'],
+            manageDeleted: u['manageDeleted'],
             write: u['write'],
             exportAreas: u['exportAreas'],
             birthdayNotify: u['birthdayNotify'],
@@ -614,10 +628,6 @@ class User extends DataObject
   Map<String, dynamic> getMap() {
     return getUpdateMap();
   }
-
-  @override
-  DocumentReference get ref =>
-      FirebaseFirestore.instance.collection('Users').doc(uid);
 
   @override
   Reference get photoRef =>

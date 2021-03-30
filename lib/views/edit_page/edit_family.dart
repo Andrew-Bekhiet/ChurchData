@@ -477,8 +477,7 @@ class _EditFamilyState extends State<EditFamily> {
 
         bool update = family.id != '';
         if (family.id == '') {
-          family.id =
-              FirebaseFirestore.instance.collection('Families').doc().id;
+          family.ref = FirebaseFirestore.instance.collection('Families').doc();
         }
 
         if (update &&

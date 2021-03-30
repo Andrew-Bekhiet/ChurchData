@@ -91,7 +91,8 @@ class _RootState extends State<Root>
 
   @override
   Widget build(BuildContext context) {
-    var _areasOptions = DataObjectListOptions<Area>(
+    final DataObjectListOptions<Area> _areasOptions =
+        DataObjectListOptions<Area>(
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
@@ -103,7 +104,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _streetsOptions = DataObjectListOptions<Street>(
+    final DataObjectListOptions<Street> _streetsOptions =
+        DataObjectListOptions<Street>(
       searchQuery: _searchQuery,
       itemsStream: _streetsOrder.switchMap(
         (order) =>
@@ -113,7 +115,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _familiesOptions = DataObjectListOptions<Family>(
+    final DataObjectListOptions<Family> _familiesOptions =
+        DataObjectListOptions<Family>(
       searchQuery: _searchQuery,
       itemsStream: _familiesOrder.switchMap(
         (order) =>
@@ -123,7 +126,8 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    var _personsOptions = DataObjectListOptions<Person>(
+    final DataObjectListOptions<Person> _personsOptions =
+        DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
       itemsStream: _personsOrder.switchMap(
         (order) =>
@@ -822,6 +826,66 @@ class _RootState extends State<Root>
                   Navigator.of(context).pushNamed('Search');
                 },
               ),
+              Selector<User, bool>(
+                selector: (_, user) =>
+                    user.manageUsers || user.manageAllowedUsers,
+                builder: (context, permission, _) {
+                  if (!permission)
+                    return Container(
+                      width: 0,
+                      height: 0,
+                    );
+                  return ListTile(
+                    leading: DescribedFeatureOverlay(
+                      backgroundDismissible: false,
+                      barrierDismissible: false,
+                      featureId: 'ManageDeleted',
+                      tapTarget: Icon(Icons.delete_outline),
+                      contentLocation: ContentLocation.below,
+                      title: Text('سلة المحذوفات'),
+                      description: Column(
+                        children: <Widget>[
+                          Text(
+                              'يمكنك الأن استرجاع المحذوفات خلال مدة أسبوع من حذفها من هنا'),
+                          OutlinedButton.icon(
+                            icon: Icon(Icons.forward),
+                            label: Text(
+                              'التالي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                            onPressed: () =>
+                                FeatureDiscovery.completeCurrentStep(context),
+                          ),
+                          OutlinedButton(
+                            onPressed: () =>
+                                FeatureDiscovery.dismissAll(context),
+                            child: Text(
+                              'تخطي',
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).textTheme.bodyText2.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Theme.of(context).accentColor,
+                      targetColor: Colors.transparent,
+                      textColor:
+                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                      child: Icon(Icons.delete_outline),
+                    ),
+                    onTap: () {
+                      mainScfld.currentState.openEndDrawer();
+                      Navigator.pushNamed(context, 'Trash');
+                    },
+                    title: Text('سلة المحذوفات'),
+                  );
+                },
+              ),
               Divider(),
               ListTile(
                 leading: DescribedFeatureOverlay(
@@ -1219,6 +1283,7 @@ class _RootState extends State<Root>
         'ManageUsers',
       'DataMap',
       'AdvancedSearch',
+      if (User.instance.manageDeleted) 'ManageDeleted',
       'Settings'
     ]);
   }

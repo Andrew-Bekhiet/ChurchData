@@ -50,6 +50,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   Person(
       {String id = '',
+      DocumentReference ref,
       this.areaId,
       this.streetId,
       this.familyId,
@@ -78,14 +79,15 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       this.servingType,
       this.lastEdit,
       Color color = Colors.transparent})
-      : super(id, name, color) {
+      : super(ref ?? FirebaseFirestore.instance.collection('Persons').doc(id),
+            name, color) {
     this.hasPhoto = hasPhoto;
     phones ??= {};
     defaultIcon = Icons.person;
   }
 
-  Person._createFromData(Map<dynamic, dynamic> data, String id)
-      : super.createFromData(data, id) {
+  Person._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
     familyId = data['FamilyId'];
     streetId = data['StreetId'];
     areaId = data['AreaId'];
@@ -137,9 +139,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   @override
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
-
-  @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Persons/$id');
 
   Future<String> getAreaName() async {
     var tmp = (await areaId?.get(dataSource))?.data();
@@ -380,7 +379,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   }
 
   static Person fromDoc(DocumentSnapshot data) =>
-      data.exists ? Person._createFromData(data.data(), data.id) : null;
+      data.exists ? Person._createFromData(data.data(), data.reference) : null;
 
   static Future<Person> fromId(String id) async => Person.fromDoc(
         await FirebaseFirestore.instance.doc('Persons/$id').get(),

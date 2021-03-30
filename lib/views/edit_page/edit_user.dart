@@ -83,195 +83,202 @@ class _UserPState extends State<UserP> {
           key: form,
           child: Padding(
             padding: EdgeInsets.all(5),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: 'الاسم',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
+            child: ListView(
+              children: <Widget>[
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'الاسم',
+                      border: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      focusNode: focuses[0],
-                      textInputAction: TextInputAction.next,
-                      onFieldSubmitted: (_) => focuses[1].requestFocus(),
-                      initialValue: widget.user.name,
-                      onChanged: nameChanged,
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'هذا الحقل مطلوب';
-                        }
-                        return null;
-                      },
                     ),
+                    focusNode: focuses[0],
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => focuses[1].requestFocus(),
+                    initialValue: widget.user.name,
+                    onChanged: nameChanged,
+                    validator: (value) {
+                      if (value.isEmpty) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
+                    },
                   ),
-                  if (User.instance.manageUsers)
-                    ListTile(
-                      trailing: Checkbox(
-                        value: widget.user.manageUsers,
-                        onChanged: (v) =>
-                            setState(() => widget.user.manageUsers = v),
-                      ),
-                      leading: Icon(
-                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                      title: Text('إدارة المستخدمين'),
-                      onTap: () => setState(() =>
-                          widget.user.manageUsers = !widget.user.manageUsers),
-                    ),
+                ),
+                if (User.instance.manageUsers)
                   ListTile(
                     trailing: Checkbox(
-                      value: widget.user.manageAllowedUsers,
+                      value: widget.user.manageUsers,
                       onChanged: (v) =>
-                          setState(() => widget.user.manageAllowedUsers = v),
+                          setState(() => widget.user.manageUsers = v),
                     ),
                     leading: Icon(
                         const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة مستخدمين محددين'),
-                    onTap: () => setState(() => widget.user.manageAllowedUsers =
-                        !widget.user.manageAllowedUsers),
-                  ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.superAccess,
-                      onChanged: (v) =>
-                          setState(() => widget.user.superAccess = v),
-                    ),
-                    leading: Icon(
-                      const IconData(0xef56, fontFamily: 'MaterialIconsR'),
-                    ),
-                    title: Text('رؤية جميع البيانات'),
+                    title: Text('إدارة المستخدمين'),
                     onTap: () => setState(() =>
-                        widget.user.superAccess = !widget.user.superAccess),
+                        widget.user.manageUsers = !widget.user.manageUsers),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.write,
-                      onChanged: (v) => setState(() => widget.user.write = v),
-                    ),
-                    leading: Icon(Icons.edit),
-                    title: Text('تعديل البيانات'),
-                    onTap: () =>
-                        setState(() => widget.user.write = !widget.user.write),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.manageAllowedUsers,
+                    onChanged: (v) =>
+                        setState(() => widget.user.manageAllowedUsers = v),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.exportAreas,
-                      onChanged: (v) =>
-                          setState(() => widget.user.exportAreas = v),
-                    ),
-                    leading: Icon(Icons.cloud_download),
-                    title: Text('تصدير منطقة لملف إكسل'),
-                    onTap: () => setState(() =>
-                        widget.user.exportAreas = !widget.user.exportAreas),
+                  leading: Icon(
+                      const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                  title: Text('إدارة مستخدمين محددين'),
+                  onTap: () => setState(() => widget.user.manageAllowedUsers =
+                      !widget.user.manageAllowedUsers),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.superAccess,
+                    onChanged: (v) =>
+                        setState(() => widget.user.superAccess = v),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.birthdayNotify,
-                      onChanged: (v) =>
-                          setState(() => widget.user.birthdayNotify = v),
-                    ),
-                    leading: Icon(
-                      const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
-                    ),
-                    title: Text('إشعار أعياد الميلاد'),
-                    onTap: () => setState(() => widget.user.birthdayNotify =
-                        !widget.user.birthdayNotify),
+                  leading: Icon(
+                    const IconData(0xef56, fontFamily: 'MaterialIconsR'),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.confessionsNotify ?? false,
-                      onChanged: (v) =>
-                          setState(() => widget.user.confessionsNotify = v),
-                    ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
-                    ),
-                    title: Text('إشعار الاعتراف'),
-                    onTap: () => setState(
-                      () => widget.user.confessionsNotify =
-                          !(widget.user.confessionsNotify ?? false),
-                    ),
+                  title: Text('رؤية جميع البيانات'),
+                  onTap: () => setState(
+                      () => widget.user.superAccess = !widget.user.superAccess),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.manageDeleted ?? false,
+                    onChanged: (v) =>
+                        setState(() => widget.user.manageDeleted = v),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.tanawolNotify ?? false,
-                      onChanged: (v) =>
-                          setState(() => widget.user.tanawolNotify = v),
-                    ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
-                    ),
-                    title: Text('إشعار التناول'),
-                    onTap: () => setState(
-                      () => widget.user.tanawolNotify =
-                          !(widget.user.tanawolNotify ?? false),
-                    ),
+                  leading: Icon(Icons.delete_outlined),
+                  title: Text('استرجاع المحذوفات'),
+                  onTap: () => setState(() => widget.user.manageDeleted =
+                      !(widget.user.manageDeleted ?? false)),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.write,
+                    onChanged: (v) => setState(() => widget.user.write = v),
                   ),
-                  ListTile(
-                    trailing: Checkbox(
-                      value: widget.user.approveLocations,
-                      onChanged: (v) =>
-                          setState(() => widget.user.approveLocations = v),
-                    ),
-                    title: Text('التأكيد على المواقع'),
-                    onTap: () => setState(() => widget.user.approveLocations =
-                        !widget.user.approveLocations),
-                    leading: Icon(
-                      const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
-                    ),
+                  leading: Icon(Icons.edit),
+                  title: Text('تعديل البيانات'),
+                  onTap: () =>
+                      setState(() => widget.user.write = !widget.user.write),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.exportAreas,
+                    onChanged: (v) =>
+                        setState(() => widget.user.exportAreas = v),
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
-                    child: Focus(
-                      focusNode: focuses[1],
-                      child: InkWell(
-                        onTap: _selectPerson,
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            labelText: 'ربط بشخص',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
+                  leading: Icon(Icons.cloud_download),
+                  title: Text('تصدير منطقة لملف إكسل'),
+                  onTap: () => setState(
+                      () => widget.user.exportAreas = !widget.user.exportAreas),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.birthdayNotify,
+                    onChanged: (v) =>
+                        setState(() => widget.user.birthdayNotify = v),
+                  ),
+                  leading: Icon(
+                    const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                  ),
+                  title: Text('إشعار أعياد الميلاد'),
+                  onTap: () => setState(() =>
+                      widget.user.birthdayNotify = !widget.user.birthdayNotify),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.confessionsNotify ?? false,
+                    onChanged: (v) =>
+                        setState(() => widget.user.confessionsNotify = v),
+                  ),
+                  leading: Icon(
+                    const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
+                  title: Text('إشعار الاعتراف'),
+                  onTap: () => setState(
+                    () => widget.user.confessionsNotify =
+                        !(widget.user.confessionsNotify ?? false),
+                  ),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.tanawolNotify ?? false,
+                    onChanged: (v) =>
+                        setState(() => widget.user.tanawolNotify = v),
+                  ),
+                  leading: Icon(
+                    const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  ),
+                  title: Text('إشعار التناول'),
+                  onTap: () => setState(
+                    () => widget.user.tanawolNotify =
+                        !(widget.user.tanawolNotify ?? false),
+                  ),
+                ),
+                ListTile(
+                  trailing: Checkbox(
+                    value: widget.user.approveLocations,
+                    onChanged: (v) =>
+                        setState(() => widget.user.approveLocations = v),
+                  ),
+                  title: Text('التأكيد على المواقع'),
+                  onTap: () => setState(() => widget.user.approveLocations =
+                      !widget.user.approveLocations),
+                  leading: Icon(
+                    const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Focus(
+                    focusNode: focuses[1],
+                    child: InkWell(
+                      onTap: _selectPerson,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'ربط بشخص',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
                           ),
-                          child: FutureBuilder<Person>(
-                            future: widget.user.getPerson(),
-                            builder: (contextt, dataServ) {
-                              if (dataServ.connectionState ==
-                                  ConnectionState.done) {
-                                if (dataServ.data == null)
-                                  return Container(width: 0.0, height: 0.0);
-                                return Text(dataServ.data.name);
-                              } else {
-                                return LinearProgressIndicator();
-                              }
-                            },
-                          ),
+                        ),
+                        child: FutureBuilder<Person>(
+                          future: widget.user.getPerson(),
+                          builder: (contextt, dataServ) {
+                            if (dataServ.connectionState ==
+                                ConnectionState.done) {
+                              if (dataServ.data == null)
+                                return Container(width: 0.0, height: 0.0);
+                              return Text(dataServ.data.name);
+                            } else {
+                              return LinearProgressIndicator();
+                            }
+                          },
                         ),
                       ),
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: editAllowedUsers,
-                    icon: Icon(Icons.shield),
-                    label: Text('تعديل المستخدمين المسموح لهم بتعديل المستخدم',
-                        softWrap: false,
-                        textScaleFactor: 0.95,
-                        overflow: TextOverflow.fade),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: resetPassword,
-                    icon: Icon(Icons.lock_open),
-                    label: Text('إعادة تعيين كلمة السر'),
-                  ),
-                ],
-              ),
+                ),
+                ElevatedButton.icon(
+                  onPressed: editAllowedUsers,
+                  icon: Icon(Icons.shield),
+                  label: Text('تعديل المستخدمين المسموح لهم بتعديل المستخدم',
+                      softWrap: false,
+                      textScaleFactor: 0.95,
+                      overflow: TextOverflow.fade),
+                ),
+                ElevatedButton.icon(
+                  onPressed: resetPassword,
+                  icon: Icon(Icons.lock_open),
+                  label: Text('إعادة تعيين كلمة السر'),
+                ),
+              ],
             ),
           ),
         ),

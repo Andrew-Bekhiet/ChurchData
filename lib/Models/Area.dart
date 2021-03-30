@@ -41,16 +41,18 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     this.fatherLastVisit,
     this.allowedUsers,
     this.lastEdit, {
+    DocumentReference ref,
     Color color = Colors.transparent,
     this.locationPoints,
-  }) : super(id, name, color) {
+  }) : super(ref ?? FirebaseFirestore.instance.collection('Areas').doc(id),
+            name, color) {
     this.hasPhoto = hasPhoto;
     defaultIcon = Icons.pin_drop;
   }
 
   @override
-  Area.createFromData(Map<dynamic, dynamic> data, String id)
-      : super.createFromData(data, id) {
+  Area.createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
+      : super.createFromData(data, ref) {
     address = data['Address'];
 
     hasPhoto = data['hasPhoto'] ?? false;
@@ -70,9 +72,6 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   @override
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('AreasPhotos/$id');
-
-  @override
-  DocumentReference get ref => FirebaseFirestore.instance.doc('Areas/$id');
 
   @override
   Future<List<Street>> getChildren(
@@ -241,7 +240,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   }
 
   static Area fromDoc(DocumentSnapshot data) =>
-      data.exists ? Area.createFromData(data.data(), data.id) : null;
+      data.exists ? Area.createFromData(data.data(), data.reference) : null;
 
   static Future<Area> fromId(String id) async => Area.fromDoc(
         await FirebaseFirestore.instance.doc('Areas/$id').get(),
@@ -274,7 +273,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   }) {
     return User.instance.stream.switchMap((u) => u.superAccess
         ? FirebaseFirestore.instance
-            .collection('Persons')
+            .collection('Areas')
             .orderBy(orderBy, descending: descending)
             .snapshots()
         : FirebaseFirestore.instance
