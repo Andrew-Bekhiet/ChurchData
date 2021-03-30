@@ -91,57 +91,73 @@ class _StreetInfoState extends State<StreetInfo> {
               backgroundColor:
                   street.color != Colors.transparent ? street.color : null,
               title: Text(street.name),
-              actions: <Widget>[
-                if (permission)
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () async {
-                      dynamic result = await Navigator.of(context)
-                          .pushNamed('Data/EditStreet', arguments: street);
-                      if (result == null) return;
+              actions: street.ref.path.startsWith('Deleted')
+                  ? <Widget>[
+                      if (permission)
+                        IconButton(
+                          icon: Icon(Icons.restore),
+                          tooltip: 'استعادة',
+                          onPressed: () {
+                            street.lastEdit = User.instance.uid;
+                            FirebaseFirestore.instance
+                                .collection('Streets')
+                                .doc(street.id)
+                                .set(street.getMap());
+                          },
+                        )
+                    ]
+                  : <Widget>[
+                      if (permission)
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () async {
+                            dynamic result = await Navigator.of(context)
+                                .pushNamed('Data/EditStreet',
+                                    arguments: street);
+                            if (result == null) return;
 
-                      ScaffoldMessenger.of(mainScfld.currentContext)
-                          .hideCurrentSnackBar();
-                      if (result is DocumentReference) {
-                        ScaffoldMessenger.of(mainScfld.currentContext)
-                            .showSnackBar(
-                          SnackBar(
-                            content: Text('تم الحفظ بنجاح'),
-                          ),
-                        );
-                      } else if (result == 'deleted') {
-                        Navigator.of(mainScfld.currentContext).pop();
-                        ScaffoldMessenger.of(mainScfld.currentContext)
-                            .showSnackBar(
-                          SnackBar(
-                            content: Text('تم الحذف بنجاح'),
-                          ),
-                        );
-                      }
-                    },
-                    tooltip: 'تعديل',
-                  ),
-                IconButton(
-                  icon: Icon(Icons.share),
-                  onPressed: () async {
-                    await Share.share(
-                      await shareStreet(street),
-                    );
-                  },
-                  tooltip: 'مشاركة برابط',
-                ),
-                PopupMenuButton(
-                  onSelected: (_) => sendNotification(context, street),
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem(
-                        value: '',
-                        child: Text('ارسال إشعار للمستخدمين عن الشارع'),
+                            ScaffoldMessenger.of(mainScfld.currentContext)
+                                .hideCurrentSnackBar();
+                            if (result is DocumentReference) {
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحفظ بنجاح'),
+                                ),
+                              );
+                            } else if (result == 'deleted') {
+                              Navigator.of(mainScfld.currentContext).pop();
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحذف بنجاح'),
+                                ),
+                              );
+                            }
+                          },
+                          tooltip: 'تعديل',
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.share),
+                        onPressed: () async {
+                          await Share.share(
+                            await shareStreet(street),
+                          );
+                        },
+                        tooltip: 'مشاركة برابط',
                       ),
-                    ];
-                  },
-                ),
-              ],
+                      PopupMenuButton(
+                        onSelected: (_) => sendNotification(context, street),
+                        itemBuilder: (context) {
+                          return [
+                            PopupMenuItem(
+                              value: '',
+                              child: Text('ارسال إشعار للمستخدمين عن الشارع'),
+                            ),
+                          ];
+                        },
+                      ),
+                    ],
             ),
             body: NestedScrollView(
               headerSliverBuilder: (context, x) {
@@ -203,9 +219,11 @@ class _StreetInfoState extends State<StreetInfo> {
                 ];
               },
               body: SafeArea(
-                child: DataObjectList<Family>(
-                  options: _listOptions,
-                ),
+                child: street.ref.path.startsWith('Deleted')
+                    ? Text('يجب استعادة الشارع لرؤية العائلات بداخله')
+                    : DataObjectList<Family>(
+                        options: _listOptions,
+                      ),
               ),
             ),
             bottomNavigationBar: BottomAppBar(
@@ -226,7 +244,8 @@ class _StreetInfoState extends State<StreetInfo> {
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
-            floatingActionButton: permission
+            floatingActionButton: permission &&
+                    !street.ref.path.startsWith('Deleted')
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

@@ -104,59 +104,75 @@ class _FamilyInfoState extends State<FamilyInfo> {
               backgroundColor:
                   family.color != Colors.transparent ? family.color : null,
               title: Text(family.name),
-              actions: <Widget>[
-                if (permission)
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () async {
-                      dynamic result = await Navigator.of(context)
-                          .pushNamed('Data/EditFamily', arguments: family);
-                      if (result == null) return;
+              actions: family.ref.path.startsWith('Deleted')
+                  ? <Widget>[
+                      if (permission)
+                        IconButton(
+                          icon: Icon(Icons.restore),
+                          tooltip: 'استعادة',
+                          onPressed: () {
+                            family.lastEdit = User.instance.uid;
+                            FirebaseFirestore.instance
+                                .collection('Familes')
+                                .doc(family.id)
+                                .set(family.getMap());
+                          },
+                        )
+                    ]
+                  : <Widget>[
+                      if (permission)
+                        IconButton(
+                          icon: Icon(Icons.edit),
+                          onPressed: () async {
+                            dynamic result = await Navigator.of(context)
+                                .pushNamed('Data/EditFamily',
+                                    arguments: family);
+                            if (result == null) return;
 
-                      ScaffoldMessenger.of(mainScfld.currentContext)
-                          .hideCurrentSnackBar();
-                      if (result is DocumentReference) {
-                        ScaffoldMessenger.of(mainScfld.currentContext)
-                            .showSnackBar(
-                          SnackBar(
-                            content: Text('تم الحفظ بنجاح'),
-                          ),
-                        );
-                      } else if (result == 'deleted') {
-                        Navigator.of(mainScfld.currentContext).pop();
-                        ScaffoldMessenger.of(mainScfld.currentContext)
-                            .showSnackBar(
-                          SnackBar(
-                            content: Text('تم الحذف بنجاح'),
-                          ),
-                        );
-                      }
-                    },
-                    tooltip: 'تعديل',
-                  ),
-                IconButton(
-                  icon: Icon(Icons.share),
-                  onPressed: () async {
-                    await Share.share(
-                      await shareFamily(family),
-                    );
-                  },
-                  tooltip: 'مشاركة برابط',
-                ),
-                PopupMenuButton(
-                  onSelected: (_) => sendNotification(context, family),
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem(
-                        value: '',
-                        child: Text('ارسال إشعار للمستخدمين عن ال' +
-                            (family.isStore ? 'محل' : 'عائلة') +
-                            ''),
+                            ScaffoldMessenger.of(mainScfld.currentContext)
+                                .hideCurrentSnackBar();
+                            if (result is DocumentReference) {
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحفظ بنجاح'),
+                                ),
+                              );
+                            } else if (result == 'deleted') {
+                              Navigator.of(mainScfld.currentContext).pop();
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحذف بنجاح'),
+                                ),
+                              );
+                            }
+                          },
+                          tooltip: 'تعديل',
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.share),
+                        onPressed: () async {
+                          await Share.share(
+                            await shareFamily(family),
+                          );
+                        },
+                        tooltip: 'مشاركة برابط',
                       ),
-                    ];
-                  },
-                ),
-              ],
+                      PopupMenuButton(
+                        onSelected: (_) => sendNotification(context, family),
+                        itemBuilder: (context) {
+                          return [
+                            PopupMenuItem(
+                              value: '',
+                              child: Text('ارسال إشعار للمستخدمين عن ال' +
+                                  (family.isStore ? 'محل' : 'عائلة') +
+                                  ''),
+                            ),
+                          ];
+                        },
+                      ),
+                    ],
             ),
             body: NestedScrollView(
               headerSliverBuilder: (context, x) {
@@ -267,9 +283,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
                 ];
               },
               body: SafeArea(
-                child: DataObjectList(
-                  options: _listOptions,
-                ),
+                child: family.ref.path.startsWith('Deleted')
+                    ? Text('يجب استعادة العائلة لرؤية الأشخاص بداخلها')
+                    : DataObjectList(
+                        options: _listOptions,
+                      ),
               ),
             ),
             bottomNavigationBar: BottomAppBar(
@@ -312,7 +330,8 @@ class _FamilyInfoState extends State<FamilyInfo> {
                 },
               ),
             ),
-            floatingActionButton: permission
+            floatingActionButton: permission &&
+                    !family.ref.path.startsWith('Deleted')
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
