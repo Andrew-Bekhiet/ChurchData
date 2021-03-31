@@ -9,7 +9,6 @@ import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -194,7 +193,7 @@ class PersonInfo extends StatelessWidget {
                                 : 1,
                             child: Text(person.name),
                           ),
-                          background: person.photo),
+                          background: person.photo(false)),
                     ),
                   ),
                 ];

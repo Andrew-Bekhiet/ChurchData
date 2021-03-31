@@ -345,7 +345,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                 : 1,
                             child: Text(area.name),
                           ),
-                          background: area.photo),
+                          background: area.photo(false)),
                     ),
                   ),
                   SliverList(

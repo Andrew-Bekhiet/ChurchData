@@ -56,7 +56,7 @@ class Street extends DataObject
   DocumentReference get parentId => areaId;
 
   @override
-  Widget get photo {
+  Widget photo([_ = false]) {
     return Builder(
       builder: (context) => Image.asset(
         'assets/streets.png',

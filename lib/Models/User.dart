@@ -391,7 +391,7 @@ class User extends DataObject
   }
 
   @override
-  Widget get photo => getPhoto();
+  Widget photo([bool b = false]) => getPhoto(b);
 
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(

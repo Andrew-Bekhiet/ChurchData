@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import 'person.dart';
 import 'user.dart';
 
 abstract class DataObject {
@@ -89,22 +88,22 @@ abstract class PhotoObject {
       AsyncCache<String>(Duration(days: 1));
 
   Reference get photoRef;
+  // fireWeb.Reference get webPhotoRef;
 
-  Widget get photo {
+  Widget photo([bool wrapPhotoInCircle = false]) {
     return DataObjectPhoto(this,
+        wrapPhotoInCircle: wrapPhotoInCircle,
         key: hasPhoto ? ValueKey(photoRef?.fullPath) : null);
-  }
-
-  Widget photoWithHero(Object heroTag) {
-    return DataObjectPhoto(this,
-        key: hasPhoto ? ValueKey(photoRef?.fullPath) : null, heroTag: heroTag);
   }
 }
 
 class DataObjectPhoto extends StatefulWidget {
   final PhotoObject object;
+  final bool wrapPhotoInCircle;
   final Object heroTag;
-  const DataObjectPhoto(this.object, {Key key, this.heroTag}) : super(key: key);
+  const DataObjectPhoto(this.object,
+      {Key key, this.wrapPhotoInCircle, this.heroTag})
+      : super(key: key);
 
   @override
   _DataObjectPhotoState createState() => _DataObjectPhotoState();
@@ -171,7 +170,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                   return Icon(widget.object.defaultIcon,
                       size: constrains.maxHeight);
                 else {
-                  final photo = Material(
+                  var photo = Material(
                     type: MaterialType.transparency,
                     child: InkWell(
                       onTap: () => showDialog(
@@ -250,7 +249,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                             ),
                     ),
                   );
-                  return widget.object is Person || widget.object is User
+                  return widget.wrapPhotoInCircle
                       ? ClipOval(
                           child: photo,
                         )

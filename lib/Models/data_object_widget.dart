@@ -157,8 +157,9 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                     }
                   },
                 ),
-            leading:
-                current is PhotoObject ? (current as PhotoObject).photo : null,
+            leading: current is PhotoObject
+                ? (current as PhotoObject).photo()
+                : null,
           );
   }
 
