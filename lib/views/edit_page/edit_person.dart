@@ -24,7 +24,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:icon_shadow/icon_shadow.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -73,74 +72,75 @@ class _EditPersonState extends State<EditPerson> {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
-                IconButton(
-                    icon: Builder(
-                      builder: (context) => IconShadowWidget(
-                        Icon(
-                          Icons.photo_camera,
-                          color: IconTheme.of(context).color,
+                IconButton(icon: Builder(
+                  builder: (context) {
+                    return Stack(
+                      children: <Widget>[
+                        Positioned(
+                          left: 1.0,
+                          top: 2.0,
+                          child:
+                              Icon(Icons.photo_camera, color: Colors.black54),
                         ),
-                      ),
+                        Icon(Icons.photo_camera,
+                            color: IconTheme.of(context).color),
+                      ],
+                    );
+                  },
+                ), onPressed: () async {
+                  var source = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      actions: <Widget>[
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          icon: Icon(Icons.camera),
+                          label: Text('التقاط صورة من الكاميرا'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          icon: Icon(Icons.photo_library),
+                          label: Text('اختيار من المعرض'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => Navigator.of(context).pop('delete'),
+                          icon: Icon(Icons.delete),
+                          label: Text('حذف الصورة'),
+                        ),
+                      ],
                     ),
-                    onPressed: () async {
-                      var source = await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          actions: <Widget>[
-                            TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              icon: Icon(Icons.camera),
-                              label: Text('التقاط صورة من الكاميرا'),
-                            ),
-                            TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              icon: Icon(Icons.photo_library),
-                              label: Text('اختيار من المعرض'),
-                            ),
-                            TextButton.icon(
-                              onPressed: () =>
-                                  Navigator.of(context).pop('delete'),
-                              icon: Icon(Icons.delete),
-                              label: Text('حذف الصورة'),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (source == null) return;
-                      if (source == 'delete') {
-                        changedImage = null;
-                        deletePhoto = true;
-                        person.hasPhoto = false;
-                        setState(() {});
-                        return;
-                      }
-                      if ((source &&
-                              !(await Permission.storage.request())
-                                  .isGranted) ||
-                          !(await Permission.camera.request()).isGranted)
-                        return;
-                      var selectedImage = (await ImagePicker().getImage(
-                          source: source
-                              ? ImageSource.camera
-                              : ImageSource.gallery));
-                      if (selectedImage == null) return;
-                      changedImage = (await ImageCropper.cropImage(
-                              sourcePath: selectedImage.path,
-                              cropStyle: CropStyle.circle,
-                              androidUiSettings: AndroidUiSettings(
-                                  toolbarTitle: 'قص الصورة',
-                                  toolbarColor: Theme.of(context).primaryColor,
-                                  toolbarWidgetColor: Theme.of(context)
-                                      .primaryTextTheme
-                                      .headline6
-                                      .color,
-                                  initAspectRatio:
-                                      CropAspectRatioPreset.original,
-                                  lockAspectRatio: false)))
-                          ?.path;
-                      deletePhoto = false;
-                      setState(() {});
-                    })
+                  );
+                  if (source == null) return;
+                  if (source == 'delete') {
+                    changedImage = null;
+                    deletePhoto = true;
+                    person.hasPhoto = false;
+                    setState(() {});
+                    return;
+                  }
+                  if ((source &&
+                          !(await Permission.storage.request()).isGranted) ||
+                      !(await Permission.camera.request()).isGranted) return;
+                  var selectedImage = (await ImagePicker().getImage(
+                      source:
+                          source ? ImageSource.camera : ImageSource.gallery));
+                  if (selectedImage == null) return;
+                  changedImage = (await ImageCropper.cropImage(
+                          sourcePath: selectedImage.path,
+                          cropStyle: CropStyle.circle,
+                          androidUiSettings: AndroidUiSettings(
+                              toolbarTitle: 'قص الصورة',
+                              toolbarColor: Theme.of(context).primaryColor,
+                              toolbarWidgetColor: Theme.of(context)
+                                  .primaryTextTheme
+                                  .headline6
+                                  .color,
+                              initAspectRatio: CropAspectRatioPreset.original,
+                              lockAspectRatio: false)))
+                      ?.path;
+                  deletePhoto = false;
+                  setState(() {});
+                })
               ],
               backgroundColor:
                   person.color != Colors.transparent ? person.color : null,
@@ -162,7 +162,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   background: changedImage == null
-                      ? person.photo
+                      ? person.photo(false)
                       : Image.file(
                           File(changedImage),
                         ),

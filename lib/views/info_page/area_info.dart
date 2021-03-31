@@ -17,7 +17,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
 import 'package:flutter/material.dart';
-import 'package:icon_shadow/icon_shadow.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -164,12 +163,21 @@ class _AreaInfoState extends State<AreaInfo> {
                                       .bodyText1
                                       .color,
                                   child: Builder(
-                                    builder: (context) => IconShadowWidget(
-                                      Icon(
-                                        Icons.edit,
-                                        color: IconTheme.of(context).color,
-                                      ),
-                                    ),
+                                    builder: (context) {
+                                      return Stack(
+                                        children: <Widget>[
+                                          Positioned(
+                                            left: 1.0,
+                                            top: 2.0,
+                                            child: Icon(Icons.edit,
+                                                color: Colors.black54),
+                                          ),
+                                          Icon(Icons.edit,
+                                              color:
+                                                  IconTheme.of(context).color),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
                                 onPressed: () async {
@@ -253,12 +261,20 @@ class _AreaInfoState extends State<AreaInfo> {
                                     .bodyText1
                                     .color,
                                 child: Builder(
-                                  builder: (context) => IconShadowWidget(
-                                    Icon(
-                                      Icons.share,
-                                      color: IconTheme.of(context).color,
-                                    ),
-                                  ),
+                                  builder: (context) {
+                                    return Stack(
+                                      children: <Widget>[
+                                        Positioned(
+                                          left: 1.0,
+                                          top: 2.0,
+                                          child: Icon(Icons.share,
+                                              color: Colors.black54),
+                                        ),
+                                        Icon(Icons.share,
+                                            color: IconTheme.of(context).color),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ),
                               onPressed: () async {

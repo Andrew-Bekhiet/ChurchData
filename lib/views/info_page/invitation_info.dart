@@ -1,7 +1,6 @@
 import 'package:churchdata/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:icon_shadow/icon_shadow.dart';
 import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/invitation.dart';
 import 'package:provider/provider.dart';
@@ -46,12 +45,20 @@ class InvitationInfo extends StatelessWidget {
                     builder: (c, permission, data) => permission
                         ? IconButton(
                             icon: Builder(
-                              builder: (context) => IconShadowWidget(
-                                Icon(
-                                  Icons.edit,
-                                  color: IconTheme.of(context).color,
-                                ),
-                              ),
+                              builder: (context) {
+                                return Stack(
+                                  children: <Widget>[
+                                    Positioned(
+                                      left: 1.0,
+                                      top: 2.0,
+                                      child: Icon(Icons.edit,
+                                          color: Colors.black54),
+                                    ),
+                                    Icon(Icons.edit,
+                                        color: IconTheme.of(context).color),
+                                  ],
+                                );
+                              },
                             ),
                             onPressed: () async {
                               dynamic result = await Navigator.of(context)
@@ -72,12 +79,19 @@ class InvitationInfo extends StatelessWidget {
                   ),
                   IconButton(
                     icon: Builder(
-                      builder: (context) => IconShadowWidget(
-                        Icon(
-                          Icons.share,
-                          color: IconTheme.of(context).color,
-                        ),
-                      ),
+                      builder: (context) {
+                        return Stack(
+                          children: <Widget>[
+                            Positioned(
+                              left: 1.0,
+                              top: 2.0,
+                              child: Icon(Icons.share, color: Colors.black54),
+                            ),
+                            Icon(Icons.share,
+                                color: IconTheme.of(context).color),
+                          ],
+                        );
+                      },
                     ),
                     onPressed: () async {
                       await Share.share(invitation.link);
