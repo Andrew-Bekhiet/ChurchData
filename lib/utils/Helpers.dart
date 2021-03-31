@@ -373,6 +373,52 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
+Future<void> recoverDoc(BuildContext context, String path) async {
+  bool nested = false;
+  bool keepBackup = true;
+  if (await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('استرجاع'),
+            ),
+          ],
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Checkbox(
+                    value: nested,
+                    onChanged: (v) => nested = v,
+                  ),
+                  Text('استرجع ايضا العناصر بداخل هذا العنصر'),
+                ],
+              ),
+              Row(
+                children: [
+                  Checkbox(
+                    value: keepBackup,
+                    onChanged: (v) => keepBackup = v,
+                  ),
+                  Text('ابقاء البيانات المحذوفة'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ) ==
+      true) {
+    await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+      'deletedPath': path,
+      'keepBackup': keepBackup,
+      'nested': nested,
+    });
+  }
+}
+
 void import(BuildContext context) async {
   try {
     final picked = await FilePicker.platform.pickFiles(

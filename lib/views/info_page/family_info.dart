@@ -111,11 +111,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           icon: Icon(Icons.restore),
                           tooltip: 'استعادة',
                           onPressed: () {
-                            family.lastEdit = User.instance.uid;
-                            FirebaseFirestore.instance
-                                .collection('Familes')
-                                .doc(family.id)
-                                .set(family.getMap());
+                            recoverDoc(context, family.ref.path);
                           },
                         )
                     ]

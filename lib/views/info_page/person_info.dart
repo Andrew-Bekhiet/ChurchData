@@ -9,6 +9,7 @@ import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -59,11 +60,7 @@ class PersonInfo extends StatelessWidget {
                                 icon: Icon(Icons.restore),
                                 tooltip: 'استعادة',
                                 onPressed: () {
-                                  person.lastEdit = User.instance.uid;
-                                  FirebaseFirestore.instance
-                                      .collection('Persons')
-                                      .doc(person.id)
-                                      .set(person.getMap());
+                                  recoverDoc(context, person.ref.path);
                                 },
                               )
                           ]
@@ -224,7 +221,7 @@ class PersonInfo extends StatelessWidget {
                         'رقم الهاتف:',
                         person.phone,
                         (n) => _phoneCall(context, n),
-                        (n) => _contactAdd(context, n),
+                        (n) => _contactAdd(context, n, person),
                       ),
                       if (person.phones != null)
                         ...person.phones.entries
@@ -232,7 +229,7 @@ class PersonInfo extends StatelessWidget {
                                   e.key,
                                   e.value,
                                   (n) => _phoneCall(context, n),
-                                  (n) => _contactAdd(context, n),
+                                  (n) => _contactAdd(context, n, person),
                                 ))
                             .toList(),
                       ListTile(
@@ -496,7 +493,8 @@ class PersonInfo extends StatelessWidget {
       await launch('tel://' + getPhone(number, false));
   }
 
-  Future<void> _contactAdd(BuildContext context, String phone) async {
+  Future<void> _contactAdd(
+      BuildContext context, String phone, Person person) async {
     if ((await Permission.contacts.request()).isGranted) {
       TextEditingController _name = TextEditingController(text: person.name);
       if (await showDialog(
@@ -520,10 +518,15 @@ class PersonInfo extends StatelessWidget {
             ),
           ) ==
           true) {
-        final c = Contact()
-          ..name.first = _name.text
-          ..phones = [Phone(phone)];
+        final c = Contact(
+            photo: person.hasPhoto
+                ? await person.photoRef.getData(100 * 1024 * 1024)
+                : null,
+            phones: [Phone(phone)])
+          ..name.first = _name.text;
         await c.insert();
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('تمت اضافة ' + _name.text + ' بنجاح')));
       }
     }
   }

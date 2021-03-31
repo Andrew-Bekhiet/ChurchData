@@ -816,7 +816,7 @@ class _RootState extends State<Root>
                       description: Column(
                         children: <Widget>[
                           Text(
-                              'يمكنك الأن استرجاع المحذوفات خلال مدة أسبوع من حذفها من هنا'),
+                              'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا'),
                           OutlinedButton.icon(
                             icon: Icon(Icons.forward),
                             label: Text(

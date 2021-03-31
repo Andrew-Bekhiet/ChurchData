@@ -98,11 +98,7 @@ class _StreetInfoState extends State<StreetInfo> {
                           icon: Icon(Icons.restore),
                           tooltip: 'استعادة',
                           onPressed: () {
-                            street.lastEdit = User.instance.uid;
-                            FirebaseFirestore.instance
-                                .collection('Streets')
-                                .doc(street.id)
-                                .set(street.getMap());
+                            recoverDoc(context, street.ref.path);
                           },
                         )
                     ]

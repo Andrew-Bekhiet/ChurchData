@@ -106,11 +106,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                 icon: Icon(Icons.restore),
                                 tooltip: 'استعادة',
                                 onPressed: () {
-                                  area.lastEdit = User.instance.uid;
-                                  FirebaseFirestore.instance
-                                      .collection('Areas')
-                                      .doc(area.id)
-                                      .set(area.getMap());
+                                  recoverDoc(context, area.ref.path);
                                 },
                               )
                           ]
