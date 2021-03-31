@@ -11,10 +11,10 @@ import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../models/super_classes.dart';
+import 'super_classes.dart';
 import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../models/map_view.dart';
+import 'map_view.dart';
 import 'person.dart';
 import 'user.dart';
 

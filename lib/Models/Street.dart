@@ -10,10 +10,10 @@ import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:location/location.dart';
 
-import '../models/super_classes.dart';
+import 'super_classes.dart';
 import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import '../models/map_view.dart';
+import 'map_view.dart';
 import 'area.dart';
 import 'family.dart';
 import 'person.dart';

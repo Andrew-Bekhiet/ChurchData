@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tinycolor/tinycolor.dart';
 
+import 'Person.dart';
+
 class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
   final DocumentReference doc;
   final T Function(DocumentSnapshot) transform;
@@ -127,7 +129,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   : null,
               leading: photo ??
                   (current is PhotoObject
-                      ? (current as PhotoObject).photo
+                      ? (current as PhotoObject).photo(current is Person)
                       : null),
             ),
           )
@@ -158,7 +160,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   },
                 ),
             leading: current is PhotoObject
-                ? (current as PhotoObject).photo()
+                ? (current as PhotoObject).photo(current is Person)
                 : null,
           );
   }

@@ -9,7 +9,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:intl/intl.dart';
 
 import '../utils/helpers.dart';
-import '../models/super_classes.dart';
+import 'super_classes.dart';
 import 'family.dart';
 import 'user.dart';
 import '../utils/globals.dart';
