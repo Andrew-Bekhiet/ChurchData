@@ -94,3 +94,4 @@ web/index.html
 package-lock.json
 detective_connect.txt
 README.docx
+.vscode/settings.json
