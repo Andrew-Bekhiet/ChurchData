@@ -129,7 +129,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   : null,
               leading: photo ??
                   (current is PhotoObject
-                      ? (current as PhotoObject).photo(current is Person)
+                      ? (current as PhotoObject).photo(T == Person)
                       : null),
             ),
           )
@@ -160,7 +160,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   },
                 ),
             leading: current is PhotoObject
-                ? (current as PhotoObject).photo(current is Person)
+                ? (current as PhotoObject).photo(T == Person)
                 : null,
           );
   }
