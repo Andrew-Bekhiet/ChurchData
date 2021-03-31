@@ -210,9 +210,13 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       for (Person item in _listOptions.selectedLatest.values
                           .cast<Person>()) {
                         try {
-                          final c = Contact()
-                            ..name.first = item.name
-                            ..phones = [Phone(item.phone)];
+                          final c = Contact(
+                              photo: item.hasPhoto
+                                  ? await item.photoRef
+                                      .getData(100 * 1024 * 1024)
+                                  : null,
+                              phones: [Phone(item.phone)])
+                            ..name.first = item.name;
                           await c.insert();
                         } catch (err, stkTrace) {
                           await FirebaseCrashlytics.instance.setCustomKey(
