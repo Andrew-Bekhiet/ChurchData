@@ -227,7 +227,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
 
   static Area empty() {
     return Area(
-      '',
+      null,
       '',
       '',
       false,

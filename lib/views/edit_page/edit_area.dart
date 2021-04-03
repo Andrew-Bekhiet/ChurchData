@@ -6,6 +6,7 @@ import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -440,10 +441,7 @@ class _EditAreaState extends State<EditArea> {
             area.locationConfirmed = false;
           }
         }
-        bool update = area.id != '';
-        if (area.id == '') {
-          area.ref = FirebaseFirestore.instance.collection('Areas').doc();
-        }
+        bool update = (await area.ref.get(dataSource)).exists;
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
@@ -552,7 +550,7 @@ class _EditAreaState extends State<EditArea> {
                                       onTap,
                                       subtitle,
                                       trailing}) =>
-                                  DataObjectWidget(
+                                  DataObjectWidget<User>(
                                 current,
                                 onTap: () => onTap(current),
                                 trailing: trailing,

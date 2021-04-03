@@ -49,7 +49,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   String lastEdit;
 
   Person(
-      {String id = '',
+      {String id,
       DocumentReference ref,
       this.areaId,
       this.streetId,

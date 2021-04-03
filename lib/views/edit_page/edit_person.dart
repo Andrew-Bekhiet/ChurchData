@@ -1273,10 +1273,7 @@ class _EditPersonState extends State<EditPerson> {
           }
           return _saveUserData();
         }
-        bool update = person.id != '';
-        if (person.id == '') {
-          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
-        }
+        bool update = (await person.ref.get(dataSource)).exists;
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()

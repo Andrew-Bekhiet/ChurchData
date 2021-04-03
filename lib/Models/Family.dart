@@ -221,7 +221,7 @@ class Family extends DataObject
 
   static Family empty() {
     return Family(
-      '',
+      null,
       null,
       null,
       '',

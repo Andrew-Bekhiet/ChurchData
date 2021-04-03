@@ -205,7 +205,7 @@ class Street extends DataObject
 
   static Street empty() {
     return Street(
-      '',
+      null,
       null,
       '',
       tranucateToDay(),

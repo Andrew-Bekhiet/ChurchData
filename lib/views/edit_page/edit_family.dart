@@ -4,6 +4,7 @@ import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/family.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
@@ -475,10 +476,7 @@ class _EditFamilyState extends State<EditFamily> {
 
         family.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        bool update = family.id != '';
-        if (family.id == '') {
-          family.ref = FirebaseFirestore.instance.collection('Families').doc();
-        }
+        bool update = (await family.ref.get(dataSource)).exists;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
