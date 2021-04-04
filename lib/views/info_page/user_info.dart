@@ -85,17 +85,27 @@ class _UserInfoState extends State<UserInfo> {
                 expandedHeight: 250.0,
                 floating: false,
                 pinned: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  title: Text(user.name),
-                  background: user.getPhoto(false, false),
+                flexibleSpace: LayoutBuilder(
+                  builder: (context, constraints) => FlexibleSpaceBar(
+                    title: AnimatedOpacity(
+                      duration: Duration(milliseconds: 300),
+                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
+                          ? 0
+                          : 1,
+                      child: Text(user.name),
+                    ),
+                    background: user.getPhoto(false, false),
+                  ),
                 ),
               ),
             ],
             body: ListView(
               children: <Widget>[
                 ListTile(
-                  title: Text('الاسم:'),
-                  subtitle: Text(user.name),
+                  title: Text(
+                    user.name,
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
                 ),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
