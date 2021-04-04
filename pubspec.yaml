@@ -15,7 +15,7 @@ publish_to: "none"
 version: 7.0.0+7
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.9.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -35,7 +35,7 @@ dependencies:
       url: git://github.com/lslv1243/tinycolor.git
       ref: master
   android_alarm_manager_plus: ^1.0.0
-  cached_network_image: ^3.0.0-nullsafety
+  cached_network_image: ^3.0.0
   cloud_firestore: ^1.0.3
   cloud_functions: ^1.0.2
   connectivity_plus: ^1.0.0
@@ -43,7 +43,7 @@ dependencies:
   datetime_picker_formfield: ^2.0.0
   device_info_plus: ^1.0.0
   expandable: ^5.0.1
-  file_picker: ^3.0.0-nullsafety.4
+  file_picker: ^3.0.1
   firebase: ^9.0.1
   firebase_analytics: ^8.0.0-dev.0
   firebase_auth: ^1.0.1
@@ -61,10 +61,10 @@ dependencies:
   flutter_secure_storage: ^4.1.0
   flutter_stream_notifiers: ^0.3.0-nullsafety.0
   google_maps_flutter: ^2.0.2
-  google_maps_flutter_web: ^0.2.1
+  google_maps_flutter_web: ^0.3.0
   google_sign_in: ^5.0.1
-  hive: ^2.0.1
-  hive_flutter: ^1.0.0-nullsafety.0
+  hive: ^2.0.2
+  hive_flutter: ^1.0.0
   image_cropper: ^1.4.0
   image_picker: ^0.7.4
   local_auth: ^1.1.1
@@ -72,17 +72,20 @@ dependencies:
   open_file: ^3.1.0
   package_info_plus: ^1.0.0
   path_provider: ^2.0.1
+  percent_indicator: ^3.0.1
   permission_handler: ^6.1.1
   photo_view: ^0.11.1
-  pointycastle: ^3.0.0-nullsafety.2
+  pie_chart: ^5.0.0
+  pointycastle: ^3.0.1
   provider: ^5.0.0
   rxdart: ^0.26.0-nullsafety.1
   share_plus: ^2.1.0-nullsafety.0
   spreadsheet_decoder: ^2.0.0
+  syncfusion_flutter_charts: ^19.1.54+1
   timeago: ^3.0.2
-  tuple: ^2.0.0-nullsafety.0
+  tuple: ^2.0.0
   url_launcher: ^6.0.3
-  version: ^2.0.0-nullsafety
+  version: ^2.0.0
 
 dev_dependencies:
   flutter_test:
