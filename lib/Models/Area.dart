@@ -271,14 +271,20 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     String orderBy = 'Name',
     bool descending = false,
   }) {
-    return User.instance.stream.switchMap((u) => u.superAccess
-        ? FirebaseFirestore.instance
-            .collection('Areas')
-            .orderBy(orderBy, descending: descending)
-            .snapshots()
+    return User.instance.stream.switchMap((u) => uid == null
+        ? u.superAccess
+            ? FirebaseFirestore.instance
+                .collection('Areas')
+                .orderBy(orderBy, descending: descending)
+                .snapshots()
+            : FirebaseFirestore.instance
+                .collection('Areas')
+                .where('Allowed', arrayContains: uid ?? u.uid)
+                .orderBy(orderBy, descending: descending)
+                .snapshots()
         : FirebaseFirestore.instance
             .collection('Areas')
-            .where('Allowed', arrayContains: u.uid)
+            .where('Allowed', arrayContains: uid ?? u.uid)
             .orderBy(orderBy, descending: descending)
             .snapshots());
   }
