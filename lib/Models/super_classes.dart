@@ -102,7 +102,7 @@ class DataObjectPhoto extends StatefulWidget {
   final bool wrapPhotoInCircle;
   final Object heroTag;
   const DataObjectPhoto(this.object,
-      {Key key, this.wrapPhotoInCircle, this.heroTag})
+      {Key key, this.wrapPhotoInCircle = false, this.heroTag})
       : super(key: key);
 
   @override
