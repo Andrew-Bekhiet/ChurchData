@@ -242,15 +242,11 @@ class _EditStreetState extends State<EditStreet> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
-        await FirebaseFirestore.instance
-            .collection('Streets')
-            .doc(street.id)
+        await street.ref
             .delete();
       else {
         // ignore: unawaited_futures
-        FirebaseFirestore.instance
-            .collection('Streets')
-            .doc(street.id)
+        street.ref
             .delete();
       }
       Navigator.pop(context, 'deleted');

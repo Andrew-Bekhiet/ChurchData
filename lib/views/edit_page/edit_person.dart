@@ -1123,8 +1123,9 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    person = widget.person ?? Person();
-    old = !widget.userData ? person.getMap() : person.getUserRegisterationMap();
+    person ??= widget.person ?? Person();
+    old ??=
+        !widget.userData ? person.getMap() : person.getUserRegisterationMap();
   }
 
   void selectColor() async {
@@ -1186,10 +1187,7 @@ class _EditPersonState extends State<EditPerson> {
               .child('PersonPhotos/${person.id}')
               .delete();
         }
-        await FirebaseFirestore.instance
-            .collection('Person')
-            .doc(person.id)
-            .delete();
+        await person.ref.delete();
       } else {
         if (person.hasPhoto) {
           // ignore: unawaited_futures
@@ -1199,7 +1197,7 @@ class _EditPersonState extends State<EditPerson> {
               .delete();
         }
         // ignore: unawaited_futures
-        FirebaseFirestore.instance.collection('Person').doc(person.id).delete();
+        person.ref.delete();
       }
       Navigator.of(context).pop('deleted');
     }
@@ -1247,7 +1245,8 @@ class _EditPersonState extends State<EditPerson> {
     try {
       if (form.currentState.validate() &&
           (person.familyId != null || widget.userData) &&
-          person.type != null) {
+          person.type != null &&
+          person.type.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),

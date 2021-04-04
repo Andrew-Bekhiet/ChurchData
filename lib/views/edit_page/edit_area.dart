@@ -374,10 +374,7 @@ class _EditAreaState extends State<EditArea> {
               .child('AreasPhotos/${area.id}')
               .delete();
         }
-        await FirebaseFirestore.instance
-            .collection('Areas')
-            .doc(area.id)
-            .delete();
+        await area.ref.delete();
       } else {
         if (area.hasPhoto) {
           // ignore: unawaited_futures
@@ -387,7 +384,7 @@ class _EditAreaState extends State<EditArea> {
               .delete();
         }
         // ignore: unawaited_futures
-        FirebaseFirestore.instance.collection('Areas').doc(area.id).delete();
+        area.ref.delete();
       }
       Navigator.of(context).pop('deleted');
     }

@@ -405,16 +405,10 @@ class _EditFamilyState extends State<EditFamily> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
-        await FirebaseFirestore.instance
-            .collection('Families')
-            .doc(family.id)
-            .delete();
+        await family.ref.delete();
       else {
         // ignore: unawaited_futures
-        FirebaseFirestore.instance
-            .collection('Families')
-            .doc(family.id)
-            .delete();
+        family.ref.delete();
       }
       Navigator.of(context).pop('deleted');
     }
