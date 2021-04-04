@@ -9,7 +9,6 @@ import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
@@ -25,11 +24,6 @@ class PersonInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => FeatureDiscovery.discoverFeatures(context, [
-        'Person.MoreOptions',
-      ]),
-    );
     return Scaffold(
       body: Selector<User, bool>(
         selector: (_, user) => user.write,
@@ -135,64 +129,19 @@ class PersonInfo extends StatelessWidget {
                               },
                               tooltip: 'مشاركة برابط',
                             ),
-                            DescribedFeatureOverlay(
-                              onBackgroundTap: () async {
-                                await FeatureDiscovery.completeCurrentStep(
-                                    context);
-                                return true;
+                            PopupMenuButton(
+                              onSelected: (p) {
+                                sendNotification(context, person);
                               },
-                              onDismiss: () async {
-                                await FeatureDiscovery.completeCurrentStep(
-                                    context);
-                                return true;
+                              itemBuilder: (BuildContext context) {
+                                return [
+                                  PopupMenuItem(
+                                    value: '',
+                                    child:
+                                        Text('ارسال اشعار للمستخدمين عن الشخص'),
+                                  )
+                                ];
                               },
-                              backgroundDismissible: true,
-                              contentLocation: ContentLocation.below,
-                              featureId: 'Person.MoreOptions',
-                              tapTarget: Icon(
-                                Icons.more_vert,
-                              ),
-                              title: Text('المزيد من الخيارات'),
-                              description: Column(
-                                children: <Widget>[
-                                  Text(
-                                      'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن الشخص\ىنسخ في لوحة الاتصال\ىاضافة لجهات الاتصال\ىارسال رسالة\ىارسال رسالة من خلال الواتساب'),
-                                  OutlinedButton(
-                                    onPressed: () =>
-                                        FeatureDiscovery.completeCurrentStep(
-                                            context),
-                                    child: Text(
-                                      'تخطي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Theme.of(context).accentColor,
-                              targetColor: Colors.transparent,
-                              textColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .bodyText1
-                                  .color,
-                              child: PopupMenuButton(
-                                onSelected: (p) {
-                                  sendNotification(context, person);
-                                },
-                                itemBuilder: (BuildContext context) {
-                                  return [
-                                    PopupMenuItem(
-                                      value: '',
-                                      child: Text(
-                                          'ارسال اشعار للمستخدمين عن الشخص'),
-                                    )
-                                  ];
-                                },
-                              ),
                             ),
                           ],
                     expandedHeight: 250.0,
