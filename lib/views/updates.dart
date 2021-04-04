@@ -26,9 +26,8 @@ class UpdateHelper {
         'LatestVersion': (await PackageInfo.fromPlatform()).version,
         'LoadApp': 'false',
         'DownloadLink':
-            'https://github.com/Andrew-Bekhiet/ChurchData/releases/download/v' +
-                (await PackageInfo.fromPlatform()).version +
-                '/ChurchData.apk',
+            'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
+                'download/ChurchData.apk',
       });
       await remoteConfig.setConfigSettings(RemoteConfigSettings(
           fetchTimeout: const Duration(seconds: 30),
