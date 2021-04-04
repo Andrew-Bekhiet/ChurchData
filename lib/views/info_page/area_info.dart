@@ -400,6 +400,26 @@ class _AreaInfoState extends State<AreaInfo> {
                           area.ref.collection('EditHistory'),
                           discoverFeature: true,
                         ),
+                        if (User.instance.manageUsers ||
+                            User.instance.manageAllowedUsers)
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.analytics_outlined),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              'ActivityAnalysis',
+                              arguments: [area],
+                            ),
+                            label: Text('تحليل نشاط الخدام'),
+                          ),
+                        ElevatedButton.icon(
+                          icon: Icon(Icons.analytics_outlined),
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            'SpiritualAnalysis',
+                            arguments: [area],
+                          ),
+                          label: Text('تحليل نشاط المخدومين'),
+                        ),
                         Divider(thickness: 1),
                         Text('الشوارع بالمنطقة:',
                             style: Theme.of(context).textTheme.bodyText1),

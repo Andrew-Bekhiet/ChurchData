@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata/views/analytics/activity_analysis.dart';
+import 'package:churchdata/views/analytics/spiritual_analysis.dart';
 import 'package:churchdata/views/edit_page/edit_family.dart';
 import 'package:churchdata/views/edit_page/edit_person.dart';
 import 'package:churchdata/views/edit_page/edit_street.dart';
@@ -217,6 +219,12 @@ class AppState extends State<App> {
               invitation: ModalRoute.of(context).settings.arguments ??
                   Invitation.empty()),
           'MyAccount': (context) => MyAccount(),
+          'ActivityAnalysis': (context) => ActivityAnalysis(
+                areas: ModalRoute.of(context).settings.arguments,
+              ),
+          'SpiritualAnalysis': (context) => SpiritualAnalysis(
+                areas: ModalRoute.of(context).settings.arguments,
+              ),
           'Notifications': (context) => NotificationsPage(),
           'Update': (context) => Update(),
           'Search': (context) => SearchQuery(),

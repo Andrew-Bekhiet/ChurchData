@@ -706,6 +706,115 @@ class _RootState extends State<Root>
                 },
               ),
               Divider(),
+              Consumer<User>(
+                builder: (context, user, _) => user.manageUsers ||
+                        user.manageAllowedUsers
+                    ? ListTile(
+                        leading: DescribedFeatureOverlay(
+                          backgroundDismissible: false,
+                          barrierDismissible: false,
+                          featureId: 'ActivityAnalysis',
+                          contentLocation: ContentLocation.below,
+                          tapTarget: const Icon(Icons.analytics_outlined),
+                          title: Text('تحليل بيانات نشاط الخدام'),
+                          description: Column(
+                            children: [
+                              Text('يمكنك الأن تحليل بيانات نشاط الخدام'
+                                  ' من حيث الافتقاد'
+                                  ' وتحديث البيانات وبيانات المكالمات'),
+                              OutlinedButton.icon(
+                                icon: Icon(Icons.forward),
+                                label: Text(
+                                  'التالي',
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2
+                                        .color,
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    FeatureDiscovery.completeCurrentStep(
+                                        context),
+                              ),
+                              OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
+                                child: Text(
+                                  'تخطي',
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2
+                                        .color,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Theme.of(context).accentColor,
+                          targetColor: Colors.transparent,
+                          textColor: Theme.of(context)
+                              .primaryTextTheme
+                              .bodyText1
+                              .color,
+                          child: Icon(Icons.analytics_outlined),
+                        ),
+                        title: Text('تحليل بيانات نشاط الخدام'),
+                        onTap: () {
+                          mainScfld.currentState.openEndDrawer();
+                          Navigator.of(context).pushNamed('ActivityAnalysis');
+                        },
+                      )
+                    : Container(),
+              ),
+              ListTile(
+                leading: DescribedFeatureOverlay(
+                  backgroundDismissible: false,
+                  barrierDismissible: false,
+                  featureId: 'SpiritualAnalysis',
+                  contentLocation: ContentLocation.below,
+                  tapTarget: const Icon(Icons.analytics_outlined),
+                  title: Text('تحليل بيانات الروحية للمخدومين'),
+                  description: Column(
+                    children: [
+                      Text('يمكنك الأن تحليل بيانات '
+                          'الحياة الروحية للمخدومين من حيث اجمالي'
+                          ' التناول والاعتراف في اليوم ورسم بياني لذلك'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: Icon(Icons.analytics_outlined),
+                ),
+                title: Text('تحليل بيانات نشاط المخدومين'),
+                onTap: () {
+                  mainScfld.currentState.openEndDrawer();
+                  Navigator.of(context).pushNamed('SpiritualAnalysis');
+                },
+              ),
+              Divider(),
               ListTile(
                 leading: DescribedFeatureOverlay(
                   backgroundDismissible: false,
@@ -1251,6 +1360,9 @@ class _RootState extends State<Root>
       'MyAccount',
       if (User.instance.manageUsers || User.instance.manageAllowedUsers)
         'ManageUsers',
+      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+        'ActivityAnalysis',
+      'SpiritualAnalysis',
       'DataMap',
       'AdvancedSearch',
       if (User.instance.manageDeleted) 'ManageDeleted',

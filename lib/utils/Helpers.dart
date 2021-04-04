@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:io' if (dart.library.html) 'dart:html';
+import 'dart:ui' as ui;
+import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/models/area.dart';
@@ -26,15 +29,18 @@ import 'package:firebase_messaging/firebase_messaging.dart'
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 
@@ -315,6 +321,28 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
   return null;
 }
 
+void takeScreenshot(GlobalKey key) async {
+  RenderRepaintBoundary boundary = key.currentContext.findRenderObject();
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) async {
+      ui.Image image = await boundary.toImage(pixelRatio: 2);
+      ByteData byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData.buffer.asUint8List();
+      await Share.shareFiles(
+        [
+          (await (await File((await getApplicationDocumentsDirectory()).path +
+                          DateTime.now().millisecondsSinceEpoch.toString() +
+                          '.png')
+                      .create())
+                  .writeAsBytes(pngBytes.toList()))
+              .path
+        ],
+      );
+    },
+  );
+}
+
 List<RadioListTile> getOrderingOptions(BuildContext context,
     BehaviorSubject<OrderOptions> orderOptions, int index) {
   Map source = index == 0
@@ -430,6 +458,37 @@ Future<void> recoverDoc(BuildContext context, String path) async {
       await FirebaseCrashlytics.instance.recordError(err, stcTrace);
     }
   }
+}
+
+Future<List<Area>> selectAreas(BuildContext context, List<Area> areas) async {
+  var _options = DataObjectListOptions<Area>(
+      itemsStream:
+          Area.getAllForUser().map((s) => s.docs.map(Area.fromDoc).toList()),
+      selectionMode: true,
+      onLongPress: (_) {},
+      selected: {for (var a in areas) a.id: a},
+      searchQuery: Stream.value(''));
+  if (await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: Text('اختر المناطق'),
+              actions: [
+                IconButton(
+                    icon: Icon(Icons.done),
+                    onPressed: () => Navigator.pop(context, true),
+                    tooltip: 'تم')
+              ],
+            ),
+            body: DataObjectList<Area>(options: _options),
+          ),
+        ),
+      ) ==
+      true) {
+    return _options.selectedLatest.values.toList();
+  }
+  return null;
 }
 
 void import(BuildContext context) async {
@@ -975,7 +1034,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
               create: (_) => DataObjectListOptions<User>(
                 itemBuilder: (current,
                         {onLongPress, onTap, subtitle, trailing}) =>
-                    DataObjectWidget(
+                    DataObjectWidget<User>(
                   current,
                   onTap: () => onTap(current),
                   trailing: trailing,
