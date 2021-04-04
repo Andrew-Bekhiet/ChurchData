@@ -94,7 +94,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       },
                     );
                   }
-                  return Container(width: 1, height: 1);
+                  return current is Person
+                      ? current.getLeftWidget()
+                      : Container(width: 1, height: 1);
                 },
               ),
             );

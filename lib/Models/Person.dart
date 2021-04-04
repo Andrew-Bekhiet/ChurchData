@@ -199,20 +199,30 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     return tmp['Name'] ?? 'لا يوجد';
   }
 
-  Future<Widget> getLeftWidget() async {
-    if (Hive.box('Settings').get('ShowPersonState', defaultValue: false)) {
-      var color = (await state?.get(dataSource))?.data();
-      return color == null
-          ? Container(width: 1, height: 1)
-          : Container(
-              height: 50,
-              width: 50,
-              color: Color(
-                int.parse('0xff${color['Color']}'),
-              ),
-            );
-    }
-    return Container(width: 1, height: 1);
+  Widget getLeftWidget({bool ignoreSetting = false}) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: Future(
+        () async {
+          if (ignoreSetting ||
+              Hive.box('Settings')
+                  .get('ShowPersonState', defaultValue: false)) {
+            return (await state?.get(dataSource))?.data();
+          }
+          return null;
+        },
+      ),
+      builder: (context, color) {
+        return color.data == null
+            ? Container(width: 1, height: 1)
+            : Container(
+                height: 50,
+                width: 50,
+                color: Color(
+                  int.parse('0xff${color.data['Color']}'),
+                ),
+              );
+      },
+    );
   }
 
   @override

@@ -95,74 +95,46 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tile = ListTile(
+      dense: isDense,
+      onLongPress: onLongPress,
+      onTap: onTap ?? () => dataObjectTap(current, context),
+      trailing: trailing ??
+          (current is Person ? (current as Person).getLeftWidget() : null),
+      title: title ?? Text(current.name),
+      subtitle: showSubtitle
+          ? subtitle ??
+              FutureBuilder(
+                future: _memoizer
+                    .runOnce(() async => await current.getSecondLine()),
+                builder: (cont, subT) {
+                  if (subT.hasData) {
+                    return Text(subT.data ?? '',
+                        maxLines: 1, overflow: TextOverflow.ellipsis);
+                  } else {
+                    return LinearProgressIndicator(
+                        backgroundColor: current.color != Colors.transparent
+                            ? current.color
+                            : null,
+                        valueColor: AlwaysStoppedAnimation(
+                            current.color != Colors.transparent
+                                ? current.color
+                                : Theme.of(context).primaryColor));
+                  }
+                },
+              )
+          : null,
+      leading: photo ??
+          (current is PhotoObject
+              ? (current as PhotoObject).photo(current is Person)
+              : null),
+    );
     return wrapInCard
         ? Card(
             color: _getColor(context),
-            child: ListTile(
-              dense: isDense,
-              onLongPress: onLongPress,
-              onTap: onTap ?? () => dataObjectTap(current, context),
-              trailing: trailing,
-              title: title ?? Text(current.name),
-              subtitle: showSubtitle
-                  ? subtitle ??
-                      FutureBuilder(
-                        future: _memoizer
-                            .runOnce(() async => await current.getSecondLine()),
-                        builder: (cont, subT) {
-                          if (subT.hasData) {
-                            return Text(subT.data ?? '',
-                                maxLines: 1, overflow: TextOverflow.ellipsis);
-                          } else {
-                            return LinearProgressIndicator(
-                                backgroundColor:
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : null,
-                                valueColor: AlwaysStoppedAnimation(
-                                    current.color != Colors.transparent
-                                        ? current.color
-                                        : Theme.of(context).primaryColor));
-                          }
-                        },
-                      )
-                  : null,
-              leading: photo ??
-                  (current is PhotoObject
-                      ? (current as PhotoObject).photo(current is Person)
-                      : null),
-            ),
+            child: tile,
           )
-        : ListTile(
-            dense: isDense,
-            onLongPress: onLongPress,
-            onTap: onTap ?? () => dataObjectTap(current, context),
-            trailing: trailing,
-            title: title ?? Text(current.name),
-            subtitle: subtitle ??
-                FutureBuilder(
-                  future: _memoizer
-                      .runOnce(() async => await current.getSecondLine()),
-                  builder: (cont, subT) {
-                    if (subT.hasData) {
-                      return Text(subT.data,
-                          maxLines: 1, overflow: TextOverflow.ellipsis);
-                    } else {
-                      return LinearProgressIndicator(
-                          backgroundColor: current.color != Colors.transparent
-                              ? current.color
-                              : null,
-                          valueColor: AlwaysStoppedAnimation(
-                              current.color != Colors.transparent
-                                  ? current.color
-                                  : Theme.of(context).primaryColor));
-                    }
-                  },
-                ),
-            leading: current is PhotoObject
-                ? (current as PhotoObject).photo(current is Person)
-                : null,
-          );
+        : tile;
   }
 
   Color _getColor(BuildContext context) {
