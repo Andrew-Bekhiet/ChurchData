@@ -430,7 +430,7 @@ class _UserPState extends State<UserP> {
           builder: (context) => AlertDialog(
             title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
                 widget.user.name +
-                '?'),
+                '؟'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, true),

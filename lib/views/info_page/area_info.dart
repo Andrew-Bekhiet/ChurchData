@@ -584,7 +584,7 @@ class _AreaInfoState extends State<AreaInfo> {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('هل تريد تسجيل أخر زيارة ل' + area.name + '?'),
+            title: Text('هل تريد تسجيل أخر زيارة ل' + area.name + '؟'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, true),

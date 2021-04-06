@@ -394,7 +394,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('هل تريد تسجيل أخر زيارة ل' + family.name + '?'),
+            title: Text('هل تريد تسجيل أخر زيارة ل' + family.name + '؟'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, true),

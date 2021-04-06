@@ -293,7 +293,7 @@ class _StreetInfoState extends State<StreetInfo> {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('هل تريد تسجيل أخر زيارة ل' + street.name + '?'),
+            title: Text('هل تريد تسجيل أخر زيارة ل' + street.name + '؟'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, true),
