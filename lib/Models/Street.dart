@@ -36,8 +36,13 @@ class Street extends DataObject
       DocumentReference ref,
       this.locationPoints,
       this.locationConfirmed})
-      : super(ref ?? FirebaseFirestore.instance.collection('Streets').doc(id),
-            name, color);
+      : super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Streets')
+                    .doc(id ?? 'null'),
+            name,
+            color);
 
   Street._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
       : super.createFromData(data, ref) {

@@ -44,8 +44,13 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     DocumentReference ref,
     Color color = Colors.transparent,
     this.locationPoints,
-  }) : super(ref ?? FirebaseFirestore.instance.collection('Areas').doc(id),
-            name, color) {
+  }) : super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Areas')
+                    .doc(id ?? 'null'),
+            name,
+            color) {
     this.hasPhoto = hasPhoto;
     defaultIcon = Icons.pin_drop;
   }

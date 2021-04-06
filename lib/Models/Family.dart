@@ -49,8 +49,13 @@ class Family extends DataObject
       this.insideFamily2,
       this.locationConfirmed,
       this.notes})
-      : super(ref ?? FirebaseFirestore.instance.collection('Families').doc(id),
-            name, color) {
+      : super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Families')
+                    .doc(id ?? 'null'),
+            name,
+            color) {
     hasPhoto = false;
     defaultIcon = Icons.group;
   }

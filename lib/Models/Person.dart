@@ -79,8 +79,13 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       this.servingType,
       this.lastEdit,
       Color color = Colors.transparent})
-      : super(ref ?? FirebaseFirestore.instance.collection('Persons').doc(id),
-            name, color) {
+      : super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Persons')
+                    .doc(id ?? 'null'),
+            name,
+            color) {
     this.hasPhoto = hasPhoto;
     phones ??= {};
     defaultIcon = Icons.person;
