@@ -5,7 +5,6 @@ import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/search_filters.dart';
@@ -188,7 +187,7 @@ class _EditStreetState extends State<EditStreet> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (street.id != '')
+          if (widget.street.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -242,12 +241,10 @@ class _EditStreetState extends State<EditStreet> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
-        await street.ref
-            .delete();
+        await street.ref.delete();
       else {
         // ignore: unawaited_futures
-        street.ref
-            .delete();
+        street.ref.delete();
       }
       Navigator.pop(context, 'deleted');
     }
@@ -256,8 +253,8 @@ class _EditStreetState extends State<EditStreet> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    street = widget.street ?? Street.empty();
-    old = street.getMap();
+    street ??= widget.street ?? Street.empty();
+    old ??= street.getMap();
   }
 
   void nameChanged(String value) {
@@ -304,7 +301,10 @@ class _EditStreetState extends State<EditStreet> {
 
         street.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        bool update = (await street.ref.get(dataSource)).exists;
+        bool update = widget.street.id != 'null';
+        if (!update)
+          widget.street.ref =
+              FirebaseFirestore.instance.collection('Street').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=

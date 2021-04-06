@@ -6,7 +6,6 @@ import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/search_filters.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -318,7 +317,7 @@ class _EditAreaState extends State<EditArea> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (area.id != '')
+          if (widget.area.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -393,8 +392,8 @@ class _EditAreaState extends State<EditArea> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    area = widget.area ?? Area.empty();
-    oldArea = area.getMap();
+    area ??= widget.area ?? Area.empty();
+    oldArea ??= area.getMap();
   }
 
   void nameChanged(String value) {
@@ -438,7 +437,10 @@ class _EditAreaState extends State<EditArea> {
             area.locationConfirmed = false;
           }
         }
-        bool update = (await area.ref.get(dataSource)).exists;
+        bool update = widget.area.id != 'null';
+        if (!update)
+          widget.area.ref =
+              FirebaseFirestore.instance.collection('Areas').doc();
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()

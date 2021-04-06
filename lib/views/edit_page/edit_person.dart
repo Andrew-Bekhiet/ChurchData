@@ -1101,7 +1101,7 @@ class _EditPersonState extends State<EditPerson> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (person.id != '' && !widget.userData)
+          if (widget.person.id != 'null' && !widget.userData)
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -1272,7 +1272,11 @@ class _EditPersonState extends State<EditPerson> {
           }
           return _saveUserData();
         }
-        bool update = (await person.ref.get(dataSource)).exists;
+        bool update = widget.person.id != 'null';
+        if (!update)
+          widget.person.ref =
+              FirebaseFirestore.instance.collection('Persons').doc();
+
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
