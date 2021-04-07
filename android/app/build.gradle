@@ -79,7 +79,6 @@ android {
             defaultConfig.minSdkVersion 25
             signingConfig signingConfigs.debug
             useProguard false
-            minifyEnabled true
         }
         profile{
             defaultConfig.minSdkVersion 26
