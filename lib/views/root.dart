@@ -60,6 +60,11 @@ class _RootState extends State<Root>
   final BehaviorSubject<OrderOptions> _personsOrder =
       BehaviorSubject.seeded(OrderOptions());
 
+  DataObjectListOptions<Area> _areasOptions;
+  DataObjectListOptions<Street> _streetsOptions;
+  DataObjectListOptions<Family> _familiesOptions;
+  DataObjectListOptions<Person> _personsOptions;
+
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
@@ -91,53 +96,6 @@ class _RootState extends State<Root>
 
   @override
   Widget build(BuildContext context) {
-    final DataObjectListOptions<Area> _areasOptions =
-        DataObjectListOptions<Area>(
-      searchQuery: _searchQuery,
-      //Listen to Ordering options and combine it
-      //with the Data Stream from Firestore
-      itemsStream: _areasOrder.switchMap(
-        (order) =>
-            Area.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Area.fromDoc).toList(),
-        ),
-      ),
-    );
-    final DataObjectListOptions<Street> _streetsOptions =
-        DataObjectListOptions<Street>(
-      searchQuery: _searchQuery,
-      itemsStream: _streetsOrder.switchMap(
-        (order) =>
-            Street.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Street.fromDoc).toList(),
-        ),
-      ),
-    );
-    final DataObjectListOptions<Family> _familiesOptions =
-        DataObjectListOptions<Family>(
-      searchQuery: _searchQuery,
-      itemsStream: _familiesOrder.switchMap(
-        (order) =>
-            Family.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Family.fromDoc).toList(),
-        ),
-      ),
-    );
-    final DataObjectListOptions<Person> _personsOptions =
-        DataObjectListOptions<Person>(
-      searchQuery: _searchQuery,
-      itemsStream: _personsOrder.switchMap(
-        (order) =>
-            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
-                .map(
-          (s) => s.docs.map(Person.fromDoc).toList(),
-        ),
-      ),
-    );
-
     return WillPopScope(
       onWillPop: () async =>
           await showDialog(
@@ -160,367 +118,358 @@ class _RootState extends State<Root>
       child: Scaffold(
         key: mainScfld,
         appBar: AppBar(
-            actions: <Widget>[
-              StreamBuilder<bool>(
-                  initialData: _showSearch.value,
-                  stream: _showSearch,
-                  builder: (context, showSearch) {
-                    return showSearch.data
-                        ? IconButton(
-                            icon: Icon(Icons.filter_list),
-                            onPressed: () async {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => SimpleDialog(
-                                  children: [
-                                    TextButton.icon(
-                                      icon: Icon(Icons.select_all),
-                                      label: Text('تحديد الكل'),
-                                      onPressed: () {
-                                        if (_tabController.index == 0) {
-                                          _areasOptions.selectAll();
-                                        } else if (_tabController.index == 1) {
-                                          _streetsOptions.selectAll();
-                                        } else if (_tabController.index == 2) {
-                                          _familiesOptions.selectAll();
-                                        } else if (_tabController.index == 3) {
-                                          _personsOptions.selectAll();
-                                        }
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    TextButton.icon(
-                                      icon: Icon(Icons.select_all),
-                                      label: Text('تحديد لا شئ'),
-                                      onPressed: () {
-                                        if (_tabController.index == 0) {
-                                          _areasOptions.selectNone();
-                                        } else if (_tabController.index == 1) {
-                                          _streetsOptions.selectNone();
-                                        } else if (_tabController.index == 2) {
-                                          _familiesOptions.selectNone();
-                                        } else if (_tabController.index == 3) {
-                                          _personsOptions.selectNone();
-                                        }
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                    Text('ترتيب حسب:',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold)),
-                                    ...getOrderingOptions(
-                                        context,
-                                        _tabController.index == 0
-                                            ? _areasOrder
-                                            : _tabController.index == 1
-                                                ? _streetsOrder
-                                                : _tabController.index == 2
-                                                    ? _familiesOrder
-                                                    : _personsOrder,
-                                        _tabController.index),
-                                  ],
+          actions: <Widget>[
+            StreamBuilder<bool>(
+              initialData: _showSearch.value,
+              stream: _showSearch,
+              builder: (context, showSearch) {
+                return showSearch.data
+                    ? IconButton(
+                        icon: Icon(Icons.filter_list),
+                        onPressed: () async {
+                          await showDialog(
+                            context: context,
+                            builder: (context) => SimpleDialog(
+                              children: [
+                                TextButton.icon(
+                                  icon: Icon(Icons.select_all),
+                                  label: Text('تحديد الكل'),
+                                  onPressed: () {
+                                    if (_tabController.index == 0) {
+                                      _areasOptions.selectAll();
+                                    } else if (_tabController.index == 1) {
+                                      _streetsOptions.selectAll();
+                                    } else if (_tabController.index == 2) {
+                                      _familiesOptions.selectAll();
+                                    } else if (_tabController.index == 3) {
+                                      _personsOptions.selectAll();
+                                    }
+                                    Navigator.pop(context);
+                                  },
                                 ),
-                              );
-                            },
-                          )
-                        : IconButton(
-                            icon: DescribedFeatureOverlay(
-                              backgroundDismissible: false,
-                              barrierDismissible: false,
-                              contentLocation: ContentLocation.below,
-                              featureId: 'Search',
-                              onComplete: () async {
-                                mainScfld.currentState.openDrawer();
-                                return true;
-                              },
-                              tapTarget: Icon(Icons.search),
-                              title: Text('البحث'),
-                              description: Column(
-                                children: <Widget>[
-                                  Text(
-                                      'يمكنك في أي وقت عمل بحث سريع عن أسماء المناطق، الشوارع، العائلات أو الأشخاص'),
-                                  OutlinedButton.icon(
-                                    icon: Icon(Icons.forward),
-                                    label: Text(
-                                      'التالي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      FeatureDiscovery.completeCurrentStep(
-                                          context);
-                                      mainScfld.currentState.openDrawer();
-                                    },
-                                  ),
-                                  OutlinedButton(
-                                    onPressed: () =>
-                                        FeatureDiscovery.dismissAll(context),
-                                    child: Text(
-                                      'تخطي',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .bodyText2
-                                            .color,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Theme.of(context).accentColor,
-                              targetColor: Colors.transparent,
-                              textColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .bodyText1
-                                  .color,
-                              child: const Icon(Icons.search),
+                                TextButton.icon(
+                                  icon: Icon(Icons.select_all),
+                                  label: Text('تحديد لا شئ'),
+                                  onPressed: () {
+                                    if (_tabController.index == 0) {
+                                      _areasOptions.selectNone();
+                                    } else if (_tabController.index == 1) {
+                                      _streetsOptions.selectNone();
+                                    } else if (_tabController.index == 2) {
+                                      _familiesOptions.selectNone();
+                                    } else if (_tabController.index == 3) {
+                                      _personsOptions.selectNone();
+                                    }
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                Text('ترتيب حسب:',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                ...getOrderingOptions(
+                                    context,
+                                    _tabController.index == 0
+                                        ? _areasOrder
+                                        : _tabController.index == 1
+                                            ? _streetsOrder
+                                            : _tabController.index == 2
+                                                ? _familiesOrder
+                                                : _personsOrder,
+                                    _tabController.index),
+                              ],
                             ),
-                            onPressed: () {
-                              searchFocus.requestFocus();
-                              _showSearch.add(true);
-                            },
                           );
-                  }),
-              IconButton(
-                icon: Icon(Icons.notifications),
-                tooltip: 'الإشعارات',
-                onPressed: () {
-                  Navigator.of(context).pushNamed('Notifications');
-                },
-              ),
-            ],
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(
-                  icon: DescribedFeatureOverlay(
-                    backgroundDismissible: false,
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'Areas',
-                    tapTarget: const Icon(Icons.pin_drop),
-                    title: Text('المناطق'),
-                    description: Column(
-                      children: <Widget>[
-                        Text('هنا تجد قائمة بكل المناطق بالبرنامج'),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                          onPressed: () =>
-                              FeatureDiscovery.completeCurrentStep(context),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).accentColor,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1.color,
-                    child: const Icon(Icons.pin_drop),
-                  ),
-                ),
-                Tab(
-                  child: DescribedFeatureOverlay(
-                    backgroundDismissible: false,
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'Streets',
-                    tapTarget: Image.asset('assets/streets.png',
-                        width: IconTheme.of(context).size,
-                        height: IconTheme.of(context).size,
-                        color: Theme.of(context).iconTheme.color),
-                    title: Text('الشوارع'),
-                    description: Column(
-                      children: [
-                        Text('هنا تجد قائمة بكل الشوارع بالبرنامج'),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                          onPressed: () =>
-                              FeatureDiscovery.completeCurrentStep(context),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).accentColor,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1.color,
-                    child: Image.asset('assets/streets.png',
-                        width: IconTheme.of(context).size,
-                        height: IconTheme.of(context).size,
-                        color:
-                            Theme.of(context).primaryTextTheme.bodyText1.color),
-                  ),
-                ),
-                Tab(
-                  icon: DescribedFeatureOverlay(
-                    backgroundDismissible: false,
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'Families',
-                    tapTarget: const Icon(Icons.group),
-                    title: Text('العائلات'),
-                    description: Column(
-                      children: <Widget>[
-                        Text('وهنا تجد قائمة بكل العائلات بالبرنامج'),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                          onPressed: () =>
-                              FeatureDiscovery.completeCurrentStep(context),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).accentColor,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1.color,
-                    child: const Icon(Icons.group),
-                  ),
-                ),
-                Tab(
-                  icon: DescribedFeatureOverlay(
-                    backgroundDismissible: false,
-                    barrierDismissible: false,
-                    contentLocation: ContentLocation.below,
-                    featureId: 'Persons',
-                    tapTarget: const Icon(Icons.person),
-                    title: Text('الأشخاص'),
-                    description: Column(
-                      children: <Widget>[
-                        Text('هنا تجد قائمة بكل الأشخاص بالبرنامج'),
-                        OutlinedButton.icon(
-                          icon: Icon(Icons.forward),
-                          label: Text(
-                            'التالي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                          onPressed: () {
-                            FeatureDiscovery.completeCurrentStep(context);
+                        },
+                      )
+                    : IconButton(
+                        icon: DescribedFeatureOverlay(
+                          backgroundDismissible: false,
+                          barrierDismissible: false,
+                          contentLocation: ContentLocation.below,
+                          featureId: 'Search',
+                          onComplete: () async {
+                            mainScfld.currentState.openDrawer();
+                            return true;
                           },
-                        ),
-                        OutlinedButton(
-                          onPressed: () => FeatureDiscovery.dismissAll(context),
-                          child: Text(
-                            'تخطي',
-                            style: TextStyle(
-                              color:
-                                  Theme.of(context).textTheme.bodyText2.color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    backgroundColor: Theme.of(context).accentColor,
-                    targetColor: Colors.transparent,
-                    textColor:
-                        Theme.of(context).primaryTextTheme.bodyText1.color,
-                    child: const Icon(Icons.person),
-                  ),
-                ),
-              ],
-            ),
-            title: StreamBuilder<bool>(
-                initialData: _showSearch.value,
-                stream: _showSearch,
-                builder: (context, showSearch) {
-                  return showSearch.data
-                      ? TextField(
-                          focusNode: searchFocus,
-                          decoration: InputDecoration(
-                              suffixIcon: IconButton(
-                                icon: Icon(Icons.close,
+                          tapTarget: Icon(Icons.search),
+                          title: Text('البحث'),
+                          description: Column(
+                            children: <Widget>[
+                              Text(
+                                  'يمكنك في أي وقت عمل بحث سريع عن أسماء المناطق، الشوارع، العائلات أو الأشخاص'),
+                              OutlinedButton.icon(
+                                icon: Icon(Icons.forward),
+                                label: Text(
+                                  'التالي',
+                                  style: TextStyle(
                                     color: Theme.of(context)
-                                        .primaryTextTheme
-                                        .headline6
-                                        .color),
+                                        .textTheme
+                                        .bodyText2
+                                        .color,
+                                  ),
+                                ),
                                 onPressed: () {
-                                  _searchQuery.add('');
-                                  _showSearch.add(false);
+                                  FeatureDiscovery.completeCurrentStep(context);
+                                  mainScfld.currentState.openDrawer();
                                 },
                               ),
-                              hintText: 'بحث ...'),
-                          onChanged: _searchQuery.add,
-                        )
-                      : Text('البيانات');
-                })),
+                              OutlinedButton(
+                                onPressed: () =>
+                                    FeatureDiscovery.dismissAll(context),
+                                child: Text(
+                                  'تخطي',
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyText2
+                                        .color,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          backgroundColor: Theme.of(context).accentColor,
+                          targetColor: Colors.transparent,
+                          textColor: Theme.of(context)
+                              .primaryTextTheme
+                              .bodyText1
+                              .color,
+                          child: const Icon(Icons.search),
+                        ),
+                        onPressed: () {
+                          searchFocus.requestFocus();
+                          _showSearch.add(true);
+                        },
+                      );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.notifications),
+              tooltip: 'الإشعارات',
+              onPressed: () {
+                Navigator.of(context).pushNamed('Notifications');
+              },
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            tabs: [
+              Tab(
+                icon: DescribedFeatureOverlay(
+                  backgroundDismissible: false,
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Areas',
+                  tapTarget: const Icon(Icons.pin_drop),
+                  title: Text('المناطق'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('هنا تجد قائمة بكل المناطق بالبرنامج'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: const Icon(Icons.pin_drop),
+                ),
+              ),
+              Tab(
+                child: DescribedFeatureOverlay(
+                  backgroundDismissible: false,
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Streets',
+                  tapTarget: Image.asset('assets/streets.png',
+                      width: IconTheme.of(context).size,
+                      height: IconTheme.of(context).size,
+                      color: Theme.of(context).iconTheme.color),
+                  title: Text('الشوارع'),
+                  description: Column(
+                    children: [
+                      Text('هنا تجد قائمة بكل الشوارع بالبرنامج'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: Image.asset('assets/streets.png',
+                      width: IconTheme.of(context).size,
+                      height: IconTheme.of(context).size,
+                      color:
+                          Theme.of(context).primaryTextTheme.bodyText1.color),
+                ),
+              ),
+              Tab(
+                icon: DescribedFeatureOverlay(
+                  backgroundDismissible: false,
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Families',
+                  tapTarget: const Icon(Icons.group),
+                  title: Text('العائلات'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('وهنا تجد قائمة بكل العائلات بالبرنامج'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: const Icon(Icons.group),
+                ),
+              ),
+              Tab(
+                icon: DescribedFeatureOverlay(
+                  backgroundDismissible: false,
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.below,
+                  featureId: 'Persons',
+                  tapTarget: const Icon(Icons.person),
+                  title: Text('الأشخاص'),
+                  description: Column(
+                    children: <Widget>[
+                      Text('هنا تجد قائمة بكل الأشخاص بالبرنامج'),
+                      OutlinedButton.icon(
+                        icon: Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                        onPressed: () {
+                          FeatureDiscovery.completeCurrentStep(context);
+                        },
+                      ),
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2.color,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  child: const Icon(Icons.person),
+                ),
+              ),
+            ],
+          ),
+          title: StreamBuilder<bool>(
+            initialData: _showSearch.value,
+            stream: _showSearch,
+            builder: (context, showSearch) {
+              return showSearch.data
+                  ? TextField(
+                      focusNode: searchFocus,
+                      decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.close,
+                                color: Theme.of(context)
+                                    .primaryTextTheme
+                                    .headline6
+                                    .color),
+                            onPressed: () {
+                              _searchQuery.add('');
+                              _showSearch.add(false);
+                            },
+                          ),
+                          hintText: 'بحث ...'),
+                      onChanged: _searchQuery.add,
+                    )
+                  : Text('البيانات');
+            },
+          ),
+        ),
         extendBody: true,
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
         floatingActionButton: StreamBuilder<User>(
-            initialData: User.instance,
-            stream: User.instance.stream,
-            builder: (context, snapshot) {
-              return User.instance.write
-                  ? FloatingActionButton(
-                      heroTag: null,
-                      onPressed: addTap,
-                      child: AnimatedBuilder(
-                        animation: _tabController,
-                        builder: (context, _) => Icon(_tabController.index == 0
-                            ? Icons.add_location
-                            : _tabController.index == 1
-                                ? Icons.add_road
-                                : _tabController.index == 2
-                                    ? Icons.group_add
-                                    : Icons.person_add),
-                      ),
-                    )
-                  : Container(width: 1, height: 1);
-            }),
+          initialData: User.instance,
+          stream: User.instance.stream,
+          builder: (context, snapshot) {
+            return User.instance.write
+                ? FloatingActionButton(
+                    heroTag: null,
+                    onPressed: addTap,
+                    child: AnimatedBuilder(
+                      animation: _tabController,
+                      builder: (context, _) => Icon(_tabController.index == 0
+                          ? Icons.add_location
+                          : _tabController.index == 1
+                              ? Icons.add_road
+                              : _tabController.index == 2
+                                  ? Icons.group_add
+                                  : Icons.person_add),
+                    ),
+                  )
+                : Container(width: 1, height: 1);
+          },
+        ),
         bottomNavigationBar: BottomAppBar(
           color: Theme.of(context).primaryColor,
           shape: CircularNotchedRectangle(),
@@ -557,10 +506,17 @@ class _RootState extends State<Root>
         body: TabBarView(
           controller: _tabController,
           children: [
-            DataObjectList<Area>(options: _areasOptions),
-            DataObjectList<Street>(options: _streetsOptions),
-            DataObjectList<Family>(options: _familiesOptions),
-            DataObjectList<Person>(options: _personsOptions),
+            DataObjectList<Area>(
+                key: PageStorageKey('mainAreasList'), options: _areasOptions),
+            DataObjectList<Street>(
+                key: PageStorageKey('mainStreetsList'),
+                options: _streetsOptions),
+            DataObjectList<Family>(
+                key: PageStorageKey('mainFamiliesList'),
+                options: _familiesOptions),
+            DataObjectList<Person>(
+                key: PageStorageKey('mainPersonsList'),
+                options: _personsOptions),
           ],
         ),
         drawer: Drawer(
@@ -1009,19 +965,20 @@ class _RootState extends State<Root>
                 },
               ),
               Selector<User, bool>(
-                  selector: (_, user) => user.write,
-                  builder: (context2, permission, _) {
-                    return permission
-                        ? ListTile(
-                            leading: Icon(Icons.cloud_upload),
-                            title: Text('استيراد من ملف اكسل'),
-                            onTap: () {
-                              mainScfld.currentState.openEndDrawer();
-                              import(context);
-                            },
-                          )
-                        : Container();
-                  }),
+                selector: (_, user) => user.write,
+                builder: (context2, permission, _) {
+                  return permission
+                      ? ListTile(
+                          leading: Icon(Icons.cloud_upload),
+                          title: Text('استيراد من ملف اكسل'),
+                          onTap: () {
+                            mainScfld.currentState.openEndDrawer();
+                            import(context);
+                          },
+                        )
+                      : Container();
+                },
+              ),
               Selector<User, bool>(
                 selector: (_, user) => user.exportAreas,
                 builder: (context2, permission, _) {
@@ -1318,6 +1275,48 @@ class _RootState extends State<Root>
     _tabController = TabController(vsync: this, length: 4);
     WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
+    _areasOptions = DataObjectListOptions<Area>(
+      searchQuery: _searchQuery,
+      //Listen to Ordering options and combine it
+      //with the Data Stream from Firestore
+      itemsStream: _areasOrder.switchMap(
+        (order) =>
+            Area.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Area.fromDoc).toList(),
+        ),
+      ),
+    );
+    _streetsOptions = DataObjectListOptions<Street>(
+      searchQuery: _searchQuery,
+      itemsStream: _streetsOrder.switchMap(
+        (order) =>
+            Street.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Street.fromDoc).toList(),
+        ),
+      ),
+    );
+    _familiesOptions = DataObjectListOptions<Family>(
+      searchQuery: _searchQuery,
+      itemsStream: _familiesOrder.switchMap(
+        (order) =>
+            Family.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Family.fromDoc).toList(),
+        ),
+      ),
+    );
+    _personsOptions = DataObjectListOptions<Person>(
+      searchQuery: _searchQuery,
+      itemsStream: _personsOrder.switchMap(
+        (order) =>
+            Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
+                .map(
+          (s) => s.docs.map(Person.fromDoc).toList(),
+        ),
+      ),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showPendingUIDialogs();
     });

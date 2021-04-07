@@ -115,7 +115,6 @@ class _AuthScreenState extends State<AuthScreen> {
       _authCompleter = Completer<bool>();
       bool value = await _localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
-          stickyAuth: true,
           biometricOnly: true,
           useErrorDialogs: false);
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
