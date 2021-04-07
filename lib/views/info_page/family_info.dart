@@ -83,7 +83,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
 
           final _listOptions = DataObjectListOptions(
             searchQuery: _searchStream,
-            tap: (person) => personTap(person, context),
+            tap: (o) => dataObjectTap(o, context),
             itemsStream: _orderOptions.switchMap(
               (o) => family
                   .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
