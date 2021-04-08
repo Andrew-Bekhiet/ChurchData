@@ -220,6 +220,11 @@ class InvitationInfo extends StatelessWidget {
                                   fontFamily: 'MaterialIconsR')),
                               title: Text('رؤية جميع البيانات'),
                             ),
+                          if (invitation.permissions['manageDeleted'] == true)
+                            ListTile(
+                              leading: Icon(Icons.delete_outline),
+                              title: Text('استرجاع المحذوفات'),
+                            ),
                           if (invitation.permissions['secretary'] == true)
                             ListTile(
                               leading: Icon(Icons.shield),

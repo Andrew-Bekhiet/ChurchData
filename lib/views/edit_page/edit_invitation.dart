@@ -156,6 +156,20 @@ class _EditInvitationState extends State<EditInvitation> {
                 ),
                 ListTile(
                   trailing: Checkbox(
+                    value:
+                        widget.invitation.permissions['manageDeleted'] ?? false,
+                    onChanged: (v) => setState(() =>
+                        widget.invitation.permissions['manageDeleted'] = v),
+                  ),
+                  leading: Icon(Icons.delete_outline),
+                  title: Text('استرجاع المحذوفات'),
+                  onTap: () => setState(() =>
+                      widget.invitation.permissions['manageDeleted'] =
+                          !(widget.invitation.permissions['manageDeleted'] ??
+                              false)),
+                ),
+                ListTile(
+                  trailing: Checkbox(
                     value: widget.invitation.permissions['write'] ?? false,
                     onChanged: (v) => setState(
                         () => widget.invitation.permissions['write'] = v),
