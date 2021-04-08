@@ -862,8 +862,7 @@ class _RootState extends State<Root>
                 },
               ),
               Selector<User, bool>(
-                selector: (_, user) =>
-                    user.manageUsers || user.manageAllowedUsers,
+                selector: (_, user) => user.manageDeleted,
                 builder: (context, permission, _) {
                   if (!permission)
                     return Container(
