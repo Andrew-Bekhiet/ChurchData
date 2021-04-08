@@ -85,30 +85,78 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
-      itemsStream: widget.day.ref.collection('Areas').snapshots().map(
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Areas')
+              : widget.day.ref
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid))
+          .snapshots()
+          .map(
             (s) => s.docs.map(Area.fromDoc).toList(),
           ),
     );
     final DataObjectListOptions<Street> _streetsOptions =
         DataObjectListOptions<Street>(
       searchQuery: _searchQuery,
-      itemsStream: widget.day.ref.collection('Streets').snapshots().map(
-            (s) => s.docs.map(Street.fromDoc).toList(),
-          ),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Streets').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Streets')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Street.fromDoc).toList(),
+      ),
     );
     final DataObjectListOptions<Family> _familiesOptions =
         DataObjectListOptions<Family>(
       searchQuery: _searchQuery,
-      itemsStream: widget.day.ref.collection('Families').snapshots().map(
-            (s) => s.docs.map(Family.fromDoc).toList(),
-          ),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Families').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Families')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Family.fromDoc).toList(),
+      ),
     );
     final DataObjectListOptions<Person> _personsOptions =
         DataObjectListOptions<Person>(
       searchQuery: _searchQuery,
-      itemsStream: widget.day.ref.collection('Persons').snapshots().map(
-            (s) => s.docs.map(Person.fromDoc).toList(),
-          ),
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Persons').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Persons')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Person.fromDoc).toList(),
+      ),
     );
 
     return Scaffold(
