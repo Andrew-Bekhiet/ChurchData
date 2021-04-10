@@ -304,7 +304,7 @@ class _EditStreetState extends State<EditStreet> {
         bool update = widget.street.id != 'null';
         if (!update)
           widget.street.ref =
-              FirebaseFirestore.instance.collection('Street').doc();
+              FirebaseFirestore.instance.collection('Streets').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=
