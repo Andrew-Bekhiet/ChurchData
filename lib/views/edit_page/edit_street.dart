@@ -27,7 +27,6 @@ class EditStreet extends StatefulWidget {
 }
 
 class _EditStreetState extends State<EditStreet> {
-  Map<String, dynamic> old;
   GlobalKey<FormState> form = GlobalKey<FormState>();
   Street street;
 
@@ -187,7 +186,7 @@ class _EditStreetState extends State<EditStreet> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (widget.street.id != 'null')
+          if (street.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -254,7 +253,7 @@ class _EditStreetState extends State<EditStreet> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     street ??= widget.street ?? Street.empty();
-    old ??= street.getMap();
+    // old ??= street.getMap();
   }
 
   void nameChanged(String value) {
@@ -270,9 +269,9 @@ class _EditStreetState extends State<EditStreet> {
             duration: Duration(minutes: 20),
           ),
         );
-        if (street.getMap()['Location'] != null &&
-            hashList(street.getMap()['Location']) !=
-                hashList(old['Location'])) {
+        if (street.locationPoints != null &&
+            hashList(street.locationPoints) !=
+                hashList(widget.street.locationPoints)) {
           if (User.instance.approveLocations) {
             street.locationConfirmed = await showDialog(
               context: context,
@@ -294,41 +293,32 @@ class _EditStreetState extends State<EditStreet> {
               ),
             );
           } else {
-            old['LocationConfirmed'] = true;
+            // old['LocationConfirmed'] = true;
             street.locationConfirmed = false;
           }
         }
 
         street.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        bool update = widget.street.id != 'null';
+        bool update = street.id != 'null';
         if (!update)
-          widget.street.ref =
-              FirebaseFirestore.instance.collection('Streets').doc();
+          street.ref = FirebaseFirestore.instance.collection('Streets').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await street.ref.update(
-            street.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          await street.update(old: widget.street.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          street.ref.update(
-            street.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          street.update(old: widget.street.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await street.ref.set(
-            street.getMap(),
-          );
+          await street.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          street.ref.set(
-            street.getMap(),
-          );
+          street.set();
         }
 
         Navigator.of(context).pop(street.ref);

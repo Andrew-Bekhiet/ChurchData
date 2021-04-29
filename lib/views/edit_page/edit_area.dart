@@ -35,8 +35,6 @@ class EditArea extends StatefulWidget {
 class _EditAreaState extends State<EditArea> {
   Area area;
 
-  Map<String, dynamic> oldArea;
-
   String changedImage;
   bool deletePhoto = false;
 
@@ -317,7 +315,7 @@ class _EditAreaState extends State<EditArea> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (widget.area.id != 'null')
+          if (area.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -367,21 +365,8 @@ class _EditAreaState extends State<EditArea> {
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (area.hasPhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('AreasPhotos/${area.id}')
-              .delete();
-        }
         await area.ref.delete();
       } else {
-        if (area.hasPhoto) {
-          // ignore: unawaited_futures
-          FirebaseStorage.instance
-              .ref()
-              .child('AreasPhotos/${area.id}')
-              .delete();
-        }
         // ignore: unawaited_futures
         area.ref.delete();
       }
@@ -393,7 +378,7 @@ class _EditAreaState extends State<EditArea> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     area ??= widget.area ?? Area.empty();
-    oldArea ??= area.getMap();
+    // oldArea ??= area.getMap();
   }
 
   void nameChanged(String value) {
@@ -409,9 +394,9 @@ class _EditAreaState extends State<EditArea> {
             duration: Duration(minutes: 20),
           ),
         );
-        if (area.getMap()['Location'] != null &&
-            hashList(area.getMap()['Location']) !=
-                hashList(oldArea['Location'])) {
+        if (area.locationPoints != null &&
+            hashList(area.locationPoints) !=
+                hashList(widget.area.locationPoints)) {
           if (User.instance.approveLocations) {
             area.locationConfirmed = await showDialog(
               context: context,
@@ -433,14 +418,13 @@ class _EditAreaState extends State<EditArea> {
               ),
             );
           } else {
-            oldArea['LocationConfirmed'] = true;
+            // oldArea['LocationConfirmed'] = true;
             area.locationConfirmed = false;
           }
         }
-        bool update = widget.area.id != 'null';
+        bool update = area.id != 'null';
         if (!update)
-          widget.area.ref =
-              FirebaseFirestore.instance.collection('Areas').doc();
+          area.ref = FirebaseFirestore.instance.collection('Areas').doc();
         if (changedImage != null) {
           await FirebaseStorage.instance
               .ref()
@@ -461,26 +445,18 @@ class _EditAreaState extends State<EditArea> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await area.ref.update(
-            area.getMap()..removeWhere((key, value) => oldArea[key] == value),
-          );
+          await area.update(old: widget.area.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          area.ref.update(
-            area.getMap()..removeWhere((key, value) => oldArea[key] == value),
-          );
+          area.update(old: widget.area.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await area.ref.set(
-            area.getMap(),
-          );
+          await area.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          area.ref.set(
-            area.getMap(),
-          );
+          area.set();
         }
 
         Navigator.of(context).pop(area.ref);

@@ -26,7 +26,6 @@ class EditFamily extends StatefulWidget {
 }
 
 class _EditFamilyState extends State<EditFamily> {
-  Map<String, dynamic> old;
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
   Family family;
@@ -53,7 +52,7 @@ class _EditFamilyState extends State<EditFamily> {
                 children: <Widget>[
                   Text('محل'),
                   Switch(
-                    value: widget.family.isStore,
+                    value: family.isStore,
                     onChanged: (v) {
                       family.isStore = v;
                       setState(() {});
@@ -348,7 +347,7 @@ class _EditFamilyState extends State<EditFamily> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (widget.family.id != 'null')
+          if (family.id != 'null')
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -417,7 +416,6 @@ class _EditFamilyState extends State<EditFamily> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     family ??= widget.family ?? Family.empty();
-    old ??= family.getMap();
   }
 
   void nameChanged(String value) {
@@ -437,8 +435,8 @@ class _EditFamilyState extends State<EditFamily> {
             duration: Duration(minutes: 20),
           ),
         );
-        if (family.getMap()['Location'] != null &&
-            family.getMap()['Location'] != old['Location']) {
+        if (family.locationPoint != null &&
+            family.locationPoint != widget.family.locationPoint) {
           if (User.instance.approveLocations) {
             family.locationConfirmed = await showDialog(
               context: context,
@@ -462,41 +460,34 @@ class _EditFamilyState extends State<EditFamily> {
               ),
             );
           } else {
-            old['LocationConfirmed'] = true;
+            // old['LocationConfirmed'] = true;
             family.locationConfirmed = false;
           }
         }
 
         family.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
 
-        bool update = widget.family.id != 'null';
+        bool update = family.id != 'null';
         if (!update)
-          widget.family.ref =
-              FirebaseFirestore.instance.collection('Families').doc();
+          family.ref = FirebaseFirestore.instance.collection('Families').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await family.ref.update(
-            family.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          await family.update(old: widget.family.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          family.ref.update(
-            family.getMap()..removeWhere((key, value) => old[key] == value),
+          family.update(
+            old: widget.family.getMap(),
           );
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await family.ref.set(
-            family.getMap(),
-          );
+          await family.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          family.ref.set(
-            family.getMap(),
-          );
+          family.set();
         }
 
         Navigator.of(context).pop(family.ref);

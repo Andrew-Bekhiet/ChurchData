@@ -55,7 +55,6 @@ class _EditPersonState extends State<EditPerson> {
     'ServingTypes': AsyncCache<QuerySnapshot>(Duration(minutes: 2)),
   };
 
-  Map<String, dynamic> old;
   String changedImage;
   bool deletePhoto = false;
 
@@ -431,7 +430,7 @@ class _EditPersonState extends State<EditPerson> {
                                           EdgeInsets.symmetric(vertical: 4.0),
                                       child: DropdownButtonFormField(
                                         isDense: true,
-                                        value: widget.person.college?.path,
+                                        value: person.college?.path,
                                         items: data.data.docs
                                             .map(
                                               (item) => DropdownMenuItem(
@@ -1101,7 +1100,7 @@ class _EditPersonState extends State<EditPerson> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          if (widget.person.id != 'null' && !widget.userData)
+          if (person.id != 'null' && !widget.userData)
             FloatingActionButton(
               mini: true,
               tooltip: 'حذف',
@@ -1124,8 +1123,8 @@ class _EditPersonState extends State<EditPerson> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     person ??= widget.person ?? Person();
-    old ??=
-        !widget.userData ? person.getMap() : person.getUserRegisterationMap();
+    /* old ??=
+        !widget.userData ? person.getMap() : person.getUserRegisterationMap(); */
   }
 
   void selectColor() async {
@@ -1181,21 +1180,8 @@ class _EditPersonState extends State<EditPerson> {
         ) ==
         true) {
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
-        if (person.hasPhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('PersonPhotos/${person.id}')
-              .delete();
-        }
         await person.ref.delete();
       } else {
-        if (person.hasPhoto) {
-          // ignore: unawaited_futures
-          FirebaseStorage.instance
-              .ref()
-              .child('PersonPhotos/${person.id}')
-              .delete();
-        }
         // ignore: unawaited_futures
         person.ref.delete();
       }
@@ -1272,10 +1258,9 @@ class _EditPersonState extends State<EditPerson> {
           }
           return _saveUserData();
         }
-        bool update = widget.person.id != 'null';
+        bool update = person.id != 'null';
         if (!update)
-          widget.person.ref =
-              FirebaseFirestore.instance.collection('Persons').doc();
+          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
 
         if (changedImage != null) {
           await FirebaseStorage.instance
@@ -1297,26 +1282,18 @@ class _EditPersonState extends State<EditPerson> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await person.ref.update(
-            person.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          await person.update(old: widget.person.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.ref.update(
-            person.getMap()..removeWhere((key, value) => old[key] == value),
-          );
+          person.update(old: widget.person.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
-          await person.ref.set(
-            person.getMap(),
-          );
+          await person.set();
         } else {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          person.ref.set(
-            person.getMap(),
-          );
+          person.set();
         }
         Navigator.of(context).pop(person.ref);
       } else {
