@@ -481,7 +481,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   borderSide: BorderSide(color: Theme.of(context).primaryColor),
                 ),
               ),
-              child: Text(queryValue != null && queryValue is DocumentReference
+              child: Text(queryValue != null && queryValue is String
                   ? queryText
                   : 'اختيار نوع الفرد'),
             ),
@@ -1686,7 +1686,7 @@ class _SearchQueryState extends State<SearchQuery> {
             tap: (type, _) {
               Navigator.of(context).pop();
               setState(() {
-                queryValue = type.ref;
+                queryValue = type.id;
                 queryText = type.name;
               });
             },
