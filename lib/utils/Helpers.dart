@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
-import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
@@ -12,7 +13,6 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
-import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/views/search_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -44,220 +44,60 @@ import 'package:share_plus/share_plus.dart';
 import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 
+import '../main.dart';
 import '../models/list_options.dart';
 import '../models/notification.dart' as no;
 import '../models/order_options.dart';
+import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
-import '../models/super_classes.dart';
-import '../main.dart';
 import 'globals.dart';
 
 void areaTap(Area area, BuildContext context) {
   Navigator.of(context).pushNamed('AreaInfo', arguments: area);
 }
 
-void showConfessionNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
-  await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-  QuerySnapshot docs;
-  if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where('LastConfession', isLessThan: Timestamp.now())
-        .limit(20)
-        .get(source));
-  } else {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
-                    .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
-        .where('LastConfession', isLessThan: Timestamp.now())
-        .limit(20)
-        .get(source));
-  }
-  if (docs.docs.isNotEmpty)
-    await FlutterLocalNotificationsPlugin().show(
-        0,
-        'انذار الاعتراف',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
-        ),
-        payload: 'Confessions');
-}
-
-void showTanawolNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
-  await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-  QuerySnapshot docs;
-  if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where('LastTanawol', isLessThan: Timestamp.now())
-        .limit(20)
-        .get(source));
-  } else {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
-                    .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
-        .where('LastTanawol', isLessThan: Timestamp.now())
-        .limit(20)
-        .get(source));
-  }
-  if (docs.docs.isNotEmpty)
-    await FlutterLocalNotificationsPlugin().show(
-        1,
-        'انذار التناول',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
-        ),
-        payload: 'Tanawol');
-}
-
-void showBirthDayNotification() async {
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
-  await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
-  QuerySnapshot docs;
-  if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where(
-          'BirthDay',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(
-            DateTime(1970, DateTime.now().month, DateTime.now().day),
-          ),
-        )
-        .where(
-          'BirthDay',
-          isLessThan: Timestamp.fromDate(
-            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-          ),
-        )
-        .limit(20)
-        .get(source));
-  } else {
-    docs = (await FirebaseFirestore.instance
-        .collection('Persons')
-        .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
-                    .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
-        .where(
-          'BirthDay',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(
-            DateTime(1970, DateTime.now().month, DateTime.now().day),
-          ),
-        )
-        .where(
-          'BirthDay',
-          isLessThan: Timestamp.fromDate(
-            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
-          ),
-        )
-        .limit(20)
-        .get(source));
-  }
-  if (docs.docs.isNotEmpty)
-    await FlutterLocalNotificationsPlugin().show(
-        2,
-        'أعياد الميلاد',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
-              icon: 'birthday',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
-        ),
-        payload: 'Birthday');
-}
-
-Future onNotificationClicked(String payload) {
-  if (WidgetsBinding.instance.renderViewElement != null) {
-    processClickedNotification(mainScfld.currentContext, payload);
-  }
-  return null;
-}
-
 void changeTheme({Brightness brightness, @required BuildContext context}) {
   bool darkTheme = Hive.box('Settings').get('DarkTheme');
+  bool greatFeastTheme =
+      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+  MaterialColor color = Colors.cyan;
+  Color accent = Colors.cyanAccent;
+
+  final riseDay = getRiseDay();
+  if (greatFeastTheme &&
+      DateTime.now()
+          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+    color = black;
+    accent = blackAccent;
+    darkTheme = true;
+  } else if (greatFeastTheme &&
+      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+    darkTheme = false;
+  }
+
   brightness = brightness ??
       (darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
           : MediaQuery.of(context).platformBrightness);
   context.read<ThemeNotifier>().theme = ThemeData(
     colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: Colors.cyan,
+      primarySwatch: color,
       brightness: darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
           : WidgetsBinding.instance.window.platformBrightness,
-      accentColor: Colors.cyanAccent,
+      accentColor: accent,
     ),
     floatingActionButtonTheme:
-        FloatingActionButtonThemeData(backgroundColor: Colors.cyan),
+        FloatingActionButtonThemeData(backgroundColor: color),
     visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: darkTheme != null
         ? (darkTheme ? Brightness.dark : Brightness.light)
         : WidgetsBinding.instance.window.platformBrightness,
-    accentColor: Colors.cyanAccent,
-    primaryColor: Colors.cyan,
+    accentColor: accent,
+    primaryColor: color,
   );
 }
 
@@ -311,28 +151,6 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
     await FirebaseCrashlytics.instance.recordError(err, stkTrace);
   }
   return null;
-}
-
-void takeScreenshot(GlobalKey key) async {
-  RenderRepaintBoundary boundary = key.currentContext.findRenderObject();
-  WidgetsBinding.instance.addPostFrameCallback(
-    (_) async {
-      ui.Image image = await boundary.toImage(pixelRatio: 2);
-      ByteData byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
-      Uint8List pngBytes = byteData.buffer.asUint8List();
-      await Share.shareFiles(
-        [
-          (await (await File((await getApplicationDocumentsDirectory()).path +
-                          DateTime.now().millisecondsSinceEpoch.toString() +
-                          '.png')
-                      .create())
-                  .writeAsBytes(pngBytes.toList()))
-              .path
-        ],
-      );
-    },
-  );
 }
 
 List<RadioListTile> getOrderingOptions(BuildContext context,
@@ -393,94 +211,15 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
-Future<void> recoverDoc(BuildContext context, String path) async {
-  bool nested = false;
-  bool keepBackup = true;
-  if (await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text('استرجاع'),
-            ),
-          ],
-          content: StatefulBuilder(builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      value: nested,
-                      onChanged: (v) => setState(() => nested = v),
-                    ),
-                    Text(
-                      'استرجع ايضا العناصر بداخل هذا العنصر',
-                      textScaleFactor: 0.9,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: keepBackup,
-                      onChanged: (v) => setState(() => keepBackup = v),
-                    ),
-                    Text('ابقاء البيانات المحذوفة'),
-                  ],
-                ),
-              ],
-            );
-          }),
-        ),
-      ) ==
-      true) {
-    try {
-      await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
-        'deletedPath': path,
-        'keepBackup': keepBackup,
-        'nested': nested,
-      });
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
-    } catch (err, stcTrace) {
-      await FirebaseCrashlytics.instance
-          .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
-      await FirebaseCrashlytics.instance.recordError(err, stcTrace);
-    }
-  }
-}
+DateTime getRiseDay([int year]) {
+  year ??= DateTime.now().year;
+  int a = year % 4;
+  int b = year % 7;
+  int c = year % 19;
+  int d = (19 * c + 15) % 30;
+  int e = (2 * a + 4 * b - d + 34) % 7;
 
-Future<List<Area>> selectAreas(BuildContext context, List<Area> areas) async {
-  var _options = DataObjectListOptions<Area>(
-      itemsStream:
-          Area.getAllForUser().map((s) => s.docs.map(Area.fromDoc).toList()),
-      selectionMode: true,
-      onLongPress: (_) {},
-      selected: {for (var a in areas) a.id: a},
-      searchQuery: Stream.value(''));
-  if (await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Scaffold(
-            appBar: AppBar(
-              title: Text('اختر المناطق'),
-              actions: [
-                IconButton(
-                    icon: Icon(Icons.done),
-                    onPressed: () => Navigator.pop(context, true),
-                    tooltip: 'تم')
-              ],
-            ),
-            body: DataObjectList<Area>(options: _options),
-          ),
-        ),
-      ) ==
-      true) {
-    return _options.selectedLatest.values.toList();
-  }
-  return null;
+  return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
 }
 
 void import(BuildContext context) async {
@@ -816,20 +555,11 @@ Future importArea(
   }
 }
 
-Future<void> showPendingMessage([BuildContext context]) async {
-  context ??= mainScfld.currentContext;
-  var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (pendingMessage != null) {
-    // ignore: unawaited_futures
-    Navigator.of(context).pushNamed('Notifications');
-    if (pendingMessage.data['type'] == 'Message')
-      await showMessage(
-        context,
-        no.Notification.fromMessage(pendingMessage.data),
-      );
-    else
-      await processLink(Uri.parse(pendingMessage.data['attachement']), context);
-  }
+Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
+  await Hive.initFlutter();
+  await Hive.openBox<Map>('Notifications');
+  await storeNotification(message);
+  await Hive.close();
 }
 
 void onForegroundMessage(messaging_types.RemoteMessage message,
@@ -850,16 +580,11 @@ void onForegroundMessage(messaging_types.RemoteMessage message,
   );
 }
 
-Future<int> storeNotification(messaging_types.RemoteMessage message) async {
-  return await Hive.box<Map<dynamic, dynamic>>('Notifications')
-      .add(message.data);
-}
-
-Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
-  await Hive.initFlutter();
-  await Hive.openBox<Map>('Notifications');
-  await storeNotification(message);
-  await Hive.close();
+Future onNotificationClicked(String payload) {
+  if (WidgetsBinding.instance.renderViewElement != null) {
+    processClickedNotification(mainScfld.currentContext, payload);
+  }
+  return null;
 }
 
 void personTap(Person person, BuildContext context) {
@@ -1012,6 +737,96 @@ Future processLink(Uri deepLink, BuildContext context) async {
       await FirebaseCrashlytics.instance.recordError(err, stcTrace);
     }
   }
+}
+
+Future<void> recoverDoc(BuildContext context, String path) async {
+  bool nested = false;
+  bool keepBackup = true;
+  if (await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text('استرجاع'),
+            ),
+          ],
+          content: StatefulBuilder(builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: nested,
+                      onChanged: (v) => setState(() => nested = v),
+                    ),
+                    Text(
+                      'استرجع ايضا العناصر بداخل هذا العنصر',
+                      textScaleFactor: 0.9,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: keepBackup,
+                      onChanged: (v) => setState(() => keepBackup = v),
+                    ),
+                    Text('ابقاء البيانات المحذوفة'),
+                  ],
+                ),
+              ],
+            );
+          }),
+        ),
+      ) ==
+      true) {
+    try {
+      await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+        'deletedPath': path,
+        'keepBackup': keepBackup,
+        'nested': nested,
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
+    } catch (err, stcTrace) {
+      await FirebaseCrashlytics.instance
+          .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
+      await FirebaseCrashlytics.instance.recordError(err, stcTrace);
+    }
+  }
+}
+
+Future<List<Area>> selectAreas(BuildContext context, List<Area> areas) async {
+  var _options = DataObjectListOptions<Area>(
+      itemsStream:
+          Area.getAllForUser().map((s) => s.docs.map(Area.fromDoc).toList()),
+      selectionMode: true,
+      onLongPress: (_) {},
+      selected: {for (var a in areas) a.id: a},
+      searchQuery: Stream.value(''));
+  if (await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: Text('اختر المناطق'),
+              actions: [
+                IconButton(
+                    icon: Icon(Icons.done),
+                    onPressed: () => Navigator.pop(context, true),
+                    tooltip: 'تم')
+              ],
+            ),
+            body: DataObjectList<Area>(options: _options),
+          ),
+        ),
+      ) ==
+      true) {
+    return _options.selectedLatest.values.toList();
+  }
+  return null;
 }
 
 void sendNotification(BuildContext context, dynamic attachement) async {
@@ -1263,6 +1078,128 @@ Future<String> shareUserRaw(String uid) async {
       .toString();
 }
 
+void showBirthDayNotification() async {
+  await Firebase.initializeApp();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where(
+          'BirthDay',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day),
+          ),
+        )
+        .where(
+          'BirthDay',
+          isLessThan: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+          ),
+        )
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where(
+          'BirthDay',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day),
+          ),
+        )
+        .where(
+          'BirthDay',
+          isLessThan: Timestamp.fromDate(
+            DateTime(1970, DateTime.now().month, DateTime.now().day + 1),
+          ),
+        )
+        .limit(20)
+        .get(source));
+  }
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        2,
+        'أعياد الميلاد',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
+              icon: 'birthday',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Birthday');
+}
+
+void showConfessionNotification() async {
+  await Firebase.initializeApp();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('LastConfession', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where('LastConfession', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  }
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        0,
+        'انذار الاعتراف',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
+              icon: 'warning',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Confessions');
+}
+
 Future showErrorDialog(BuildContext context, String message,
     {String title}) async {
   return await showDialog(
@@ -1429,8 +1366,101 @@ Future<void> showMessage(
   );
 }
 
+Future<void> showPendingMessage([BuildContext context]) async {
+  context ??= mainScfld.currentContext;
+  var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (pendingMessage != null) {
+    // ignore: unawaited_futures
+    Navigator.of(context).pushNamed('Notifications');
+    if (pendingMessage.data['type'] == 'Message')
+      await showMessage(
+        context,
+        no.Notification.fromMessage(pendingMessage.data),
+      );
+    else
+      await processLink(Uri.parse(pendingMessage.data['attachement']), context);
+  }
+}
+
+void showTanawolNotification() async {
+  await Firebase.initializeApp();
+  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  await User.instance.initialized;
+  var user = User.instance;
+  var source = GetOptions(
+      source:
+          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
+              ? Source.cache
+              : Source.serverAndCache);
+  QuerySnapshot docs;
+  if (user.superAccess) {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('LastTanawol', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  } else {
+    docs = (await FirebaseFirestore.instance
+        .collection('Persons')
+        .where('AreaId',
+            whereIn: (await FirebaseFirestore.instance
+                    .collection('Areas')
+                    .where('Allowed',
+                        arrayContains:
+                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .get(source))
+                .docs
+                .map((e) => e.reference)
+                .toList())
+        .where('LastTanawol', isLessThan: Timestamp.now())
+        .limit(20)
+        .get(source));
+  }
+  if (docs.docs.isNotEmpty)
+    await FlutterLocalNotificationsPlugin().show(
+        1,
+        'انذار التناول',
+        docs.docs.map((e) => e.data()['Name']).join(', '),
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+              'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
+              icon: 'warning',
+              autoCancel: false,
+              visibility: NotificationVisibility.secret,
+              showWhen: false),
+        ),
+        payload: 'Tanawol');
+}
+
+Future<int> storeNotification(messaging_types.RemoteMessage message) async {
+  return await Hive.box<Map<dynamic, dynamic>>('Notifications')
+      .add(message.data);
+}
+
 void streetTap(Street street, BuildContext context) {
   Navigator.of(context).pushNamed('StreetInfo', arguments: street);
+}
+
+void takeScreenshot(GlobalKey key) async {
+  RenderRepaintBoundary boundary = key.currentContext.findRenderObject();
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) async {
+      ui.Image image = await boundary.toImage(pixelRatio: 2);
+      ByteData byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData.buffer.asUint8List();
+      await Share.shareFiles(
+        [
+          (await (await File((await getApplicationDocumentsDirectory()).path +
+                          DateTime.now().millisecondsSinceEpoch.toString() +
+                          '.png')
+                      .create())
+                  .writeAsBytes(pngBytes.toList()))
+              .path
+        ],
+      );
+    },
+  );
 }
 
 String toDurationString(Timestamp date, {appendSince = true}) {
@@ -1545,31 +1575,12 @@ void userTap(User user, BuildContext context) async {
   }
 }
 
-class QueryIcon extends StatelessWidget {
-  Color get color => Colors.transparent;
-  String get name => 'نتائج بحث';
-
-  @override
-  Widget build(BuildContext context) {
-    return Icon(Icons.search,
-        size: MediaQuery.of(context).size.shortestSide / 7.2);
-  }
-
-  Widget getPhoto(BuildContext context) {
-    return build(context);
-  }
-
-  Future<String> getSecondLine() async => '';
-}
-
 class MessageIcon extends StatelessWidget {
   final String url;
   MessageIcon(this.url, {Key key}) : super(key: key);
 
-  Future<String> getSecondLine() async => '';
   Color get color => Colors.transparent;
   String get name => '';
-
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -1609,6 +1620,25 @@ class MessageIcon extends StatelessWidget {
   Widget getPhoto(BuildContext context) {
     return build(context);
   }
+
+  Future<String> getSecondLine() async => '';
+}
+
+class QueryIcon extends StatelessWidget {
+  Color get color => Colors.transparent;
+  String get name => 'نتائج بحث';
+
+  @override
+  Widget build(BuildContext context) {
+    return Icon(Icons.search,
+        size: MediaQuery.of(context).size.shortestSide / 7.2);
+  }
+
+  Widget getPhoto(BuildContext context) {
+    return build(context);
+  }
+
+  Future<String> getSecondLine() async => '';
 }
 
 extension HexColor on Color {

@@ -90,7 +90,27 @@ void main() {
       final User user = User.instance;
       await _initConfigs();
 
-      var darkTheme = Hive.box('Settings').get('DarkTheme');
+      bool darkTheme = Hive.box('Settings').get('DarkTheme');
+      bool greatFeastTheme =
+          Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+      MaterialColor color = Colors.cyan;
+      Color accent = Colors.cyanAccent;
+
+      final riseDay = getRiseDay();
+      if (greatFeastTheme &&
+          DateTime.now()
+              .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+          DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+        color = black;
+        accent = blackAccent;
+        darkTheme = true;
+      } else if (greatFeastTheme &&
+          DateTime.now()
+              .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+          DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+        darkTheme = false;
+      }
+
       runApp(
         MultiProvider(
           providers: [
@@ -99,20 +119,20 @@ void main() {
               create: (_) => ThemeNotifier(
                 ThemeData(
                   colorScheme: ColorScheme.fromSwatch(
-                    primarySwatch: Colors.cyan,
+                    primarySwatch: color,
                     brightness: darkTheme != null
                         ? (darkTheme ? Brightness.dark : Brightness.light)
                         : WidgetsBinding.instance.window.platformBrightness,
-                    accentColor: Colors.cyanAccent,
+                    accentColor: accent,
                   ),
-                  floatingActionButtonTheme: FloatingActionButtonThemeData(
-                      backgroundColor: Colors.cyan),
+                  floatingActionButtonTheme:
+                      FloatingActionButtonThemeData(backgroundColor: color),
                   visualDensity: VisualDensity.adaptivePlatformDensity,
                   brightness: darkTheme != null
                       ? (darkTheme ? Brightness.dark : Brightness.light)
                       : WidgetsBinding.instance.window.platformBrightness,
-                  accentColor: Colors.cyanAccent,
-                  primaryColor: Colors.cyan,
+                  accentColor: accent,
+                  primaryColor: color,
                 ),
               ),
             ),

@@ -11,6 +11,20 @@ class Loading extends StatelessWidget {
       {this.error = false, this.message, this.showVersionInfo = false})
       : super(key: null);
 
+  String _getAssetImage() {
+    final riseDay = getRiseDay();
+    if (DateTime.now()
+            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/holyweek.jpeg';
+    } else if (DateTime.now()
+            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      return 'assets/risen.jpg';
+    }
+    return 'assets/Logo.png';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,7 +36,7 @@ class Loading extends StatelessWidget {
           children: <Widget>[
             Expanded(
               flex: 16,
-              child: Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+              child: Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
             ),
             Expanded(
               flex: 3,

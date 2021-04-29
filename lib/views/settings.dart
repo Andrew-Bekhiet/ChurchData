@@ -33,6 +33,7 @@ class Settings extends StatefulWidget {
 class SettingsState extends State<Settings> {
   Color color;
   bool darkTheme;
+  bool greatFeastTheme;
 
   bool state;
 
@@ -71,26 +72,6 @@ class SettingsState extends State<Settings> {
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      ElevatedButton.icon(
-                        onPressed: () => showDialog(
-                          context: context,
-                          builder: (context) => DataDialog(
-                            content: ColorsList(
-                              selectedColor: color,
-                              colors: primaries,
-                              onSelect: (color) {
-                                Navigator.of(context).pop();
-                                setState(() {
-                                  this.color = color;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(primary: color),
-                        icon: Icon(Icons.color_lens),
-                        label: Text('اللون'),
-                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
@@ -112,15 +93,24 @@ class SettingsState extends State<Settings> {
                           ),
                         ],
                       ),
-                      ElevatedButton(
+                      SwitchListTile(
+                        value: greatFeastTheme,
+                        onChanged: (v) => setState(() => greatFeastTheme = v),
+                        title: Text(
+                            'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                      ),
+                      ElevatedButton.icon(
                         onPressed: () async {
                           await Hive.box('Settings')
                               .put('DarkTheme', darkTheme);
+                          await Hive.box('Settings')
+                              .put('GreatFeastTheme', greatFeastTheme);
                           await Hive.box('Settings').put(
                               'PrimaryColorIndex', primaries.indexOf(color));
                           changeTheme(context: context);
                         },
-                        child: Text('تغيير'),
+                        icon: Icon(Icons.done),
+                        label: Text('تغيير'),
                       ),
                     ],
                   ),
@@ -428,6 +418,8 @@ class SettingsState extends State<Settings> {
 
     color = Theme.of(context).primaryColor;
     darkTheme = Hive.box('Settings').get('DarkTheme');
+    greatFeastTheme =
+        Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
     state = Hive.box('Settings').get('ShowPersonState', defaultValue: false);
   }
 
