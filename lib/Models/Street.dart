@@ -35,7 +35,7 @@ class Street extends DataObject
       {Color color = Colors.transparent,
       DocumentReference ref,
       this.locationPoints,
-      this.locationConfirmed})
+      this.locationConfirmed = false})
       : super(
             ref ??
                 FirebaseFirestore.instance

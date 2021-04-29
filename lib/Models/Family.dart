@@ -20,7 +20,19 @@ import 'user.dart';
 
 class Family extends DataObject
     with PhotoObject, ParentObject<Person>, ChildObject<Street> {
-  DocumentReference streetId;
+  DocumentReference _streetId;
+
+  DocumentReference get streetId => _streetId;
+
+  set streetId(DocumentReference streetId) {
+    if (streetId != null && _streetId != streetId) {
+      _streetId = streetId;
+      _setAreaIdFromStreet();
+      return;
+    }
+    _streetId = streetId;
+  }
+
   DocumentReference areaId;
 
   DocumentReference insideFamily;
@@ -39,7 +51,7 @@ class Family extends DataObject
 
   bool isStore;
 
-  Family(String id, this.areaId, this.streetId, String name, this.address,
+  Family(String id, this.areaId, this._streetId, String name, this.address,
       this.lastVisit, this.fatherLastVisit, this.lastEdit,
       {Color color = Colors.transparent,
       DocumentReference ref,
@@ -47,7 +59,7 @@ class Family extends DataObject
       this.locationPoint,
       this.insideFamily,
       this.insideFamily2,
-      this.locationConfirmed,
+      this.locationConfirmed = false,
       this.notes})
       : super(
             ref ??
@@ -63,7 +75,7 @@ class Family extends DataObject
   Family._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
       : super.createFromData(data, ref) {
     areaId = data['AreaId'];
-    streetId = data['StreetId'];
+    _streetId = data['StreetId'];
     insideFamily = data['InsideFamily'];
     insideFamily2 = data['InsideFamily2'];
 
@@ -220,7 +232,7 @@ class Family extends DataObject
     return (await streetId.get(dataSource)).data()['Name'];
   }
 
-  Future setAreaIdFromStreet() async {
+  Future<void> _setAreaIdFromStreet() async {
     areaId = (await streetId.get(dataSource)).data()['AreaId'];
   }
 

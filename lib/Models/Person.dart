@@ -15,8 +15,32 @@ import 'user.dart';
 import '../utils/globals.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Family> {
-  DocumentReference familyId;
-  DocumentReference streetId;
+  DocumentReference _familyId;
+
+  DocumentReference get familyId => _familyId;
+
+  set familyId(DocumentReference familyId) {
+    if (familyId != null && _familyId != familyId) {
+      _familyId = familyId;
+      _setStreetIdFromFamily();
+      return;
+    }
+    _familyId = familyId;
+  }
+
+  DocumentReference _streetId;
+
+  DocumentReference get streetId => _streetId;
+
+  set streetId(DocumentReference streetId) {
+    if (streetId != null && _streetId != streetId) {
+      _streetId = streetId;
+      _setAreaIdFromStreet();
+      return;
+    }
+    _streetId = streetId;
+  }
+
   DocumentReference areaId;
 
   String phone;
@@ -52,8 +76,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       {String id,
       DocumentReference ref,
       this.areaId,
-      this.streetId,
-      this.familyId,
+      DocumentReference streetId,
+      DocumentReference familyId,
       String name = '',
       this.phone = '',
       this.phones,
@@ -79,7 +103,9 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       this.servingType,
       this.lastEdit,
       Color color = Colors.transparent})
-      : super(
+      : _familyId = familyId,
+        _streetId = streetId,
+        super(
             ref ??
                 FirebaseFirestore.instance
                     .collection('Persons')
@@ -93,8 +119,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   Person._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
       : super.createFromData(data, ref) {
-    familyId = data['FamilyId'];
-    streetId = data['StreetId'];
+    _familyId = data['FamilyId'];
+    _streetId = data['StreetId'];
     areaId = data['AreaId'];
 
     phone = data['Phone'];
@@ -384,13 +410,12 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastConfession': lastConfession?.millisecondsSinceEpoch
       };
 
-  Future setAreaIdFromStreet() async {
+  Future<void> _setAreaIdFromStreet() async {
     areaId = (await streetId?.get(dataSource))?.data()['AreaId'];
   }
 
-  Future setStreetIdFromFamily() async {
+  Future<void> _setStreetIdFromFamily() async {
     streetId = (await familyId?.get(dataSource))?.data()['StreetId'];
-    await setAreaIdFromStreet();
   }
 
   static Person fromDoc(DocumentSnapshot data) =>
