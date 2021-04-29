@@ -79,97 +79,99 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                   areas ??= snapshot.data;
                   final areasByRef = {for (var a in areas) a.ref.path: a};
 
-                  return ListView(
-                    children: [
-                      ListTile(
-                        title: Text(
-                            'احصائيات النشاط من ' +
-                                intl.DateFormat.yMMMEd('ar_EG')
-                                    .format(range.start) +
-                                ' الى ' +
-                                intl.DateFormat.yMMMEd('ar_EG')
-                                    .format(range.end),
-                            style: Theme.of(context).textTheme.bodyText1),
-                        trailing: IconButton(
-                          icon: Icon(Icons.date_range),
-                          tooltip: 'اختيار نطاق السجل',
-                          onPressed: () async {
-                            var rslt = await showDateRangePicker(
-                              builder: (context, dialog) => Theme(
-                                data: Theme.of(context).copyWith(
-                                  textTheme:
-                                      Theme.of(context).textTheme.copyWith(
-                                            overline: TextStyle(
-                                              fontSize: 0,
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          title: Text(
+                              'احصائيات النشاط من ' +
+                                  intl.DateFormat.yMMMEd('ar_EG')
+                                      .format(range.start) +
+                                  ' الى ' +
+                                  intl.DateFormat.yMMMEd('ar_EG')
+                                      .format(range.end),
+                              style: Theme.of(context).textTheme.bodyText1),
+                          trailing: IconButton(
+                            icon: Icon(Icons.date_range),
+                            tooltip: 'اختيار نطاق السجل',
+                            onPressed: () async {
+                              var rslt = await showDateRangePicker(
+                                builder: (context, dialog) => Theme(
+                                  data: Theme.of(context).copyWith(
+                                    textTheme:
+                                        Theme.of(context).textTheme.copyWith(
+                                              overline: TextStyle(
+                                                fontSize: 0,
+                                              ),
                                             ),
-                                          ),
+                                  ),
+                                  child: dialog,
                                 ),
-                                child: dialog,
-                              ),
-                              helpText: null,
-                              context: context,
-                              confirmText: 'حفظ',
-                              saveText: 'حفظ',
-                              initialDateRange:
-                                  range.start.millisecondsSinceEpoch <=
-                                          minAvaliable.millisecondsSinceEpoch
-                                      ? range
-                                      : DateTimeRange(
-                                          start: DateTime.now()
-                                              .subtract(Duration(days: 1)),
-                                          end: range.end),
-                              firstDate: minAvaliable,
-                              lastDate: DateTime.now(),
-                            );
-                            if (rslt != null) {
-                              range = rslt;
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      ),
-                      ListTile(
-                        title: Text('لمناطق: '),
-                        subtitle: Text(
-                          areas.map((c) => c.name).toList().join(', '),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.list_alt),
-                          tooltip: 'اختيار المناطق',
-                          onPressed: () async {
-                            var rslt = await selectAreas(context, areas);
-                            if (rslt != null && rslt.isNotEmpty)
-                              setState(() => areas = rslt);
-                            else if (rslt.isNotEmpty)
-                              await showDialog(
+                                helpText: null,
                                 context: context,
-                                builder: (context) => AlertDialog(
-                                  content: Text(
-                                      'برجاء اختيار منطقة واحدة على الأقل'),
-                                ),
+                                confirmText: 'حفظ',
+                                saveText: 'حفظ',
+                                initialDateRange:
+                                    range.start.millisecondsSinceEpoch <=
+                                            minAvaliable.millisecondsSinceEpoch
+                                        ? range
+                                        : DateTimeRange(
+                                            start: DateTime.now()
+                                                .subtract(Duration(days: 1)),
+                                            end: range.end),
+                                firstDate: minAvaliable,
+                                lastDate: DateTime.now(),
                               );
-                          },
+                              if (rslt != null) {
+                                range = rslt;
+                                setState(() {});
+                              }
+                            },
+                          ),
                         ),
-                      ),
-                      HistoryAnalysisWidget(
-                        range: range,
-                        areas: areas,
-                        areasByRef: areasByRef,
-                        collectionGroup: 'TanawolHistory',
-                        title: 'التناول',
-                        showUsers: false,
-                      ),
-                      HistoryAnalysisWidget(
-                        range: range,
-                        areas: areas,
-                        areasByRef: areasByRef,
-                        collectionGroup: 'ConfessionHistory',
-                        title: 'الاعتراف',
-                        showUsers: false,
-                      ),
-                    ],
+                        ListTile(
+                          title: Text('لمناطق: '),
+                          subtitle: Text(
+                            areas.map((c) => c.name).toList().join(', '),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.list_alt),
+                            tooltip: 'اختيار المناطق',
+                            onPressed: () async {
+                              var rslt = await selectAreas(context, areas);
+                              if (rslt != null && rslt.isNotEmpty)
+                                setState(() => areas = rslt);
+                              else if (rslt.isNotEmpty)
+                                await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    content: Text(
+                                        'برجاء اختيار منطقة واحدة على الأقل'),
+                                  ),
+                                );
+                            },
+                          ),
+                        ),
+                        HistoryAnalysisWidget(
+                          range: range,
+                          areas: areas,
+                          areasByRef: areasByRef,
+                          collectionGroup: 'TanawolHistory',
+                          title: 'التناول',
+                          showUsers: false,
+                        ),
+                        HistoryAnalysisWidget(
+                          range: range,
+                          areas: areas,
+                          areasByRef: areasByRef,
+                          collectionGroup: 'ConfessionHistory',
+                          title: 'الاعتراف',
+                          showUsers: false,
+                        ),
+                      ],
+                    ),
                   );
                 },
               );

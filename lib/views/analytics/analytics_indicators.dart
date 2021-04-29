@@ -31,76 +31,73 @@ class CartesianChart extends StatelessWidget {
       child: Builder(
         builder: (context) {
           if (data.isEmpty) return const Center(child: Text('لا يوجد سجل'));
-          return Directionality(
-            textDirection: TextDirection.ltr,
-            child: SfCartesianChart(
-              title: ChartTitle(text: title),
-              enableAxisAnimation: true,
-              primaryYAxis: NumericAxis(decimalPlaces: 0),
-              primaryXAxis: DateTimeAxis(
-                minimum: range.start,
-                maximum: range.end,
-                dateFormat: intl.DateFormat('d/M/yyy', 'ar-EG'),
-                intervalType: DateTimeIntervalType.days,
-                labelRotation: 90,
-                desiredIntervals: data.keys.length > 25 ? 25 : data.keys.length,
-              ),
-              tooltipBehavior: TooltipBehavior(
-                enable: true,
-                duration: 5000,
-                tooltipPosition: TooltipPosition.pointer,
-                builder: (data, point, series, pointIndex, seriesIndex) {
-                  return Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      borderRadius: BorderRadius.all(Radius.circular(6.0)),
-                    ),
-                    height: 120,
-                    width: 90,
-                    padding: EdgeInsets.symmetric(horizontal: 5),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(intl.DateFormat('d/M/yyy', 'ar-EG')
-                            .format(data.key.toDate())),
-                        Text(
-                          data.value.length.toString() + ' تعديل',
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              zoomPanBehavior: ZoomPanBehavior(
-                enablePinching: true,
-                enablePanning: true,
-                enableDoubleTapZooming: true,
-              ),
-              series: [
-                StackedAreaSeries<MapEntry<Timestamp, List<HistoryRecord>>,
-                    DateTime>(
-                  markerSettings: MarkerSettings(isVisible: true),
-                  borderGradient: LinearGradient(
-                    colors: [
-                      Colors.cyan[300].withOpacity(0.5),
-                      Colors.cyan[800].withOpacity(0.5)
-                    ],
-                  ),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.cyan[300].withOpacity(0.5),
-                      Colors.cyan[800].withOpacity(0.5)
-                    ],
-                  ),
-                  borderWidth: 2,
-                  dataSource: data.entries.toList(),
-                  xValueMapper: (item, index) => item.key.toDate(),
-                  yValueMapper: (item, index) => item.value.length,
-                  name: title,
-                ),
-              ],
+          return SfCartesianChart(
+            title: ChartTitle(text: title),
+            enableAxisAnimation: true,
+            primaryYAxis: NumericAxis(decimalPlaces: 0),
+            primaryXAxis: DateTimeAxis(
+              minimum: range.start,
+              maximum: range.end,
+              dateFormat: intl.DateFormat('d/M/yyy', 'ar-EG'),
+              intervalType: DateTimeIntervalType.days,
+              labelRotation: 90,
+              desiredIntervals: data.keys.length > 25 ? 25 : data.keys.length,
             ),
+            tooltipBehavior: TooltipBehavior(
+              enable: true,
+              duration: 5000,
+              tooltipPosition: TooltipPosition.pointer,
+              builder: (data, point, series, pointIndex, seriesIndex) {
+                return Container(
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.all(Radius.circular(6.0)),
+                  ),
+                  height: 120,
+                  width: 90,
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(intl.DateFormat('d/M/yyy', 'ar-EG')
+                          .format(data.key.toDate())),
+                      Text(
+                        data.value.length.toString() + ' تعديل',
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            zoomPanBehavior: ZoomPanBehavior(
+              enablePinching: true,
+              enablePanning: true,
+              enableDoubleTapZooming: true,
+            ),
+            series: [
+              StackedAreaSeries<MapEntry<Timestamp, List<HistoryRecord>>,
+                  DateTime>(
+                markerSettings: MarkerSettings(isVisible: true),
+                borderGradient: LinearGradient(
+                  colors: [
+                    Colors.cyan[300].withOpacity(0.5),
+                    Colors.cyan[800].withOpacity(0.5)
+                  ],
+                ),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.cyan[300].withOpacity(0.5),
+                    Colors.cyan[800].withOpacity(0.5)
+                  ],
+                ),
+                borderWidth: 2,
+                dataSource: data.entries.toList(),
+                xValueMapper: (item, index) => item.key.toDate(),
+                yValueMapper: (item, index) => item.value.length,
+                name: title,
+              ),
+            ],
           );
         },
       ),
