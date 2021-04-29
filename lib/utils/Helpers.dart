@@ -236,37 +236,29 @@ Future onNotificationClicked(String payload) {
   return null;
 }
 
-void changeTheme(
-    {int primary,
-    int accent,
-    Brightness brightness,
-    @required BuildContext context}) {
-  primary = primary ?? Hive.box('Settings').get('PrimaryColorIndex');
+void changeTheme({Brightness brightness, @required BuildContext context}) {
   bool darkTheme = Hive.box('Settings').get('DarkTheme');
   brightness = brightness ??
       (darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
           : MediaQuery.of(context).platformBrightness);
-  context.read<ThemeNotifier>().setTheme(
-        ThemeData(
-          floatingActionButtonTheme: FloatingActionButtonThemeData(
-              backgroundColor: primaries[primary ?? 7]),
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          outlinedButtonTheme: OutlinedButtonThemeData(
-              style:
-                  OutlinedButton.styleFrom(primary: primaries[primary ?? 7])),
-          textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(primary: primaries[primary ?? 7])),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-              style:
-                  ElevatedButton.styleFrom(primary: primaries[primary ?? 7])),
-          brightness: darkTheme != null
-              ? (darkTheme ? Brightness.dark : Brightness.light)
-              : WidgetsBinding.instance.window.platformBrightness,
-          accentColor: accents[accent ?? 7],
-          primaryColor: primaries[primary ?? 7],
-        ),
-      );
+  context.read<ThemeNotifier>().theme = ThemeData(
+    colorScheme: ColorScheme.fromSwatch(
+      primarySwatch: Colors.cyan,
+      brightness: darkTheme != null
+          ? (darkTheme ? Brightness.dark : Brightness.light)
+          : WidgetsBinding.instance.window.platformBrightness,
+      accentColor: Colors.cyanAccent,
+    ),
+    floatingActionButtonTheme:
+        FloatingActionButtonThemeData(backgroundColor: Colors.cyan),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    brightness: darkTheme != null
+        ? (darkTheme ? Brightness.dark : Brightness.light)
+        : WidgetsBinding.instance.window.platformBrightness,
+    accentColor: Colors.cyanAccent,
+    primaryColor: Colors.cyan,
+  );
 }
 
 void dataObjectTap(DataObject obj, BuildContext context) {

@@ -39,6 +39,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
+import 'models/area.dart';
 import 'models/hive_persistence_provider.dart';
 import 'models/invitation.dart';
 import 'models/theme_notifier.dart';
@@ -89,34 +90,29 @@ void main() {
       final User user = User.instance;
       await _initConfigs();
 
-      var settings = Hive.box('Settings');
-      var primary = settings.get('PrimaryColorIndex', defaultValue: 7);
-      var accent = primary;
-      var darkTheme = settings.get('DarkTheme');
+      var darkTheme = Hive.box('Settings').get('DarkTheme');
       runApp(
         MultiProvider(
           providers: [
             StreamProvider<User>.value(initialData: user, value: user.stream),
-            ChangeNotifierProvider<ThemeNotifier>(
+            Provider<ThemeNotifier>(
               create: (_) => ThemeNotifier(
                 ThemeData(
+                  colorScheme: ColorScheme.fromSwatch(
+                    primarySwatch: Colors.cyan,
+                    brightness: darkTheme != null
+                        ? (darkTheme ? Brightness.dark : Brightness.light)
+                        : WidgetsBinding.instance.window.platformBrightness,
+                    accentColor: Colors.cyanAccent,
+                  ),
                   floatingActionButtonTheme: FloatingActionButtonThemeData(
-                      backgroundColor: primaries[primary ?? 7]),
+                      backgroundColor: Colors.cyan),
                   visualDensity: VisualDensity.adaptivePlatformDensity,
-                  outlinedButtonTheme: OutlinedButtonThemeData(
-                      style: OutlinedButton.styleFrom(
-                          primary: primaries[primary ?? 7])),
-                  textButtonTheme: TextButtonThemeData(
-                      style: TextButton.styleFrom(
-                          primary: primaries[primary ?? 7])),
-                  elevatedButtonTheme: ElevatedButtonThemeData(
-                      style: ElevatedButton.styleFrom(
-                          primary: primaries[primary ?? 7])),
                   brightness: darkTheme != null
                       ? (darkTheme ? Brightness.dark : Brightness.light)
                       : WidgetsBinding.instance.window.platformBrightness,
-                  accentColor: accents[accent ?? 7],
-                  primaryColor: primaries[primary ?? 7],
+                  accentColor: Colors.cyanAccent,
+                  primaryColor: Colors.cyan,
                 ),
               ),
             ),
@@ -164,127 +160,134 @@ class AppState extends State<App> {
   Widget build(BuildContext context) {
     return FeatureDiscovery.withProvider(
       persistenceProvider: HivePersistenceProvider(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'بيانات الكنيسة',
-        initialRoute: '/',
-        routes: {
-          '/': buildLoadAppWidget,
-          'Login': (context) => LoginScreen(),
-          'Data/EditArea': (context) =>
-              EditArea(area: ModalRoute.of(context).settings.arguments),
-          'Data/EditStreet': (context) {
-            if (ModalRoute.of(context).settings.arguments is Street)
-              return EditStreet(
-                  street: ModalRoute.of(context).settings.arguments);
-            else {
-              Street street = Street.empty()
-                ..areaId = ModalRoute.of(context).settings.arguments;
-              return EditStreet(street: street);
-            }
-          },
-          'Data/EditFamily': (context) {
-            if (ModalRoute.of(context).settings.arguments is Family)
-              return EditFamily(
-                  family: ModalRoute.of(context).settings.arguments);
-            else if (ModalRoute.of(context).settings.arguments is Map) {
-              Family family = Family.empty()
-                ..streetId = (ModalRoute.of(context).settings.arguments
-                    as Map)['StreetId']
-                ..insideFamily =
-                    (ModalRoute.of(context).settings.arguments as Map)['Family']
-                ..isStore = (ModalRoute.of(context).settings.arguments
-                    as Map)['IsStore'];
-              if (family.streetId != null) family.setAreaIdFromStreet();
-              return EditFamily(family: family);
-            } else {
-              Family family = Family.empty()
-                ..streetId = ModalRoute.of(context).settings.arguments;
-              if (family.streetId != null) family.setAreaIdFromStreet();
-              return EditFamily(family: family);
-            }
-          },
-          'Data/EditPerson': (context) {
-            if (ModalRoute.of(context).settings.arguments is Person)
-              return EditPerson(
-                  person: ModalRoute.of(context).settings.arguments);
-            else {
-              Person person = Person()
-                ..familyId = ModalRoute.of(context).settings.arguments;
-              if (person.familyId != null) person.setStreetIdFromFamily();
-              return EditPerson(person: person);
-            }
-          },
-          'EditInvitation': (context) => EditInvitation(
-              invitation: ModalRoute.of(context).settings.arguments ??
-                  Invitation.empty()),
-          'MyAccount': (context) => MyAccount(),
-          'ActivityAnalysis': (context) => ActivityAnalysis(
-                areas: ModalRoute.of(context).settings.arguments,
-              ),
-          'SpiritualAnalysis': (context) => SpiritualAnalysis(
-                areas: ModalRoute.of(context).settings.arguments,
-              ),
-          'Notifications': (context) => NotificationsPage(),
-          'Update': (context) => Update(),
-          'Search': (context) => SearchQuery(),
-          'Trash': (context) => Trash(),
-          'DataMap': (context) => DataMap(),
-          'AreaInfo': (context) =>
-              AreaInfo(area: ModalRoute.of(context).settings.arguments),
-          'StreetInfo': (context) =>
-              StreetInfo(street: ModalRoute.of(context).settings.arguments),
-          'FamilyInfo': (context) =>
-              FamilyInfo(family: ModalRoute.of(context).settings.arguments),
-          'PersonInfo': (context) =>
-              PersonInfo(person: ModalRoute.of(context).settings.arguments),
-          'UserInfo': (context) =>
-              UserInfo(user: ModalRoute.of(context).settings.arguments),
-          'InvitationInfo': (context) => InvitationInfo(
-              invitation: ModalRoute.of(context).settings.arguments),
-          'Settings': (context) => settingsui.Settings(),
-          'Settings/Churches': (context) => ChurchesPage(),
-          'Settings/Fathers': (context) => FathersPage(),
-          'Settings/Jobs': (context) => JobsPage(),
-          'Settings/StudyYears': (context) => StudyYearsPage(),
-          'Settings/Colleges': (context) => CollegesPage(),
-          'Settings/ServingTypes': (context) => ServingTypesPage(),
-          'Settings/PersonTypes': (context) => PersonTypesPage(),
-          'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
-              person: ModalRoute.of(context).settings.arguments),
-          'Invitations': (context) => InvitationsPage(),
-          'EditUserData': (context) => FutureBuilder<Person>(
-                future: User.getCurrentPerson(),
-                builder: (context, data) {
-                  if (data.hasError)
-                    return Center(child: ErrorWidget(data.error));
-                  if (!data.hasData)
-                    return Scaffold(
-                      resizeToAvoidBottomInset: !kIsWeb,
-                      body: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  return EditPerson(person: data.data, userData: true);
+      child: StreamBuilder<ThemeData>(
+          initialData: context.read<ThemeNotifier>().theme,
+          stream: context.read<ThemeNotifier>().stream,
+          builder: (context, theme) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              title: 'بيانات الكنيسة',
+              initialRoute: '/',
+              routes: {
+                '/': buildLoadAppWidget,
+                'Login': (context) => LoginScreen(),
+                'Data/EditArea': (context) => EditArea(
+                    area: ModalRoute.of(context).settings.arguments ??
+                        Area.empty()),
+                'Data/EditStreet': (context) {
+                  if (ModalRoute.of(context).settings.arguments is Street)
+                    return EditStreet(
+                        street: ModalRoute.of(context).settings.arguments);
+                  else {
+                    Street street = Street.empty()
+                      ..areaId = ModalRoute.of(context).settings.arguments;
+                    return EditStreet(street: street);
+                  }
                 },
-              ),
-        },
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: [
-          Locale('ar', 'EG'),
-        ],
-        themeMode: context.watch<ThemeNotifier>().getTheme().brightness ==
-                Brightness.dark
-            ? ThemeMode.dark
-            : ThemeMode.light,
-        locale: Locale('ar', 'EG'),
-        theme: context.watch<ThemeNotifier>().getTheme(),
-        darkTheme: context.watch<ThemeNotifier>().getTheme(),
-      ),
+                'Data/EditFamily': (context) {
+                  if (ModalRoute.of(context).settings.arguments is Family)
+                    return EditFamily(
+                        family: ModalRoute.of(context).settings.arguments);
+                  else if (ModalRoute.of(context).settings.arguments is Map) {
+                    Family family = Family.empty()
+                      ..streetId = (ModalRoute.of(context).settings.arguments
+                          as Map)['StreetId']
+                      ..insideFamily = (ModalRoute.of(context)
+                          .settings
+                          .arguments as Map)['Family']
+                      ..isStore = (ModalRoute.of(context).settings.arguments
+                          as Map)['IsStore'];
+                    return EditFamily(family: family);
+                  } else {
+                    Family family = Family.empty()
+                      ..streetId = ModalRoute.of(context).settings.arguments;
+                    return EditFamily(family: family);
+                  }
+                },
+                'Data/EditPerson': (context) {
+                  if (ModalRoute.of(context).settings.arguments is Person)
+                    return EditPerson(
+                        person: ModalRoute.of(context).settings.arguments);
+                  else {
+                    Person person = Person()
+                      ..familyId = ModalRoute.of(context).settings.arguments;
+                    return EditPerson(person: person);
+                  }
+                },
+                'EditInvitation': (context) => EditInvitation(
+                    invitation: ModalRoute.of(context).settings.arguments ??
+                        Invitation.empty()),
+                'MyAccount': (context) => MyAccount(),
+                'ActivityAnalysis': (context) => ActivityAnalysis(
+                      areas: ModalRoute.of(context).settings.arguments,
+                    ),
+                'SpiritualAnalysis': (context) => SpiritualAnalysis(
+                      areas: ModalRoute.of(context).settings.arguments,
+                    ),
+                'Notifications': (context) => NotificationsPage(),
+                'Update': (context) => Update(),
+                'Search': (context) => SearchQuery(),
+                'Trash': (context) => Trash(),
+                'DataMap': (context) => DataMap(),
+                'AreaInfo': (context) => AreaInfo(
+                    area: ModalRoute.of(context).settings.arguments ??
+                        Area.empty()),
+                'StreetInfo': (context) => StreetInfo(
+                    street: ModalRoute.of(context).settings.arguments ??
+                        Street.empty()),
+                'FamilyInfo': (context) => FamilyInfo(
+                    family: ModalRoute.of(context).settings.arguments ??
+                        Family.empty()),
+                'PersonInfo': (context) => PersonInfo(
+                    person:
+                        ModalRoute.of(context).settings.arguments ?? Person()),
+                'UserInfo': (context) =>
+                    UserInfo(user: ModalRoute.of(context).settings.arguments),
+                'InvitationInfo': (context) => InvitationInfo(
+                    invitation: ModalRoute.of(context).settings.arguments),
+                'Settings': (context) => settingsui.Settings(),
+                'Settings/Churches': (context) => ChurchesPage(),
+                'Settings/Fathers': (context) => FathersPage(),
+                'Settings/Jobs': (context) => JobsPage(),
+                'Settings/StudyYears': (context) => StudyYearsPage(),
+                'Settings/Colleges': (context) => CollegesPage(),
+                'Settings/ServingTypes': (context) => ServingTypesPage(),
+                'Settings/PersonTypes': (context) => PersonTypesPage(),
+                'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
+                    person: ModalRoute.of(context).settings.arguments),
+                'Invitations': (context) => InvitationsPage(),
+                'EditUserData': (context) => FutureBuilder<Person>(
+                      future: User.getCurrentPerson(),
+                      builder: (context, data) {
+                        if (data.hasError)
+                          return Center(child: ErrorWidget(data.error));
+                        if (!data.hasData)
+                          return Scaffold(
+                            resizeToAvoidBottomInset: !kIsWeb,
+                            body: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        return EditPerson(person: data.data, userData: true);
+                      },
+                    ),
+              },
+              localizationsDelegates: [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: [
+                Locale('ar', 'EG'),
+              ],
+              themeMode: theme.data.brightness == Brightness.dark
+                  ? ThemeMode.dark
+                  : ThemeMode.light,
+              locale: Locale('ar', 'EG'),
+              theme: theme.data,
+              darkTheme: theme.data,
+            );
+          }),
     );
   }
 
