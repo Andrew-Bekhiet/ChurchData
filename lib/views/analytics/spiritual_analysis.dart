@@ -84,7 +84,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                       children: [
                         ListTile(
                           title: Text(
-                              'احصائيات النشاط من ' +
+                              'احصائيات الخدمة من ' +
                                   intl.DateFormat.yMMMEd('ar_EG')
                                       .format(range.start) +
                                   ' الى ' +

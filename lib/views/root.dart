@@ -672,10 +672,10 @@ class _RootState extends State<Root>
                           featureId: 'ActivityAnalysis',
                           contentLocation: ContentLocation.below,
                           tapTarget: const Icon(Icons.analytics_outlined),
-                          title: Text('تحليل بيانات نشاط الخدام'),
+                          title: Text('تحليل بيانات الخدمة'),
                           description: Column(
                             children: [
-                              Text('يمكنك الأن تحليل بيانات نشاط الخدام'
+                              Text('يمكنك الأن تحليل بيانات الخدمة'
                                   ' من حيث الافتقاد'
                                   ' وتحديث البيانات وبيانات المكالمات'),
                               OutlinedButton.icon(
@@ -716,7 +716,7 @@ class _RootState extends State<Root>
                               .color,
                           child: Icon(Icons.analytics_outlined),
                         ),
-                        title: Text('تحليل بيانات نشاط الخدام'),
+                        title: Text('تحليل بيانات الخدمة'),
                         onTap: () {
                           mainScfld.currentState.openEndDrawer();
                           Navigator.of(context).pushNamed('ActivityAnalysis');
@@ -731,7 +731,7 @@ class _RootState extends State<Root>
                   featureId: 'SpiritualAnalysis',
                   contentLocation: ContentLocation.below,
                   tapTarget: const Icon(Icons.analytics_outlined),
-                  title: Text('تحليل بيانات الروحية للمخدومين'),
+                  title: Text('تحليل بيانات الحياة الروحية للمخدومين'),
                   description: Column(
                     children: [
                       Text('يمكنك الأن تحليل بيانات '
@@ -764,7 +764,7 @@ class _RootState extends State<Root>
                   textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
                   child: Icon(Icons.analytics_outlined),
                 ),
-                title: Text('تحليل بيانات نشاط المخدومين'),
+                title: Text('تحليل الحياة الروحية للمخدومين'),
                 onTap: () {
                   mainScfld.currentState.openEndDrawer();
                   Navigator.of(context).pushNamed('SpiritualAnalysis');

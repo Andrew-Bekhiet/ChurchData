@@ -409,7 +409,7 @@ class _AreaInfoState extends State<AreaInfo> {
                               'ActivityAnalysis',
                               arguments: [area],
                             ),
-                            label: Text('تحليل نشاط الخدام'),
+                            label: Text('تحليل بيانات الخدمة'),
                           ),
                         ElevatedButton.icon(
                           icon: Icon(Icons.analytics_outlined),
@@ -418,7 +418,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             'SpiritualAnalysis',
                             arguments: [area],
                           ),
-                          label: Text('تحليل نشاط المخدومين'),
+                          label: Text('تحليل الحياة الروحية للمخدومين'),
                         ),
                         Divider(thickness: 1),
                         Text('الشوارع بالمنطقة:',

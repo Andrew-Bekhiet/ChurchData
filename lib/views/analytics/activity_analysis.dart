@@ -84,7 +84,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                       children: [
                         ListTile(
                           title: Text(
-                              'احصائيات النشاط من ' +
+                              'احصائيات الخدمة من ' +
                                   intl.DateFormat.yMMMEd('ar_EG')
                                       .format(range.start) +
                                   ' الى ' +
@@ -159,21 +159,21 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           areas: areas,
                           areasByRef: areasByRef,
                           collectionGroup: 'VisitHistory',
-                          title: 'نشاط الافتقاد',
+                          title: 'خدمة الافتقاد',
                         ),
                         HistoryAnalysisWidget(
                           range: range,
                           areas: areas,
                           areasByRef: areasByRef,
                           collectionGroup: 'EditHistory',
-                          title: 'نشاط تحديث البيانات',
+                          title: 'تحديث البيانات',
                         ),
                         HistoryAnalysisWidget(
                           range: range,
                           areas: areas,
                           areasByRef: areasByRef,
                           collectionGroup: 'CallHistory',
-                          title: 'نشاط المكالمات',
+                          title: 'خدمة المكالمات',
                         ),
                       ],
                     ),
