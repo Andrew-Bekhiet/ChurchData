@@ -3,8 +3,6 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
-import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/notification_setting.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';

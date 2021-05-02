@@ -31,6 +31,8 @@ abstract class DataObject {
     return other is DataObject && other.id == id && other.hashCode == hashCode;
   }
 
+  DataObject copyWith();
+
   Map<String, dynamic> getMap();
 
   Map<String, dynamic> getHumanReadableMap();

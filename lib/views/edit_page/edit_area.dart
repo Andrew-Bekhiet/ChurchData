@@ -377,8 +377,7 @@ class _EditAreaState extends State<EditArea> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    area ??= widget.area ?? Area.empty();
-    // oldArea ??= area.getMap();
+    area ??= (widget.area ?? Area.empty()).copyWith();
   }
 
   void nameChanged(String value) {

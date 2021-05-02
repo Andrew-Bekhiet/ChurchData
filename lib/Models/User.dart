@@ -655,4 +655,9 @@ class User extends DataObject
         .map((e) => User.fromDoc(e))
         .toList();
   }
+
+  @override
+  User copyWith() {
+    throw UnimplementedError();
+  }
 }

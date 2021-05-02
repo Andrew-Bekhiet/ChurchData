@@ -30,6 +30,11 @@ abstract class MiniModel extends DataObject {
   Future<String> getSecondLine() {
     throw UnimplementedError();
   }
+
+  @override
+  MiniModel copyWith() {
+    throw UnimplementedError();
+  }
 }
 
 class Church extends MiniModel with ParentObject<Father> {

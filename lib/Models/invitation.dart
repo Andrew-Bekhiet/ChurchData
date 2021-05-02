@@ -83,4 +83,9 @@ class Invitation extends DataObject {
         Timestamp.fromDate(DateTime.now().add(Duration(days: 1, minutes: 10)));
     permissions = {};
   }
+
+  @override
+  Invitation copyWith() {
+    return Invitation.createFromData(getMap(), ref);
+  }
 }

@@ -310,4 +310,9 @@ class Street extends DataObject
         .orderBy(orderBy, descending: descending)
         .snapshots();
   }
+
+  @override
+  Street copyWith() {
+    return Street._createFromData(getMap(), ref);
+  }
 }

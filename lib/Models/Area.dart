@@ -330,6 +330,11 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
         'LastEdit': 'أخر شخص قام بالتعديل'
       };
 
+  @override
+  Area copyWith() {
+    return Area.createFromData(getMap(), ref);
+  }
+
   // @override
   // fireWeb.Reference get webPhotoRef =>
   //     fireWeb.storage().ref('AreasPhotos/$id');

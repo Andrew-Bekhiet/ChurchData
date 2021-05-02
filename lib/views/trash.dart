@@ -59,6 +59,11 @@ class TrashDay extends DataObject {
   Future<String> getSecondLine() async {
     return name;
   }
+
+  @override
+  TrashDay copyWith() {
+    throw UnimplementedError();
+  }
 }
 
 class TrashDayScreen extends StatefulWidget {

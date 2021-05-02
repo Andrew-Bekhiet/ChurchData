@@ -516,4 +516,9 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   // @override
   // fireWeb.Reference get webPhotoRef =>
   //     fireWeb.storage().ref('PersonsPhotos/$id');
+
+  @override
+  Person copyWith() {
+    return Person._createFromData(getMap(), ref);
+  }
 }

@@ -1122,9 +1122,7 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    person ??= widget.person ?? Person();
-    /* old ??=
-        !widget.userData ? person.getMap() : person.getUserRegisterationMap(); */
+    person ??= (widget.person ?? Person()).copyWith();
   }
 
   void selectColor() async {

@@ -421,4 +421,9 @@ class Family extends DataObject
         'LastEdit': 'أخر شخص قام بالتعديل',
         'IsStore': 'محل؟'
       };
+
+  @override
+  Family copyWith() {
+    return Family._createFromData(getMap(), ref);
+  }
 }

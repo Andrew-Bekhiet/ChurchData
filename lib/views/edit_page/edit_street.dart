@@ -252,7 +252,7 @@ class _EditStreetState extends State<EditStreet> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    street ??= widget.street ?? Street.empty();
+    street ??= (widget.street ?? Street.empty()).copyWith();
     // old ??= street.getMap();
   }
 

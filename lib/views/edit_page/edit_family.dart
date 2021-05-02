@@ -415,7 +415,7 @@ class _EditFamilyState extends State<EditFamily> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    family ??= widget.family ?? Family.empty();
+    family ??= (widget.family ?? Family.empty()).copyWith();
   }
 
   void nameChanged(String value) {
