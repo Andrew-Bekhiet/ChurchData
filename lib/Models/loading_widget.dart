@@ -22,7 +22,7 @@ class Loading extends StatelessWidget {
         DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
       return 'assets/risen.jpg';
     }
-    return 'assets/Logo.png';
+    return 'assets/Logo2.png';
   }
 
   @override
