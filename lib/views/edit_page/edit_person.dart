@@ -1120,9 +1120,10 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     person ??= (widget.person ?? Person()).copyWith();
+    await person.setStreetIdFromFamily();
   }
 
   void selectColor() async {

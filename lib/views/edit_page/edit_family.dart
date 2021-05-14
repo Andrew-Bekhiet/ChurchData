@@ -413,9 +413,10 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   @override
-  void didChangeDependencies() {
+  void didChangeDependencies() async {
     super.didChangeDependencies();
     family ??= (widget.family ?? Family.empty()).copyWith();
+    await family.setAreaIdFromStreet();
   }
 
   void nameChanged(String value) {

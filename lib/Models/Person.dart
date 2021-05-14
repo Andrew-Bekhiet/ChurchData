@@ -22,7 +22,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   set familyId(DocumentReference familyId) {
     if (familyId != null && _familyId != familyId) {
       _familyId = familyId;
-      _setStreetIdFromFamily();
+      setStreetIdFromFamily();
       return;
     }
     _familyId = familyId;
@@ -35,7 +35,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   set streetId(DocumentReference streetId) {
     if (streetId != null && _streetId != streetId) {
       _streetId = streetId;
-      _setAreaIdFromStreet();
+      setAreaIdFromStreet();
       return;
     }
     _streetId = streetId;
@@ -410,11 +410,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastConfession': lastConfession?.millisecondsSinceEpoch
       };
 
-  Future<void> _setAreaIdFromStreet() async {
+  Future<void> setAreaIdFromStreet() async {
     areaId = (await streetId?.get(dataSource))?.data()['AreaId'];
   }
 
-  Future<void> _setStreetIdFromFamily() async {
+  Future<void> setStreetIdFromFamily() async {
     streetId = (await familyId?.get(dataSource))?.data()['StreetId'];
   }
 

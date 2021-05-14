@@ -27,7 +27,7 @@ class Family extends DataObject
   set streetId(DocumentReference streetId) {
     if (streetId != null && _streetId != streetId) {
       _streetId = streetId;
-      _setAreaIdFromStreet();
+      setAreaIdFromStreet();
       return;
     }
     _streetId = streetId;
@@ -232,7 +232,7 @@ class Family extends DataObject
     return (await streetId.get(dataSource)).data()['Name'];
   }
 
-  Future<void> _setAreaIdFromStreet() async {
+  Future<void> setAreaIdFromStreet() async {
     areaId = (await streetId.get(dataSource)).data()['AreaId'];
   }
 

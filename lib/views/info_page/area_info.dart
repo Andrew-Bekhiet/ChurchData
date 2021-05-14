@@ -522,9 +522,23 @@ class _AreaInfoState extends State<AreaInfo> {
                         ),
                         FloatingActionButton(
                           heroTag: null,
-                          onPressed: () => Navigator.of(context).pushNamed(
-                              'Data/EditStreet',
-                              arguments: area.ref),
+                          onPressed: () async {
+                            dynamic result = await Navigator.of(context)
+                                .pushNamed('Data/EditStreet',
+                                    arguments: area.ref);
+                            if (result == null) return;
+
+                            ScaffoldMessenger.of(mainScfld.currentContext)
+                                .hideCurrentSnackBar();
+                            if (result is DocumentReference) {
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .showSnackBar(
+                                SnackBar(
+                                  content: Text('تم الحفظ بنجاح'),
+                                ),
+                              );
+                            }
+                          },
                           child: DescribedFeatureOverlay(
                             onBackgroundTap: () async {
                               await FeatureDiscovery.completeCurrentStep(

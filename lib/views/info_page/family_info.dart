@@ -326,62 +326,78 @@ class _FamilyInfoState extends State<FamilyInfo> {
                 },
               ),
             ),
-            floatingActionButton: permission &&
-                    !family.ref.path.startsWith('Deleted')
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(right: 32),
-                        child: FloatingActionButton(
-                          tooltip: 'تسجيل أخر زيارة اليوم',
-                          heroTag: 'lastVisit',
-                          onPressed: () => recordLastVisit(context, family),
-                          child: Icon(Icons.update),
-                        ),
-                      ),
-                      PopupMenuButton<dynamic>(
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: true,
-                            child: ListTile(
-                              leading: Icon(Icons.add_business),
-                              title: Text('اضافة محل'),
+            floatingActionButton:
+                permission && !family.ref.path.startsWith('Deleted')
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 32),
+                            child: FloatingActionButton(
+                              tooltip: 'تسجيل أخر زيارة اليوم',
+                              heroTag: 'lastVisit',
+                              onPressed: () => recordLastVisit(context, family),
+                              child: Icon(Icons.update),
                             ),
                           ),
-                          PopupMenuItem(
-                            value: false,
-                            child: ListTile(
-                              leading: Icon(Icons.group_add),
-                              title: Text('اضافة عائلة'),
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'null',
-                            child: ListTile(
-                              leading: Icon(Icons.person_add),
-                              title: Text('اضافة شخص'),
-                            ),
-                          )
-                        ],
-                        onSelected: (type) => type == 'null'
-                            ? Navigator.of(context).pushNamed('Data/EditPerson',
-                                arguments: family.ref)
-                            : Navigator.of(context).pushNamed(
-                                'Data/EditFamily',
-                                arguments: {
-                                  'Family': family.ref,
-                                  'IsStore': type as bool
-                                },
+                          PopupMenuButton<dynamic>(
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: true,
+                                child: ListTile(
+                                  leading: Icon(Icons.add_business),
+                                  title: Text('اضافة محل'),
+                                ),
                               ),
-                        child: FloatingActionButton(
-                          onPressed: null,
-                          child: Icon(Icons.add),
-                        ),
-                      ),
-                    ],
-                  )
-                : null,
+                              PopupMenuItem(
+                                value: false,
+                                child: ListTile(
+                                  leading: Icon(Icons.group_add),
+                                  title: Text('اضافة عائلة'),
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'null',
+                                child: ListTile(
+                                  leading: Icon(Icons.person_add),
+                                  title: Text('اضافة شخص'),
+                                ),
+                              )
+                            ],
+                            onSelected: (type) async {
+                              dynamic result = type == 'null'
+                                  ? await Navigator.of(context).pushNamed(
+                                      'Data/EditPerson',
+                                      arguments: family.ref)
+                                  : await Navigator.of(context).pushNamed(
+                                      'Data/EditFamily',
+                                      arguments: {
+                                        'Family': family.ref,
+                                        'IsStore': type as bool
+                                      },
+                                    );
+
+                              if (result == null) return;
+
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .hideCurrentSnackBar();
+                              if (result is DocumentReference) {
+                                ScaffoldMessenger.of(mainScfld.currentContext)
+                                    .showSnackBar(
+                                  SnackBar(
+                                    content: Text('تم الحفظ بنجاح'),
+                                  ),
+                                );
+                              }
+                            },
+                            child: FloatingActionButton(
+                              onPressed: null,
+                              child: Icon(Icons.add),
+                            ),
+                          ),
+                        ],
+                      )
+                    : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
           );

@@ -240,49 +240,68 @@ class _StreetInfoState extends State<StreetInfo> {
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.endDocked,
-            floatingActionButton: permission &&
-                    !street.ref.path.startsWith('Deleted')
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(right: 32),
-                        child: FloatingActionButton(
-                          tooltip: 'تسجيل أخر زيارة اليوم',
-                          heroTag: 'lastVisit',
-                          onPressed: () => recordLastVisit(context, street),
-                          child: Icon(Icons.update),
-                        ),
-                      ),
-                      PopupMenuButton<bool>(
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: true,
-                            child: ListTile(
-                              leading: Icon(Icons.add_business),
-                              title: Text('اضافة محل'),
+            floatingActionButton:
+                permission && !street.ref.path.startsWith('Deleted')
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 32),
+                            child: FloatingActionButton(
+                              tooltip: 'تسجيل أخر زيارة اليوم',
+                              heroTag: 'lastVisit',
+                              onPressed: () => recordLastVisit(context, street),
+                              child: Icon(Icons.update),
                             ),
                           ),
-                          PopupMenuItem(
-                            value: false,
-                            child: ListTile(
-                              leading: Icon(Icons.group_add),
-                              title: Text('اضافة عائلة'),
+                          PopupMenuButton<bool>(
+                            itemBuilder: (_) => [
+                              PopupMenuItem(
+                                value: true,
+                                child: ListTile(
+                                  leading: Icon(Icons.add_business),
+                                  title: Text('اضافة محل'),
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: false,
+                                child: ListTile(
+                                  leading: Icon(Icons.group_add),
+                                  title: Text('اضافة عائلة'),
+                                ),
+                              )
+                            ],
+                            onSelected: (type) async {
+                              dynamic result =
+                                  await Navigator.of(context).pushNamed(
+                                'Data/EditFamily',
+                                arguments: {
+                                  'IsStore': type,
+                                  'StreetId': street.ref
+                                },
+                              );
+
+                              if (result == null) return;
+
+                              ScaffoldMessenger.of(mainScfld.currentContext)
+                                  .hideCurrentSnackBar();
+                              if (result is DocumentReference) {
+                                ScaffoldMessenger.of(mainScfld.currentContext)
+                                    .showSnackBar(
+                                  SnackBar(
+                                    content: Text('تم الحفظ بنجاح'),
+                                  ),
+                                );
+                              }
+                            },
+                            child: FloatingActionButton(
+                              onPressed: null,
+                              child: Icon(Icons.add),
                             ),
-                          )
+                          ),
                         ],
-                        onSelected: (type) => Navigator.of(context).pushNamed(
-                          'Data/EditFamily',
-                          arguments: {'IsStore': type, 'StreetId': street.ref},
-                        ),
-                        child: FloatingActionButton(
-                          onPressed: null,
-                          child: Icon(Icons.add),
-                        ),
-                      ),
-                    ],
-                  )
-                : null,
+                      )
+                    : null,
           );
         },
       ),
