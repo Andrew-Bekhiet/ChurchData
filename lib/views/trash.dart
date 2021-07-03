@@ -1,5 +1,5 @@
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/helpers.dart';
@@ -18,7 +18,7 @@ class Trash extends StatelessWidget {
       appBar: AppBar(title: Text('سلة المحذوفات')),
       body: DataObjectList<TrashDay>(
         autoDisposeController: true,
-        options: DataObjectListOptions<TrashDay>(
+        options: DataObjectListController<TrashDay>(
           onLongPress: (_) {},
           tap: (day) {
             Navigator.push(context,
@@ -82,10 +82,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode searchFocus = FocusNode();
 
-  late final DataObjectListOptions<Area> _areasOptions;
-  late final DataObjectListOptions<Street> _streetsOptions;
-  late final DataObjectListOptions<Family> _familiesOptions;
-  late final DataObjectListOptions<Person> _personsOptions;
+  late final DataObjectListController<Area> _areasOptions;
+  late final DataObjectListController<Street> _streetsOptions;
+  late final DataObjectListController<Family> _familiesOptions;
+  late final DataObjectListController<Person> _personsOptions;
 
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
@@ -218,7 +218,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
     WidgetsBinding.instance!.addObserver(this);
     _tabController = TabController(vsync: this, length: 4);
 
-    _areasOptions = DataObjectListOptions<Area>(
+    _areasOptions = DataObjectListController<Area>(
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
@@ -232,7 +232,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
             (s) => s.docs.map(Area.fromQueryDoc).toList(),
           ),
     );
-    _streetsOptions = DataObjectListOptions<Street>(
+    _streetsOptions = DataObjectListController<Street>(
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Streets').snapshots()
@@ -252,7 +252,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         (s) => s.docs.map(Street.fromQueryDoc).toList(),
       ),
     );
-    _familiesOptions = DataObjectListOptions<Family>(
+    _familiesOptions = DataObjectListController<Family>(
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Families').snapshots()
@@ -272,7 +272,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         (s) => s.docs.map(Family.fromQueryDoc).toList(),
       ),
     );
-    _personsOptions = DataObjectListOptions<Person>(
+    _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Persons').snapshots()

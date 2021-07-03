@@ -46,7 +46,7 @@ import 'package:spreadsheet_decoder/spreadsheet_decoder.dart';
 import 'package:timeago/timeago.dart';
 
 import '../main.dart';
-import '../models/list_options.dart';
+import '../models/list_controllers.dart';
 import '../models/notification.dart' as no;
 import '../models/order_options.dart';
 import '../models/super_classes.dart';
@@ -870,7 +870,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
 }
 
 Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
-  var _options = DataObjectListOptions<Area>(
+  var _options = DataObjectListController<Area>(
     itemsStream:
         Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
     selectionMode: true,
@@ -909,8 +909,8 @@ void sendNotification(BuildContext context, dynamic attachement) async {
       builder: (context) {
         return MultiProvider(
           providers: [
-            Provider<DataObjectListOptions<User>>(
-              create: (_) => DataObjectListOptions<User>(
+            Provider<DataObjectListController<User>>(
+              create: (_) => DataObjectListController<User>(
                 itemBuilder: (current,
                         [void Function(User)? onLongPress,
                         void Function(User)? onTap,
@@ -942,7 +942,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                 IconButton(
                   onPressed: () {
                     navigator.currentState!.pop(context
-                        .read<DataObjectListOptions<User>>()
+                        .read<DataObjectListController<User>>()
                         .selectedLatest
                         ?.values
                         .toList());
@@ -957,8 +957,9 @@ void sendNotification(BuildContext context, dynamic attachement) async {
               children: [
                 SearchField(
                   showSuffix: false,
-                  searchStream:
-                      context.read<DataObjectListOptions<User>>().searchQuery,
+                  searchStream: context
+                      .read<DataObjectListController<User>>()
+                      .searchQuery,
                   textStyle: Theme.of(context).textTheme.bodyText2,
                 ),
                 const Expanded(

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
@@ -550,7 +550,7 @@ class _UserPState extends State<UserP> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Person>(
+        var listOptions = DataObjectListController<Person>(
           tap: (value) {
             navigator.currentState!.pop();
             setState(() {
@@ -619,8 +619,8 @@ class _UserPState extends State<UserP> {
             builder: (c, users) => users.hasData
                 ? MultiProvider(
                     providers: [
-                      Provider<DataObjectListOptions<User>>(
-                        create: (_) => DataObjectListOptions<User>(
+                      Provider<DataObjectListController<User>>(
+                        create: (_) => DataObjectListController<User>(
                           selectionMode: true,
                           itemsStream: User.getAllForUser(),
                           selected: {
@@ -644,7 +644,7 @@ class _UserPState extends State<UserP> {
                         TextButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListOptions<User>>()
+                                .read<DataObjectListController<User>>()
                                 .selectedLatest
                                 ?.values
                                 .toList());
@@ -656,7 +656,7 @@ class _UserPState extends State<UserP> {
                         title: SearchField(
                             showSuffix: false,
                             searchStream: context
-                                .read<DataObjectListOptions<User>>()
+                                .read<DataObjectListController<User>>()
                                 .searchQuery,
                             textStyle: Theme.of(context).textTheme.bodyText2),
                       ),

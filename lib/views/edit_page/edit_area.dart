@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
@@ -513,8 +513,8 @@ class _EditAreaState extends State<EditArea> {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
 
-                return Provider<DataObjectListOptions<User>>(
-                  create: (_) => DataObjectListOptions<User>(
+                return Provider<DataObjectListController<User>>(
+                  create: (_) => DataObjectListController<User>(
                     itemBuilder: (current,
                             [void Function(User)? onLongPress,
                             void Function(User)? onTap,
@@ -539,7 +539,7 @@ class _EditAreaState extends State<EditArea> {
                       title: SearchField(
                         showSuffix: false,
                         searchStream: context
-                            .read<DataObjectListOptions<User>>()
+                            .read<DataObjectListController<User>>()
                             .searchQuery,
                         textStyle: Theme.of(context).primaryTextTheme.headline6,
                       ),
@@ -547,7 +547,7 @@ class _EditAreaState extends State<EditArea> {
                         IconButton(
                           onPressed: () {
                             navigator.currentState!.pop(context
-                                .read<DataObjectListOptions<User>>()
+                                .read<DataObjectListController<User>>()
                                 .selectedLatest
                                 ?.keys
                                 .toList());

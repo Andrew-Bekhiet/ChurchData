@@ -6,7 +6,7 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
@@ -1312,7 +1312,7 @@ class _EditPersonState extends State<EditPerson> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Area>(
+    final listOptions = DataObjectListController<Area>(
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
@@ -1394,7 +1394,7 @@ class _EditPersonState extends State<EditPerson> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Family>(
+    final listOptions = DataObjectListController<Family>(
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {

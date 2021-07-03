@@ -5,7 +5,7 @@ import 'package:churchdata/models/super_classes.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-abstract class BaseListOptions<L, U> {
+abstract class BaseListController<L, U> {
   final BehaviorSubject<L> _objectsData;
   ValueStream<L> get objectsData => _objectsData.stream;
   L? get items => _objectsData.valueOrNull;
@@ -44,7 +44,7 @@ abstract class BaseListOptions<L, U> {
 
   void deselect(U item);
 
-  BaseListOptions({
+  BaseListController({
     this.onLongPress,
     this.tap,
     this.empty,
@@ -84,8 +84,8 @@ abstract class BaseListOptions<L, U> {
   }
 }
 
-class DataObjectListOptions<T extends DataObject>
-    implements BaseListOptions<List<T>, T> {
+class DataObjectListController<T extends DataObject>
+    implements BaseListController<List<T>, T> {
   @override
   late final BehaviorSubject<List<T>> _objectsData;
   @override
@@ -148,7 +148,7 @@ class DataObjectListOptions<T extends DataObject>
       Widget? trailing,
       Widget? subtitle}) buildItem;
 
-  DataObjectListOptions({
+  DataObjectListController({
     Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
             Widget? trailing, Widget? subtitle)?
         itemBuilder,

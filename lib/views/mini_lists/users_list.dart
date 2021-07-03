@@ -1,4 +1,4 @@
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:flutter/foundation.dart';
@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 
 class UsersList extends StatefulWidget {
-  final DataObjectListOptions<User>? listOptions;
+  final DataObjectListController<User>? listOptions;
   final bool autoDisposeController;
 
   const UsersList(
@@ -19,13 +19,13 @@ class UsersList extends StatefulWidget {
 }
 
 class _UsersListState extends State<UsersList> {
-  late DataObjectListOptions<User> _listOptions;
+  late DataObjectListController<User> _listOptions;
 
   @override
   void initState() {
     super.initState();
     _listOptions =
-        widget.listOptions ?? context.read<DataObjectListOptions<User>>();
+        widget.listOptions ?? context.read<DataObjectListController<User>>();
   }
 
   @override

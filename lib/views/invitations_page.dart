@@ -1,6 +1,6 @@
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +13,7 @@ class InvitationsPage extends StatefulWidget {
 }
 
 class _InvitationsPageState extends State<InvitationsPage> {
-  final options = DataObjectListOptions<Invitation>(
+  final options = DataObjectListController<Invitation>(
     itemsStream: FirebaseFirestore.instance
         .collection('Invitations')
         .snapshots()

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../utils/helpers.dart';
-import 'list_options.dart';
+import 'list_controllers.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
   final int? index;
-  final BaseListOptions? options;
+  final BaseListController? options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const FilterButton(this.index, this.options, this.orderOptions,
@@ -92,7 +92,7 @@ class SearchField extends StatelessWidget {
 class SearchFilters extends StatelessWidget {
   final int? index;
   final TextStyle? textStyle;
-  final BaseListOptions options;
+  final BaseListController options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const SearchFilters(this.index,

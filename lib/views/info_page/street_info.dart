@@ -5,7 +5,7 @@ import 'package:churchdata/models/double_circular_notched_bhape.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
@@ -36,7 +36,7 @@ class _StreetInfoState extends State<StreetInfo> {
 
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
-  late final DataObjectListOptions<Family> _listOptions;
+  late final DataObjectListController<Family> _listOptions;
 
   @override
   void initState() {
@@ -57,7 +57,7 @@ class _StreetInfoState extends State<StreetInfo> {
         },
       );
     }
-    _listOptions = DataObjectListOptions<Family>(
+    _listOptions = DataObjectListController<Family>(
       tap: (family) => familyTap(family, context),
       itemsStream: _orderOptions.switchMap(
         (o) => widget.street

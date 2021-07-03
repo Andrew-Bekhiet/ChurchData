@@ -1,7 +1,7 @@
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
@@ -212,7 +212,7 @@ class _UserInfoState extends State<UserInfo> {
                       Expanded(
                         child: DataObjectList<Area>(
                           autoDisposeController: true,
-                          options: DataObjectListOptions(
+                          options: DataObjectListController(
                             tap: (a) => areaTap(a, context),
                             itemsStream: Area.getAllForUser(
                                     uid: user.superAccess ? null : user.uid)
@@ -233,7 +233,7 @@ class _UserInfoState extends State<UserInfo> {
               onPressed: () => navigator.currentState!.push(
                 MaterialPageRoute(
                   builder: (context) {
-                    final listOptions = DataObjectListOptions<User>(
+                    final listOptions = DataObjectListController<User>(
                       itemBuilder:
                           (item, onLongPress, onTap, trailing, subtitle) =>
                               DataObjectWidget(

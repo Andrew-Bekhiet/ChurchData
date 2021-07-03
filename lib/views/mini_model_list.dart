@@ -1,5 +1,5 @@
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
@@ -27,7 +27,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: DataObjectList(
-        options: DataObjectListOptions<T>(
+        options: DataObjectListController<T>(
           itemBuilder: (current, onLongPress, onTap, trailing, subtitle) =>
               ListTile(
             title: Text(current.name),

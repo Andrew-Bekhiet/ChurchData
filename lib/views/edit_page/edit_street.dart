@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
@@ -347,7 +347,7 @@ class _EditStreetState extends State<EditStreet> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Area>(
+        var listOptions = DataObjectListController<Area>(
           tap: (value) {
             navigator.currentState!.pop();
             setState(() {

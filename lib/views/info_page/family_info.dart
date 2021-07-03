@@ -5,7 +5,7 @@ import 'package:churchdata/models/double_circular_notched_bhape.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
@@ -38,7 +38,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
       BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-  late final DataObjectListOptions _listOptions;
+  late final DataObjectListController _listOptions;
 
   bool showWarning = true;
 
@@ -70,7 +70,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
         },
       );
     }
-    _listOptions = DataObjectListOptions(
+    _listOptions = DataObjectListController(
       tap: (o) => dataObjectTap(o, context),
       itemsStream: _orderOptions.switchMap(
         (o) => widget.family

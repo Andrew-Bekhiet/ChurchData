@@ -1,4 +1,4 @@
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +12,7 @@ class UsersPage extends StatelessWidget {
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode searchFocus = FocusNode();
 
-  final _listOptions = DataObjectListOptions<User>(
+  final _listOptions = DataObjectListController<User>(
     itemsStream: Stream.fromFuture(User.getUsersForEdit()),
   );
 

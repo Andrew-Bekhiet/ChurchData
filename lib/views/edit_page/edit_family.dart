@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
@@ -533,7 +533,7 @@ class _EditFamilyState extends State<EditFamily> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Family>(
+    final listOptions = DataObjectListController<Family>(
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
@@ -596,7 +596,7 @@ class _EditFamilyState extends State<EditFamily> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Family>(
+    final listOptions = DataObjectListController<Family>(
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
@@ -659,7 +659,7 @@ class _EditFamilyState extends State<EditFamily> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Street>(
+    final listOptions = DataObjectListController<Street>(
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {

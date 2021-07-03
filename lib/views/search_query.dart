@@ -2,7 +2,7 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
@@ -991,7 +991,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Area>(
+            options: DataObjectListController<Area>(
               tap: (a) => areaTap(a, context),
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1005,7 +1005,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Street>(
+            options: DataObjectListController<Street>(
               tap: (s) => streetTap(s, context),
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1019,7 +1019,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Family>(
+            options: DataObjectListController<Family>(
               tap: (f) => familyTap(f, context),
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1034,7 +1034,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               tap: (p) => personTap(p, context),
               itemsStream: persons
                   .where('BirthDay',
@@ -1059,7 +1059,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         body = DataObjectList<Person>(
           autoDisposeController: true,
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             tap: (p) => personTap(p, context),
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
@@ -1075,7 +1075,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Area>(
+            options: DataObjectListController<Area>(
               tap: (a) => areaTap(a, context),
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1088,7 +1088,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Street>(
+            options: DataObjectListController<Street>(
               tap: (s) => streetTap(s, context),
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1101,7 +1101,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Family>(
+            options: DataObjectListController<Family>(
               tap: (f) => familyTap(f, context),
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1115,7 +1115,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               tap: (p) => personTap(p, context),
               itemsStream: persons
                   .where('BirthDay',
@@ -1133,7 +1133,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         body = DataObjectList<Person>(
           autoDisposeController: true,
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             tap: (p) => personTap(p, context),
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
@@ -1148,7 +1148,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Area>(
+            options: DataObjectListController<Area>(
               tap: (a) => areaTap(a, context),
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1161,7 +1161,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Street>(
+            options: DataObjectListController<Street>(
               tap: (s) => streetTap(s, context),
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1174,7 +1174,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Family>(
+            options: DataObjectListController<Family>(
               tap: (f) => familyTap(f, context),
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1188,7 +1188,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               tap: (p) => personTap(p, context),
               itemsStream: persons
                   .where('BirthDay',
@@ -1206,7 +1206,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         body = DataObjectList<Person>(
           autoDisposeController: true,
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             tap: (p) => personTap(p, context),
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
@@ -1221,7 +1221,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (parentIndex == 0) {
           body = DataObjectList<Area>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Area>(
+            options: DataObjectListController<Area>(
               tap: (a) => areaTap(a, context),
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1234,7 +1234,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 1) {
           body = DataObjectList<Street>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Street>(
+            options: DataObjectListController<Street>(
               tap: (s) => streetTap(s, context),
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1247,7 +1247,7 @@ class _SearchQueryState extends State<SearchQuery> {
         } else if (parentIndex == 2) {
           body = DataObjectList<Family>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Family>(
+            options: DataObjectListController<Family>(
               tap: (f) => familyTap(f, context),
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
@@ -1261,7 +1261,7 @@ class _SearchQueryState extends State<SearchQuery> {
         if (!birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
-            options: DataObjectListOptions<Person>(
+            options: DataObjectListController<Person>(
               tap: (p) => personTap(p, context),
               itemsStream: persons
                   .where('BirthDay',
@@ -1279,7 +1279,7 @@ class _SearchQueryState extends State<SearchQuery> {
         }
         body = DataObjectList<Person>(
           autoDisposeController: true,
-          options: DataObjectListOptions<Person>(
+          options: DataObjectListController<Person>(
             tap: (p) => personTap(p, context),
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
@@ -1463,7 +1463,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    final listOptions = DataObjectListOptions<Area>(
+    final listOptions = DataObjectListController<Area>(
       tap: (areaSelected) {
         navigator.currentState!.pop();
         queryValue =
@@ -1527,7 +1527,7 @@ class _SearchQueryState extends State<SearchQuery> {
   void _selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
-    final listOptions = DataObjectListOptions<Family>(
+    final listOptions = DataObjectListController<Family>(
       tap: (familySelected) {
         navigator.currentState!.pop();
         setState(() {
@@ -1584,7 +1584,7 @@ class _SearchQueryState extends State<SearchQuery> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Street>(
+        var listOptions = DataObjectListController<Street>(
           tap: (streetSelected) {
             navigator.currentState!.pop();
             setState(() {

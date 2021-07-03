@@ -27,7 +27,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
 import '../models/list.dart';
-import '../models/list_options.dart';
+import '../models/list_controllers.dart';
 import '../models/order_options.dart';
 import '../models/user.dart';
 import '../utils/globals.dart';
@@ -61,10 +61,10 @@ class _RootState extends State<Root>
   final BehaviorSubject<OrderOptions> _personsOrder =
       BehaviorSubject.seeded(OrderOptions());
 
-  late DataObjectListOptions<Area> _areasOptions;
-  late DataObjectListOptions<Street> _streetsOptions;
-  late DataObjectListOptions<Family> _familiesOptions;
-  late DataObjectListOptions<Person> _personsOptions;
+  late DataObjectListController<Area> _areasOptions;
+  late DataObjectListController<Street> _streetsOptions;
+  late DataObjectListController<Family> _familiesOptions;
+  late DataObjectListController<Person> _personsOptions;
 
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
@@ -1029,7 +1029,7 @@ class _RootState extends State<Root>
                                     Expanded(
                                       child: DataObjectList<Area>(
                                         autoDisposeController: true,
-                                        options: DataObjectListOptions(
+                                        options: DataObjectListController(
                                           itemsStream: Area.getAllForUser().map(
                                             (s) => s.docs
                                                 .map(Area.fromQueryDoc)
@@ -1317,7 +1317,7 @@ class _RootState extends State<Root>
     _tabController = TabController(vsync: this, length: 4);
     WidgetsBinding.instance!.addObserver(this);
     _keepAlive(true);
-    _areasOptions = DataObjectListOptions<Area>(
+    _areasOptions = DataObjectListController<Area>(
       searchQuery: _searchQuery,
       //Listen to Ordering options and combine it
       //with the Data Stream from Firestore
@@ -1329,7 +1329,7 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    _streetsOptions = DataObjectListOptions<Street>(
+    _streetsOptions = DataObjectListController<Street>(
       searchQuery: _searchQuery,
       itemsStream: _streetsOrder.switchMap(
         (order) =>
@@ -1339,7 +1339,7 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    _familiesOptions = DataObjectListOptions<Family>(
+    _familiesOptions = DataObjectListController<Family>(
       searchQuery: _searchQuery,
       itemsStream: _familiesOrder.switchMap(
         (order) =>
@@ -1349,7 +1349,7 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    _personsOptions = DataObjectListOptions<Person>(
+    _personsOptions = DataObjectListController<Person>(
       searchQuery: _searchQuery,
       itemsStream: _personsOrder.switchMap(
         (order) =>

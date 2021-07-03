@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata/models/invitation.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/utils/globals.dart';
@@ -24,7 +24,7 @@ export 'package:tuple/tuple.dart';
 ///You must provide [ListOptions<T>] in the parameter
 ///or use [Provider<ListOptions<T>>] above this widget
 class DataObjectList<T extends DataObject> extends StatefulWidget {
-  final DataObjectListOptions<T>? options;
+  final DataObjectListController<T>? options;
   final bool autoDisposeController;
 
   DataObjectList({Key? key, this.options, required this.autoDisposeController})
@@ -37,7 +37,7 @@ class DataObjectList<T extends DataObject> extends StatefulWidget {
 class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   bool _builtOnce = false;
-  late DataObjectListOptions<T> _listOptions;
+  late DataObjectListController<T> _listOptions;
 
   @override
   bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
@@ -115,7 +115,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _listOptions = widget.options ?? context.read<DataObjectListOptions<T>>();
+    _listOptions =
+        widget.options ?? context.read<DataObjectListController<T>>();
   }
 
   void _defaultLongPress(T current) async {

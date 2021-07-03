@@ -4,7 +4,7 @@ import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/double_circular_notched_bhape.dart';
 import 'package:churchdata/models/history_property.dart';
 import 'package:churchdata/models/list.dart';
-import 'package:churchdata/models/list_options.dart';
+import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
@@ -36,7 +36,7 @@ class _AreaInfoState extends State<AreaInfo> {
 
   bool showWarning = true;
 
-  late final DataObjectListOptions<Street> _listOptions;
+  late final DataObjectListController<Street> _listOptions;
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _AreaInfoState extends State<AreaInfo> {
         ]);
       },
     );
-    _listOptions = DataObjectListOptions<Street>(
+    _listOptions = DataObjectListController<Street>(
       tap: (street) => streetTap(street, context),
       itemsStream: _orderOptions.switchMap(
         (o) => widget.area
