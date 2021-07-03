@@ -15,24 +15,25 @@ class HivePersistenceProvider extends PersistenceProvider {
   }
 
   @override
-  Future<void> completeStep(String featureId) async {
+  Future<void> completeStep(String? featureId) async {
     await _box.put(featureId, true);
   }
 
   @override
-  Future<Set<String>> completedSteps(Iterable<String> featuresIds) async {
+  Future<Set<String?>> completedSteps(Iterable<String?>? featuresIds) async {
     return _box
         .toMap()
         .entries
         .where((element) =>
-            element.value == true && featuresIds.contains(element.key))
+            element.value == true &&
+            (featuresIds?.contains(element.key) ?? false))
         .map((e) => e.key)
         .toSet()
         .cast<String>();
   }
 
   @override
-  Future<bool> hasCompletedStep(String featureId) async {
-    return _box.get(featureId, defaultValue: false);
+  Future<bool> hasCompletedStep(String? featureId) async {
+    return _box.get(featureId, defaultValue: false)!;
   }
 }

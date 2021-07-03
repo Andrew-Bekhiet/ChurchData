@@ -1,15 +1,16 @@
 import 'dart:io';
 
 import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list_options.dart';
-import 'package:churchdata/models/user.dart';
-import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/search_filters.dart';
-import 'package:churchdata/views/mini_lists.dart';
+import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -21,21 +22,20 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:rxdart/rxdart.dart';
 
 class EditArea extends StatefulWidget {
-  final Area area;
+  final Area? area;
 
-  EditArea({Key key, this.area}) : super(key: key);
+  EditArea({Key? key, this.area}) : super(key: key);
 
   @override
   _EditAreaState createState() => _EditAreaState();
 }
 
 class _EditAreaState extends State<EditArea> {
-  Area area;
+  late Area area;
 
-  String changedImage;
+  String? changedImage;
   bool deletePhoto = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey();
@@ -47,80 +47,84 @@ class _EditAreaState extends State<EditArea> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: !kIsWeb,
       body: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
-                IconButton(icon: Builder(
-                  builder: (context) {
-                    return Stack(
-                      children: <Widget>[
-                        Positioned(
-                          left: 1.0,
-                          top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
-                        ),
-                        Icon(Icons.photo_camera,
-                            color: IconTheme.of(context).color),
-                      ],
+                IconButton(
+                  icon: Builder(
+                    builder: (context) {
+                      return Stack(
+                        children: <Widget>[
+                          Positioned(
+                            left: 1.0,
+                            top: 2.0,
+                            child:
+                                Icon(Icons.photo_camera, color: Colors.black54),
+                          ),
+                          Icon(Icons.photo_camera,
+                              color: IconTheme.of(context).color),
+                        ],
+                      );
+                    },
+                  ),
+                  onPressed: () async {
+                    var source = await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        actions: <Widget>[
+                          TextButton.icon(
+                            onPressed: () => navigator.currentState!.pop(true),
+                            icon: Icon(Icons.camera),
+                            label: Text('التقاط صورة من الكاميرا'),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => navigator.currentState!.pop(false),
+                            icon: Icon(Icons.photo_library),
+                            label: Text('اختيار من المعرض'),
+                          ),
+                          TextButton.icon(
+                            onPressed: () =>
+                                navigator.currentState!.pop('delete'),
+                            icon: Icon(Icons.delete),
+                            label: Text('حذف الصورة'),
+                          ),
+                        ],
+                      ),
                     );
-                  },
-                ), onPressed: () async {
-                  var source = await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      actions: <Widget>[
-                        TextButton.icon(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          icon: Icon(Icons.camera),
-                          label: Text('التقاط صورة من الكاميرا'),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          icon: Icon(Icons.photo_library),
-                          label: Text('اختيار من المعرض'),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => Navigator.of(context).pop('delete'),
-                          icon: Icon(Icons.delete),
-                          label: Text('حذف الصورة'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (source == null) return;
-                  if (source == 'delete') {
-                    changedImage = null;
-                    deletePhoto = true;
-                    area.hasPhoto = false;
-                    setState(() {});
-                    return;
-                  }
-                  if ((source &&
-                          !(await Permission.storage.request()).isGranted) ||
-                      !(await Permission.camera.request()).isGranted) return;
-                  var selectedImage = (await ImagePicker().getImage(
-                      source:
-                          source ? ImageSource.camera : ImageSource.gallery));
-                  if (selectedImage == null) return;
-                  changedImage = (await ImageCropper.cropImage(
-                          sourcePath: selectedImage.path,
-                          androidUiSettings: AndroidUiSettings(
+                    if (source == null) return;
+                    if (source == 'delete') {
+                      changedImage = null;
+                      deletePhoto = true;
+                      area.hasPhoto = false;
+                      setState(() {});
+                      return;
+                    }
+                    if ((source &&
+                            !(await Permission.storage.request()).isGranted) ||
+                        !(await Permission.camera.request()).isGranted) return;
+                    var selectedImage = await ImagePicker().getImage(
+                        source:
+                            source ? ImageSource.camera : ImageSource.gallery);
+                    if (selectedImage == null) return;
+                    changedImage = (await ImageCropper.cropImage(
+                            sourcePath: selectedImage.path,
+                            androidUiSettings: AndroidUiSettings(
                               toolbarTitle: 'قص الصورة',
                               toolbarColor: Theme.of(context).primaryColor,
                               toolbarWidgetColor: Theme.of(context)
                                   .primaryTextTheme
                                   .headline6
-                                  .color,
+                                  ?.color,
                               initAspectRatio: CropAspectRatioPreset.original,
-                              lockAspectRatio: false)))
-                      ?.path;
-                  deletePhoto = false;
-                  setState(() {});
-                })
+                              lockAspectRatio: false,
+                            )))
+                        ?.path;
+                    deletePhoto = false;
+                    setState(() {});
+                  },
+                )
               ],
               backgroundColor:
                   area.color != Colors.transparent ? area.color : null,
@@ -142,10 +146,10 @@ class _EditAreaState extends State<EditArea> {
                     ),
                   ),
                   background: changedImage == null || deletePhoto
-                      ? area.photo(false)
+                      ? area.photo(cropToCircle: false)
                       : PhotoView(
                           imageProvider: FileImage(
-                            File(changedImage),
+                            File(changedImage!),
                           ),
                         ),
                 ),
@@ -156,74 +160,69 @@ class _EditAreaState extends State<EditArea> {
         body: Form(
           key: _formKey,
           child: Padding(
-            padding: EdgeInsets.all(5),
-            child: ListView(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'اسم المنطقة',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'اسم المنطقة',
                       ),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      initialValue: area.name,
+                      onChanged: nameChanged,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'هذا الحقل مطلوب';
+                        }
+                        return null;
+                      },
                     ),
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    initialValue: area.name,
-                    onChanged: nameChanged,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'هذا الحقل مطلوب';
-                      }
-                      return null;
-                    },
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      labelText: 'العنوان',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: TextFormField(
+                      maxLines: null,
+                      decoration: InputDecoration(
+                        labelText: 'العنوان',
                       ),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      initialValue: area.address,
+                      onChanged: addressChange,
+                      validator: (value) {
+                        return null;
+                      },
                     ),
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    initialValue: area.address,
-                    onChanged: addressChange,
-                    validator: (value) {
-                      return null;
-                    },
                   ),
-                ),
-                ElevatedButton.icon(
+                  ElevatedButton.icon(
                     icon: Icon(
                       const IconData(0xe568, fontFamily: 'MaterialIconsR'),
                     ),
                     label: Text('تعديل مكان المنطقة على الخريطة'),
                     onPressed: () async {
-                      List<GeoPoint> oldPoints =
-                          area.locationPoints?.sublist(0);
-                      var rslt = await Navigator.of(context).push(
+                      List<GeoPoint> oldPoints = area.locationPoints.sublist(0);
+                      var rslt = await navigator.currentState!.push(
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
-                            resizeToAvoidBottomInset: !kIsWeb,
                             appBar: AppBar(
                               actions: <Widget>[
                                 IconButton(
                                   icon: Icon(Icons.done),
-                                  onPressed: () => Navigator.pop(context, true),
+                                  onPressed: () =>
+                                      navigator.currentState!.pop(true),
                                   tooltip: 'حفظ',
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete),
                                   onPressed: () =>
-                                      Navigator.pop(context, false),
+                                      navigator.currentState!.pop(false),
                                   tooltip: 'حذف التحديد',
                                 )
                               ],
@@ -238,75 +237,72 @@ class _EditAreaState extends State<EditArea> {
                       if (rslt == null) {
                         area.locationPoints = oldPoints;
                       } else if (rslt == false) {
-                        area.locationPoints = null;
+                        area.locationPoints = [];
                       }
-                    }),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: InkWell(
-                    onTap: () => _selectDate(context),
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'تاريخ أخر زيارة',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                    },
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: InkWell(
+                      onTap: () => _selectDate(context),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'تاريخ أخر زيارة',
                         ),
+                        child: area.lastVisit != null
+                            ? Text(DateFormat('yyyy/M/d').format(
+                                area.lastVisit!.toDate(),
+                              ))
+                            : null,
                       ),
-                      child: Text(DateFormat('yyyy/M/d').format(
-                        area.lastVisit.toDate(),
-                      )),
                     ),
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: InkWell(
-                    onTap: () => _selectDate2(context),
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: InkWell(
+                      onTap: () => _selectDate2(context),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                         ),
+                        child: area.fatherLastVisit != null
+                            ? Text(DateFormat('yyyy/M/d').format(
+                                area.fatherLastVisit!.toDate(),
+                              ))
+                            : null,
                       ),
-                      child: area.fatherLastVisit != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              area.fatherLastVisit.toDate(),
-                            ))
-                          : Text(DateFormat('yyyy/M/d').format(
-                              DateTime(DateTime.now().year,
-                                  DateTime.now().month, DateTime.now().day),
-                            )),
                     ),
                   ),
-                ),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(primary: area.color),
-                  onPressed: selectColor,
-                  icon: Icon(Icons.color_lens),
-                  label: Text('اللون'),
-                ),
-                Selector<User, bool>(
-                  selector: (_, user) => user.manageUsers,
-                  builder: (context, permission, _) {
-                    if (permission) {
-                      return ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(primary: area.color),
-                        icon: Icon(Icons.visibility),
-                        onPressed: showUsers,
-                        label: Text(
-                            'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
-                            softWrap: false,
-                            textScaleFactor: 0.95,
-                            overflow: TextOverflow.fade),
-                      );
-                    }
-                    return Container();
-                  },
-                ),
-              ].map((w) => Focus(child: w)).toList(),
+                  ElevatedButton.icon(
+                    style: area.color != Colors.transparent
+                        ? ElevatedButton.styleFrom(primary: area.color)
+                        : null,
+                    onPressed: selectColor,
+                    icon: Icon(Icons.color_lens),
+                    label: Text('اللون'),
+                  ),
+                  Selector<User, bool>(
+                    selector: (_, user) => user.manageUsers,
+                    builder: (context, permission, _) {
+                      if (permission) {
+                        return ElevatedButton.icon(
+                          style: area.color != Colors.transparent
+                              ? ElevatedButton.styleFrom(primary: area.color)
+                              : null,
+                          icon: Icon(Icons.visibility),
+                          onPressed: showUsers,
+                          label: Text(
+                              'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
+                              softWrap: false,
+                              textScaleFactor: 0.95,
+                              overflow: TextOverflow.fade),
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
+                ].map((w) => Focus(child: w)).toList(),
+              ),
             ),
           ),
         ),
@@ -344,13 +340,13 @@ class _EditAreaState extends State<EditArea> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(true);
+                  navigator.currentState!.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  navigator.currentState!.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -358,7 +354,7 @@ class _EditAreaState extends State<EditArea> {
           ),
         ) ==
         true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار حذف المنطقة وما بداخلها من بيانات...'),
           duration: Duration(minutes: 20),
@@ -370,14 +366,14 @@ class _EditAreaState extends State<EditArea> {
         // ignore: unawaited_futures
         area.ref.delete();
       }
-      Navigator.of(context).pop('deleted');
+      navigator.currentState!.pop('deleted');
     }
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    area ??= (widget.area ?? Area.empty()).copyWith();
+  void initState() {
+    super.initState();
+    area = (widget.area ?? Area.empty()).copyWith();
   }
 
   void nameChanged(String value) {
@@ -386,16 +382,16 @@ class _EditAreaState extends State<EditArea> {
 
   Future<void> save() async {
     try {
-      if (_formKey.currentState.validate()) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (_formKey.currentState!.validate()) {
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
         );
-        if (area.locationPoints != null &&
+        if (area.locationPoints.isNotEmpty &&
             hashList(area.locationPoints) !=
-                hashList(widget.area.locationPoints)) {
+                hashList(widget.area?.locationPoints)) {
           if (User.instance.approveLocations) {
             area.locationConfirmed = await showDialog(
               context: context,
@@ -406,11 +402,11 @@ class _EditAreaState extends State<EditArea> {
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () => navigator.currentState!.pop(true),
                     child: Text('نعم'),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => navigator.currentState!.pop(false),
                     child: Text('لا'),
                   )
                 ],
@@ -429,7 +425,7 @@ class _EditAreaState extends State<EditArea> {
               .ref()
               .child('AreasPhotos/${area.id}')
               .putFile(
-                File(changedImage),
+                File(changedImage!),
               );
           area.hasPhoto = true;
         } else if (deletePhoto) {
@@ -439,16 +435,16 @@ class _EditAreaState extends State<EditArea> {
               .delete();
         }
 
-        area.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
+        area.lastEdit = User.instance.uid;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await area.update(old: widget.area.getMap());
+          await area.update(old: widget.area?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
-          area.update(old: widget.area.getMap());
+          area.update(old: widget.area?.getMap() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await area.set();
@@ -458,15 +454,15 @@ class _EditAreaState extends State<EditArea> {
           area.set();
         }
 
-        Navigator.of(context).pop(area.ref);
+        navigator.currentState!.pop(area.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'AreaP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Area', area.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(
             err.toString(),
@@ -484,7 +480,7 @@ class _EditAreaState extends State<EditArea> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState!.pop();
               setState(() {
                 area.color = Colors.transparent;
               });
@@ -496,7 +492,7 @@ class _EditAreaState extends State<EditArea> {
         content: ColorsList(
           selectedColor: area.color,
           onSelect: (color) {
-            Navigator.of(context).pop();
+            navigator.currentState!.pop();
             setState(() {
               area.color = color;
             });
@@ -507,86 +503,76 @@ class _EditAreaState extends State<EditArea> {
   }
 
   void showUsers() async {
-    BehaviorSubject<String> searchStream = BehaviorSubject<String>.seeded('');
-    area.allowedUsers = await Navigator.push(
-          context,
+    area.allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
-            builder: (context) {
-              return FutureBuilder<List<User>>(
-                future: User.getAllUsers(area.allowedUsers),
-                builder: (c, users) => users.hasData
-                    ? MultiProvider(
-                        providers: [
-                          Provider(
-                            create: (_) => DataObjectListOptions<User>(
-                              itemBuilder: (current,
-                                      {onLongPress,
-                                      onTap,
-                                      subtitle,
-                                      trailing}) =>
-                                  DataObjectWidget<User>(
-                                current,
-                                onTap: () => onTap(current),
-                                trailing: trailing,
-                                showSubtitle: false,
-                              ),
-                              searchQuery: searchStream,
-                              selectionMode: true,
-                              itemsStream:
-                                  Stream.fromFuture(User.getAllUsersLive()).map(
-                                      (s) => s.docs.map(User.fromDoc).toList()),
-                              selected: {
-                                for (var item in users.data) item.uid: item
-                              },
-                            ),
-                          )
-                        ],
-                        builder: (context, child) => Scaffold(
-                          appBar: AppBar(
-                            title: Text('اختيار مستخدمين'),
-                            actions: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.pop(
-                                      context,
-                                      context
-                                          .read<DataObjectListOptions<User>>()
-                                          .selectedLatest
-                                          .values
-                                          ?.map((f) => f.uid)
-                                          ?.toList());
-                                },
-                                icon: Icon(Icons.done),
-                                tooltip: 'تم',
-                              )
-                            ],
-                          ),
-                          body: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SearchField(
-                                  searchStream: searchStream,
-                                  textStyle:
-                                      Theme.of(context).textTheme.bodyText2),
-                              Expanded(
-                                child: UsersList(),
-                              ),
-                            ],
-                          ),
+            builder: (context) => FutureBuilder<List<User>>(
+              future: User.getAllForUser().first.then((value) => value
+                  .where((u) => area.allowedUsers.contains(u.uid))
+                  .toList()),
+              builder: (c, users) {
+                if (!users.hasData)
+                  return const Center(child: CircularProgressIndicator());
+
+                return Provider<DataObjectListOptions<User>>(
+                  create: (_) => DataObjectListOptions<User>(
+                    itemBuilder: (current,
+                            [void Function(User)? onLongPress,
+                            void Function(User)? onTap,
+                            Widget? trailing,
+                            Widget? subtitle]) =>
+                        DataObjectWidget(
+                      current,
+                      onTap: () => onTap!(current),
+                      trailing: trailing,
+                      showSubtitle: false,
+                    ),
+                    selectionMode: true,
+                    selected: {for (var item in users.data!) item.id: item},
+                    itemsStream: User.getAllForUser(),
+                  ),
+                  dispose: (context, c) => c.dispose(),
+                  builder: (context, _) => Scaffold(
+                    appBar: AppBar(
+                      leading: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: navigator.currentState!.pop),
+                      title: SearchField(
+                        showSuffix: false,
+                        searchStream: context
+                            .read<DataObjectListOptions<User>>()
+                            .searchQuery,
+                        textStyle: Theme.of(context).primaryTextTheme.headline6,
+                      ),
+                      actions: [
+                        IconButton(
+                          onPressed: () {
+                            navigator.currentState!.pop(context
+                                .read<DataObjectListOptions<User>>()
+                                .selectedLatest
+                                ?.keys
+                                .toList());
+                          },
+                          icon: const Icon(Icons.done),
+                          tooltip: 'تم',
                         ),
-                      )
-                    : Center(child: CircularProgressIndicator()),
-              );
-            },
+                      ],
+                    ),
+                    body: const UsersList(
+                      autoDisposeController: false,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ) ??
         area.allowedUsers;
   }
 
-  Future _selectDate(BuildContext context) async {
-    DateTime picked = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: area.lastVisit.toDate(),
+      initialDate: area.lastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),
       lastDate: DateTime.now(),
     );
@@ -598,7 +584,7 @@ class _EditAreaState extends State<EditArea> {
   }
 
   Future _selectDate2(BuildContext context) async {
-    DateTime picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: area.fatherLastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),

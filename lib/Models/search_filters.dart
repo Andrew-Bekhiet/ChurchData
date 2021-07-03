@@ -1,3 +1,4 @@
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -6,45 +7,43 @@ import 'list_options.dart';
 import 'order_options.dart';
 
 class FilterButton extends StatelessWidget {
-  final int index;
-  final BaseListOptions controller;
-  final BehaviorSubject<OrderOptions> orderOptions;
+  final int? index;
+  final BaseListOptions? options;
+  final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
-  const FilterButton(this.index, this.controller, this.orderOptions,
-      {Key key, this.disableOrdering = false})
-      : assert(orderOptions != null || disableOrdering),
-        super(key: key);
+  const FilterButton(this.index, this.options, this.orderOptions,
+      {Key? key, this.disableOrdering = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.filter_list),
+      icon: const Icon(Icons.filter_list),
       onPressed: () {
         showDialog(
           context: context,
           builder: (context) => SimpleDialog(
             children: [
               TextButton.icon(
-                icon: Icon(Icons.select_all),
-                label: Text('تحديد الكل'),
+                icon: const Icon(Icons.select_all),
+                label: const Text('تحديد الكل'),
                 onPressed: () {
-                  controller.selectAll();
-                  Navigator.pop(context);
+                  options!.selectAll();
+                  navigator.currentState!.pop();
                 },
               ),
               TextButton.icon(
-                icon: Icon(Icons.select_all),
-                label: Text('تحديد لا شئ'),
+                icon: const Icon(Icons.select_all),
+                label: const Text('تحديد لا شئ'),
                 onPressed: () {
-                  controller.selectNone();
-                  Navigator.pop(context);
+                  options!.selectNone();
+                  navigator.currentState!.pop();
                 },
               ),
               if (!disableOrdering)
-                Text('ترتيب حسب:',
+                const Text('ترتيب حسب:',
                     style: TextStyle(fontWeight: FontWeight.bold)),
-              if (!disableOrdering)
-                ...getOrderingOptions(context, orderOptions, index)
+              if (!disableOrdering) ...getOrderingOptions(orderOptions!, index)
             ],
           ),
         );
@@ -54,11 +53,16 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  SearchField({Key key, @required this.textStyle, @required this.searchStream})
+  SearchField(
+      {Key? key,
+      required this.textStyle,
+      required this.searchStream,
+      this.showSuffix = true})
       : super(key: key);
-  final TextStyle textStyle;
+  final TextStyle? textStyle;
   final TextEditingController _textController = TextEditingController();
   final BehaviorSubject<String> searchStream;
+  final bool showSuffix;
 
   @override
   Widget build(BuildContext context) {
@@ -66,33 +70,35 @@ class SearchField extends StatelessWidget {
       style: textStyle,
       controller: _textController,
       decoration: InputDecoration(
-          suffixIcon: IconButton(
-            icon: Icon(Icons.close, color: textStyle.color),
-            onPressed: () {
-              _textController.text = '';
-              searchStream.add('');
-            },
-          ),
-          hintStyle: textStyle,
-          icon: Icon(Icons.search, color: textStyle.color),
-          hintText: 'بحث ...'),
-      onChanged: (_) => searchStream.add(_),
+        suffixIcon: showSuffix
+            ? IconButton(
+                icon: Icon(Icons.close, color: textStyle!.color),
+                onPressed: () {
+                  _textController.text = '';
+                  searchStream.add('');
+                },
+              )
+            : null,
+        hintStyle: textStyle,
+        icon: Icon(Icons.search, color: textStyle!.color),
+        hintText: 'بحث ...',
+        border: InputBorder.none,
+      ),
+      onChanged: searchStream.add,
     );
   }
 }
 
 class SearchFilters extends StatelessWidget {
-  final int index;
-  final TextStyle textStyle;
+  final int? index;
+  final TextStyle? textStyle;
   final BaseListOptions options;
-  final BehaviorSubject<OrderOptions> orderOptions;
-  final BehaviorSubject<String> searchStream;
+  final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
   const SearchFilters(this.index,
-      {Key key,
-      @required this.textStyle,
-      @required this.options,
-      @required this.searchStream,
+      {Key? key,
+      required this.textStyle,
+      required this.options,
       this.disableOrdering = false,
       this.orderOptions})
       : super(key: key);
@@ -103,10 +109,10 @@ class SearchFilters extends StatelessWidget {
       children: [
         Expanded(
           child: SearchField(
-            searchStream: searchStream,
+            searchStream: options.searchQuery,
             textStyle: textStyle ??
-                Theme.of(context).textTheme.headline6.copyWith(
-                    color: Theme.of(context).primaryTextTheme.headline6.color),
+                Theme.of(context).textTheme.headline6!.copyWith(
+                    color: Theme.of(context).primaryTextTheme.headline6!.color),
           ),
         ),
         FilterButton(

@@ -1,24 +1,21 @@
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:churchdata/typedefs.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
-import 'user.dart';
-
 abstract class DataObject {
-  DocumentReference ref;
+  JsonRef ref;
   String name;
   Color color;
 
-  DataObject(this.ref, this.name, this.color);
+  DataObject(this.ref, this.name, Color? color)
+      : color = color ?? Colors.transparent;
 
-  DataObject.createFromData(Map<dynamic, dynamic> data, this.ref)
-      : name = data['Name'],
+  DataObject.createFromData(Json data, this.ref)
+      : name = data['Name'] ?? '',
         color = Color(data['Color'] ?? Colors.transparent.value);
 
   @override
@@ -33,38 +30,34 @@ abstract class DataObject {
 
   DataObject copyWith();
 
-  Map<String, dynamic> getMap();
+  Json getMap();
 
-  Map<String, dynamic> getHumanReadableMap();
+  Json getHumanReadableMap();
 
-  Future<String> getSecondLine();
+  Future<String?> getSecondLine();
 
   int _fullyHash(dynamic e) {
     if (e is Map)
       return hashValues(
           _fullyHash(e.keys.toList()), _fullyHash(e.values.toList()));
-    else if (e is DocumentReference)
-      return e?.path?.hashCode;
+    else if (e is JsonRef)
+      return e.path.hashCode;
     else if (e is List &&
-        e.whereType<List>().isEmpty &&
         e.whereType<Map>().isEmpty &&
-        e.whereType<DocumentReference>().isEmpty)
+        e.whereType<JsonRef>().isEmpty &&
+        e.whereType<List>().isEmpty)
       return hashList(e);
-    else if (e is List) return hashList(e.map((it) => _fullyHash(it)));
+    else if (e is List) return hashList(e.map(_fullyHash));
 
-    return e.hashCode;
+    return e?.hashCode ?? 0;
   }
 
   Future<void> set() async {
     await ref.set(getMap());
   }
 
-  Future<void> update({Map<String, dynamic> old}) async {
-    if (old != null)
-      await ref
-          .update(getMap()..removeWhere((key, value) => old[key] == value));
-    else
-      await ref.update(getMap());
+  Future<void> update({Json old = const {}}) async {
+    await ref.update(getMap()..removeWhere((key, value) => old[key] == value));
   }
 }
 
@@ -78,33 +71,35 @@ abstract class ParentObject<T extends DataObject> {
 }
 
 abstract class ChildObject<T extends DataObject> {
-  DocumentReference get parentId;
-  Future<String> getParentName();
+  JsonRef? get parentId;
+  Future<String?> getParentName();
 }
 
 abstract class PhotoObject {
   IconData defaultIcon = Icons.help;
-  bool hasPhoto;
+  late bool hasPhoto;
 
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(Duration(days: 1));
 
   Reference get photoRef;
-  // fireWeb.Reference get webPhotoRef;
 
-  Widget photo([bool wrapPhotoInCircle = false]) {
-    return DataObjectPhoto(this,
-        wrapPhotoInCircle: wrapPhotoInCircle,
-        key: hasPhoto ? ValueKey(photoRef?.fullPath) : null);
+  Widget photo({bool cropToCircle = true, bool removeHero = false}) {
+    return DataObjectPhoto(
+      this,
+      wrapPhotoInCircle: cropToCircle,
+      key: hasPhoto ? ValueKey(photoRef.fullPath) : null,
+      heroTag: removeHero ? UniqueKey() : null,
+    );
   }
 }
 
 class DataObjectPhoto extends StatefulWidget {
   final PhotoObject object;
   final bool wrapPhotoInCircle;
-  final Object heroTag;
+  final Object? heroTag;
   const DataObjectPhoto(this.object,
-      {Key key, this.wrapPhotoInCircle = false, this.heroTag})
+      {Key? key, this.wrapPhotoInCircle = false, this.heroTag})
       : super(key: key);
 
   @override
@@ -146,7 +141,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
             child: FutureBuilder<String>(
               future: widget.object._photoUrlCache.fetch(
                 () async {
-                  String cache = Hive.box<String>('PhotosURLsCache')
+                  String? cache = Hive.box<String>('PhotosURLsCache')
                       .get(widget.object.photoRef.fullPath);
 
                   if (cache == null) {
@@ -164,7 +159,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
               ),
               builder: (context, data) {
                 if (data.hasError)
-                  return Center(child: ErrorWidget(data.error));
+                  return Center(child: ErrorWidget(data.error!));
                 if (!data.hasData)
                   return const AspectRatio(
                       aspectRatio: 1, child: CircularProgressIndicator());
@@ -183,7 +178,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                                 widget.object.photoRef.fullPath,
                             child: InteractiveViewer(
                               child: CachedNetworkImage(
-                                imageUrl: data.data,
+                                imageUrl: data.data!,
                                 progressIndicatorBuilder:
                                     (context, url, progress) => AspectRatio(
                                   aspectRatio: 1,
@@ -195,60 +190,18 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                           ),
                         ),
                       ),
-                      child: !(widget.object is User)
-                          ? CachedNetworkImage(
-                              memCacheHeight:
-                                  (constrains.maxHeight * 4).toInt(),
-                              imageRenderMethodForWeb:
-                                  ImageRenderMethodForWeb.HtmlImage,
-                              imageUrl: data.data,
-                              progressIndicatorBuilder:
-                                  (context, url, progress) => AspectRatio(
-                                aspectRatio: 1,
-                                child: CircularProgressIndicator(
-                                    value: progress.progress),
-                              ),
-                            )
-                          : StreamBuilder(
-                              stream: FirebaseDatabase.instance
-                                  .reference()
-                                  .child(
-                                      'Users/${(widget.object as User).uid}/lastSeen')
-                                  .onValue,
-                              builder: (context, activity) {
-                                if (activity.data?.snapshot?.value == 'Active')
-                                  return Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        child: CircleAvatar(
-                                          backgroundImage:
-                                              CachedNetworkImageProvider(
-                                                  data.data),
-                                        ),
-                                      ),
-                                      Align(
-                                        alignment: Alignment.bottomLeft,
-                                        child: Container(
-                                          height: 15,
-                                          width: 15,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(30),
-                                            border:
-                                                Border.all(color: Colors.white),
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                else
-                                  return CircleAvatar(
-                                    backgroundImage:
-                                        CachedNetworkImageProvider(data.data),
-                                  );
-                              },
-                            ),
+                      child: CachedNetworkImage(
+                        memCacheHeight: (constrains.maxHeight * 4).toInt(),
+                        imageRenderMethodForWeb:
+                            ImageRenderMethodForWeb.HtmlImage,
+                        imageUrl: data.data!,
+                        progressIndicatorBuilder: (context, url, progress) =>
+                            AspectRatio(
+                          aspectRatio: 1,
+                          child: CircularProgressIndicator(
+                              value: progress.progress),
+                        ),
+                      ),
                     ),
                   );
                   return widget.wrapPhotoInCircle
@@ -267,4 +220,16 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
       },
     );
   }
+}
+
+class PhotoWidget with PhotoObject {
+  PhotoWidget(this.photoRef, {IconData? defaultIcon}) {
+    if (defaultIcon != null) this.defaultIcon = defaultIcon;
+  }
+
+  @override
+  Reference photoRef;
+
+  @override
+  bool get hasPhoto => true;
 }

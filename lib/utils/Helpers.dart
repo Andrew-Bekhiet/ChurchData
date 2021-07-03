@@ -12,6 +12,7 @@ import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:churchdata/views/search_query.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -54,11 +55,11 @@ import '../models/user.dart';
 import 'globals.dart';
 
 void areaTap(Area area, BuildContext context) {
-  Navigator.of(context).pushNamed('AreaInfo', arguments: area);
+  navigator.currentState!.pushNamed('AreaInfo', arguments: area);
 }
 
-void changeTheme({Brightness brightness, @required BuildContext context}) {
-  bool darkTheme = Hive.box('Settings').get('DarkTheme');
+void changeTheme({Brightness? brightness, required BuildContext context}) {
+  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
   bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
   MaterialColor color = Colors.cyan;
@@ -87,17 +88,51 @@ void changeTheme({Brightness brightness, @required BuildContext context}) {
       primarySwatch: color,
       brightness: darkTheme != null
           ? (darkTheme ? Brightness.dark : Brightness.light)
-          : WidgetsBinding.instance.window.platformBrightness,
+          : WidgetsBinding.instance!.window.platformBrightness,
       accentColor: accent,
     ),
+    accentColor: accent,
     floatingActionButtonTheme:
         FloatingActionButtonThemeData(backgroundColor: color),
     visualDensity: VisualDensity.adaptivePlatformDensity,
     brightness: darkTheme != null
         ? (darkTheme ? Brightness.dark : Brightness.light)
-        : WidgetsBinding.instance.window.platformBrightness,
-    accentColor: accent,
+        : WidgetsBinding.instance!.window.platformBrightness,
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: color),
+      ),
+    ),
     primaryColor: color,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    bottomAppBarTheme: BottomAppBarTheme(
+      color: accent,
+      shape: const CircularNotchedRectangle(),
+    ),
   );
 }
 
@@ -117,7 +152,7 @@ void dataObjectTap(DataObject obj, BuildContext context) {
 }
 
 void familyTap(Family family, BuildContext context) {
-  Navigator.of(context).pushNamed('FamilyInfo', arguments: family);
+  navigator.currentState!.pushNamed('FamilyInfo', arguments: family);
 }
 
 LatLng fromGeoPoint(GeoPoint point) {
@@ -131,17 +166,17 @@ GeoPoint fromLatLng(LatLng point) {
 Future<dynamic> getLinkObject(Uri deepLink) async {
   try {
     if (deepLink.pathSegments[0] == 'viewImage') {
-      return MessageIcon(deepLink.queryParameters['url']);
+      return MessageIcon(deepLink.queryParameters['url']!);
     } else if (deepLink.pathSegments[0] == 'viewArea') {
-      return await Area.fromId(deepLink.queryParameters['AreaId']);
+      return await Area.fromId(deepLink.queryParameters['AreaId']!);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
-      return await Street.fromId(deepLink.queryParameters['StreetId']);
+      return await Street.fromId(deepLink.queryParameters['StreetId']!);
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
-      return await Family.fromId(deepLink.queryParameters['FamilyId']);
+      return await Family.fromId(deepLink.queryParameters['FamilyId']!);
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
-      return await Person.fromId(deepLink.queryParameters['PersonId']);
+      return await Person.fromId(deepLink.queryParameters['PersonId']!);
     } else if (deepLink.pathSegments[0] == 'viewUser') {
-      return await User.fromID(deepLink.queryParameters['UID']);
+      return await User.fromID(deepLink.queryParameters['UID']!);
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       return QueryIcon();
     }
@@ -153,9 +188,9 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
   return null;
 }
 
-List<RadioListTile> getOrderingOptions(BuildContext context,
-    BehaviorSubject<OrderOptions> orderOptions, int index) {
-  Map source = index == 0
+List<RadioListTile> getOrderingOptions(
+    BehaviorSubject<OrderOptions> orderOptions, int? index) {
+  Json source = index == 0
       ? Area.getStaticHumanReadableMap()
       : index == 1
           ? Street.getHumanReadableMap2()
@@ -165,14 +200,14 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
 
   return source.entries
       .map(
-        (e) => RadioListTile(
+        (e) => RadioListTile<String>(
           value: e.key,
           groupValue: orderOptions.value.orderBy,
           title: Text(e.value),
           onChanged: (value) {
-            orderOptions
-                .add(OrderOptions(orderBy: value, asc: orderOptions.value.asc));
-            Navigator.pop(context);
+            orderOptions.add(
+                OrderOptions(orderBy: value!, asc: orderOptions.value.asc));
+            navigator.currentState!.pop();
           },
         ),
       )
@@ -186,7 +221,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                Navigator.pop(context);
+                navigator.currentState!.pop();
               },
             ),
             RadioListTile(
@@ -196,7 +231,7 @@ List<RadioListTile> getOrderingOptions(BuildContext context,
               onChanged: (value) {
                 orderOptions.add(OrderOptions(
                     orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                Navigator.pop(context);
+                navigator.currentState!.pop();
               },
             ),
           ],
@@ -211,7 +246,7 @@ String getPhone(String phone, [bool whatsapp = true]) {
   return phone.trim();
 }
 
-DateTime getRiseDay([int year]) {
+DateTime getRiseDay([int? year]) {
   year ??= DateTime.now().year;
   int a = year % 4;
   int b = year % 7;
@@ -228,12 +263,12 @@ void import(BuildContext context) async {
         allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
     if (picked == null) return;
     final fileData = picked.files[0].bytes;
-    final decoder = SpreadsheetDecoder.decodeBytes(fileData);
+    final decoder = SpreadsheetDecoder.decodeBytes(fileData!);
     if (decoder.tables.containsKey('Areas') &&
         decoder.tables.containsKey('Streets') &&
         decoder.tables.containsKey('Families') &&
         decoder.tables.containsKey('Persons')) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار رفع الملف...'),
           duration: Duration(minutes: 9),
@@ -245,9 +280,9 @@ void import(BuildContext context) async {
           .putData(
               fileData,
               SettableMetadata(
-                  customMetadata: {'createdBy': User.instance.uid}));
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+                  customMetadata: {'createdBy': User.instance.uid!}));
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار استيراد الملف...'),
           duration: Duration(minutes: 9),
@@ -256,19 +291,19 @@ void import(BuildContext context) async {
       await FirebaseFunctions.instance
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('تم الاستيراد بنجاح'),
           duration: Duration(seconds: 4),
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      scaffoldMessenger.currentState!;
       await showErrorDialog(context, 'ملف غير صالح');
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    scaffoldMessenger.currentState!;
     await showErrorDialog(context, e.toString());
   }
 }
@@ -278,11 +313,11 @@ Future importArea(
   try {
     WriteBatch batchUpdate = FirebaseFirestore.instance.batch();
     int batchCount = 1;
-    List<String> keys;
-    String uid = auth.FirebaseAuth.instance.currentUser.uid;
+    List<String>? keys;
+    String uid = User.instance.uid!;
 
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Text('جار رفع البيانات ...'),
         duration: Duration(minutes: 5),
@@ -294,7 +329,7 @@ Future importArea(
       area.getMap(),
     );
 
-    for (List<dynamic> row in decoder.tables['Areas'].rows) {
+    for (List<dynamic> row in decoder.tables['Areas']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -304,8 +339,8 @@ Future importArea(
 
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
                 onError.toString(),
@@ -320,7 +355,7 @@ Future importArea(
         FirebaseFirestore.instance.collection('Streets').doc(row[0]),
         Map.fromIterables(
             keys,
-            List<String>.from(
+            List<String?>.from(
               row..removeAt(0),
             )).map((key, value) {
           if (value == null) return MapEntry(key, null);
@@ -333,11 +368,10 @@ Future importArea(
           if (key == 'Location')
             return MapEntry(
               key,
-              value?.split(','),
+              value.split(','),
             );
           if (key == 'LocationConfirmed') return MapEntry(key, value == 'true');
-          if (key == 'Color')
-            return MapEntry(key, value != null ? int.parse(value) : null);
+          if (key == 'Color') return MapEntry(key, int.parse(value));
           if (key == 'LastEdit') return MapEntry(key, uid);
           return MapEntry(
             key,
@@ -351,7 +385,7 @@ Future importArea(
     }
 
     keys = null;
-    for (List<dynamic> row in decoder.tables['Families'].rows) {
+    for (List<dynamic> row in decoder.tables['Families']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -361,8 +395,8 @@ Future importArea(
 
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
                 onError.toString(),
@@ -377,7 +411,7 @@ Future importArea(
         FirebaseFirestore.instance.collection('Families').doc(row[0]),
         Map.fromIterables(
             keys,
-            List<String>.from(
+            List<String?>.from(
               row..removeAt(0),
             )).map((key, value) {
           if (value == null) return MapEntry(key, null);
@@ -397,15 +431,12 @@ Future importArea(
           if (key == 'Location')
             return MapEntry(
                 key,
-                value != null
-                    ? GeoPoint(
-                        double.parse(value.split(',')[0]),
-                        double.parse(value.split(',')[1]),
-                      )
-                    : null);
+                GeoPoint(
+                  double.parse(value.split(',')[0]),
+                  double.parse(value.split(',')[1]),
+                ));
           if (key == 'LocationConfirmed') return MapEntry(key, value == 'true');
-          if (key == 'Color')
-            return MapEntry(key, value != null ? int.parse(value) : null);
+          if (key == 'Color') return MapEntry(key, int.parse(value));
           if (key == 'LastEdit') return MapEntry(key, uid);
           return MapEntry(key, value);
         }),
@@ -415,7 +446,7 @@ Future importArea(
 
     keys = null;
     bool end = false;
-    for (List<dynamic> row in decoder.tables['Contacts'].rows) {
+    for (List<dynamic> row in decoder.tables['Contacts']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -424,8 +455,8 @@ Future importArea(
       }
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
                 onError.toString(),
@@ -437,13 +468,13 @@ Future importArea(
           if (decoder.tables.values.elementAt(2).rows.indexOf(row) ==
               decoder.tables.values.elementAt(2).rows.length - 1) {
             end = true;
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            ScaffoldMessenger.of(context).showSnackBar(
+            scaffoldMessenger.currentState!;
+            scaffoldMessenger.currentState!.showSnackBar(
               SnackBar(
                 content: Text(
-                    'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas'].rows.length - 1}'
-                    ' شارع و ${decoder.tables['Families'].rows.length - 1}'
-                    ' عائلة و ${decoder.tables['Contacts'].rows.length - 1} شخص بنجاح'),
+                    'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas']!.rows.length - 1}'
+                    ' شارع و ${decoder.tables['Families']!.rows.length - 1}'
+                    ' عائلة و ${decoder.tables['Contacts']!.rows.length - 1} شخص بنجاح'),
                 duration: Duration(seconds: 4),
               ),
             );
@@ -455,7 +486,7 @@ Future importArea(
         FirebaseFirestore.instance.collection('Persons').doc(row[0]),
         Map.fromIterables(
             keys,
-            List<String>.from(
+            List<String?>.from(
               row..removeAt(0),
             )).map((key, value) {
           if (value == null) return MapEntry(key, null);
@@ -478,11 +509,9 @@ Future importArea(
           } else if (key.contains('BirthDa') || key.startsWith('Last')) {
             return MapEntry(
                 key,
-                value != null
-                    ? Timestamp.fromMillisecondsSinceEpoch(int.parse(
-                        value.toString(),
-                      ))
-                    : null);
+                Timestamp.fromMillisecondsSinceEpoch(int.parse(
+                  value.toString(),
+                )));
           } else if (key.startsWith('Is') || key == 'HasPhoto') {
             return MapEntry(key, value == 'true');
           } else if (key == 'StudyYear' || key == 'Job' || key == 'State') {
@@ -506,8 +535,7 @@ Future importArea(
               FirebaseFirestore.instance.doc('Users/$value'),
             );
           }
-          if (key == 'Color')
-            return MapEntry(key, value != null ? int.parse(value) : null);
+          if (key == 'Color') return MapEntry(key, int.parse(value));
           if (key == 'LastEdit') return MapEntry(key, uid);
           return MapEntry(key, value);
         }),
@@ -517,8 +545,8 @@ Future importArea(
 
     if (!end) {
       await batchUpdate.commit().catchError((onError) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text(
               onError.toString(),
@@ -527,13 +555,13 @@ Future importArea(
           ),
         );
       }).then((k) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text(
-                'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas'].rows.length - 1}'
-                ' شارع و ${decoder.tables['Families'].rows.length - 1}'
-                ' عائلة و ${decoder.tables['Contacts'].rows.length - 1} شخص بنجاح'),
+                'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas']!.rows.length - 1}'
+                ' شارع و ${decoder.tables['Families']!.rows.length - 1}'
+                ' عائلة و ${decoder.tables['Contacts']!.rows.length - 1} شخص بنجاح'),
             duration: Duration(seconds: 4),
           ),
         );
@@ -543,8 +571,8 @@ Future importArea(
     await FirebaseCrashlytics.instance
         .setCustomKey('LastErrorIn', 'Helpers.importArea');
     await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Text(
           err.toString(),
@@ -563,116 +591,159 @@ Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
 }
 
 void onForegroundMessage(messaging_types.RemoteMessage message,
-    [BuildContext context]) async {
+    [BuildContext? context]) async {
   context ??= mainScfld.currentContext;
   bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
-  if (!opened) await Hive.box<Map>('Notifications').close();
-  ScaffoldMessenger.of(context).showSnackBar(
+  scaffoldMessenger.currentState!.showSnackBar(
     SnackBar(
-      content: Text(message.notification.body),
+      content: Text(message.notification!.body!),
       action: SnackBarAction(
         label: 'فتح الاشعارات',
-        onPressed: () => Navigator.of(context).pushNamed('Notifications'),
+        onPressed: () => navigator.currentState!.pushNamed('Notifications'),
       ),
     ),
   );
 }
 
-Future onNotificationClicked(String payload) {
-  if (WidgetsBinding.instance.renderViewElement != null) {
-    processClickedNotification(mainScfld.currentContext, payload);
+Future<void> onNotificationClicked(String? payload) async {
+  if (WidgetsBinding.instance!.renderViewElement != null) {
+    await processClickedNotification(mainScfld.currentContext!, payload);
   }
-  return null;
 }
 
 void personTap(Person person, BuildContext context) {
-  Navigator.of(context).pushNamed('PersonInfo', arguments: person);
+  navigator.currentState!.pushNamed('PersonInfo', arguments: person);
 }
 
 Future processClickedNotification(BuildContext context,
-    [String payload]) async {
-  var notificationDetails =
+    [String? payload]) async {
+  final notificationDetails =
       await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
+  if (notificationDetails == null) return;
 
   if (notificationDetails.didNotificationLaunchApp) {
     if ((notificationDetails.payload ?? payload) == 'Birthday') {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                var now = DateTime.now().millisecondsSinceEpoch;
-                return SearchQuery(query: {
-                  'parentIndex': '3',
-                  'childIndex': '2',
-                  'operatorIndex': '0',
-                  'queryText': '',
-                  'queryValue': 'T' +
-                      (now - (now % Duration.millisecondsPerDay)).toString(),
-                  'birthDate': 'false',
-                  'descending': 'false',
-                  'orderBy': 'BirthDay'
-                });
-              },
-            ),
-          );
-        },
-      );
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '2',
+                'operatorIndex': '0',
+                'queryText': '',
+                'queryValue': 'T' +
+                    (now - (now % Duration.millisecondsPerDay)).toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'BirthDay'
+              });
+            },
+          ),
+        );
+      });
     } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                var now = DateTime.now().millisecondsSinceEpoch;
-                return SearchQuery(query: {
-                  'parentIndex': '3',
-                  'childIndex': '15',
-                  'operatorIndex': '3',
-                  'queryText': '',
-                  'queryValue': 'T' +
-                      ((now - (now % Duration.millisecondsPerDay)) -
-                              (Duration.millisecondsPerDay * 7))
-                          .toString(),
-                  'birthDate': 'false',
-                  'descending': 'false',
-                  'orderBy': 'LastConfession'
-                });
-              },
-            ),
-          );
-        },
-      );
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '9',
+                'operatorIndex': '3',
+                'queryText': '',
+                'queryValue': 'T' +
+                    ((now - (now % Duration.millisecondsPerDay)) -
+                            (Duration.millisecondsPerDay * 7))
+                        .toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'LastConfession'
+              });
+            },
+          ),
+        );
+      });
     } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) async {
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) {
-                var now = DateTime.now().millisecondsSinceEpoch;
-                return SearchQuery(query: {
-                  'parentIndex': '3',
-                  'childIndex': '14',
-                  'operatorIndex': '3',
-                  'queryText': '',
-                  'queryValue': 'T' +
-                      ((now - (now % Duration.millisecondsPerDay)) -
-                              (Duration.millisecondsPerDay * 7))
-                          .toString(),
-                  'birthDate': 'false',
-                  'descending': 'false',
-                  'orderBy': 'LastTanawol'
-                });
-              },
-            ),
-          );
-        },
-      );
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '8',
+                'operatorIndex': '3',
+                'queryText': '',
+                'queryValue': 'T' +
+                    ((now - (now % Duration.millisecondsPerDay)) -
+                            (Duration.millisecondsPerDay * 7))
+                        .toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'LastTanawol'
+              });
+            },
+          ),
+        );
+      });
+    } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '10',
+                'operatorIndex': '3',
+                'queryText': '',
+                'queryValue': 'T' +
+                    ((now - (now % Duration.millisecondsPerDay)) -
+                            (Duration.millisecondsPerDay * 7))
+                        .toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'LastKodas'
+              });
+            },
+          ),
+        );
+      });
+    } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
+      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+        await Future.delayed(const Duration(milliseconds: 900), () => null);
+        await navigator.currentState!.push(
+          MaterialPageRoute(
+            builder: (context) {
+              final now = DateTime.now().millisecondsSinceEpoch;
+              return SearchQuery(query: {
+                'parentIndex': '1',
+                'childIndex': '11',
+                'operatorIndex': '3',
+                'queryText': '',
+                'queryValue': 'T' +
+                    ((now - (now % Duration.millisecondsPerDay)) -
+                            (Duration.millisecondsPerDay * 7))
+                        .toString(),
+                'birthDate': 'false',
+                'descending': 'false',
+                'orderBy': 'LastMeeting'
+              });
+            },
+          ),
+        );
+      });
     }
-  } else
-    return;
+  }
 }
 
 Future processLink(Uri deepLink, BuildContext context) async {
@@ -683,7 +754,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
             await FirebaseFirestore.instance
                 .doc('Areas/${deepLink.queryParameters['AreaId']}')
                 .get(),
-          ),
+          )!,
           context);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
       streetTap(
@@ -691,7 +762,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
             await FirebaseFirestore.instance
                 .doc('Streets/${deepLink.queryParameters['StreetId']}')
                 .get(),
-          ),
+          )!,
           context);
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
       familyTap(
@@ -699,7 +770,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
             await FirebaseFirestore.instance
                 .doc('Families/${deepLink.queryParameters['FamilyId']}')
                 .get(),
-          ),
+          )!,
           context);
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
       personTap(
@@ -707,10 +778,10 @@ Future processLink(Uri deepLink, BuildContext context) async {
             await FirebaseFirestore.instance
                 .doc('Persons/${deepLink.queryParameters['PersonId']}')
                 .get(),
-          ),
+          )!,
           context);
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
-      await Navigator.of(context).push(
+      await navigator.currentState!.push(
         MaterialPageRoute(
           builder: (c) => SearchQuery(
             query: deepLink.queryParameters,
@@ -719,7 +790,7 @@ Future processLink(Uri deepLink, BuildContext context) async {
       );
     } else if (deepLink.pathSegments[0] == 'viewUser') {
       if (User.instance.manageUsers) {
-        userTap(await User.fromID(deepLink.queryParameters['UID']), context);
+        userTap(await User.fromID(deepLink.queryParameters['UID']!), context);
       } else {
         await showErrorDialog(
             context, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
@@ -747,7 +818,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         builder: (context) => AlertDialog(
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => navigator.currentState!.pop(true),
               child: Text('استرجاع'),
             ),
           ],
@@ -759,7 +830,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                   children: [
                     Checkbox(
                       value: nested,
-                      onChanged: (v) => setState(() => nested = v),
+                      onChanged: (v) => setState(() => nested = v!),
                     ),
                     Text(
                       'استرجع ايضا العناصر بداخل هذا العنصر',
@@ -771,7 +842,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                   children: [
                     Checkbox(
                       value: keepBackup,
-                      onChanged: (v) => setState(() => keepBackup = v),
+                      onChanged: (v) => setState(() => keepBackup = v!),
                     ),
                     Text('ابقاء البيانات المحذوفة'),
                   ],
@@ -788,7 +859,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         'keepBackup': keepBackup,
         'nested': nested,
       });
-      ScaffoldMessenger.of(context)
+      scaffoldMessenger.currentState!
           .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
     } catch (err, stcTrace) {
       await FirebaseCrashlytics.instance
@@ -798,14 +869,15 @@ Future<void> recoverDoc(BuildContext context, String path) async {
   }
 }
 
-Future<List<Area>> selectAreas(BuildContext context, List<Area> areas) async {
+Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
   var _options = DataObjectListOptions<Area>(
-      itemsStream:
-          Area.getAllForUser().map((s) => s.docs.map(Area.fromDoc).toList()),
-      selectionMode: true,
-      onLongPress: (_) {},
-      selected: {for (var a in areas) a.id: a},
-      searchQuery: Stream.value(''));
+    itemsStream:
+        Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
+    selectionMode: true,
+    onLongPress: (_) {},
+    selected: {for (var a in areas) a.id: a},
+    searchQuery: Stream.value(''),
+  );
   if (await Navigator.push(
         context,
         MaterialPageRoute(
@@ -815,60 +887,67 @@ Future<List<Area>> selectAreas(BuildContext context, List<Area> areas) async {
               actions: [
                 IconButton(
                     icon: Icon(Icons.done),
-                    onPressed: () => Navigator.pop(context, true),
+                    onPressed: () => navigator.currentState!.pop(true),
                     tooltip: 'تم')
               ],
             ),
-            body: DataObjectList<Area>(options: _options),
+            body: DataObjectList<Area>(
+                options: _options, autoDisposeController: true),
           ),
         ),
       ) ==
       true) {
-    return _options.selectedLatest.values.toList();
+    return _options.selected.value.values.toList();
   }
   return null;
 }
 
 void sendNotification(BuildContext context, dynamic attachement) async {
-  BehaviorSubject<String> search = BehaviorSubject<String>.seeded('');
-  List<User> users = await Navigator.push(
+  List<User>? users = await Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) {
         return MultiProvider(
           providers: [
-            Provider(
+            Provider<DataObjectListOptions<User>>(
               create: (_) => DataObjectListOptions<User>(
                 itemBuilder: (current,
-                        {onLongPress, onTap, subtitle, trailing}) =>
-                    DataObjectWidget<User>(
+                        [void Function(User)? onLongPress,
+                        void Function(User)? onTap,
+                        Widget? trailing,
+                        Widget? subtitle]) =>
+                    DataObjectWidget(
                   current,
-                  onTap: () => onTap(current),
+                  onTap: () => onTap!(current),
                   trailing: trailing,
                   showSubtitle: false,
                 ),
                 selectionMode: true,
-                searchQuery: search,
-                itemsStream: Stream.fromFuture(User.getAllUsersLive())
-                    .map((s) => s.docs.map(User.fromDoc).toList()),
+                itemsStream: FirebaseFirestore.instance
+                    .collection('Users')
+                    .snapshots()
+                    .map(
+                      (s) => s.docs
+                          .map((e) => User.fromQueryDoc(e)..uid = e.id)
+                          .toList(),
+                    ),
               ),
+              dispose: (context, c) => c.dispose(),
             ),
           ],
           builder: (context, child) => Scaffold(
             appBar: AppBar(
-              title: Text('اختيار مستخدمين'),
+              title: const Text('اختيار مستخدمين'),
               actions: [
                 IconButton(
                   onPressed: () {
-                    Navigator.pop(
-                        context,
-                        context
-                            .read<DataObjectListOptions<User>>()
-                            .selectedLatest
-                            .values
-                            .toList());
+                    navigator.currentState!.pop(context
+                        .read<DataObjectListOptions<User>>()
+                        .selectedLatest
+                        ?.values
+                        .toList());
                   },
-                  icon: Icon(Icons.done),
+                  icon: const Icon(Icons.done),
                   tooltip: 'تم',
                 ),
               ],
@@ -877,10 +956,15 @@ void sendNotification(BuildContext context, dynamic attachement) async {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SearchField(
-                    searchStream: search,
-                    textStyle: Theme.of(context).textTheme.bodyText2),
-                Expanded(
-                  child: UsersList(),
+                  showSuffix: false,
+                  searchStream:
+                      context.read<DataObjectListOptions<User>>().searchQuery,
+                  textStyle: Theme.of(context).textTheme.bodyText2,
+                ),
+                const Expanded(
+                  child: UsersList(
+                    autoDisposeController: false,
+                  ),
                 ),
               ],
             ),
@@ -899,12 +983,12 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                 actions: <Widget>[
                   TextButton.icon(
                     icon: Icon(Icons.send),
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () => navigator.currentState!.pop(true),
                     label: Text('ارسال'),
                   ),
                   TextButton.icon(
                     icon: Icon(Icons.cancel),
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => navigator.currentState!.pop(false),
                     label: Text('الغاء الأمر'),
                   ),
                 ],
@@ -916,15 +1000,11 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                       child: TextFormField(
                         decoration: InputDecoration(
                           labelText: 'عنوان الرسالة',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
                         ),
                         controller: title,
                         textInputAction: TextInputAction.next,
                         validator: (value) {
-                          if (value.isEmpty) {
+                          if (value?.isEmpty ?? true) {
                             return 'هذا الحقل مطلوب';
                           }
                           return null;
@@ -937,10 +1017,6 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                         child: TextFormField(
                           decoration: InputDecoration(
                             labelText: 'محتوى الرسالة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
                           ),
                           textInputAction: TextInputAction.newline,
                           maxLines: null,
@@ -984,7 +1060,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
   }
 }
 
-Future<String> shareArea(Area area) async => await shareAreaRaw(area.id);
+Future<String> shareArea(Area area) async => shareAreaRaw(area.id);
 
 Future<String> shareAreaRaw(String id) async {
   return (await DynamicLinkParameters(
@@ -999,15 +1075,14 @@ Future<String> shareAreaRaw(String id) async {
 }
 
 Future<String> shareDataObject(DataObject obj) async {
-  if (obj is Area) return await shareArea(obj);
-  if (obj is Street) return await shareStreet(obj);
-  if (obj is Family) return await shareFamily(obj);
-  if (obj is Person) return await sharePerson(obj);
+  if (obj is Area) return shareArea(obj);
+  if (obj is Street) return shareStreet(obj);
+  if (obj is Family) return shareFamily(obj);
+  if (obj is Person) return sharePerson(obj);
   throw UnimplementedError();
 }
 
-Future<String> shareFamily(Family family) async =>
-    await shareFamilyRaw(family.id);
+Future<String> shareFamily(Family family) async => shareFamilyRaw(family.id);
 
 Future<String> shareFamilyRaw(String id) async {
   return (await DynamicLinkParameters(
@@ -1022,7 +1097,7 @@ Future<String> shareFamilyRaw(String id) async {
 }
 
 Future<String> sharePerson(Person person) async {
-  return await sharePersonRaw(person.id);
+  return sharePersonRaw(person.id);
 }
 
 Future<String> sharePersonRaw(String id) async {
@@ -1049,8 +1124,7 @@ Future<String> shareQuery(Map<String, String> query) async {
       .toString();
 }
 
-Future<String> shareStreet(Street street) async =>
-    await shareStreetRaw(street.id);
+Future<String> shareStreet(Street street) async => shareStreetRaw(street.id);
 
 Future<String> shareStreetRaw(String id) async {
   return (await DynamicLinkParameters(
@@ -1064,7 +1138,7 @@ Future<String> shareStreetRaw(String id) async {
       .toString();
 }
 
-Future<String> shareUser(User user) async => await shareUserRaw(user.uid);
+Future<String> shareUser(User user) async => shareUserRaw(user.uid!);
 
 Future<String> shareUserRaw(String uid) async {
   return (await DynamicLinkParameters(
@@ -1088,9 +1162,9 @@ void showBirthDayNotification() async {
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
-  QuerySnapshot docs;
+  JsonQuery docs;
   if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where(
           'BirthDay',
@@ -1105,16 +1179,14 @@ void showBirthDayNotification() async {
           ),
         )
         .limit(20)
-        .get(source));
+        .get(source);
   } else {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where('AreaId',
             whereIn: (await FirebaseFirestore.instance
                     .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
@@ -1132,7 +1204,7 @@ void showBirthDayNotification() async {
           ),
         )
         .limit(20)
-        .get(source));
+        .get(source);
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
@@ -1160,29 +1232,27 @@ void showConfessionNotification() async {
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
-  QuerySnapshot docs;
+  JsonQuery docs;
   if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where('LastConfession', isLessThan: Timestamp.now())
         .limit(20)
-        .get(source));
+        .get(source);
   } else {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where('AreaId',
             whereIn: (await FirebaseFirestore.instance
                     .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
                 .toList())
         .where('LastConfession', isLessThan: Timestamp.now())
         .limit(20)
-        .get(source));
+        .get(source);
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
@@ -1200,18 +1270,18 @@ void showConfessionNotification() async {
         payload: 'Confessions');
 }
 
-Future showErrorDialog(BuildContext context, String message,
-    {String title}) async {
-  return await showDialog(
+Future showErrorDialog(BuildContext context, String? message,
+    {String? title}) async {
+  return showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
     builder: (BuildContext context) => AlertDialog(
       title: title != null ? Text(title) : null,
-      content: Text(message),
+      content: Text(message ?? ''),
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            navigator.currentState!.pop();
           },
           child: Text('حسنًا'),
         ),
@@ -1221,7 +1291,7 @@ Future showErrorDialog(BuildContext context, String message,
 }
 
 Future showErrorUpdateDataDialog(
-    {BuildContext context, bool pushApp = true}) async {
+    {required BuildContext context, bool pushApp = true}) async {
   if (pushApp ||
       Hive.box('Settings').get('DialogLastShown') !=
           tranucateToDay().millisecondsSinceEpoch) {
@@ -1245,31 +1315,34 @@ Future showErrorUpdateDataDialog(
             ),
             onPressed: () async {
               var userPerson = await User.getCurrentPerson();
-              await Navigator.of(context)
+              await navigator.currentState!
                   .pushNamed('UpdateUserDataError', arguments: userPerson);
               userPerson = await User.getCurrentPerson();
               if (userPerson != null &&
-                  ((userPerson.lastTanawol.millisecondsSinceEpoch +
+                  userPerson.lastTanawol != null &&
+                  userPerson.lastTanawol != null &&
+                  ((userPerson.lastTanawol!.millisecondsSinceEpoch +
                               2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
-                      (userPerson.lastConfession.millisecondsSinceEpoch +
+                      (userPerson.lastConfession!.millisecondsSinceEpoch +
                               5184000000) >
                           DateTime.now().millisecondsSinceEpoch)) {
-                Navigator.pop(context);
+                navigator.currentState!.pop();
                 if (pushApp)
                   // ignore: unawaited_futures
                   Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => App(),
-                      ));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => App(),
+                    ),
+                  );
               }
             },
             icon: Icon(Icons.update),
             label: Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => navigator.currentState!.pop(),
             icon: Icon(Icons.close),
             label: Text('تم'),
           ),
@@ -1300,7 +1373,7 @@ void showLoadingDialog(BuildContext context) async {
 Future<void> showMessage(
     BuildContext context, no.Notification notification) async {
   var attachement = await getLinkObject(
-    Uri.parse(notification.attachement),
+    Uri.parse(notification.attachement!),
   );
   String scndLine = await attachement.getSecondLine() ?? '';
   var user = notification.from != ''
@@ -1311,12 +1384,12 @@ Future<void> showMessage(
   await showDialog(
     context: context,
     builder: (context) => DataDialog(
-      title: Text(notification.title),
+      title: Text(notification.title!),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Text(
-            notification.content,
+            notification.content!,
             style: TextStyle(fontSize: 18),
           ),
           if (user != null)
@@ -1353,11 +1426,12 @@ Future<void> showMessage(
               (user != null
                   ? User.fromDoc(
                       user,
-                    ).name
+                    )!
+                      .name
                   : 'مسؤلو البرنامج')),
           Text(
             DateFormat('yyyy/M/d h:m a', 'ar-EG').format(
-              DateTime.fromMillisecondsSinceEpoch(notification.time),
+              DateTime.fromMillisecondsSinceEpoch(notification.time!),
             ),
           ),
         ],
@@ -1366,19 +1440,20 @@ Future<void> showMessage(
   );
 }
 
-Future<void> showPendingMessage([BuildContext context]) async {
+Future<void> showPendingMessage([BuildContext? context]) async {
   context ??= mainScfld.currentContext;
   var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
-    Navigator.of(context).pushNamed('Notifications');
+    navigator.currentState!.pushNamed('Notifications');
     if (pendingMessage.data['type'] == 'Message')
       await showMessage(
-        context,
+        context!,
         no.Notification.fromMessage(pendingMessage.data),
       );
     else
-      await processLink(Uri.parse(pendingMessage.data['attachement']), context);
+      await processLink(
+          Uri.parse(pendingMessage.data['attachement']), context!);
   }
 }
 
@@ -1392,29 +1467,27 @@ void showTanawolNotification() async {
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
               : Source.serverAndCache);
-  QuerySnapshot docs;
+  JsonQuery docs;
   if (user.superAccess) {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where('LastTanawol', isLessThan: Timestamp.now())
         .limit(20)
-        .get(source));
+        .get(source);
   } else {
-    docs = (await FirebaseFirestore.instance
+    docs = await FirebaseFirestore.instance
         .collection('Persons')
         .where('AreaId',
             whereIn: (await FirebaseFirestore.instance
                     .collection('Areas')
-                    .where('Allowed',
-                        arrayContains:
-                            auth.FirebaseAuth.instance.currentUser.uid)
+                    .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
                 .toList())
         .where('LastTanawol', isLessThan: Timestamp.now())
         .limit(20)
-        .get(source));
+        .get(source);
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
@@ -1433,21 +1506,21 @@ void showTanawolNotification() async {
 }
 
 Future<int> storeNotification(messaging_types.RemoteMessage message) async {
-  return await Hive.box<Map<dynamic, dynamic>>('Notifications')
-      .add(message.data);
+  return Hive.box<Map>('Notifications').add(message.data);
 }
 
 void streetTap(Street street, BuildContext context) {
-  Navigator.of(context).pushNamed('StreetInfo', arguments: street);
+  navigator.currentState!.pushNamed('StreetInfo', arguments: street);
 }
 
 void takeScreenshot(GlobalKey key) async {
-  RenderRepaintBoundary boundary = key.currentContext.findRenderObject();
-  WidgetsBinding.instance.addPostFrameCallback(
+  RenderRepaintBoundary? boundary =
+      key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
+  WidgetsBinding.instance!.addPostFrameCallback(
     (_) async {
-      ui.Image image = await boundary.toImage(pixelRatio: 2);
+      ui.Image image = await boundary!.toImage(pixelRatio: 2);
       ByteData byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+          (await image.toByteData(format: ui.ImageByteFormat.png))!;
       Uint8List pngBytes = byteData.buffer.asUint8List();
       await Share.shareFiles(
         [
@@ -1463,13 +1536,13 @@ void takeScreenshot(GlobalKey key) async {
   );
 }
 
-String toDurationString(Timestamp date, {appendSince = true}) {
+String toDurationString(Timestamp? date, {appendSince = true}) {
   if (date == null) return '';
   if (appendSince) return format(date.toDate(), locale: 'ar');
   return format(date.toDate(), locale: 'ar').replaceAll('منذ ', '');
 }
 
-Timestamp tranucateToDay({DateTime time}) {
+Timestamp tranucateToDay({DateTime? time}) {
   time = time ?? DateTime.now();
   return Timestamp.fromMillisecondsSinceEpoch(
     time.millisecondsSinceEpoch -
@@ -1479,7 +1552,7 @@ Timestamp tranucateToDay({DateTime time}) {
 
 void userTap(User user, BuildContext context) async {
   if (user.approved) {
-    await Navigator.of(context).pushNamed('UserInfo', arguments: user);
+    await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
     dynamic rslt = await showDialog(
         context: context,
@@ -1489,7 +1562,7 @@ void userTap(User user, BuildContext context) async {
                   TextButton.icon(
                     icon: Icon(Icons.info),
                     label: Text('اظهار استمارة البيانات'),
-                    onPressed: () async => Navigator.of(context).pushNamed(
+                    onPressed: () async => navigator.currentState!.pushNamed(
                       'PersonInfo',
                       arguments: await user.getPerson(),
                     ),
@@ -1497,17 +1570,17 @@ void userTap(User user, BuildContext context) async {
                 TextButton.icon(
                   icon: Icon(Icons.done),
                   label: Text('نعم'),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState!.pop(true),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('لا'),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState!.pop(false),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.close),
                   label: Text('حذف المستخدم'),
-                  onPressed: () => Navigator.of(context).pop('delete'),
+                  onPressed: () => navigator.currentState!.pop('delete'),
                 ),
               ],
               title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
@@ -1516,13 +1589,13 @@ void userTap(User user, BuildContext context) async {
                 children: <Widget>[
                   user.getPhoto(false),
                   Text(
-                    'البريد الاكتروني: ' + (user.email ?? ''),
+                    'البريد الاكتروني: ' + (user.email),
                   ),
                 ],
               ),
             ));
     if (rslt == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1532,12 +1605,13 @@ void userTap(User user, BuildContext context) async {
         await FirebaseFunctions.instance
             .httpsCallable('approveUser')
             .call({'affectedUser': user.uid});
-        user.approved = true;
-        // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-        user.notifyListeners();
+        user
+          ..approved = true
+          // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
+          ..notifyListeners();
         userTap(user, context);
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
@@ -1549,7 +1623,7 @@ void userTap(User user, BuildContext context) async {
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);
       }
     } else if (rslt == 'delete') {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
@@ -1559,8 +1633,8 @@ void userTap(User user, BuildContext context) async {
         await FirebaseFunctions.instance
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
@@ -1577,7 +1651,7 @@ void userTap(User user, BuildContext context) async {
 
 class MessageIcon extends StatelessWidget {
   final String url;
-  MessageIcon(this.url, {Key key}) : super(key: key);
+  MessageIcon(this.url, {Key? key}) : super(key: key);
 
   Color get color => Colors.transparent;
   String get name => '';
@@ -1625,6 +1699,8 @@ class MessageIcon extends StatelessWidget {
 }
 
 class QueryIcon extends StatelessWidget {
+  const QueryIcon({Key? key}) : super(key: key);
+
   Color get color => Colors.transparent;
   String get name => 'نتائج بحث';
 

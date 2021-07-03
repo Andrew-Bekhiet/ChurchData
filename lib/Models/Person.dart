@@ -1,25 +1,26 @@
 import 'dart:async';
 
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:intl/intl.dart';
+import 'package:rxdart/rxdart.dart';
 
-import '../utils/helpers.dart';
-import 'super_classes.dart';
-import 'family.dart';
-import 'user.dart';
 import '../utils/globals.dart';
+import '../utils/helpers.dart';
+import 'family.dart';
+import 'super_classes.dart';
+import 'user.dart';
 
 class Person extends DataObject with PhotoObject, ChildObject<Family> {
-  DocumentReference _familyId;
+  JsonRef? _familyId;
 
-  DocumentReference get familyId => _familyId;
+  JsonRef? get familyId => _familyId;
 
-  set familyId(DocumentReference familyId) {
+  set familyId(JsonRef? familyId) {
     if (familyId != null && _familyId != familyId) {
       _familyId = familyId;
       setStreetIdFromFamily();
@@ -28,11 +29,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     _familyId = familyId;
   }
 
-  DocumentReference _streetId;
+  JsonRef? _streetId;
 
-  DocumentReference get streetId => _streetId;
+  JsonRef? get streetId => _streetId;
 
-  set streetId(DocumentReference streetId) {
+  set streetId(JsonRef? streetId) {
     if (streetId != null && _streetId != streetId) {
       _streetId = streetId;
       setAreaIdFromStreet();
@@ -41,46 +42,46 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     _streetId = streetId;
   }
 
-  DocumentReference areaId;
+  JsonRef? areaId;
 
-  String phone;
-  Map<String, dynamic> phones; //Other phones if any
-  Timestamp birthDate;
+  String? phone;
+  Json phones; //Other phones if any
+  Timestamp? birthDate;
 
-  Timestamp lastConfession;
-  Timestamp lastTanawol;
-  Timestamp lastCall;
+  Timestamp? lastConfession;
+  Timestamp? lastTanawol;
+  Timestamp? lastCall;
 
   bool isStudent;
-  DocumentReference studyYear;
-  DocumentReference college;
-  DocumentReference job;
-  String jobDescription;
-  String qualification;
-  String type;
+  JsonRef? studyYear;
+  JsonRef? college;
+  JsonRef? job;
+  String? jobDescription;
+  String? qualification;
+  String? type;
   bool isServant;
 
-  DocumentReference servingAreaId;
+  JsonRef? servingAreaId;
 
-  DocumentReference church;
-  String meeting;
+  JsonRef? church;
+  String? meeting;
 
-  DocumentReference cFather;
-  DocumentReference state;
-  String notes;
-  DocumentReference servingType;
+  JsonRef? cFather;
+  JsonRef? state;
+  String? notes;
+  JsonRef? servingType;
 
-  String lastEdit;
+  String? lastEdit;
 
   Person(
-      {String id,
-      DocumentReference ref,
+      {String? id,
+      JsonRef? ref,
       this.areaId,
-      DocumentReference streetId,
-      DocumentReference familyId,
+      JsonRef? streetId,
+      JsonRef? familyId,
       String name = '',
       this.phone = '',
-      this.phones,
+      Json? phones,
       bool hasPhoto = false,
       this.birthDate,
       this.lastTanawol,
@@ -105,6 +106,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       Color color = Colors.transparent})
       : _familyId = familyId,
         _streetId = streetId,
+        phones = phones ?? {},
         super(
             ref ??
                 FirebaseFirestore.instance
@@ -117,19 +119,20 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     defaultIcon = Icons.person;
   }
 
-  Person._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
-      : super.createFromData(data, ref) {
+  Person._createFromData(Json data, JsonRef ref)
+      : isStudent = data['IsStudent'] ?? false,
+        isServant = data['IsServant'],
+        phones = data['Phones']?.cast<String, dynamic>() ?? {},
+        super.createFromData(data, ref) {
     _familyId = data['FamilyId'];
     _streetId = data['StreetId'];
     areaId = data['AreaId'];
 
     phone = data['Phone'];
-    phones = data['Phones']?.cast<String, dynamic>() ?? {};
 
     hasPhoto = data['HasPhoto'] ?? false;
     defaultIcon = Icons.person;
 
-    isStudent = data['IsStudent'];
     studyYear = data['StudyYear'];
     college = data['College'];
 
@@ -145,7 +148,6 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     type = data['Type'];
 
     notes = data['Notes'];
-    isServant = data['IsServant'];
     servingAreaId = data['ServingAreaId'];
 
     church = data['Church'];
@@ -158,58 +160,48 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     lastEdit = data['LastEdit'];
   }
 
-  Timestamp get birthDay => birthDate != null
+  Timestamp? get birthDay => birthDate != null
       ? Timestamp.fromDate(
-          DateTime(1970, birthDate.toDate().month, birthDate.toDate().day),
+          DateTime(1970, birthDate!.toDate().month, birthDate!.toDate().day),
         )
       : null;
 
   @override
-  DocumentReference get parentId => familyId;
+  JsonRef? get parentId => familyId;
 
   @override
   Reference get photoRef =>
       FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
 
-  Future<String> getAreaName() async {
-    var tmp = (await areaId?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getAreaName() async {
+    return (await areaId?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getCFatherName() async {
-    var tmp = (await cFather?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getCFatherName() async {
+    return (await cFather?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getChurchName() async {
-    var tmp = (await church?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getChurchName() async {
+    return (await church?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getCollegeName() async {
+  Future<String?> getCollegeName() async {
     if (!isStudent) return '';
-    var tmp = (await college?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+    return (await college?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getFamilyName() async {
-    var tmp = (await familyId?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getFamilyName() async {
+    return (await familyId?.get(dataSource))?.data()?['Name'];
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() => {
-        'Name': name ?? '',
+  Json getHumanReadableMap() => {
+        'Name': name,
         'Phone': phone ?? '',
         'BirthDate': toDurationString(birthDate, appendSince: false),
         'BirthDay': birthDay != null
             ? DateFormat('d/M').format(
-                birthDay.toDate(),
+                birthDay!.toDate(),
               )
             : '',
         'IsStudent': isStudent ? 'طالب' : '',
@@ -224,14 +216,12 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastEdit': lastEdit
       };
 
-  Future<String> getJobName() async {
-    var tmp = (await job?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getJobName() async {
+    return (await job?.get(dataSource))?.data()?['Name'];
   }
 
   Widget getLeftWidget({bool ignoreSetting = false}) {
-    return FutureBuilder<Map<String, dynamic>>(
+    return FutureBuilder<Json?>(
       future: Future(
         () async {
           if (ignoreSetting ||
@@ -244,12 +234,12 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       ),
       builder: (context, color) {
         return color.data == null
-            ? Container(width: 1, height: 1)
+            ? SizedBox(width: 1, height: 1)
             : Container(
                 height: 50,
                 width: 50,
                 color: Color(
-                  int.parse('0xff${color.data['Color']}'),
+                  int.parse('0xff${color.data!['Color']}'),
                 ),
               );
       },
@@ -257,15 +247,15 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   }
 
   @override
-  Map<String, dynamic> getMap() => {
+  Json getMap() => {
         'FamilyId': familyId,
         'StreetId': streetId,
         'AreaId': areaId,
         'Name': name,
         'Phone': phone,
-        'Phones': (phones?.map((k, v) => MapEntry(k, v)) ?? {})
+        'Phones': (phones.map((k, v) => MapEntry(k, v)))
           ..removeWhere((k, v) => v.toString().isEmpty),
-        'HasPhoto': hasPhoto ?? false,
+        'HasPhoto': hasPhoto,
         'Color': color.value,
         'BirthDate': birthDate,
         'BirthDay': birthDay,
@@ -291,10 +281,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       };
 
   @override
-  Future<String> getParentName() => getFamilyName();
+  Future<String?> getParentName() => getFamilyName();
 
   String getSearchString() {
-    return ((name ?? '') +
+    return (name +
             (phone ?? '') +
             (birthDate?.toString() ?? '') +
             (jobDescription ?? '') +
@@ -316,80 +306,70 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   }
 
   @override
-  Future<String> getSecondLine() async {
+  Future<String?> getSecondLine() async {
     String key = Hive.box('Settings').get('PersonSecondLine');
     if (key == 'Members') {
       return '';
     } else if (key == 'AreaId') {
-      return await getAreaName();
+      return getAreaName();
     } else if (key == 'StreetId') {
-      return await getStreetName();
+      return getStreetName();
     } else if (key == 'FamilyId') {
-      return await getFamilyName();
+      return getFamilyName();
     } else if (key == 'StudyYear') {
-      return await getStudyYearName();
+      return getStudyYearName();
     } else if (key == 'College') {
-      return await getCollegeName();
+      return getCollegeName();
     } else if (key == 'Job') {
-      return await getJobName();
+      return getJobName();
     } else if (key == 'Type') {
-      return await getStringType();
+      return getStringType();
     } else if (key == 'ServingAreaId') {
-      return await getServingAreaName();
+      return getServingAreaName();
     } else if (key == 'Church') {
-      return await getChurchName();
+      return getChurchName();
     } else if (key == 'CFather') {
-      return await getCFatherName();
+      return getCFatherName();
     } else if (key == 'LastEdit') {
       return (await FirebaseFirestore.instance
               .doc('Users/$lastEdit')
               .get(dataSource))
-          .data()['Name'];
+          .data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
 
-  Future<String> getServingAreaName() async {
+  Future<String?> getServingAreaName() async {
     if (!isServant) return '';
-    var tmp = (await servingAreaId?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+    return (await servingAreaId?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getServingTypeName() async {
-    var tmp = (await servingType?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getServingTypeName() async {
+    return (await servingType?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getStreetName() async {
-    var tmp = (await streetId?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+  Future<String?> getStreetName() async {
+    return (await streetId?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getStringType() async {
-    if (type == null || type.isEmpty) return '';
-    var data = (await FirebaseFirestore.instance
+  Future<String?> getStringType() async {
+    if (type == null || type!.isEmpty) return null;
+    return (await FirebaseFirestore.instance
             .collection('Types')
             .doc(type)
-            ?.get(dataSource))
-        ?.data();
-    if (data == null) return '';
-    return data['Name'] ?? 'لا يوجد';
+            .get(dataSource))
+        .data()?['Name'];
   }
 
-  Future<String> getStudyYearName() async {
+  Future<String?> getStudyYearName() async {
     if (!isStudent) return '';
-    var tmp = (await studyYear?.get(dataSource))?.data();
-    if (tmp == null) return '';
-    return tmp['Name'] ?? 'لا يوجد';
+    return (await studyYear?.get(dataSource))?.data()?['Name'];
   }
 
-  Map<String, dynamic> getUserRegisterationMap() => {
+  Json getUserRegisterationMap() => {
         'Name': name,
         'Phone': phone,
-        'HasPhoto': hasPhoto ?? false,
+        'HasPhoto': hasPhoto,
         'Color': color.value,
         'BirthDate': birthDate?.millisecondsSinceEpoch,
         'BirthDay': birthDay?.millisecondsSinceEpoch,
@@ -411,25 +391,27 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       };
 
   Future<void> setAreaIdFromStreet() async {
-    areaId = (await streetId?.get(dataSource))?.data()['AreaId'];
+    areaId = (await streetId?.get(dataSource))?.data()?['AreaId'];
   }
 
   Future<void> setStreetIdFromFamily() async {
-    streetId = (await familyId?.get(dataSource))?.data()['StreetId'];
+    streetId = (await familyId?.get(dataSource))?.data()?['StreetId'];
   }
 
-  static Person fromDoc(DocumentSnapshot data) =>
-      data.exists ? Person._createFromData(data.data(), data.reference) : null;
+  static Person? fromDoc(JsonDoc data) =>
+      data.exists ? Person._createFromData(data.data()!, data.reference) : null;
 
-  static Future<Person> fromId(String id) async => Person.fromDoc(
+  static Person fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
+
+  static Future<Person?> fromId(String id) async => Person.fromDoc(
         await FirebaseFirestore.instance.doc('Persons/$id').get(),
       );
 
-  static List<Person> getAll(List<DocumentSnapshot> persons) {
+  static List<Person?> getAll(List<JsonDoc> persons) {
     return persons.map(Person.fromDoc).toList();
   }
 
-  static Stream<QuerySnapshot> getAllForUser({
+  static Stream<JsonQuery> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
   }) {
@@ -462,7 +444,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         );
   }
 
-  static Map<String, dynamic> getEmptyExportMap() => {
+  static Json getEmptyExportMap() => {
         'ID': 'id',
         'FamilyId': 'familyId',
         'StreetId': 'streetId',
@@ -494,7 +476,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastEdit': 'lastEdit'
       };
 
-  static Map<String, dynamic> getHumanReadableMap2() => {
+  static Json getHumanReadableMap2() => {
         'Name': 'الاسم',
         'Phone': 'رقم الهاتف',
         'Color': 'اللون',

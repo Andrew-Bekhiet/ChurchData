@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
+import 'package:churchdata/utils/globals.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -23,9 +24,11 @@ export 'package:tuple/tuple.dart';
 ///You must provide [ListOptions<T>] in the parameter
 ///or use [Provider<ListOptions<T>>] above this widget
 class DataObjectList<T extends DataObject> extends StatefulWidget {
-  final DataObjectListOptions<T> options;
+  final DataObjectListOptions<T>? options;
+  final bool autoDisposeController;
 
-  DataObjectList({Key key, this.options}) : super(key: key);
+  DataObjectList({Key? key, this.options, required this.autoDisposeController})
+      : super(key: key);
 
   @override
   _ListState<T> createState() => _ListState<T>();
@@ -34,10 +37,10 @@ class DataObjectList<T extends DataObject> extends StatefulWidget {
 class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     with AutomaticKeepAliveClientMixin<DataObjectList<T>> {
   bool _builtOnce = false;
-  DataObjectListOptions<T> _listOptions;
+  late DataObjectListOptions<T> _listOptions;
 
   @override
-  bool get wantKeepAlive => _builtOnce && ModalRoute.of(context).isCurrent;
+  bool get wantKeepAlive => _builtOnce && ModalRoute.of(context)!.isCurrent;
 
   @override
   Widget build(BuildContext context) {
@@ -48,11 +51,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     return StreamBuilder<List<T>>(
       stream: _listOptions.objectsData,
       builder: (context, stream) {
-        if (stream.hasError) return Center(child: ErrorWidget(stream.error));
+        if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
         if (!stream.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<T> _data = stream.data;
+        final List<T> _data = stream.data!;
         if (_data.isEmpty)
           return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
@@ -66,27 +69,30 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
               return Container(height: MediaQuery.of(context).size.height / 19);
 
             final T current = _data[i];
-            return _listOptions.itemBuilder(
+            return _listOptions.buildItem(
               current,
               onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
               onTap: (T current) {
-                if (!_listOptions.selectionModeLatest) {
+                if (!_listOptions.selectionMode.value) {
                   _listOptions.tap == null
                       ? dataObjectTap(current, context)
-                      : _listOptions.tap(current);
+                      : _listOptions.tap!(current);
                 } else {
                   _listOptions.toggleSelected(current);
                 }
               },
-              trailing: StreamBuilder<Map<String, T>>(
-                stream: Rx.combineLatest2(_listOptions.selected,
-                    _listOptions.selectionMode, (a, b) => b ? a : null),
+              trailing: StreamBuilder<Map<String, T>?>(
+                stream:
+                    Rx.combineLatest2<Map<String, T>, bool, Map<String, T>?>(
+                        _listOptions.selected,
+                        _listOptions.selectionMode,
+                        (a, b) => b ? a : null),
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     return Checkbox(
-                      value: snapshot.data.containsKey(current.id),
+                      value: snapshot.data!.containsKey(current.id),
                       onChanged: (v) {
-                        if (v) {
+                        if (v!) {
                           _listOptions.select(current);
                         } else {
                           _listOptions.deselect(current);
@@ -96,7 +102,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   }
                   return current is Person
                       ? current.getLeftWidget()
-                      : Container(width: 1, height: 1);
+                      : SizedBox(width: 1, height: 1);
                 },
               ),
             );
@@ -113,10 +119,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   }
 
   void _defaultLongPress(T current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionModeLatest);
+    _listOptions.selectionMode.add(!_listOptions.selectionMode.value);
 
-    if (!_listOptions.selectionModeLatest) {
-      if (_listOptions.selectedLatest.isNotEmpty) {
+    if (!_listOptions.selectionMode.value) {
+      if (_listOptions.selected.value.isNotEmpty) {
         if (T == Person) {
           await showDialog(
             context: context,
@@ -126,8 +132,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.sms),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    List<Person> people = _listOptions.selectedLatest.values
+                    navigator.currentState!.pop();
+                    List<Person> people = _listOptions.selected.value.values
                         .cast<Person>()
                         .toList()
                           ..removeWhere((p) =>
@@ -139,7 +145,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                         'sms:' +
                             people
                                 .map(
-                                  (f) => getPhone(f.phone),
+                                  (f) => getPhone(f.phone!),
                                 )
                                 .toList()
                                 .cast<String>()
@@ -151,10 +157,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.share),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                     await Share.share(
                       (await Future.wait(
-                        _listOptions.selectedLatest.values.cast<Person>().map(
+                        _listOptions.selected.value.values.cast<Person>().map(
                               (f) async => f.name + ': ' + await sharePerson(f),
                             ),
                       ))
@@ -166,9 +172,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                     var con = TextEditingController();
-                    String msg = await showDialog(
+                    String? msg = await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
                         actions: [
@@ -176,7 +182,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                             icon: Icon(Icons.send),
                             label: Text('ارسال'),
                             onPressed: () {
-                              Navigator.pop(context, con.text);
+                              navigator.currentState!.pop(con.text);
                             },
                           ),
                         ],
@@ -185,19 +191,17 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                           maxLines: null,
                           decoration: InputDecoration(
                             labelText: 'اكتب رسالة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            ),
                           ),
                         ),
                       ),
                     );
-                    msg = Uri.encodeComponent(msg);
                     if (msg != null) {
-                      for (Person person in _listOptions.selectedLatest.values
-                          .cast<Person>()) {
-                        String phone = getPhone(person.phone);
+                      msg = Uri.encodeComponent(msg);
+                      for (Person person in _listOptions.selected.value.values
+                          .cast<Person>()
+                          .where(
+                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
+                        String phone = getPhone(person.phone!);
                         await launch('https://wa.me/$phone?text=$msg');
                       }
                     }
@@ -207,17 +211,19 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                 TextButton.icon(
                   icon: Icon(Icons.person_add),
                   onPressed: () async {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions.selectedLatest.values
-                          .cast<Person>()) {
+                      for (Person item in _listOptions.selected.value.values
+                          .cast<Person>()
+                          .where(
+                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
                         try {
                           final c = Contact(
                               photo: item.hasPhoto
                                   ? await item.photoRef
                                       .getData(100 * 1024 * 1024)
                                   : null,
-                              phones: [Phone(item.phone)])
+                              phones: [Phone(item.phone!)])
                             ..name.first = item.name;
                           await c.insert();
                         } catch (err, stkTrace) {
@@ -237,13 +243,13 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           );
         } else
           await Share.share(
-            (await Future.wait(_listOptions.selectedLatest.values
+            (await Future.wait(_listOptions.selected.value.values
                     .map((f) async => f.name + ': ' + await shareDataObject(f))
                     .toList()))
                 .join('\n'),
           );
       }
-      _listOptions.selected.add({});
+      _listOptions.selectNone(false);
     } else {
       _listOptions.select(current);
     }
@@ -256,5 +262,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     if (T == Person) return 'أشخاص';
     if (T == Invitation) return 'دعوات';
     return 'عناصر';
+  }
+
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    if (widget.autoDisposeController) await _listOptions.dispose();
   }
 }

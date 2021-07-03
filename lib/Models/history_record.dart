@@ -1,17 +1,18 @@
 import 'package:churchdata/models/models.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tuple/tuple.dart';
 
 class HistoryRecord {
-  final DocumentReference docId;
-  final DocumentReference areaId;
-  final DocumentReference streetId;
-  final DocumentReference familyId;
-  final DocumentReference personId;
+  final JsonRef docId;
+  final JsonRef? areaId;
+  final JsonRef? streetId;
+  final JsonRef? familyId;
+  final JsonRef? personId;
 
-  final String by;
+  final String? by;
   final Timestamp time;
 
   const HistoryRecord({
@@ -19,12 +20,24 @@ class HistoryRecord {
     this.streetId,
     this.familyId,
     this.personId,
-    this.by,
-    this.time,
-    this.docId,
+    required this.by,
+    required this.time,
+    required this.docId,
   });
 
-  static HistoryRecord fromDoc(DocumentSnapshot doc) {
+  static HistoryRecord? fromDoc(JsonDoc doc) {
+    if (!doc.exists) return null;
+    return HistoryRecord(
+        areaId: doc.data()!['AreaId'],
+        streetId: doc.data()!['StreetId'],
+        familyId: doc.data()!['FamilyId'],
+        personId: doc.data()!['PersonId'],
+        by: doc.data()!['By'],
+        time: doc.data()!['Time'],
+        docId: doc.reference);
+  }
+
+  static HistoryRecord fromQueryDoc(JsonQueryDoc doc) {
     return HistoryRecord(
         areaId: doc.data()['AreaId'],
         streetId: doc.data()['StreetId'],
@@ -35,16 +48,16 @@ class HistoryRecord {
         docId: doc.reference);
   }
 
-  static Stream<List<QueryDocumentSnapshot>> getAllForUser(
-      {@required String collectionGroup,
-      DateTimeRange range,
-      List<Area> areas}) {
+  static Stream<List<JsonQueryDoc>> getAllForUser(
+      {required String collectionGroup,
+      DateTimeRange? range,
+      List<Area>? areas}) {
     return Rx.combineLatest2<User, List<Area>, Tuple2<User, List<Area>>>(
         User.instance.stream,
-        Area.getAllForUser().map((s) => s.docs.map(Area.fromDoc).toList()),
+        Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
         (a, b) => Tuple2<User, List<Area>>(a, b)).switchMap((value) {
       if (range != null && areas != null) {
-        return Rx.combineLatestList<QuerySnapshot>(areas
+        return Rx.combineLatestList<JsonQuery>(areas
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
                     .where('AreaId', isEqualTo: a.ref)
@@ -76,7 +89,7 @@ class HistoryRecord {
               .snapshots()
               .map((s) => s.docs);
         } else {
-          return Rx.combineLatestList<QuerySnapshot>(value.item2
+          return Rx.combineLatestList<JsonQuery>(value.item2
                   .map((a) => FirebaseFirestore.instance
                       .collectionGroup(collectionGroup)
                       .where('AreaId', isEqualTo: a.ref)
@@ -94,7 +107,7 @@ class HistoryRecord {
               .map((s) => s.expand((n) => n.docs).toList());
         }
       } else if (areas != null) {
-        return Rx.combineLatestList<QuerySnapshot>(areas
+        return Rx.combineLatestList<JsonQuery>(areas
                 .map((a) => FirebaseFirestore.instance
                     .collectionGroup(collectionGroup)
                     .where('AreaId', isEqualTo: a.ref)

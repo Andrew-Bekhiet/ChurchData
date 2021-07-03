@@ -1,6 +1,8 @@
 import 'package:churchdata/models/mini_models.dart';
-import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/models/user.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +10,13 @@ import 'package:intl/intl.dart';
 
 class HistoryProperty extends StatelessWidget {
   const HistoryProperty(this.name, this.value, this.historyRef,
-      {Key key, this.showTime = true})
-      : assert(name != null),
-        super(key: key);
+      {Key? key, this.showTime = true})
+      : super(key: key);
 
   final String name;
-  final Timestamp value;
+  final Timestamp? value;
   final bool showTime;
-  final CollectionReference historyRef;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +32,7 @@ class HistoryProperty extends StatelessWidget {
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value.toDate(),
+                      value!.toDate(),
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -39,7 +40,7 @@ class HistoryProperty extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: 'السجل',
-        icon: Icon(Icons.history),
+        icon: const Icon(Icons.history),
         onPressed: () {
           showDialog(
             context: context,
@@ -49,25 +50,36 @@ class HistoryProperty extends StatelessWidget {
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  if (history.hasError) return ErrorWidget(history.error);
-                  if (history.data.isEmpty)
+                  if (history.hasError) return ErrorWidget(history.error!);
+                  if (history.data!.isEmpty)
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
-                    itemCount: history.data.length,
-                    itemBuilder: (context, i) => ListTile(
-                      title: FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .doc('Users/' + history.data[i].byUser)
-                            .get(dataSource),
-                        builder: (context, user) {
-                          return user.hasData
-                              ? Text(user.data.data()['Name'])
-                              : LinearProgressIndicator();
-                        },
-                      ),
-                      subtitle: Text(DateFormat(
-                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data[i].time.toDate())),
+                    itemCount: history.data!.length,
+                    itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
+                      future: history.data![i].byUser != null
+                          ? FirebaseFirestore.instance
+                              .doc('Users/' + history.data![i].byUser!)
+                              .get(dataSource)
+                          : null,
+                      builder: (context, user) {
+                        return ListTile(
+                          leading: history.data![i].byUser != null
+                              ? IgnorePointer(
+                                  child: User.photoFromUID(
+                                      history.data![i].byUser!),
+                                )
+                              : null,
+                          title: history.data![i].byUser != null
+                              ? user.hasData
+                                  ? Text(user.data!.data()!['Name'])
+                                  : const LinearProgressIndicator()
+                              : const Text('غير معروف'),
+                          subtitle: Text(DateFormat(
+                                  showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                  'ar-EG')
+                              .format(history.data![i].time!.toDate())),
+                        );
+                      },
                     ),
                   );
                 },
@@ -82,21 +94,20 @@ class HistoryProperty extends StatelessWidget {
 
 class EditHistoryProperty extends StatelessWidget {
   const EditHistoryProperty(this.name, this.user, this.historyRef,
-      {Key key, this.showTime = true, this.discoverFeature = false})
-      : assert(name != null),
-        super(key: key);
+      {Key? key, this.showTime = true, this.discoverFeature = false})
+      : super(key: key);
 
   final String name;
-  final String user;
-  final bool discoverFeature;
+  final String? user;
   final bool showTime;
-  final CollectionReference historyRef;
+  final bool discoverFeature;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
     var icon = IconButton(
       tooltip: 'السجل',
-      icon: Icon(Icons.history),
+      icon: const Icon(Icons.history),
       onPressed: () {
         showDialog(
           context: context,
@@ -106,25 +117,30 @@ class EditHistoryProperty extends StatelessWidget {
               builder: (context, history) {
                 if (!history.hasData)
                   return const Center(child: CircularProgressIndicator());
-                if (history.hasError) return ErrorWidget(history.error);
-                if (history.data.isEmpty)
+                if (history.hasError) return ErrorWidget(history.error!);
+                if (history.data!.isEmpty)
                   return const Center(child: Text('لا يوجد سجل'));
                 return ListView.builder(
-                  itemCount: history.data.length,
-                  itemBuilder: (context, i) => ListTile(
-                    title: FutureBuilder<DocumentSnapshot>(
-                      future: FirebaseFirestore.instance
-                          .doc('Users/' + history.data[i].byUser)
-                          .get(dataSource),
-                      builder: (context, user) {
-                        return user.hasData
-                            ? Text(user.data.data()['Name'])
-                            : LinearProgressIndicator();
-                      },
-                    ),
-                    subtitle: Text(DateFormat(
-                            showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                        .format(history.data[i].time.toDate())),
+                  itemCount: history.data!.length,
+                  itemBuilder: (context, i) => FutureBuilder<String?>(
+                    future: User.onlyName(history.data![i].byUser!),
+                    builder: (context, user) {
+                      return ListTile(
+                        leading: user.hasData
+                            ? IgnorePointer(
+                                child:
+                                    User.photoFromUID(history.data![i].byUser!),
+                              )
+                            : const CircularProgressIndicator(),
+                        title: user.hasData
+                            ? Text(user.data!)
+                            : const LinearProgressIndicator(),
+                        subtitle: Text(DateFormat(
+                                showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                                'ar-EG')
+                            .format(history.data![i].time!.toDate())),
+                      );
+                    },
                   ),
                 );
               },
@@ -133,101 +149,113 @@ class EditHistoryProperty extends StatelessWidget {
         );
       },
     );
-    return ListTile(
-      title: Text(name),
-      subtitle: user != null
-          ? FutureBuilder<List>(
-              future: Future.wait([
-                FirebaseFirestore.instance.doc('Users/' + user).get(dataSource),
-                historyRef
-                    .orderBy('Time', descending: true)
-                    .limit(1)
-                    .get(dataSource)
-              ]),
-              builder: (context, future) {
-                return future.hasData
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            flex: 5,
-                            child: Text(future.data[0].data()['Name']),
-                          ),
-                          if ((future.data[1] as QuerySnapshot).docs.isNotEmpty)
-                            Flexible(
-                              flex: 5,
-                              child: Text(
+    return FutureBuilder<String?>(
+      future: user != null ? User.onlyName(user!) : null,
+      builder: (context, user) {
+        return ListTile(
+          isThreeLine: true,
+          title: Text(name),
+          subtitle: FutureBuilder<JsonQuery>(
+            future: historyRef
+                .orderBy('Time', descending: true)
+                .limit(1)
+                .get(dataSource),
+            builder: (context, future) {
+              return future.hasData
+                  ? ListTile(
+                      leading: this.user != null
+                          ? IgnorePointer(
+                              child: User.photoFromUID(this.user!),
+                            )
+                          : null,
+                      title: this.user != null
+                          ? user.hasData
+                              ? Text(user.data!)
+                              : const LinearProgressIndicator()
+                          : future.data!.docs.isNotEmpty
+                              ? Text(
                                   DateFormat(
                                           showTime
                                               ? 'yyyy/M/d   h:m a'
                                               : 'yyyy/M/d',
                                           'ar-EG')
                                       .format(
-                                    (future.data[1] as QuerySnapshot)
-                                        .docs[0]
+                                    future.data!.docs[0]
                                         .data()['Time']
                                         .toDate(),
                                   ),
-                                  style: Theme.of(context).textTheme.overline),
-                            ),
-                        ],
-                      )
-                    : LinearProgressIndicator();
-              },
-            )
-          : Text(''),
-      trailing: discoverFeature
-          ? DescribedFeatureOverlay(
-              backgroundDismissible: false,
-              barrierDismissible: false,
-              contentLocation: ContentLocation.above,
-              featureId: 'EditHistory',
-              tapTarget: Icon(Icons.history),
-              title: Text('سجل التعديل'),
-              description: Column(
-                children: <Widget>[
-                  Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
-                  OutlinedButton.icon(
-                    icon: Icon(Icons.forward),
-                    label: Text(
-                      'التالي',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2.color,
+                                )
+                              : const LinearProgressIndicator(),
+                      subtitle: future.data!.docs.isNotEmpty &&
+                              this.user != null
+                          ? Text(
+                              DateFormat(
+                                      showTime
+                                          ? 'yyyy/M/d   h:m a'
+                                          : 'yyyy/M/d',
+                                      'ar-EG')
+                                  .format(
+                                future.data!.docs[0].data()['Time'].toDate(),
+                              ),
+                            )
+                          : null,
+                    )
+                  : const LinearProgressIndicator();
+            },
+          ),
+          trailing: discoverFeature
+              ? DescribedFeatureOverlay(
+                  barrierDismissible: false,
+                  contentLocation: ContentLocation.above,
+                  featureId: 'EditHistory',
+                  tapTarget: const Icon(Icons.history),
+                  title: const Text('سجل التعديل'),
+                  description: Column(
+                    children: <Widget>[
+                      const Text('يمكنك الاطلاع على سجل التعديلات من هنا'),
+                      OutlinedButton.icon(
+                        icon: const Icon(Icons.forward),
+                        label: Text(
+                          'التالي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2!.color,
+                          ),
+                        ),
+                        onPressed: () =>
+                            FeatureDiscovery.completeCurrentStep(context),
                       ),
-                    ),
-                    onPressed: () =>
-                        FeatureDiscovery.completeCurrentStep(context),
-                  ),
-                  OutlinedButton(
-                    onPressed: () => FeatureDiscovery.dismissAll(context),
-                    child: Text(
-                      'تخطي',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyText2.color,
+                      OutlinedButton(
+                        onPressed: () => FeatureDiscovery.dismissAll(context),
+                        child: Text(
+                          'تخطي',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyText2!.color,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-              backgroundColor: Theme.of(context).accentColor,
-              targetColor: Colors.transparent,
-              textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
-              child: icon)
-          : icon,
+                  backgroundColor: Theme.of(context).accentColor,
+                  targetColor: Colors.transparent,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                  child: icon)
+              : icon,
+        );
+      },
     );
   }
 }
 
 class TimeHistoryProperty extends StatelessWidget {
   const TimeHistoryProperty(this.name, this.value, this.historyRef,
-      {Key key, this.showTime = true})
-      : assert(name != null),
-        super(key: key);
+      {Key? key, this.showTime = true})
+      : super(key: key);
 
   final String name;
-  final Timestamp value;
+  final Timestamp? value;
   final bool showTime;
-  final CollectionReference historyRef;
+  final JsonCollectionRef historyRef;
 
   @override
   Widget build(BuildContext context) {
@@ -243,7 +271,7 @@ class TimeHistoryProperty extends StatelessWidget {
                   ? DateFormat(
                           showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
                       .format(
-                      value.toDate(),
+                      value!.toDate(),
                     )
                   : '',
               style: Theme.of(context).textTheme.overline),
@@ -251,7 +279,7 @@ class TimeHistoryProperty extends StatelessWidget {
       ),
       trailing: IconButton(
         tooltip: 'السجل',
-        icon: Icon(Icons.history),
+        icon: const Icon(Icons.history),
         onPressed: () {
           showDialog(
             context: context,
@@ -261,15 +289,15 @@ class TimeHistoryProperty extends StatelessWidget {
                 builder: (context, history) {
                   if (!history.hasData)
                     return const Center(child: CircularProgressIndicator());
-                  if (history.hasError) return ErrorWidget(history.error);
-                  if (history.data.isEmpty)
+                  if (history.hasError) return ErrorWidget(history.error!);
+                  if (history.data!.isEmpty)
                     return const Center(child: Text('لا يوجد سجل'));
                   return ListView.builder(
-                    itemCount: history.data.length,
+                    itemCount: history.data!.length,
                     itemBuilder: (context, i) => ListTile(
                       title: Text(DateFormat(
                               showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data[i].time.toDate())),
+                          .format(history.data![i].time!.toDate())),
                     ),
                   );
                 },

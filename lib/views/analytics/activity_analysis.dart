@@ -9,15 +9,15 @@ import 'package:intl/intl.dart' as intl;
 import 'analytics_indicators.dart';
 
 class ActivityAnalysis extends StatefulWidget {
-  final List<Area> areas;
-  ActivityAnalysis({Key key, this.areas}) : super(key: key);
+  final List<Area>? areas;
+  ActivityAnalysis({Key? key, this.areas}) : super(key: key);
 
   @override
   _ActivityAnalysisState createState() => _ActivityAnalysisState();
 }
 
 class _ActivityAnalysisState extends State<ActivityAnalysis> {
-  List<Area> areas;
+  List<Area>? areas;
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
   DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
@@ -70,14 +70,14 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
               return StreamBuilder<List<Area>>(
                 initialData: widget.areas,
                 stream: Area.getAllForUser()
-                    .map((s) => s.docs.map(Area.fromDoc).toList()),
+                    .map((s) => s.docs.map(Area.fromQueryDoc).toList()),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError) return ErrorWidget(snapshot.error);
+                  if (snapshot.hasError) return ErrorWidget(snapshot.error!);
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
 
                   areas ??= snapshot.data;
-                  final areasByRef = {for (var a in areas) a.ref.path: a};
+                  final areasByRef = {for (var a in areas!) a.ref.path: a};
 
                   return SingleChildScrollView(
                     child: Column(
@@ -105,7 +105,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                               ),
                                             ),
                                   ),
-                                  child: dialog,
+                                  child: dialog!,
                                 ),
                                 helpText: null,
                                 context: context,
@@ -132,7 +132,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         ListTile(
                           title: Text('لمناطق: '),
                           subtitle: Text(
-                            areas.map((c) => c.name).toList().join(', '),
+                            areas!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -140,10 +140,10 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                             icon: Icon(Icons.list_alt),
                             tooltip: 'اختيار المناطق',
                             onPressed: () async {
-                              var rslt = await selectAreas(context, areas);
+                              var rslt = await selectAreas(context, areas!);
                               if (rslt != null && rslt.isNotEmpty)
                                 setState(() => areas = rslt);
-                              else if (rslt.isNotEmpty)
+                              else if (rslt != null)
                                 await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -156,21 +156,21 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          areas: areas,
+                          areas: areas!,
                           areasByRef: areasByRef,
                           collectionGroup: 'VisitHistory',
                           title: 'خدمة الافتقاد',
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          areas: areas,
+                          areas: areas!,
                           areasByRef: areasByRef,
                           collectionGroup: 'EditHistory',
                           title: 'تحديث البيانات',
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          areas: areas,
+                          areas: areas!,
                           areasByRef: areasByRef,
                           collectionGroup: 'CallHistory',
                           title: 'خدمة المكالمات',

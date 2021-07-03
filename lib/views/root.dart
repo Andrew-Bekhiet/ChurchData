@@ -6,7 +6,7 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
@@ -25,18 +25,18 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../main.dart';
+import '../models/list.dart';
 import '../models/list_options.dart';
 import '../models/order_options.dart';
 import '../models/user.dart';
-import '../main.dart';
-import '../utils/helpers.dart';
 import '../utils/globals.dart';
+import '../utils/helpers.dart';
 import 'auth_screen.dart';
 import 'edit_users.dart';
-import '../models/list.dart';
 
 class Root extends StatefulWidget {
-  const Root({Key key}) : super(key: key);
+  const Root({Key? key}) : super(key: key);
 
   @override
   _RootState createState() => _RootState();
@@ -44,10 +44,11 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  TabController _tabController;
-  Timer _keepAliveTimer;
+  late TabController _tabController;
+  Timer? _keepAliveTimer;
   bool _timeout = false;
   bool _pushed = false;
+
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode searchFocus = FocusNode();
 
@@ -60,10 +61,10 @@ class _RootState extends State<Root>
   final BehaviorSubject<OrderOptions> _personsOrder =
       BehaviorSubject.seeded(OrderOptions());
 
-  DataObjectListOptions<Area> _areasOptions;
-  DataObjectListOptions<Street> _streetsOptions;
-  DataObjectListOptions<Family> _familiesOptions;
-  DataObjectListOptions<Person> _personsOptions;
+  late DataObjectListOptions<Area> _areasOptions;
+  late DataObjectListOptions<Street> _streetsOptions;
+  late DataObjectListOptions<Family> _familiesOptions;
+  late DataObjectListOptions<Person> _personsOptions;
 
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
@@ -71,22 +72,22 @@ class _RootState extends State<Root>
   void addTap([bool type = false]) async {
     dynamic result;
     if (_tabController.index == 0) {
-      result = await Navigator.of(context).pushNamed('Data/EditArea');
+      result = await navigator.currentState!.pushNamed('Data/EditArea');
     } else if (_tabController.index == 1) {
-      result = await Navigator.of(context).pushNamed('Data/EditStreet');
+      result = await navigator.currentState!.pushNamed('Data/EditStreet');
     } else if (_tabController.index == 2) {
-      result = await Navigator.of(context).pushNamed(
+      result = await navigator.currentState!.pushNamed(
         'Data/EditFamily',
         arguments: {'IsStore': type},
       );
     } else if (_tabController.index == 3) {
-      result = await Navigator.of(context).pushNamed('Data/EditPerson');
+      result = await navigator.currentState!.pushNamed('Data/EditPerson');
     }
     if (result == null) return;
 
-    ScaffoldMessenger.of(mainScfld.currentContext).hideCurrentSnackBar();
-    if (result is DocumentReference) {
-      ScaffoldMessenger.of(mainScfld.currentContext).showSnackBar(
+    scaffoldMessenger.currentState!;
+    if (result is JsonRef) {
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('تم الحفظ بنجاح'),
         ),
@@ -104,11 +105,11 @@ class _RootState extends State<Root>
               content: Text('هل تريد الخروج؟'),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, true),
+                  onPressed: () => navigator.currentState!.pop(true),
                   child: Text('نعم'),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, false),
+                  onPressed: () => navigator.currentState!.pop(false),
                   child: Text('لا'),
                 )
               ],
@@ -123,7 +124,7 @@ class _RootState extends State<Root>
               initialData: _showSearch.value,
               stream: _showSearch,
               builder: (context, showSearch) {
-                return showSearch.data
+                return showSearch.data == true
                     ? IconButton(
                         icon: Icon(Icons.filter_list),
                         onPressed: () async {
@@ -144,7 +145,7 @@ class _RootState extends State<Root>
                                     } else if (_tabController.index == 3) {
                                       _personsOptions.selectAll();
                                     }
-                                    Navigator.pop(context);
+                                    navigator.currentState!.pop();
                                   },
                                 ),
                                 TextButton.icon(
@@ -160,14 +161,13 @@ class _RootState extends State<Root>
                                     } else if (_tabController.index == 3) {
                                       _personsOptions.selectNone();
                                     }
-                                    Navigator.pop(context);
+                                    navigator.currentState!.pop();
                                   },
                                 ),
                                 Text('ترتيب حسب:',
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold)),
                                 ...getOrderingOptions(
-                                    context,
                                     _tabController.index == 0
                                         ? _areasOrder
                                         : _tabController.index == 1
@@ -188,7 +188,7 @@ class _RootState extends State<Root>
                           contentLocation: ContentLocation.below,
                           featureId: 'Search',
                           onComplete: () async {
-                            mainScfld.currentState.openDrawer();
+                            mainScfld.currentState!.openDrawer();
                             return true;
                           },
                           tapTarget: Icon(Icons.search),
@@ -205,12 +205,12 @@ class _RootState extends State<Root>
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyText2
-                                        .color,
+                                        ?.color,
                                   ),
                                 ),
                                 onPressed: () {
                                   FeatureDiscovery.completeCurrentStep(context);
-                                  mainScfld.currentState.openDrawer();
+                                  mainScfld.currentState!.openDrawer();
                                 },
                               ),
                               OutlinedButton(
@@ -222,18 +222,19 @@ class _RootState extends State<Root>
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyText2
-                                        .color,
+                                        ?.color,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          backgroundColor: Theme.of(context).accentColor,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondary,
                           targetColor: Colors.transparent,
                           textColor: Theme.of(context)
                               .primaryTextTheme
-                              .bodyText1
-                              .color,
+                              .bodyText1!
+                              .color!,
                           child: const Icon(Icons.search),
                         ),
                         onPressed: () {
@@ -247,7 +248,7 @@ class _RootState extends State<Root>
               icon: Icon(Icons.notifications),
               tooltip: 'الإشعارات',
               onPressed: () {
-                Navigator.of(context).pushNamed('Notifications');
+                navigator.currentState!.pushNamed('Notifications');
               },
             ),
           ],
@@ -270,7 +271,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -281,15 +282,16 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.pin_drop),
                 ),
               ),
@@ -312,7 +314,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -323,20 +325,21 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: Image.asset('assets/streets.png',
                       width: IconTheme.of(context).size,
                       height: IconTheme.of(context).size,
                       color:
-                          Theme.of(context).primaryTextTheme.bodyText1.color),
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!),
                 ),
               ),
               Tab(
@@ -355,7 +358,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -366,15 +369,16 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.group),
                 ),
               ),
@@ -394,7 +398,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () {
@@ -406,15 +410,16 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.person),
                 ),
               ),
@@ -424,7 +429,7 @@ class _RootState extends State<Root>
             initialData: _showSearch.value,
             stream: _showSearch,
             builder: (context, showSearch) {
-              return showSearch.data
+              return showSearch.data == true
                   ? TextField(
                       focusNode: searchFocus,
                       decoration: InputDecoration(
@@ -433,7 +438,7 @@ class _RootState extends State<Root>
                                 color: Theme.of(context)
                                     .primaryTextTheme
                                     .headline6
-                                    .color),
+                                    ?.color),
                             onPressed: () {
                               _searchQuery.add('');
                               _showSearch.add(false);
@@ -467,15 +472,13 @@ class _RootState extends State<Root>
                                   : Icons.person_add),
                     ),
                   )
-                : Container(width: 1, height: 1);
+                : SizedBox(width: 1, height: 1);
           },
         ),
         bottomNavigationBar: BottomAppBar(
-          color: Theme.of(context).primaryColor,
-          shape: CircularNotchedRectangle(),
           child: AnimatedBuilder(
             animation: _tabController,
-            builder: (context, _) => StreamBuilder(
+            builder: (context, _) => StreamBuilder<List>(
               stream: _tabController.index == 0
                   ? _areasOptions.objectsData
                   : _tabController.index == 1
@@ -496,7 +499,7 @@ class _RootState extends State<Root>
                                   : 'شخص'),
                   textAlign: TextAlign.center,
                   strutStyle:
-                      StrutStyle(height: IconTheme.of(context).size / 7.5),
+                      StrutStyle(height: IconTheme.of(context).size! / 7.5),
                   style: Theme.of(context).primaryTextTheme.bodyText1,
                 );
               },
@@ -507,16 +510,25 @@ class _RootState extends State<Root>
           controller: _tabController,
           children: [
             DataObjectList<Area>(
-                key: PageStorageKey('mainAreasList'), options: _areasOptions),
+              key: PageStorageKey('mainAreasList'),
+              options: _areasOptions,
+              autoDisposeController: false,
+            ),
             DataObjectList<Street>(
-                key: PageStorageKey('mainStreetsList'),
-                options: _streetsOptions),
+              key: PageStorageKey('mainStreetsList'),
+              options: _streetsOptions,
+              autoDisposeController: false,
+            ),
             DataObjectList<Family>(
-                key: PageStorageKey('mainFamiliesList'),
-                options: _familiesOptions),
+              key: PageStorageKey('mainFamiliesList'),
+              options: _familiesOptions,
+              autoDisposeController: false,
+            ),
             DataObjectList<Person>(
-                key: PageStorageKey('mainPersonsList'),
-                options: _personsOptions),
+              key: PageStorageKey('mainPersonsList'),
+              options: _personsOptions,
+              autoDisposeController: false,
+            ),
           ],
         ),
         drawer: Drawer(
@@ -558,8 +570,10 @@ class _RootState extends State<Root>
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                             onPressed: () =>
@@ -571,24 +585,26 @@ class _RootState extends State<Root>
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: user.getPhoto(true, false),
                     );
                   },
                 ),
                 title: Text('حسابي'),
                 onTap: () {
-                  Navigator.pushNamed(context, 'MyAccount');
+                  navigator.currentState!.pushNamed('MyAccount');
                 },
               ),
               Selector<User, bool>(
@@ -596,7 +612,7 @@ class _RootState extends State<Root>
                     user.manageUsers || user.manageAllowedUsers,
                 builder: (context, permission, _) {
                   if (!permission)
-                    return Container(
+                    return SizedBox(
                       width: 0,
                       height: 0,
                     );
@@ -618,8 +634,10 @@ class _RootState extends State<Root>
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                             onPressed: () =>
@@ -631,23 +649,25 @@ class _RootState extends State<Root>
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: Icon(
                         const IconData(0xef3d, fontFamily: 'MaterialIconsR'),
                       ),
                     ),
                     onTap: () {
-                      mainScfld.currentState.openEndDrawer();
+                      mainScfld.currentState!.openEndDrawer();
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -686,7 +706,7 @@ class _RootState extends State<Root>
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyText2
-                                        .color,
+                                        ?.color,
                                   ),
                                 ),
                                 onPressed: () =>
@@ -702,24 +722,25 @@ class _RootState extends State<Root>
                                     color: Theme.of(context)
                                         .textTheme
                                         .bodyText2
-                                        .color,
+                                        ?.color,
                                   ),
                                 ),
                               ),
                             ],
                           ),
-                          backgroundColor: Theme.of(context).accentColor,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.secondary,
                           targetColor: Colors.transparent,
                           textColor: Theme.of(context)
                               .primaryTextTheme
-                              .bodyText1
-                              .color,
+                              .bodyText1!
+                              .color!,
                           child: Icon(Icons.analytics_outlined),
                         ),
                         title: Text('تحليل بيانات الخدمة'),
                         onTap: () {
-                          mainScfld.currentState.openEndDrawer();
-                          Navigator.of(context).pushNamed('ActivityAnalysis');
+                          mainScfld.currentState!.openEndDrawer();
+                          navigator.currentState!.pushNamed('ActivityAnalysis');
                         },
                       )
                     : Container(),
@@ -742,7 +763,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -753,21 +774,22 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: Icon(Icons.analytics_outlined),
                 ),
                 title: Text('تحليل الحياة الروحية للمخدومين'),
                 onTap: () {
-                  mainScfld.currentState.openEndDrawer();
-                  Navigator.of(context).pushNamed('SpiritualAnalysis');
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('SpiritualAnalysis');
                 },
               ),
               Divider(),
@@ -788,7 +810,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -799,21 +821,22 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: Icon(Icons.map),
                 ),
                 title: Text('عرض خريطة الافتقاد'),
                 onTap: () {
-                  mainScfld.currentState.openEndDrawer();
-                  Navigator.of(context).pushNamed('DataMap');
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('DataMap');
                 },
               ),
               ListTile(
@@ -833,7 +856,7 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -844,28 +867,29 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.search),
                 ),
                 title: Text('بحث مفصل'),
                 onTap: () {
-                  mainScfld.currentState.openEndDrawer();
-                  Navigator.of(context).pushNamed('Search');
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('Search');
                 },
               ),
               Selector<User, bool>(
                 selector: (_, user) => user.manageDeleted,
                 builder: (context, permission, _) {
                   if (!permission)
-                    return Container(
+                    return SizedBox(
                       width: 0,
                       height: 0,
                     );
@@ -886,8 +910,10 @@ class _RootState extends State<Root>
                             label: Text(
                               'التالي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                             onPressed: () =>
@@ -899,22 +925,24 @@ class _RootState extends State<Root>
                             child: Text(
                               'تخطي',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).textTheme.bodyText2.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2
+                                    ?.color,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      backgroundColor: Theme.of(context).accentColor,
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1.color,
+                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
                       child: Icon(Icons.delete_outline),
                     ),
                     onTap: () {
-                      mainScfld.currentState.openEndDrawer();
-                      Navigator.pushNamed(context, 'Trash');
+                      mainScfld.currentState!.openEndDrawer();
+                      navigator.currentState!.pushNamed('Trash');
                     },
                     title: Text('سلة المحذوفات'),
                   );
@@ -946,21 +974,22 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2.color,
+                            color: Theme.of(context).textTheme.bodyText2?.color,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
-                  textColor: Theme.of(context).primaryTextTheme.bodyText1.color,
+                  textColor:
+                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
                   child: const Icon(Icons.settings),
                 ),
                 title: Text('الإعدادات'),
                 onTap: () {
-                  mainScfld.currentState.openEndDrawer();
-                  Navigator.of(context).pushNamed('Settings');
+                  mainScfld.currentState!.openEndDrawer();
+                  navigator.currentState!.pushNamed('Settings');
                 },
               ),
               Selector<User, bool>(
@@ -971,7 +1000,7 @@ class _RootState extends State<Root>
                           leading: Icon(Icons.cloud_upload),
                           title: Text('استيراد من ملف اكسل'),
                           onTap: () {
-                            mainScfld.currentState.openEndDrawer();
+                            mainScfld.currentState!.openEndDrawer();
                             import(context);
                           },
                         )
@@ -986,8 +1015,8 @@ class _RootState extends State<Root>
                           leading: Icon(Icons.cloud_download),
                           title: Text('تصدير منطقة إلى ملف اكسل'),
                           onTap: () async {
-                            mainScfld.currentState.openEndDrawer();
-                            Area rslt = await showDialog(
+                            mainScfld.currentState!.openEndDrawer();
+                            Area? rslt = await showDialog(
                               context: context,
                               builder: (context) => Dialog(
                                 child: Column(
@@ -999,14 +1028,15 @@ class _RootState extends State<Root>
                                             .headline5),
                                     Expanded(
                                       child: DataObjectList<Area>(
+                                        autoDisposeController: true,
                                         options: DataObjectListOptions(
-                                          searchQuery: Stream.value(''),
                                           itemsStream: Area.getAllForUser().map(
-                                              (s) => s.docs
-                                                  .map(Area.fromDoc)
-                                                  .toList()),
+                                            (s) => s.docs
+                                                .map(Area.fromQueryDoc)
+                                                .toList(),
+                                          ),
                                           tap: (area) =>
-                                              Navigator.pop(context, area),
+                                              navigator.currentState!.pop(area),
                                         ),
                                       ),
                                     ),
@@ -1015,7 +1045,7 @@ class _RootState extends State<Root>
                               ),
                             );
                             if (rslt != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState!.showSnackBar(
                                 SnackBar(
                                   content: Column(
                                     mainAxisSize: MainAxisSize.min,
@@ -1044,9 +1074,9 @@ class _RootState extends State<Root>
                                 await FirebaseStorage.instance
                                     .ref(filename)
                                     .writeToFile(file);
-                                ScaffoldMessenger.of(context)
+                                scaffoldMessenger.currentState!
                                     .hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                scaffoldMessenger.currentState!.showSnackBar(
                                   SnackBar(
                                     content: Text('تم تصدير البيانات ينجاح'),
                                     action: SnackBarAction(
@@ -1058,9 +1088,9 @@ class _RootState extends State<Root>
                                   ),
                                 );
                               } on Exception catch (e, st) {
-                                ScaffoldMessenger.of(context)
+                                scaffoldMessenger.currentState!
                                     .hideCurrentSnackBar();
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                scaffoldMessenger.currentState!.showSnackBar(
                                   SnackBar(content: Text('فشل تصدير البيانات')),
                                 );
                                 await FirebaseCrashlytics.instance.setCustomKey(
@@ -1082,8 +1112,8 @@ class _RootState extends State<Root>
                           leading: Icon(Icons.file_download),
                           title: Text('تصدير جميع البيانات'),
                           onTap: () async {
-                            mainScfld.currentState.openEndDrawer();
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            mainScfld.currentState!.openEndDrawer();
+                            scaffoldMessenger.currentState!.showSnackBar(
                               SnackBar(
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -1112,9 +1142,9 @@ class _RootState extends State<Root>
                               await FirebaseStorage.instance
                                   .ref(filename)
                                   .writeToFile(file);
-                              ScaffoldMessenger.of(context)
+                              scaffoldMessenger.currentState!
                                   .hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState!.showSnackBar(
                                 SnackBar(
                                   content: Text('تم تصدير البيانات ينجاح'),
                                   action: SnackBarAction(
@@ -1126,9 +1156,9 @@ class _RootState extends State<Root>
                                 ),
                               );
                             } on Exception catch (e, st) {
-                              ScaffoldMessenger.of(context)
+                              scaffoldMessenger.currentState!
                                   .hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              scaffoldMessenger.currentState!.showSnackBar(
                                 SnackBar(content: Text('فشل تصدير البيانات')),
                               );
                               await FirebaseCrashlytics.instance.setCustomKey(
@@ -1147,15 +1177,15 @@ class _RootState extends State<Root>
                   leading: Icon(Icons.system_update_alt),
                   title: Text('تحديث البرنامج'),
                   onTap: () {
-                    mainScfld.currentState.openEndDrawer();
-                    Navigator.of(context).pushNamed('Update');
+                    mainScfld.currentState!.openEndDrawer();
+                    navigator.currentState!.pushNamed('Update');
                   },
                 ),
               ListTile(
                 leading: Icon(Icons.info_outline),
                 title: Text('حول البرنامج'),
                 onTap: () async {
-                  mainScfld.currentState.openEndDrawer();
+                  mainScfld.currentState!.openEndDrawer();
                   showAboutDialog(
                     context: context,
                     applicationIcon: Image.asset('assets/Logo2.png',
@@ -1168,7 +1198,7 @@ class _RootState extends State<Root>
                     children: [
                       TextButton(
                         onPressed: () async {
-                          final url =
+                          const url =
                               'https://church-data.flycricket.io/terms.html';
                           if (await canLaunch(url)) {
                             await launch(url);
@@ -1178,7 +1208,7 @@ class _RootState extends State<Root>
                       ),
                       TextButton(
                         onPressed: () async {
-                          final url =
+                          const url =
                               'https://church-data.flycricket.io/privacy.html';
                           if (await canLaunch(url)) {
                             await launch(url);
@@ -1194,14 +1224,14 @@ class _RootState extends State<Root>
                 leading: Icon(Icons.exit_to_app),
                 title: Text('تسجيل الخروج'),
                 onTap: () async {
-                  mainScfld.currentState.openEndDrawer();
+                  mainScfld.currentState!.openEndDrawer();
                   await auth.FirebaseAuth.instance.signOut();
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
                   // ignore: unawaited_futures
-                  Navigator.of(context).pushReplacement(
+                  navigator.currentState!.pushReplacement(
                     MaterialPageRoute(
                       builder: (context) {
-                        Navigator.of(context)
+                        navigator.currentState!
                             .popUntil((route) => route.isFirst);
                         return App();
                       },
@@ -1222,7 +1252,7 @@ class _RootState extends State<Root>
       case AppLifecycleState.resumed:
         if (_timeout && !_pushed) {
           _pushed = true;
-          Navigator.of(context)
+          navigator.currentState!
               .push(
             MaterialPageRoute(
               builder: (_) => WillPopScope(
@@ -1257,14 +1287,27 @@ class _RootState extends State<Root>
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+  Future<void> dispose() async {
     super.dispose();
+    WidgetsBinding.instance!.removeObserver(this);
+
+    await _areasOptions.dispose();
+    await _streetsOptions.dispose();
+    await _familiesOptions.dispose();
+    await _personsOptions.dispose();
+
+    await _areasOrder.close();
+    await _familiesOrder.close();
+    await _streetsOrder.close();
+    await _personsOrder.close();
+
+    await _showSearch.close();
+    await _searchQuery.close();
   }
 
   @override
   void didChangePlatformBrightness() {
-    changeTheme(context: mainScfld.currentContext);
+    changeTheme(context: mainScfld.currentContext!);
   }
 
   @override
@@ -1272,7 +1315,7 @@ class _RootState extends State<Root>
     super.initState();
     initializeDateFormatting('ar_EG', null);
     _tabController = TabController(vsync: this, length: 4);
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
     _keepAlive(true);
     _areasOptions = DataObjectListOptions<Area>(
       searchQuery: _searchQuery,
@@ -1282,7 +1325,7 @@ class _RootState extends State<Root>
         (order) =>
             Area.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
-          (s) => s.docs.map(Area.fromDoc).toList(),
+          (s) => s.docs.map(Area.fromQueryDoc).toList(),
         ),
       ),
     );
@@ -1292,7 +1335,7 @@ class _RootState extends State<Root>
         (order) =>
             Street.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
-          (s) => s.docs.map(Street.fromDoc).toList(),
+          (s) => s.docs.map(Street.fromQueryDoc).toList(),
         ),
       ),
     );
@@ -1302,7 +1345,7 @@ class _RootState extends State<Root>
         (order) =>
             Family.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
-          (s) => s.docs.map(Family.fromDoc).toList(),
+          (s) => s.docs.map(Family.fromQueryDoc).toList(),
         ),
       ),
     );
@@ -1312,17 +1355,17 @@ class _RootState extends State<Root>
         (order) =>
             Person.getAllForUser(orderBy: order.orderBy, descending: !order.asc)
                 .map(
-          (s) => s.docs.map(Person.fromDoc).toList(),
+          (s) => s.docs.map(Person.fromQueryDoc).toList(),
         ),
       ),
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       showPendingUIDialogs();
     });
   }
 
   Future showDynamicLink() async {
-    PendingDynamicLinkData data =
+    PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
     FirebaseDynamicLinks.instance.onLink(
@@ -1369,8 +1412,8 @@ class _RootState extends State<Root>
   }
 
   Future<void> showBatteryOptimizationDialog() async {
-    if ((await DeviceInfoPlugin().androidInfo).version.sdkInt >= 23 &&
-        !await BatteryOptimization.isIgnoringBatteryOptimizations() &&
+    if (((await DeviceInfoPlugin().androidInfo).version.sdkInt ?? 0) >= 23 &&
+        (await BatteryOptimization.isIgnoringBatteryOptimizations() != true) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(
         context: context,
@@ -1380,7 +1423,7 @@ class _RootState extends State<Root>
           actions: [
             OutlinedButton(
               onPressed: () async {
-                Navigator.pop(context);
+                navigator.currentState!.pop();
                 await BatteryOptimization.openBatteryOptimizationSettings();
               },
               child: Text('الغاء حفظ الطاقة للبرنامج'),
@@ -1388,7 +1431,7 @@ class _RootState extends State<Root>
             TextButton(
               onPressed: () async {
                 await Hive.box('Settings').put('ShowBatteryDialog', false);
-                Navigator.pop(context);
+                navigator.currentState!.pop();
               },
               child: Text('عدم الاظهار مجددًا'),
             ),

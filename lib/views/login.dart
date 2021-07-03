@@ -1,38 +1,36 @@
 import 'dart:async';
 
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:hive/hive.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../utils/helpers.dart';
 import '../models/user.dart';
+import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key key}) : super(key: key);
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String pass = '';
+  final btnShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10),
+  );
 
   @override
   Widget build(BuildContext context) {
-    var btnPdng = const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0);
-    var btnShape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    );
     return Scaffold(
-      resizeToAvoidBottomInset: !kIsWeb,
       appBar: AppBar(
         title: Text('تسجيل الدخول'),
       ),
@@ -62,31 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       primary: Colors.white,
                       shape: btnShape),
                   onPressed: () async {
-                    if (kIsWeb) {
-                      print('signing in with popup');
-                      await auth.FirebaseAuth.instance
-                          .signInWithCredential((await auth
-                                  .FirebaseAuth.instance
-                                  .signInWithPopup(GoogleAuthProvider()))
-                              .credential)
-                          .catchError((er) {
-                        if (er.toString().contains(
-                            'An account already exists with the same email address'))
-                          showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                    content: Text(
-                                        'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
-                                        '\n'
-                                        'جرب تسجيل الدخول بفيسبوك'),
-                                  ));
-                        return null;
-                      }).then((user) {
-                        if (user != null) setupSettings();
-                      });
-                      return;
-                    }
-                    GoogleSignInAccount googleUser =
+                    GoogleSignInAccount? googleUser =
                         await GoogleSignIn().signIn();
                     if (googleUser != null) {
                       GoogleSignInAuthentication googleAuth =
@@ -104,22 +78,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                 'An account already exists with the same email address'))
                               showDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
+                                  builder: (context) => const AlertDialog(
                                         content: Text(
                                             'هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
                                             '\n'
                                             'جرب تسجيل الدخول بفيسبوك'),
                                       ));
-                            return null;
                           }).then((user) {
-                            if (user != null) setupSettings();
+                            setupSettings();
                           });
                         } catch (err, stkTrace) {
                           await FirebaseCrashlytics.instance
                               .setCustomKey('LastErrorIn', 'Login.build');
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
-                          await showErrorDialog(context, err);
+                          await showErrorDialog(context, err.toString());
                         }
                       }
                     }
@@ -129,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        padding: btnPdng,
+                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
                         child: Image.asset(
                           'assets/google_logo.png',
                           width: 30,
@@ -155,13 +128,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: 'بتسجيل دخولك فإنك توافق على ',
                       ),
                       TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2.copyWith(
+                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
                               color: Colors.blue,
                             ),
                         text: 'شروط الاستخدام',
                         recognizer: TapGestureRecognizer()
                           ..onTap = () async {
-                            final url =
+                            const url =
                                 'https://church-data.flycricket.io/terms.html';
                             if (await canLaunch(url)) {
                               await launch(url);
@@ -173,13 +146,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: ' و',
                       ),
                       TextSpan(
-                        style: Theme.of(context).textTheme.bodyText2.copyWith(
+                        style: Theme.of(context).textTheme.bodyText2?.copyWith(
                               color: Colors.blue,
                             ),
                         text: 'سياسة الخصوصية',
                         recognizer: TapGestureRecognizer()
                           ..onTap = () async {
-                            final url =
+                            const url =
                                 'https://church-data.flycricket.io/privacy.html';
                             if (await canLaunch(url)) {
                               await launch(url);
@@ -230,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
           await settings.put('PersonSecondLine', 'Type');
 
       if (!kIsWeb)
-        WidgetsBinding.instance.addPostFrameCallback(
+        WidgetsBinding.instance!.addPostFrameCallback(
           (_) async {
             if (user
                 .getNotificationsPermissions()
@@ -238,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 .toList()
                 .any((e) => e)) {
               var notificationsSettings =
-                  Hive.box<Map<dynamic, dynamic>>('NotificationsSettings');
+                  Hive.box<Map>('NotificationsSettings');
               if (user.confessionsNotify) {
                 if (notificationsSettings.get('ConfessionTime') == null) {
                   await notificationsSettings.put('ConfessionTime',

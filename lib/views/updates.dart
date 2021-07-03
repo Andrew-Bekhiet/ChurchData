@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -13,39 +12,19 @@ import 'package:version/version.dart';
 import '../utils/globals.dart';
 
 class Update extends StatefulWidget {
-  Update({Key key}) : super(key: key);
+  Update({Key? key}) : super(key: key);
   @override
   _UpdateState createState() => _UpdateState();
-}
-
-class UpdateHelper {
-  static Future<RemoteConfig> setupRemoteConfig() async {
-    try {
-      remoteConfig = RemoteConfig.instance;
-      await remoteConfig.setDefaults(<String, dynamic>{
-        'LatestVersion': (await PackageInfo.fromPlatform()).version,
-        'LoadApp': 'false',
-        'DownloadLink':
-            'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
-                'download/ChurchData.apk',
-      });
-      await remoteConfig.setConfigSettings(RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 30),
-          minimumFetchInterval: const Duration(minutes: 2)));
-      await remoteConfig.fetchAndActivate();
-      // ignore: empty_catches
-    } catch (err) {}
-    return remoteConfig;
-  }
 }
 
 class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
     Version latest = Version.parse(
-      (await UpdateHelper.setupRemoteConfig()).getString('LatestVersion'),
+      RemoteConfig.instance.getString('LatestVersion'),
     );
-    if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
+    if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
+        canCancel) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
@@ -58,22 +37,21 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   if (await canLaunch(
-                    (await UpdateHelper.setupRemoteConfig())
+                    RemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'),
                   )) {
                     await launch(
-                      (await UpdateHelper.setupRemoteConfig())
+                      RemoteConfig.instance
                           .getString('DownloadLink')
                           .replaceFirst('https://', 'https:'),
                     );
                   } else {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                      text: (await UpdateHelper.setupRemoteConfig())
-                          .getString('DownloadLink'),
+                      text: RemoteConfig.instance.getString('DownloadLink'),
                     ));
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -87,8 +65,8 @@ class Updates {
           );
         },
       );
-    } else if ((latest >
-        Version.parse((await PackageInfo.fromPlatform()).version))) {
+    } else if (latest >
+        Version.parse((await PackageInfo.fromPlatform()).version)) {
       await showDialog(
         barrierDismissible: canCancel,
         context: context,
@@ -101,24 +79,23 @@ class Updates {
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
-                  Navigator.of(context).pop();
+                  navigator.currentState!.pop();
                   if (await canLaunch(
-                    (await UpdateHelper.setupRemoteConfig())
+                    RemoteConfig.instance
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'),
                   )) {
                     await launch(
-                      (await UpdateHelper.setupRemoteConfig())
+                      RemoteConfig.instance
                           .getString('DownloadLink')
                           .replaceFirst('https://', 'https:'),
                     );
                   } else {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                      text: (await UpdateHelper.setupRemoteConfig())
-                          .getString('DownloadLink'),
+                      text: RemoteConfig.instance.getString('DownloadLink'),
                     ));
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
                         content: Text(
                             'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
@@ -131,7 +108,7 @@ class Updates {
               if (canCancel)
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    navigator.currentState!.pop();
                   },
                   child: Text('لا'),
                 ),
@@ -163,11 +140,11 @@ class _UpdateState extends State<Update> {
                 children: <Widget>[
                   Text('الإصدار الحالي:',
                       style: Theme.of(context).textTheme.bodyText2),
-                  FutureBuilder(
+                  FutureBuilder<PackageInfo>(
                     future: PackageInfo.fromPlatform(),
                     builder: (cont, data) {
                       if (data.hasData) {
-                        return Text(data.data.version);
+                        return Text(data.data!.version);
                       }
                       return CircularProgressIndicator();
                     },
@@ -180,16 +157,8 @@ class _UpdateState extends State<Update> {
                 children: <Widget>[
                   Text('آخر إصدار:',
                       style: Theme.of(context).textTheme.bodyText2),
-                  FutureBuilder<RemoteConfig>(
-                    future: UpdateHelper.setupRemoteConfig(),
-                    builder: (cont, data) {
-                      if (data.hasData) {
-                        return Text(
-                          data.data.getString('LatestVersion'),
-                        );
-                      }
-                      return CircularProgressIndicator();
-                    },
+                  Text(
+                    RemoteConfig.instance.getString('LatestVersion'),
                   ),
                 ],
               ),

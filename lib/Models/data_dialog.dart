@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 
 class DataDialog extends StatelessWidget {
   DataDialog(
-      {this.actions, this.title, @required this.content, this.contentPadding})
-      : assert(content != null);
-  final List<Widget> actions;
-  final Widget title;
-  final Widget content;
-  final EdgeInsets contentPadding;
+      {Key? key,
+      this.actions,
+      this.title,
+      required this.content,
+      this.contentPadding})
+      : assert(content != null),
+        super(key: key);
+
+  final List<Widget>? actions;
+  final Widget? title;
+  final Widget? content;
+  final EdgeInsets? contentPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +27,8 @@ class DataDialog extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
               child: DefaultTextStyle(
                 style: Theme.of(context).dialogTheme.titleTextStyle ??
-                    Theme.of(context).textTheme.headline6,
-                child: title,
+                    Theme.of(context).textTheme.headline6!,
+                child: title!,
               ),
             ),
           Flexible(
@@ -30,9 +36,9 @@ class DataDialog extends StatelessWidget {
                 padding: contentPadding ?? EdgeInsets.symmetric(horizontal: 7),
                 child: content),
           ),
-          if (actions != null && actions.isNotEmpty)
+          if (actions != null && actions!.isNotEmpty)
             ButtonBar(
-              children: actions,
+              children: actions!,
             )
         ],
       ),

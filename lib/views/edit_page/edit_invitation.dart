@@ -1,23 +1,27 @@
 import 'dart:async';
 
+import 'package:churchdata/models/invitation.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:churchdata/models/invitation.dart';
 
 import '../../models/user.dart';
 
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;
-  EditInvitation({Key key, @required this.invitation}) : super(key: key);
+
+  EditInvitation({Key? key, required this.invitation}) : super(key: key);
+
   @override
   _EditInvitationState createState() => _EditInvitationState();
 }
 
 class _EditInvitationState extends State<EditInvitation> {
-  Map<String, dynamic> old;
+  Json old = {};
 
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
@@ -59,207 +63,208 @@ class _EditInvitationState extends State<EditInvitation> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(5),
-            child: ListView(
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: TextFormField(
-                    decoration: InputDecoration(
+            padding: EdgeInsets.all(8),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: TextFormField(
+                      decoration: InputDecoration(
                         labelText: 'عنوان الدعوة',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        )),
-                    textInputAction: TextInputAction.next,
-                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                    initialValue: widget.invitation.name,
-                    onChanged: nameChanged,
-                    validator: (value) {
-                      if (value.isEmpty) {
-                        return 'هذا الحقل مطلوب';
-                      }
-                      return null;
-                    },
+                      ),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).nextFocus(),
+                      initialValue: widget.invitation.name,
+                      onChanged: nameChanged,
+                      validator: (value) {
+                        if (value?.isEmpty ?? true) {
+                          return 'هذا الحقل مطلوب';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
-                  child: Focus(
-                    child: GestureDetector(
-                      onTap: () async => widget.invitation.expiryDate =
-                          await _selectDateTime(
-                              'تاريخ الانتهاء',
-                              widget.invitation.expiryDate?.toDate() ??
-                                  DateTime.now()),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    child: Focus(
+                      child: GestureDetector(
+                        onTap: () async => widget.invitation.expiryDate =
+                            await _selectDateTime(
+                          'تاريخ الانتهاء',
+                          widget.invitation.expiryDate.toDate(),
+                        ),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
                             labelText: 'تاريخ انتهاء الدعوة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
-                            )),
-                        child: widget.invitation.expiryDate != null
-                            ? Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
-                                .format(widget.invitation.expiryDate.toDate()))
-                            : Text('(فارغ)'),
+                          ),
+                          child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
+                              .format(widget.invitation.expiryDate.toDate())),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (User.instance.manageUsers)
+                  if (User.instance.manageUsers)
+                    ListTile(
+                      trailing: Checkbox(
+                        value: widget.invitation.permissions?['manageUsers'] ??
+                            false,
+                        onChanged: (v) => setState(() =>
+                            widget.invitation.permissions?['manageUsers'] = v),
+                      ),
+                      leading: Icon(
+                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      title: Text('إدارة المستخدمين'),
+                      onTap: () => setState(() =>
+                          widget.invitation.permissions?['manageUsers'] =
+                              !(widget.invitation.permissions?['manageUsers'] ??
+                                  false)),
+                    ),
                   ListTile(
                     trailing: Checkbox(
-                      value:
-                          widget.invitation.permissions['manageUsers'] ?? false,
-                      onChanged: (v) => setState(() =>
-                          widget.invitation.permissions['manageUsers'] = v),
+                      value: widget
+                              .invitation.permissions?['manageAllowedUsers'] ??
+                          false,
+                      onChanged: (v) => setState(() => widget
+                          .invitation.permissions?['manageAllowedUsers'] = v),
                     ),
                     leading: Icon(
                         const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة المستخدمين'),
+                    title: Text('إدارة مستخدمين محددين'),
+                    onTap: () => setState(() => widget.invitation
+                        .permissions?['manageAllowedUsers'] = !(widget
+                            .invitation.permissions?['manageAllowedUsers'] ??
+                        false)),
+                  ),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['superAccess'] ??
+                          false,
+                      onChanged: (v) => setState(() =>
+                          widget.invitation.permissions?['superAccess'] = v),
+                    ),
+                    leading: Icon(
+                      const IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                    ),
+                    title: Text('رؤية جميع البيانات'),
                     onTap: () => setState(() =>
-                        widget.invitation.permissions['manageUsers'] =
-                            !(widget.invitation.permissions['manageUsers'] ??
+                        widget.invitation.permissions?['superAccess'] =
+                            !(widget.invitation.permissions?['superAccess'] ??
                                 false)),
                   ),
-                ListTile(
-                  trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions['manageAllowedUsers'] ??
-                            false,
-                    onChanged: (v) => setState(() => widget
-                        .invitation.permissions['manageAllowedUsers'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['manageDeleted'] ??
+                          false,
+                      onChanged: (v) => setState(() =>
+                          widget.invitation.permissions?['manageDeleted'] = v),
+                    ),
+                    leading: Icon(Icons.delete_outline),
+                    title: Text('استرجاع المحذوفات'),
+                    onTap: () => setState(() =>
+                        widget.invitation.permissions?['manageDeleted'] =
+                            !(widget.invitation.permissions?['manageDeleted'] ??
+                                false)),
                   ),
-                  leading: Icon(
-                      const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                  title: Text('إدارة مستخدمين محددين'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions['manageAllowedUsers'] =
-                      !(widget.invitation.permissions['manageAllowedUsers'] ??
-                          false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions['superAccess'] ?? false,
-                    onChanged: (v) => setState(
-                        () => widget.invitation.permissions['superAccess'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['write'] ?? false,
+                      onChanged: (v) => setState(
+                          () => widget.invitation.permissions?['write'] = v),
+                    ),
+                    leading: Icon(Icons.edit),
+                    title: Text('تعديل البيانات'),
+                    onTap: () => setState(() => widget
+                            .invitation.permissions?['write'] =
+                        !(widget.invitation.permissions?['write'] ?? false)),
                   ),
-                  leading: Icon(
-                    const IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['exportAreas'] ??
+                          false,
+                      onChanged: (v) => setState(() =>
+                          widget.invitation.permissions?['exportAreas'] = v),
+                    ),
+                    leading: Icon(Icons.cloud_download),
+                    title: Text('تصدير منطقة لملف إكسل'),
+                    onTap: () => setState(() =>
+                        widget.invitation.permissions?['exportAreas'] =
+                            !(widget.invitation.permissions?['exportAreas'] ??
+                                false)),
                   ),
-                  title: Text('رؤية جميع البيانات'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions['superAccess'] =
-                      !(widget.invitation.permissions['superAccess'] ?? false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions['manageDeleted'] ?? false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions['manageDeleted'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['birthdayNotify'] ??
+                          false,
+                      onChanged: (v) => setState(() =>
+                          widget.invitation.permissions?['birthdayNotify'] = v),
+                    ),
+                    leading: Icon(
+                      const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                    ),
+                    title: Text('إشعار أعياد الميلاد'),
+                    onTap: () => setState(() => widget
+                            .invitation.permissions?['birthdayNotify'] =
+                        !(widget.invitation.permissions?['birthdayNotify'] ??
+                            false)),
                   ),
-                  leading: Icon(Icons.delete_outline),
-                  title: Text('استرجاع المحذوفات'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions['manageDeleted'] =
-                          !(widget.invitation.permissions['manageDeleted'] ??
-                              false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value: widget.invitation.permissions['write'] ?? false,
-                    onChanged: (v) => setState(
-                        () => widget.invitation.permissions['write'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value:
+                          widget.invitation.permissions?['confessionsNotify'] ??
+                              false,
+                      onChanged: (v) => setState(() => widget
+                          .invitation.permissions?['confessionsNotify'] = v),
+                    ),
+                    leading: Icon(
+                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    ),
+                    title: Text('إشعار الاعتراف'),
+                    onTap: () => setState(
+                      () => widget.invitation
+                          .permissions?['confessionsNotify'] = !(widget
+                              .invitation.permissions?['confessionsNotify'] ??
+                          false),
+                    ),
                   ),
-                  leading: Icon(Icons.edit),
-                  title: Text('تعديل البيانات'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions['write'] =
-                          !(widget.invitation.permissions['write'] ?? false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions['exportAreas'] ?? false,
-                    onChanged: (v) => setState(
-                        () => widget.invitation.permissions['exportAreas'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value: widget.invitation.permissions?['tanawolNotify'] ??
+                          false,
+                      onChanged: (v) => setState(() =>
+                          widget.invitation.permissions?['tanawolNotify'] = v),
+                    ),
+                    leading: Icon(
+                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    ),
+                    title: Text('إشعار التناول'),
+                    onTap: () => setState(
+                      () => widget.invitation.permissions?['tanawolNotify'] =
+                          !(widget.invitation.permissions?['tanawolNotify'] ??
+                              false),
+                    ),
                   ),
-                  leading: Icon(Icons.cloud_download),
-                  title: Text('تصدير منطقة لملف إكسل'),
-                  onTap: () => setState(() => widget
-                          .invitation.permissions['exportAreas'] =
-                      !(widget.invitation.permissions['exportAreas'] ?? false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value: widget.invitation.permissions['birthdayNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions['birthdayNotify'] = v),
+                  ListTile(
+                    trailing: Checkbox(
+                      value:
+                          widget.invitation.permissions?['approveLocations'] ??
+                              false,
+                      onChanged: (v) => setState(() => widget
+                          .invitation.permissions?['approveLocations'] = v),
+                    ),
+                    title: Text('التأكيد على المواقع'),
+                    onTap: () => setState(() => widget
+                            .invitation.permissions?['approveLocations'] =
+                        !(widget.invitation.permissions?['approveLocations'] ??
+                            false)),
+                    leading: Icon(
+                      const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
+                    ),
                   ),
-                  leading: Icon(
-                    const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
-                  ),
-                  title: Text('إشعار أعياد الميلاد'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions['birthdayNotify'] =
-                          !(widget.invitation.permissions['birthdayNotify'] ??
-                              false)),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value: widget.invitation.permissions['confessionsNotify'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions['confessionsNotify'] = v),
-                  ),
-                  leading: Icon(
-                    const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
-                  ),
-                  title: Text('إشعار الاعتراف'),
-                  onTap: () => setState(
-                    () => widget.invitation.permissions['confessionsNotify'] =
-                        !(widget.invitation.permissions['confessionsNotify'] ??
-                            false),
-                  ),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value:
-                        widget.invitation.permissions['tanawolNotify'] ?? false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions['tanawolNotify'] = v),
-                  ),
-                  leading: Icon(
-                    const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
-                  ),
-                  title: Text('إشعار التناول'),
-                  onTap: () => setState(
-                    () => widget.invitation.permissions['tanawolNotify'] =
-                        !(widget.invitation.permissions['tanawolNotify'] ??
-                            false),
-                  ),
-                ),
-                ListTile(
-                  trailing: Checkbox(
-                    value: widget.invitation.permissions['approveLocations'] ??
-                        false,
-                    onChanged: (v) => setState(() =>
-                        widget.invitation.permissions['approveLocations'] = v),
-                  ),
-                  title: Text('التأكيد على المواقع'),
-                  onTap: () => setState(() =>
-                      widget.invitation.permissions['approveLocations'] =
-                          !(widget.invitation.permissions['approveLocations'] ??
-                              false)),
-                  leading: Icon(
-                    const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -280,12 +285,12 @@ class _EditInvitationState extends State<EditInvitation> {
         content: Text('هل تريد حذف هذه الدعوة؟'),
         actions: <Widget>[
           TextButton(
-            style: Theme.of(innerContext).textButtonTheme.style.copyWith(
+            style: Theme.of(innerContext).textButtonTheme.style?.copyWith(
                 foregroundColor:
                     MaterialStateProperty.resolveWith((state) => Colors.red)),
             onPressed: () async {
               try {
-                ScaffoldMessenger.of(innerContext).showSnackBar(
+                scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
@@ -293,9 +298,9 @@ class _EditInvitationState extends State<EditInvitation> {
                 );
                 Navigator.of(innerContext).pop();
                 await widget.invitation.ref.delete();
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                Navigator.of(context).pop('deleted');
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.currentState!;
+                navigator.currentState!.pop('deleted');
+                scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
@@ -305,8 +310,8 @@ class _EditInvitationState extends State<EditInvitation> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: Text(
                       err.toString(),
@@ -320,7 +325,7 @@ class _EditInvitationState extends State<EditInvitation> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState!.pop();
             },
             child: Text('تراجع'),
           ),
@@ -331,7 +336,7 @@ class _EditInvitationState extends State<EditInvitation> {
 
   @override
   void initState() {
-    old = widget.invitation?.getMap();
+    old = widget.invitation.getMap();
     super.initState();
   }
 
@@ -348,18 +353,17 @@ class _EditInvitationState extends State<EditInvitation> {
       return;
     }
     try {
-      if (form.currentState.validate() &&
-          widget.invitation.expiryDate != null &&
+      if (form.currentState!.validate() &&
           widget.invitation.expiryDate.toDate().difference(DateTime.now()) >=
               Duration(hours: 24)) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
         if (widget.invitation.id == '') {
           widget.invitation.ref =
               FirebaseFirestore.instance.collection('Invitations').doc();
-          widget.invitation.generatedBy = User.instance.uid;
+          widget.invitation.generatedBy = User.instance.uid!;
           await widget.invitation.ref.set({
             ...widget.invitation.getMap(),
             'GeneratedOn': FieldValue.serverTimestamp()
@@ -371,9 +375,9 @@ class _EditInvitationState extends State<EditInvitation> {
             await widget.invitation.update(old: update);
           }
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        Navigator.of(context).pop(widget.invitation.ref);
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        navigator.currentState!.pop(widget.invitation.ref);
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
@@ -392,8 +396,8 @@ class _EditInvitationState extends State<EditInvitation> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),
       ));

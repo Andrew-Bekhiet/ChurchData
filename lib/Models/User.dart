@@ -4,97 +4,104 @@ import 'dart:ui';
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/models/super_classes.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter_stream_notifiers/flutter_stream_notifiers.dart';
-import 'package:hive/hive.dart';
-import '../EncryptionKeys.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:hive/hive.dart';
+import 'package:rxdart/rxdart.dart';
 
+import '../EncryptionKeys.dart';
 import '../utils/globals.dart';
 import 'person.dart';
 
-class User extends DataObject
-    with PhotoObject, ChangeNotifier, ChangeNotifierStream<User> {
+class User extends DataObject with PhotoObject {
   static final User instance = User._initInstance();
 
   Completer<bool> _initialized = Completer<bool>();
   Future<bool> get initialized => _initialized.future;
 
-  String _uid;
+  Stream<User> get stream => _streamSubject.stream;
+  final _streamSubject = BehaviorSubject<User>();
 
-  String get uid => _uid;
+  @override
+  bool get hasPhoto => uid != null;
 
-  set uid(String uid) {
+  @override
+  set hasPhoto(bool? _) {}
+
+  String? _uid;
+
+  String? get uid => _uid;
+
+  set uid(String? uid) {
     _uid = uid;
     if (!_initialized.isCompleted) _initialized.complete(uid != null);
   }
 
-  String email;
-  String password;
+  late String email;
+  String? password;
 
-  String personRef;
-  DocumentReference get personDocRef =>
-      FirebaseFirestore.instance.doc(personRef);
+  String? personRef;
+  JsonRef? get personDocRef =>
+      personRef != null ? FirebaseFirestore.instance.doc(personRef!) : null;
 
-  bool manageUsers;
-  bool manageAllowedUsers;
-  bool superAccess;
-  bool manageDeleted;
-  bool exportAreas;
-  bool write;
+  bool manageUsers = false;
+  bool manageAllowedUsers = false;
+  bool superAccess = false;
+  bool manageDeleted = false;
+  bool exportAreas = false;
+  bool write = false;
   List<String> allowedUsers = [];
 
-  bool birthdayNotify;
-  bool confessionsNotify;
-  bool tanawolNotify;
+  bool birthdayNotify = false;
+  bool confessionsNotify = false;
+  bool tanawolNotify = false;
 
-  bool approveLocations;
-  bool approved;
+  bool approveLocations = false;
+  bool approved = false;
 
-  StreamSubscription userTokenListener;
-  StreamSubscription connectionListener;
-  StreamSubscription<auth.User> authListener;
+  StreamSubscription? userTokenListener;
+  StreamSubscription? connectionListener;
+  StreamSubscription<auth.User?>? authListener;
 
   final AsyncCache<String> _photoUrlCache =
       AsyncCache<String>(Duration(days: 1));
 
-  @override
   Future<void> dispose() async {
     await recordLastSeen();
     await Hive.close();
     await userTokenListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
-    await super.dispose();
+    await _streamSubject.close();
   }
 
   void _initListeners() {
-    authListener ??= auth.FirebaseAuth.instance.userChanges().listen(
+    authListener = auth.FirebaseAuth.instance.userChanges().listen(
       (user) async {
         if (user != null) {
-          userTokenListener ??= FirebaseDatabase.instance
+          userTokenListener = FirebaseDatabase.instance
               .reference()
               .child('Users/${user.uid}/forceRefresh')
               .onValue
               .listen((e) async {
-            if (user?.uid == null ||
-                e.snapshot == null ||
-                e.snapshot.value != true) return;
+            if (e.snapshot.value != true) return;
 
-            Map<dynamic, dynamic> idTokenClaims;
+            Json idTokenClaims;
             try {
               var idToken = await user.getIdTokenResult(true);
               if (kIsWeb)
-                await Encryption.setUserData(idToken.claims);
+                await Encryption.setUserData(idToken.claims!);
               else {
-                for (var item in idToken.claims.entries) {
+                for (var item in idToken.claims!.entries) {
                   await flutterSecureStorage.write(
                       key: item.key, value: item.value?.toString());
                 }
@@ -120,38 +127,19 @@ class User extends DataObject
                       .set('Active');
                 }
               });
-              idTokenClaims = idToken.claims;
+              idTokenClaims = idToken.claims!;
             } on Exception {
               if (kIsWeb)
-                idTokenClaims = await Encryption.getUserData();
+                idTokenClaims = await Encryption.getUserData() ?? {};
               else
                 idTokenClaims = await flutterSecureStorage.readAll();
-              if (idTokenClaims?.isEmpty ?? true) rethrow;
+              if (idTokenClaims.isEmpty) rethrow;
             }
-            uid = user.uid;
-            name = user.displayName;
-            password = idTokenClaims['password'];
-            manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
-            manageAllowedUsers =
-                idTokenClaims['manageAllowedUsers'].toString() == 'true';
-            superAccess = idTokenClaims['superAccess'].toString() == 'true';
-            manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
-            write = idTokenClaims['write'].toString() == 'true';
-            exportAreas = idTokenClaims['exportAreas'].toString() == 'true';
-            birthdayNotify =
-                idTokenClaims['birthdayNotify'].toString() == 'true';
-            confessionsNotify =
-                idTokenClaims['confessionsNotify'].toString() == 'true';
-            tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
-            approveLocations =
-                idTokenClaims['approveLocations'].toString() == 'true';
-            approved = idTokenClaims['approved'].toString() == 'true';
-            personRef = idTokenClaims['personRef'];
-            email = user.email;
 
-            notifyListeners();
+            _refreshFromIdToken(user, idTokenClaims);
           });
-          Map<dynamic, dynamic> idTokenClaims;
+
+          Json idTokenClaims;
           try {
             var idToken;
             if ((await Connectivity().checkConnectivity()) !=
@@ -193,31 +181,13 @@ class User extends DataObject
                     : await flutterSecureStorage.readAll());
           } on Exception {
             if (kIsWeb)
-              idTokenClaims = await Encryption.getUserData();
+              idTokenClaims = await Encryption.getUserData() ?? {};
             else
               idTokenClaims = await flutterSecureStorage.readAll();
-            if (idTokenClaims?.isEmpty ?? true) rethrow;
+            if (idTokenClaims.isEmpty) rethrow;
           }
-          uid = user.uid;
-          name = user.displayName;
-          password = idTokenClaims['password'];
-          manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
-          manageAllowedUsers =
-              idTokenClaims['manageAllowedUsers'].toString() == 'true';
-          superAccess = idTokenClaims['superAccess'].toString() == 'true';
-          manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
-          write = idTokenClaims['write'].toString() == 'true';
-          exportAreas = idTokenClaims['exportAreas'].toString() == 'true';
-          birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
-          confessionsNotify =
-              idTokenClaims['confessionsNotify'].toString() == 'true';
-          tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
-          approveLocations =
-              idTokenClaims['approveLocations'].toString() == 'true';
-          approved = idTokenClaims['approved'].toString() == 'true';
-          personRef = idTokenClaims['personRef'];
-          email = user.email;
-          notifyListeners();
+
+          _refreshFromIdToken(user, idTokenClaims);
         } else if (uid != null) {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
@@ -229,6 +199,28 @@ class User extends DataObject
     );
   }
 
+  void _refreshFromIdToken(auth.User user, Json idTokenClaims) {
+    uid = user.uid;
+    name = user.displayName ?? '';
+    password = idTokenClaims['password'];
+    manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
+    manageAllowedUsers =
+        idTokenClaims['manageAllowedUsers'].toString() == 'true';
+    superAccess = idTokenClaims['superAccess'].toString() == 'true';
+    manageDeleted = idTokenClaims['manageDeleted'].toString() == 'true';
+    write = idTokenClaims['write'].toString() == 'true';
+    exportAreas = idTokenClaims['exportAreas'].toString() == 'true';
+    birthdayNotify = idTokenClaims['birthdayNotify'].toString() == 'true';
+    confessionsNotify = idTokenClaims['confessionsNotify'].toString() == 'true';
+    tanawolNotify = idTokenClaims['tanawolNotify'].toString() == 'true';
+    approveLocations = idTokenClaims['approveLocations'].toString() == 'true';
+    approved = idTokenClaims['approved'].toString() == 'true';
+    personRef = idTokenClaims['personRef'];
+    email = user.email!;
+
+    notifyListeners();
+  }
+
   Future<void> signOut() async {
     await recordLastSeen();
     await userTokenListener?.cancel();
@@ -236,106 +228,115 @@ class User extends DataObject
     _initialized = Completer<bool>();
     uid = null;
     notifyListeners();
+    await GoogleSignIn().signOut();
     await auth.FirebaseAuth.instance.signOut();
     await connectionListener?.cancel();
   }
 
   factory User(
-      {String uid,
-      String name,
-      String password,
-      bool manageUsers,
-      bool manageDeleted,
-      bool manageAllowedUsers,
-      bool superAccess,
-      bool write,
-      bool exportAreas,
-      bool birthdayNotify,
-      bool confessionsNotify,
-      bool tanawolNotify,
-      bool approveLocations,
-      bool approved,
-      String personRef,
-      List<String> allowedUsers,
-      String email}) {
-    if (uid == null || uid == auth.FirebaseAuth.instance.currentUser.uid) {
+      {JsonRef? ref,
+      String? uid,
+      required String name,
+      String? password,
+      bool manageUsers = false,
+      bool manageDeleted = false,
+      bool manageAllowedUsers = false,
+      bool superAccess = false,
+      bool write = false,
+      bool exportAreas = false,
+      bool birthdayNotify = false,
+      bool confessionsNotify = false,
+      bool tanawolNotify = false,
+      bool approveLocations = false,
+      bool approved = false,
+      String? personRef,
+      List<String>? allowedUsers,
+      required String email}) {
+    if (uid == null || uid == auth.FirebaseAuth.instance.currentUser!.uid) {
       return instance;
     }
     return User._new(
-        uid,
-        name,
-        password,
-        manageUsers,
-        manageAllowedUsers,
-        superAccess,
-        manageDeleted,
-        write,
-        exportAreas,
-        birthdayNotify,
-        confessionsNotify,
-        tanawolNotify,
-        approveLocations,
-        approved,
-        personRef,
-        allowedUsers,
+        uid: uid,
+        name: name,
+        password: password,
+        manageUsers: manageUsers,
+        manageAllowedUsers: manageAllowedUsers,
+        superAccess: superAccess,
+        manageDeleted: manageDeleted,
+        write: write,
+        exportAreas: exportAreas,
+        birthdayNotify: birthdayNotify,
+        confessionsNotify: confessionsNotify,
+        tanawolNotify: tanawolNotify,
+        approveLocations: approveLocations,
+        approved: approved,
+        personRef: personRef,
+        allowedUsers: allowedUsers,
         email: email);
   }
 
   User._new(
-      this._uid,
-      String name,
+      {String? uid,
+      String? id,
+      required String name,
       this.password,
-      this.manageUsers,
-      bool manageAllowedUsers,
-      this.superAccess,
-      this.manageDeleted,
-      this.write,
-      this.exportAreas,
-      this.birthdayNotify,
-      this.confessionsNotify,
-      this.tanawolNotify,
-      this.approveLocations,
-      this.approved,
+      required this.manageUsers,
+      required this.manageAllowedUsers,
+      required this.superAccess,
+      required this.manageDeleted,
+      required this.write,
+      required this.exportAreas,
+      required this.birthdayNotify,
+      required this.confessionsNotify,
+      required this.tanawolNotify,
+      required this.approveLocations,
+      required this.approved,
       this.personRef,
-      List<String> allowedUsers,
-      {this.email,
-      DocumentReference ref})
-      : super(ref ?? FirebaseFirestore.instance.collection('Users').doc(_uid),
-            name, null) {
-    hasPhoto = true;
+      List<String>? allowedUsers,
+      required this.email,
+      JsonRef? ref})
+      : _uid = uid,
+        super(
+            ref ??
+                FirebaseFirestore.instance
+                    .collection('Users')
+                    .doc(id ?? 'null'),
+            name,
+            null) {
     defaultIcon = Icons.account_circle;
-    this.manageAllowedUsers = manageAllowedUsers ?? false;
     this.allowedUsers = allowedUsers ?? [];
   }
 
   User._initInstance()
       : allowedUsers = [],
-        super(null, null, null) {
+        super(FirebaseFirestore.instance.collection('Users').doc('null'), '',
+            null) {
     hasPhoto = true;
     defaultIcon = Icons.account_circle;
     _initListeners();
   }
 
-  User._createFromData(this._uid, Map<String, dynamic> data)
+  User._createFromData(this._uid, Json data)
       : super.createFromData(
             data, FirebaseFirestore.instance.collection('Users').doc(_uid)) {
     name = data['Name'] ?? data['name'];
     uid = data['uid'] ?? _uid;
     password = data['password'];
-    manageUsers = data['manageUsers'];
-    manageAllowedUsers = data['manageAllowedUsers'];
-    allowedUsers = data['allowedUsers']?.cast<String>();
-    manageDeleted = data['manageDeleted'];
-    superAccess = data['superAccess'];
-    write = data['write'];
-    exportAreas = data['exportAreas'];
-    birthdayNotify = data['birthdayNotify'];
-    confessionsNotify = data['confessionsNotify'];
-    tanawolNotify = data['tanawolNotify'];
-    approved = data['approved'];
-    approveLocations = data['ApproveLocations'];
-    email = data['email'];
+    manageUsers = data['manageUsers']?.toString() == 'true';
+    manageAllowedUsers = data['manageAllowedUsers']?.toString() == 'true';
+    allowedUsers = data['allowedUsers']?.cast<String>() ?? [];
+    manageDeleted = data['manageDeleted']?.toString() == 'true';
+    superAccess = data['superAccess']?.toString() == 'true';
+    write = data['write']?.toString() == 'true';
+    exportAreas = data['exportAreas']?.toString() == 'true';
+    birthdayNotify = data['birthdayNotify']?.toString() == 'true';
+    confessionsNotify = data['confessionsNotify']?.toString() == 'true';
+    tanawolNotify = data['tanawolNotify']?.toString() == 'true';
+    approved = data['approved']?.toString() == 'true';
+    approveLocations = data['approveLocations']?.toString() == 'true';
+    email = data['email'] ?? '';
     hasPhoto = true;
+
     defaultIcon = Icons.account_circle;
   }
 
@@ -367,36 +368,37 @@ class User extends DataObject
   }
 
   Map<String, bool> getNotificationsPermissions() => {
-        'birthdayNotify': birthdayNotify ?? false,
-        'confessionsNotify': confessionsNotify ?? false,
-        'tanawolNotify': tanawolNotify ?? false,
+        'birthdayNotify': birthdayNotify,
+        'confessionsNotify': confessionsNotify,
+        'tanawolNotify': tanawolNotify,
       };
 
   String getPermissions() {
-    if (approved ?? false) {
+    if (approved) {
       String permissions = '';
-      if (manageUsers ?? false) permissions += 'تعديل المستخدمين،';
-      if (manageAllowedUsers ?? false) permissions += 'تعديل مستخدمين محددين،';
-      if (superAccess ?? false) permissions += 'رؤية جميع البيانات،';
-      if (manageDeleted ?? false) permissions += 'استرجاع المحئوفات،';
-      if (write ?? false) permissions += 'تعديل البيانات،';
-      if (exportAreas ?? false) permissions += 'تصدير منطقة،';
-      if (approveLocations ?? false) permissions += 'تأكيد المواقع،';
-      if (birthdayNotify ?? false) permissions += 'اشعار أعياد الميلاد،';
-      if (confessionsNotify ?? false) permissions += 'اشعار الاعتراف،';
-      if (tanawolNotify ?? false) permissions += 'اشعار التناول،';
+      if (manageUsers) permissions += 'تعديل المستخدمين،';
+      if (manageAllowedUsers) permissions += 'تعديل مستخدمين محددين،';
+      if (superAccess) permissions += 'رؤية جميع البيانات،';
+      if (manageDeleted) permissions += 'استرجاع المحئوفات،';
+      if (write) permissions += 'تعديل البيانات،';
+      if (exportAreas) permissions += 'تصدير منطقة،';
+      if (approveLocations) permissions += 'تأكيد المواقع،';
+      if (birthdayNotify) permissions += 'اشعار أعياد الميلاد،';
+      if (confessionsNotify) permissions += 'اشعار الاعتراف،';
+      if (tanawolNotify) permissions += 'اشعار التناول،';
       return permissions;
     }
     return 'حساب غير منشط';
   }
 
   @override
-  Widget photo([bool b = false]) => getPhoto();
+  Widget photo({bool cropToCircle = true, bool removeHero = false}) =>
+      getPhoto(cropToCircle);
 
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder(
+      child: StreamBuilder<Event>(
         stream: FirebaseDatabase.instance
             .reference()
             .child('Users/$uid/lastSeen')
@@ -409,7 +411,7 @@ class User extends DataObject
                     child: Icon(Icons.account_circle,
                         size: MediaQuery.of(context).size.height / 16.56)),
                 if (showActiveStatus &&
-                    activity.data?.snapshot?.value == 'Active')
+                    activity.data?.snapshot.value == 'Active')
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
@@ -428,7 +430,7 @@ class User extends DataObject
             builder: (context, setState) => FutureBuilder<String>(
               future: _photoUrlCache.fetch(
                 () async {
-                  String cache = Hive.box<String>('PhotosURLsCache')
+                  String? cache = Hive.box<String>('PhotosURLsCache')
                       .get(photoRef.fullPath);
 
                   if (cache == null) {
@@ -462,14 +464,14 @@ class User extends DataObject
                       child: photoUrl.hasData
                           ? showCircle
                               ? CircleAvatar(
-                                  backgroundImage:
-                                      CachedNetworkImageProvider(photoUrl.data),
+                                  backgroundImage: CachedNetworkImageProvider(
+                                      photoUrl.data!),
                                 )
-                              : CachedNetworkImage(imageUrl: photoUrl.data)
-                          : CircularProgressIndicator(),
+                              : CachedNetworkImage(imageUrl: photoUrl.data!)
+                          : const CircularProgressIndicator(),
                     ),
                     if (showActiveStatus &&
-                        activity.data?.snapshot?.value == 'Active')
+                        activity.data?.snapshot.value == 'Active')
                       Align(
                         alignment: Alignment.bottomLeft,
                         child: Container(
@@ -495,31 +497,33 @@ class User extends DataObject
   @override
   Future<String> getSecondLine() async => getPermissions();
 
-  Map<String, dynamic> getUpdateMap() => {
+  Json getUpdateMap() => {
         'name': name,
-        'manageUsers': manageUsers ?? false,
+        'manageUsers': manageUsers,
         'manageAllowedUsers': manageAllowedUsers,
-        'superAccess': superAccess ?? false,
-        'manageDeleted': manageDeleted ?? false,
-        'write': write ?? false,
-        'exportAreas': exportAreas ?? false,
-        'approveLocations': approveLocations ?? false,
-        'birthdayNotify': birthdayNotify ?? false,
-        'confessionsNotify': confessionsNotify ?? false,
-        'tanawolNotify': tanawolNotify ?? false,
-        'approved': approved ?? false,
+        'superAccess': superAccess,
+        'manageDeleted': manageDeleted,
+        'write': write,
+        'exportAreas': exportAreas,
+        'approveLocations': approveLocations,
+        'birthdayNotify': birthdayNotify,
+        'confessionsNotify': confessionsNotify,
+        'tanawolNotify': tanawolNotify,
+        'approved': approved,
         'personRef': personRef,
-        'allowedUsers': allowedUsers ?? [],
+        'allowedUsers': allowedUsers,
       };
 
-  static User fromDoc(DocumentSnapshot data) =>
-      User._createFromData(data.id, data.data());
+  static User? fromDoc(JsonDoc data) =>
+      data.exists ? User._createFromData(data.id, data.data()!) : null;
+
+  static User fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
   static Future<User> fromID(String uid) async {
     return (await User.getUsersForEdit()).singleWhere((u) => u.uid == uid);
   }
 
-  static Future<List<User>> getAllUsers(List<String> users) async {
+  static Future<List<User?>> getAllUsers(List<String> users) async {
     return (await Future.wait(users.map((s) => FirebaseFirestore.instance
             .collection('Users')
             .doc(s)
@@ -528,7 +532,7 @@ class User extends DataObject
         .toList();
   }
 
-  static Future<QuerySnapshot> getAllUsersLive(
+  static Future<JsonQuery> getAllUsersLive(
       {bool onlyCanApproveLocations = false}) {
     if (onlyCanApproveLocations) {
       return FirebaseFirestore.instance
@@ -546,7 +550,7 @@ class User extends DataObject
   static Future<List<User>> getUsersForEdit() async {
     final users = {
       for (var u in (await User.getAllUsersLive()).docs)
-        u.id: (u.data()['allowedUsers'] as List)?.cast<String>()
+        u.id: (u.data()['allowedUsers'] as List?)?.cast<String>()
     };
     return (await FirebaseFunctions.instance.httpsCallable('getUsers').call())
         .data
@@ -555,33 +559,33 @@ class User extends DataObject
             uid: u['uid'],
             name: u['name'],
             password: u['password'],
-            manageUsers: u['manageUsers'],
-            manageAllowedUsers: u['manageAllowedUsers'],
-            superAccess: u['superAccess'],
-            manageDeleted: u['manageDeleted'],
-            write: u['write'],
-            exportAreas: u['exportAreas'],
-            birthdayNotify: u['birthdayNotify'],
-            confessionsNotify: u['confessionsNotify'],
-            tanawolNotify: u['tanawolNotify'],
-            approveLocations: u['approveLocations'],
-            approved: u['approved'],
+            manageUsers: u['manageUsers']?.toString() == 'true',
+            manageAllowedUsers: u['manageAllowedUsers']?.toString() == 'true',
+            superAccess: u['superAccess']?.toString() == 'true',
+            manageDeleted: u['manageDeleted']?.toString() == 'true',
+            write: u['write']?.toString() == 'true',
+            exportAreas: u['exportAreas']?.toString() == 'true',
+            birthdayNotify: u['birthdayNotify']?.toString() == 'true',
+            confessionsNotify: u['confessionsNotify']?.toString() == 'true',
+            tanawolNotify: u['tanawolNotify']?.toString() == 'true',
+            approveLocations: u['approveLocations']?.toString() == 'true',
+            approved: u['approved']?.toString() == 'true',
             personRef: u['personRef'],
             allowedUsers: users[u['uid']],
-            email: u['email'],
+            email: u['email'] ?? '',
           ),
         )
         .toList()
         ?.cast<User>();
   }
 
-  Future<Person> getPerson() async {
+  Future<Person?> getPerson() async {
     if (personRef == null) return null;
-    return Person.fromDoc(await personDocRef.get());
+    return Person.fromDoc(await personDocRef!.get(dataSource));
   }
 
-  static Future<Person> getCurrentPerson() async {
-    return await User.instance.getPerson() ?? Person();
+  static Future<Person?> getCurrentPerson() async {
+    return User.instance.getPerson();
   }
 
   Future<void> recordActive() async {
@@ -601,18 +605,17 @@ class User extends DataObject
   }
 
   @override
-  String get id => uid;
+  String get id => uid!;
 
   Future<bool> userDataUpToDate() async {
     var userPerson = await getPerson();
     return userPerson != null &&
-        (userPerson.lastTanawol != null &&
-            userPerson.lastConfession != null &&
-            ((userPerson.lastTanawol.millisecondsSinceEpoch + 2592000000) >=
-                    DateTime.now().millisecondsSinceEpoch &&
-                (userPerson.lastConfession.millisecondsSinceEpoch +
-                        5184000000) >=
-                    DateTime.now().millisecondsSinceEpoch));
+        userPerson.lastTanawol != null &&
+        userPerson.lastConfession != null &&
+        ((userPerson.lastTanawol!.millisecondsSinceEpoch + 2592000000) >=
+                DateTime.now().millisecondsSinceEpoch &&
+            (userPerson.lastConfession!.millisecondsSinceEpoch + 5184000000) >=
+                DateTime.now().millisecondsSinceEpoch);
   }
 
   void reloadImage() {
@@ -620,12 +623,12 @@ class User extends DataObject
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     throw UnimplementedError();
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return getUpdateMap();
   }
 
@@ -639,25 +642,33 @@ class User extends DataObject
         .toList();
   }
 
-  static Future<String> onlyName(String id) async {
+  static Future<String?> onlyName(String id) async {
     return (await FirebaseFirestore.instance
             .collection('Users')
             .doc(id)
             .get(dataSource))
-        .data()['Name'];
+        .data()?['Name'];
   }
 
-  static Future<List<User>> getUsers(List<String> users) async {
-    return (await Future.wait(users.map((s) => FirebaseFirestore.instance
-            .collection('Users')
-            .doc(s)
-            .get(dataSource))))
-        .map((e) => User.fromDoc(e))
-        .toList();
+  void notifyListeners() {
+    _streamSubject.add(this);
   }
 
   @override
   User copyWith() {
     throw UnimplementedError();
+  }
+
+  static Widget photoFromUID(String uid, {bool removeHero = false}) =>
+      PhotoWidget(FirebaseStorage.instance.ref().child('UsersPhotos/$uid'),
+              defaultIcon: Icons.account_circle)
+          .photo(removeHero: removeHero);
+
+  static Stream<List<User>> getAllForUser() {
+    return FirebaseFirestore.instance
+        .collection('Users')
+        .orderBy('Name')
+        .snapshots()
+        .map((u) => u.docs.map(fromQueryDoc).toList());
   }
 }

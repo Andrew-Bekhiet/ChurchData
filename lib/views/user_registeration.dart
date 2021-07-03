@@ -1,18 +1,19 @@
 import 'package:churchdata/EncryptionKeys.dart';
+import 'package:churchdata/main.dart';
+import 'package:churchdata/models/user.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:churchdata/models/user.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:churchdata/main.dart';
 import 'package:provider/provider.dart';
 
 class UserRegisteration extends StatefulWidget {
-  const UserRegisteration({Key key}) : super(key: key);
+  const UserRegisteration({Key? key}) : super(key: key);
   @override
   State createState() => _UserRegisterationState();
 }
@@ -38,7 +39,6 @@ class _UserRegisterationState extends State<UserRegisteration> {
       builder: (context, user, _) {
         if (user.approved) {
           return Scaffold(
-            resizeToAvoidBottomInset: !kIsWeb,
             appBar: AppBar(
               leading: Container(),
               title: Text('تسجيل حساب جديد'),
@@ -56,16 +56,12 @@ class _UserRegisterationState extends State<UserRegisteration> {
                       helperText:
                           'يرجى ادخال اسمك الذي سيظهر للمستخدمين في البرنامج',
                       labelText: 'اسم المستخدم',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
                     ),
                     textInputAction: TextInputAction.next,
                     autofocus: true,
                     controller: _userName..text = user.name,
                     validator: (value) {
-                      if (value.isEmpty) {
+                      if (value?.isEmpty ?? true) {
                         return 'لا يمكن أن يكون اسمك فارغًا';
                       }
                       return null;
@@ -89,10 +85,6 @@ class _UserRegisterationState extends State<UserRegisteration> {
                       helperText:
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
                       labelText: 'كلمة السر',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
                     ),
                     textInputAction: TextInputAction.next,
                     obscureText: obscurePassword1,
@@ -101,7 +93,8 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     controller: _passwordText,
                     focusNode: _passwordFocus,
                     validator: (value) {
-                      if (value.isEmpty || value.characters.length < 9) {
+                      if ((value?.isEmpty ?? true) ||
+                          value!.characters.length < 9) {
                         return 'يرجى كتابة كلمة سر قوية تتكون من أكثر من 10 أحرف وتحتوي على رموز وأرقام';
                       }
                       return null;
@@ -123,10 +116,6 @@ class _UserRegisterationState extends State<UserRegisteration> {
                             () => obscurePassword2 = !obscurePassword2),
                       ),
                       labelText: 'تأكيد كلمة السر',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
                     ),
                     textInputAction: TextInputAction.done,
                     obscureText: obscurePassword2,
@@ -135,7 +124,8 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     controller: _passwordText2,
                     focusNode: _passwordFocus2,
                     validator: (value) {
-                      if (value.isEmpty || value != _passwordText2.text) {
+                      if ((value?.isEmpty ?? true) ||
+                          value != _passwordText2.text) {
                         return 'كلمتا السر غير متطابقتين';
                       }
                       return null;
@@ -153,7 +143,6 @@ class _UserRegisterationState extends State<UserRegisteration> {
           );
         }
         return Scaffold(
-          resizeToAvoidBottomInset: !kIsWeb,
           appBar: AppBar(
             title: Text('في انتظار الموافقة'),
             actions: <Widget>[
@@ -164,10 +153,10 @@ class _UserRegisterationState extends State<UserRegisteration> {
                   var user = User.instance;
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
                   // ignore: unawaited_futures
-                  Navigator.of(context).pushReplacement(
+                  navigator.currentState!.pushReplacement(
                     MaterialPageRoute(
                       builder: (context) {
-                        Navigator.of(context)
+                        navigator.currentState!
                             .popUntil((route) => route.isFirst);
                         return App();
                       },
@@ -204,17 +193,13 @@ class _UserRegisterationState extends State<UserRegisteration> {
                       'مثال: https://churchdata.page.link/ZaBc1KnFgh6K3YO92',
                   helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
                   labelText: 'لينك الدعوة',
-                  border: OutlineInputBorder(
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
-                  ),
                 ),
                 maxLines: null,
                 textInputAction: TextInputAction.done,
                 controller: _linkController,
                 onFieldSubmitted: _registerUser,
                 validator: (value) {
-                  if (value.isEmpty) {
+                  if (value?.isEmpty ?? true) {
                     return 'برجاء ادخال لينك الدخول لتفعيل حسابك';
                   }
                   return null;
@@ -227,9 +212,9 @@ class _UserRegisterationState extends State<UserRegisteration> {
               ElevatedButton.icon(
                 onPressed: () async {
                   if (kIsWeb ||
-                      await Navigator.of(context).pushNamed('EditUserData')
-                          is DocumentReference) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                      await navigator.currentState!.pushNamed('EditUserData')
+                          is JsonRef) {
+                    scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
                         content: Text('تم الحفظ بنجاح'),
                       ),
@@ -247,9 +232,9 @@ class _UserRegisterationState extends State<UserRegisteration> {
   }
 
   void _submit(String password, String _userName) async {
-    if (!_formKey.currentState.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -267,7 +252,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
         'fcmToken': await FirebaseMessaging.instance.getToken(),
       });
       await Hive.box('Settings').put('FCM_Token_Registered', true);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      scaffoldMessenger.currentState!;
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserRgisteration._submit');
@@ -290,9 +275,9 @@ class _UserRegisterationState extends State<UserRegisteration> {
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return Text(
-                  (snapshot.error as FirebaseFunctionsException).message);
+                  (snapshot.error as FirebaseFunctionsException).message!);
             } else if (snapshot.connectionState == ConnectionState.done) {
-              Navigator.pop(context);
+              navigator.currentState!.pop();
             }
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,12 +2,13 @@ import 'dart:math';
 
 import 'package:churchdata/models/history_record.dart';
 import 'package:churchdata/models/models.dart';
-import 'package:collection/collection.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:tuple/tuple.dart';
 
 class CartesianChart extends StatelessWidget {
@@ -17,11 +18,11 @@ class CartesianChart extends StatelessWidget {
   final List<Area> areas;
 
   CartesianChart(
-      {Key key,
-      this.areas,
-      this.range,
-      @required this.data,
-      @required this.title})
+      {Key? key,
+      required this.areas,
+      required this.range,
+      required this.data,
+      required this.title})
       : super(key: key);
 
   @override
@@ -81,14 +82,14 @@ class CartesianChart extends StatelessWidget {
                 markerSettings: MarkerSettings(isVisible: true),
                 borderGradient: LinearGradient(
                   colors: [
-                    Colors.cyan[300].withOpacity(0.5),
-                    Colors.cyan[800].withOpacity(0.5)
+                    Colors.cyan[300]!.withOpacity(0.5),
+                    Colors.cyan[800]!.withOpacity(0.5)
                   ],
                 ),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.cyan[300].withOpacity(0.5),
-                    Colors.cyan[800].withOpacity(0.5)
+                    Colors.cyan[300]!.withOpacity(0.5),
+                    Colors.cyan[800]!.withOpacity(0.5)
                   ],
                 ),
                 borderWidth: 2,
@@ -107,15 +108,15 @@ class CartesianChart extends StatelessWidget {
 
 class PieChart extends StatelessWidget {
   const PieChart({
-    Key key,
-    @required this.data,
-    @required this.pieData,
+    Key? key,
+    required this.data,
+    required this.pieData,
     this.pointColorMapper,
   }) : super(key: key);
 
-  final Color Function(Tuple2<int, String>, int) pointColorMapper;
+  final Color Function(Tuple2<int, String?>, int)? pointColorMapper;
   final List<HistoryRecord> data;
-  final List<Tuple2<int, String>> pieData;
+  final List<Tuple2<int, String?>> pieData;
 
   @override
   Widget build(BuildContext context) {
@@ -130,18 +131,19 @@ class PieChart extends StatelessWidget {
           isResponsive: false,
         ),
         series: [
-          PieSeries<Tuple2<int, String>, String>(
-              enableTooltip: true,
-              enableSmartLabels: true,
-              dataLabelMapper: (entry, _) =>
-                  (entry.item2 ?? 'غير معروف') +
-                  ': ' +
-                  (entry.item1 / data.length * 100).toStringAsFixed(2) +
-                  '%',
-              pointColorMapper: pointColorMapper,
-              dataSource: pieData,
-              xValueMapper: (entry, _) => entry.item2 ?? 'غير معروف',
-              yValueMapper: (entry, _) => entry.item1),
+          PieSeries<Tuple2<int, String?>, String>(
+            enableTooltip: true,
+            enableSmartLabels: true,
+            dataLabelMapper: (entry, _) =>
+                (entry.item2 ?? 'غير معروف') +
+                ': ' +
+                (entry.item1 / data.length * 100).toStringAsFixed(2) +
+                '%',
+            pointColorMapper: pointColorMapper,
+            dataSource: pieData.sorted((n, o) => o.item1.compareTo(n.item1)),
+            xValueMapper: (entry, _) => entry.item2,
+            yValueMapper: (entry, _) => entry.item1,
+          ),
         ],
       ),
     );
@@ -150,12 +152,12 @@ class PieChart extends StatelessWidget {
 
 class HistoryAnalysisWidget extends StatelessWidget {
   HistoryAnalysisWidget({
-    Key key,
-    @required this.range,
-    @required this.areas,
-    @required this.areasByRef,
-    @required this.collectionGroup,
-    @required this.title,
+    Key? key,
+    required this.range,
+    required this.areas,
+    required this.areasByRef,
+    required this.collectionGroup,
+    required this.title,
     this.showUsers = true,
   }) : super(key: key);
 
@@ -167,31 +169,33 @@ class HistoryAnalysisWidget extends StatelessWidget {
   final bool showUsers;
 
   final rnd = Random();
-  final colorsMap = <Tuple2<int, String>, Color>{};
+  final colorsMap = <Tuple2<int, String?>, Color>{};
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<QueryDocumentSnapshot>>(
+    return StreamBuilder<List<JsonQueryDoc>>(
       stream: HistoryRecord.getAllForUser(
           collectionGroup: collectionGroup, range: range, areas: areas),
       builder: (context, daysData) {
-        if (daysData.hasError) return ErrorWidget(daysData.error);
+        if (daysData.hasError) return ErrorWidget(daysData.error!);
         if (!daysData.hasData)
           return const Center(child: CircularProgressIndicator());
-        if (daysData.data.isEmpty)
+
+        if (daysData.data!.isEmpty)
           return const Center(child: Text('لا يوجد سجل'));
 
         List<HistoryRecord> data =
-            daysData.data.map(HistoryRecord.fromDoc).toList();
+            daysData.data!.map(HistoryRecord.fromQueryDoc).toList();
 
-        mergeSort(data,
+        mergeSort<HistoryRecord>(data,
             compare: (o, n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
+
         Map<Timestamp, List<HistoryRecord>> groupedData =
             groupBy<HistoryRecord, Timestamp>(
                 data, (d) => tranucateToDay(time: d.time.toDate()));
 
-        var list = groupBy<HistoryRecord, String>(data, (s) => s.areaId?.path)
+        var list = groupBy<HistoryRecord, String?>(data, (s) => s.areaId?.path)
             .entries
             .toList();
         return Column(
@@ -209,27 +213,30 @@ class HistoryAnalysisWidget extends StatelessWidget {
             PieChart(
               data: data,
               pieData: list
-                  .map((e) => Tuple2<int, String>(
+                  .map((e) => Tuple2<int, String?>(
                       e.value.length, areasByRef[e.key]?.name))
                   .toList(),
-              pointColorMapper: (entry, _) => areasByRef[entry.item2]?.color,
+              pointColorMapper: (entry, _) =>
+                  areasByRef[entry.item2]?.color ??
+                  (colorsMap[entry] ??= _pickRandomColor()),
             ),
             if (showUsers)
               ListTile(
                 title: Text('تحليل ' + title + ' لكل خادم'),
               ),
             if (showUsers)
-              FutureBuilder<QuerySnapshot>(
+              FutureBuilder<JsonQuery>(
                 future: User.getAllUsersLive(),
                 builder: (context, usersData) {
-                  if (usersData.hasError) return ErrorWidget(usersData.error);
+                  if (usersData.hasError) return ErrorWidget(usersData.error!);
                   if (!usersData.hasData)
                     return const Center(child: CircularProgressIndicator());
+
                   final usersByID = {
-                    for (var u in usersData.data.docs) u.id: User.fromDoc(u)
+                    for (var u in usersData.data!.docs) u.id: User.fromDoc(u)
                   };
                   final pieData =
-                      groupBy<HistoryRecord, String>(data, (s) => s.by)
+                      groupBy<HistoryRecord, String?>(data, (s) => s.by)
                           .entries
                           .toList();
                   return PieChart(
@@ -237,7 +244,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                         colorsMap[entry] ??= _pickRandomColor(),
                     data: data,
                     pieData: pieData
-                        .map((e) => Tuple2<int, String>(
+                        .map((e) => Tuple2<int, String?>(
                             e.value.length, usersByID[e.key]?.name))
                         .toList(),
                   );

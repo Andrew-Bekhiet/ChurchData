@@ -2,8 +2,6 @@ library globals;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -56,12 +54,9 @@ const List<Color> accents = <Color>[
 AndroidParameters androidParameters = AndroidParameters(
   packageName: 'com.AndroidQuartz.churchdata',
   minimumVersion: 4,
-  fallbackUrl: Uri.parse(
-      'https://onedrive.live.com/download?cid=857C7F256422E764&resid=85'
-      '7C7F256422E764%212535&authkey=AOvqyUErovriovU'),
+  fallbackUrl:
+      Uri.parse('https://github.com/Andrew-Bekhiet/ChurchData/releases/latest'),
 );
-
-bool canCheckBio = false;
 
 GetOptions dataSource = GetOptions(source: Source.serverAndCache);
 
@@ -74,7 +69,10 @@ FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 IosParameters iosParameters =
     IosParameters(bundleId: 'com.AndroidQuartz.churchdata');
 
-GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
+final GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessenger =
+    GlobalKey<ScaffoldMessengerState>();
+final GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
 
 List<Color> primaries = <Color>[
   Colors.red,
@@ -97,8 +95,6 @@ List<Color> primaries = <Color>[
   Colors.blueAccent,
   Colors.grey.shade700
 ];
-
-RemoteConfig remoteConfig;
 
 const String uriPrefix = 'https://churchdata.page.link';
 

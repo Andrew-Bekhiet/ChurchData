@@ -1,21 +1,11 @@
 name: churchdata
 description: null
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 publish_to: "none"
-version: 7.3.0+7
+version: 8.0.0+8
 
 environment:
-  sdk: ">=2.9.0 <3.0.0"
+  sdk: ">=2.13.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -26,69 +16,73 @@ dependencies:
     git:
       url: git://github.com/ChangJoo-Park/battery_optimization.git
       ref: master
-  feature_discovery: ^0.14.0
   tinycolor:
     git:
       url: git://github.com/lslv1243/tinycolor.git
       ref: master
-  android_alarm_manager_plus: ^1.0.1
+  android_alarm_manager_plus: ^1.0.2
   cached_network_image: ^3.0.0
-  cloud_firestore: ^1.0.7
-  cloud_functions: ^1.0.5
-  connectivity_plus: ^1.0.1
-  cupertino_icons: ^1.0.2
+  cloud_firestore: ^2.3.0
+  cloud_functions: ^2.0.0
+  connectivity_plus: 1.0.3
+  cupertino_icons: ^1.0.3
   datetime_picker_formfield: ^2.0.0
-  device_info_plus: ^1.0.1
+  device_info_plus: ^2.0.1
   expandable: ^5.0.1
-  file_picker: ^3.0.1
+  feature_discovery: ^0.14.0
+  file_picker: ^3.0.3
   firebase: ^9.0.1
-  firebase_analytics: ^8.0.2
-  firebase_auth: ^1.1.2
-  firebase_core: ^1.1.0
-  firebase_crashlytics: ^2.0.2
-  firebase_database: ^7.0.0-dev.2
-  firebase_dynamic_links: ^2.0.2
-  firebase_in_app_messaging: ^0.5.0+2
-  firebase_messaging: ^9.1.3
-  firebase_remote_config: 0.10.0-dev.2
-  firebase_storage: ^8.0.5
+  firebase_analytics: ^8.1.2
+  firebase_auth: ^2.0.0
+  firebase_core: ^1.3.0
+  firebase_crashlytics: ^2.0.7
+  firebase_database: ^7.1.1
+  firebase_dynamic_links: ^2.0.6
+  firebase_in_app_messaging: ^0.5.0+6
+  firebase_messaging: ^10.0.3
+  firebase_remote_config: 0.10.0+2
+  firebase_storage: ^9.0.0
   flutter_colorpicker: ^0.4.0
-  flutter_contacts: ^1.0.0
-  flutter_local_notifications: ^5.0.0+3
+  flutter_contacts: ^1.1.0+3
+  flutter_local_notifications: ^6.0.0
   flutter_secure_storage: ^4.2.0
   flutter_stream_notifiers: ^0.3.0-nullsafety.0
-  google_maps_flutter: ^2.0.3
-  google_maps_flutter_web: ^0.3.0
-  google_sign_in: ^5.0.2
+  google_maps_flutter: ^2.0.6
+  google_maps_flutter_web: ^0.3.0+2
+  google_sign_in: ^5.0.4
   hive: ^2.0.4
-  hive_flutter: ^1.0.0
-  image_cropper: ^1.4.0
-  image_picker: ^0.7.4
-  local_auth: ^1.1.5
-  location: ^4.1.1
-  open_file: ^3.2.0
-  package_info_plus: ^1.0.1
-  path_provider: ^2.0.1
-  percent_indicator: ^3.0.1
-  permission_handler: ^7.1.0
-  photo_view: ^0.11.1
+  hive_flutter: ^1.1.0
+  image_cropper: ^1.4.1
+  image_picker: ^0.8.1+3
+  local_auth: ^1.1.6
+  location: ^4.3.0
+  open_file: ^3.2.1
+  package_info_plus: ^1.0.3
+  path_provider: ^2.0.2
+  percent_indicator: 3.3.0-nullsafety.1
+  permission_handler: ^8.1.2
+  photo_view:
+    ^0.11.1
+    # git:
+    #   url: git://github.com/fireslime/photo_view
+    #   ref: 52685ab7beaf8a9107904bdb8a1590924015d016
   pie_chart: ^5.0.0
-  pointycastle: ^3.0.1
+  pointycastle: ^3.1.3
   provider: ^5.0.0
-  rxdart: ^0.26.0
-  share_plus: ^2.0.3
+  rxdart: ^0.27.1
+  share_plus: ^2.1.4
   spreadsheet_decoder: ^2.0.0
-  syncfusion_flutter_charts: ^19.1.58
-  timeago: ^3.0.2
+  syncfusion_flutter_charts: ^19.2.44+1
+  timeago: ^3.1.0
   tuple: ^2.0.0
-  url_launcher: ^6.0.3
+  url_launcher: ^6.0.8
   version: ^2.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.9.0
-  pedantic: ^1.11.0
+  pedantic: ^1.11.1
 
 flutter_icons:
   image_path: "Logo.png"

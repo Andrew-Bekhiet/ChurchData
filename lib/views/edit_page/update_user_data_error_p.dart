@@ -1,4 +1,5 @@
 import 'package:churchdata/models/person.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,14 +12,15 @@ import 'package:intl/intl.dart';
 class UpdateUserDataErrorPage extends StatefulWidget {
   final Person person;
 
-  const UpdateUserDataErrorPage({Key key, this.person}) : super(key: key);
+  const UpdateUserDataErrorPage({Key? key, required this.person})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _UpdateUserDataErrorState();
 }
 
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
-  Person person;
+  late Person person;
 
   @override
   Widget build(BuildContext context) {
@@ -49,16 +51,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       child: InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'تاريخ أخر تناول',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
                         ),
                         child: person.lastTanawol != null
                             ? Text(DateFormat('yyyy/M/d').format(
-                                person.lastTanawol.toDate(),
+                                person.lastTanawol!.toDate(),
                               ))
-                            : Text('(فارغ)'),
+                            : null,
                       ),
                     ),
                   ),
@@ -86,16 +84,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                       child: InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'تاريخ أخر اعتراف',
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide(
-                                color: Theme.of(context).primaryColor),
-                          ),
                         ),
                         child: person.lastConfession != null
                             ? Text(DateFormat('yyyy/M/d').format(
-                                person.lastConfession.toDate(),
+                                person.lastConfession!.toDate(),
                               ))
-                            : Text('(فارغ)'),
+                            : null,
                       ),
                     ),
                   ),
@@ -115,9 +109,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    person = widget.person;
+  void initState() {
+    super.initState();
+    person = widget.person.copyWith();
   }
 
   Future save() async {
@@ -125,9 +119,9 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       await person.ref.update({
         'LastConfession': person.lastConfession,
         'LastTanawol': person.lastTanawol,
-        'LastEdit': FirebaseAuth.instance.currentUser.uid
+        'LastEdit': FirebaseAuth.instance.currentUser!.uid
       });
-      Navigator.pop(context);
+      navigator.currentState!.pop();
     } catch (err, stkTrace) {
       await showErrorDialog(
         context,
@@ -147,7 +141,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     void Function(),
   )
           setState) async {
-    DateTime picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       helpText: helpText,
       locale: Locale('ar', 'EG'),
       context: context,

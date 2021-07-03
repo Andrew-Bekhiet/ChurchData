@@ -1,57 +1,56 @@
-import 'package:intl/intl.dart';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class Invitation extends DataObject {
   Invitation({
-    String id,
-    DocumentReference ref,
-    String title,
+    required JsonRef ref,
+    required String title,
     this.link,
     this.usedBy,
-    this.generatedBy,
+    required this.generatedBy,
     this.permissions,
-    this.generatedOn,
-    this.expiryDate,
-  }) : super(
-            ref ?? FirebaseFirestore.instance.collection('Invitations').doc(id),
-            title,
-            null);
+    required this.generatedOn,
+    required this.expiryDate,
+  }) : super(ref, title, null);
 
-  static Invitation fromDoc(DocumentSnapshot doc) =>
+  static Invitation? fromDoc(JsonDoc doc) =>
+      doc.exists ? Invitation.createFromData(doc.data()!, doc.reference) : null;
+
+  static Invitation fromQueryDoc(JsonQueryDoc doc) =>
       Invitation.createFromData(doc.data(), doc.reference);
 
-  Invitation.createFromData(Map<String, dynamic> data, DocumentReference ref)
-      : link = data['Link'],
+  Invitation.createFromData(Json data, JsonRef ref)
+      : usedBy = data['UsedBy'],
+        generatedBy = data['GeneratedBy'],
+        permissions = data['Permissions'],
+        generatedOn = data['GeneratedOn'],
+        expiryDate = data['ExpiryDate'],
+        link = data['Link'],
         super.createFromData(data, ref) {
     name = data['Title'];
-    usedBy = data['UsedBy'];
-    generatedBy = data['GeneratedBy'];
-    permissions = data['Permissions'];
-    generatedOn = data['GeneratedOn'];
-    expiryDate = data['ExpiryDate'];
   }
 
   String get title => name;
 
-  final String link;
-  String usedBy;
+  final String? link;
+  String? usedBy;
   String generatedBy;
-  Map<String, dynamic> permissions;
-  Timestamp generatedOn;
+  Json? permissions;
+  Timestamp? generatedOn;
   Timestamp expiryDate;
 
   bool get used => usedBy != null;
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     throw UnimplementedError();
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {
       'Title': title,
       'UsedBy': usedBy,
@@ -75,12 +74,13 @@ class Invitation extends DataObject {
   }
 
   Invitation.empty()
-      : link = '',
+      : expiryDate = Timestamp.fromDate(
+            DateTime.now().add(Duration(days: 1, minutes: 10))),
+        link = '',
+        generatedBy = User.instance.uid!,
         super(FirebaseFirestore.instance.collection('Invitations').doc(''), '',
             null) {
     name = '';
-    expiryDate =
-        Timestamp.fromDate(DateTime.now().add(Duration(days: 1, minutes: 10)));
     permissions = {};
   }
 

@@ -1,11 +1,12 @@
-import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../models/notification.dart' as n;
 
 class NotificationsPage extends StatefulWidget {
-  NotificationsPage({Key key}) : super(key: key);
+  NotificationsPage({Key? key}) : super(key: key);
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
@@ -30,24 +31,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
             if (snapshot.connectionState != ConnectionState.done)
               return Center(child: const CircularProgressIndicator());
             return ListView.builder(
-              itemCount:
-                  Hive.box<Map<dynamic, dynamic>>('Notifications').length,
+              itemCount: Hive.box<Map>('Notifications').length,
               itemBuilder: (context, i) {
                 return n.Notification.fromMessage(
-                  Hive.box<Map<dynamic, dynamic>>('Notifications')
-                      .getAt(Hive.box<Map<dynamic, dynamic>>('Notifications')
-                              .length -
-                          i -
-                          1)
+                  Hive.box<Map>('Notifications')
+                      .getAt(Hive.box<Map>('Notifications').length - i - 1)!
                       .cast<String, dynamic>(),
                   () async {
                     if (await showDialog(
                           context: context,
-                          builder: (context) => DataDialog(
+                          builder: (context) => AlertDialog(
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () =>
-                                    Navigator.of(context).pop(true),
+                                    navigator.currentState!.pop(true),
                                 child: Text('نعم'),
                               )
                             ],
@@ -55,12 +52,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           ),
                         ) ==
                         true) {
-                      await Hive.box<Map<dynamic, dynamic>>('Notifications')
-                          .deleteAt(
-                              Hive.box<Map<dynamic, dynamic>>('Notifications')
-                                      .length -
-                                  i -
-                                  1);
+                      await Hive.box<Map>('Notifications').deleteAt(
+                          Hive.box<Map>('Notifications').length - i - 1);
                       setState(() {});
                     }
                   },

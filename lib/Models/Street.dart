@@ -1,42 +1,43 @@
 import 'dart:async';
 
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:location/location.dart';
+import 'package:rxdart/rxdart.dart';
 
-import 'super_classes.dart';
-import '../utils/helpers.dart';
 import '../utils/globals.dart';
-import 'map_view.dart';
+import '../utils/helpers.dart';
 import 'area.dart';
 import 'family.dart';
+import 'map_view.dart';
 import 'person.dart';
+import 'super_classes.dart';
 import 'user.dart';
 
 class Street extends DataObject
     with PhotoObject, ParentObject<Family>, ChildObject<Area> {
-  DocumentReference areaId;
+  JsonRef? areaId;
 
   bool locationConfirmed;
   List<GeoPoint> locationPoints;
 
-  Timestamp lastVisit;
-  Timestamp fatherLastVisit;
+  Timestamp? lastVisit;
+  Timestamp? fatherLastVisit;
 
-  String lastEdit;
+  String? lastEdit;
 
-  Street(String id, this.areaId, String name, this.lastVisit, this.lastEdit,
+  Street(String? id, this.areaId, String name, this.lastVisit, this.lastEdit,
       {Color color = Colors.transparent,
-      DocumentReference ref,
-      this.locationPoints,
+      JsonRef? ref,
+      List<GeoPoint>? locationPoints,
       this.locationConfirmed = false})
-      : super(
+      : locationPoints = locationPoints ?? [],
+        super(
             ref ??
                 FirebaseFirestore.instance
                     .collection('Streets')
@@ -44,13 +45,11 @@ class Street extends DataObject
             name,
             color);
 
-  Street._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
-      : super.createFromData(data, ref) {
-    areaId = data['AreaId'];
-
-    locationPoints = data['Location']?.cast<GeoPoint>();
-    locationConfirmed = data['LocationConfirmed'] ?? false;
-
+  Street._createFromData(Json data, JsonRef ref)
+      : areaId = data['AreaId'],
+        locationConfirmed = data['LocationConfirmed'] ?? false,
+        locationPoints = data['Location']?.cast<GeoPoint>() ?? [],
+        super.createFromData(data, ref) {
     lastVisit = data['LastVisit'];
     fatherLastVisit = data['FatherLastVisit'];
 
@@ -58,10 +57,10 @@ class Street extends DataObject
   }
 
   @override
-  DocumentReference get parentId => areaId;
+  JsonRef? get parentId => areaId;
 
   @override
-  Widget photo([_ = false]) {
+  Widget photo({bool cropToCircle = false, bool removeHero = false}) {
     return Builder(
       builder: (context) => Image.asset(
         'assets/streets.png',
@@ -77,45 +76,49 @@ class Street extends DataObject
   @override
   Reference get photoRef => throw UnimplementedError();
 
-  Future<String> getAreaName() async {
-    return (await areaId.get(dataSource)).data()['Name'];
+  Future<String?> getAreaName() async {
+    return (await areaId?.get(dataSource))?.data()?['Name'];
   }
 
   @override
   Future<List<Family>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return Family.getAll((await FirebaseFirestore.instance
+      return (await FirebaseFirestore.instance
               .collection('Families')
               .where('AreaId', isEqualTo: areaId)
               .where('StreetId', isEqualTo: ref)
               .orderBy(orderBy)
               .limit(5)
               .get(dataSource))
-          .docs);
+          .docs
+          .map(Family.fromQueryDoc)
+          .toList();
     }
-    return Family.getAll((await FirebaseFirestore.instance
+    return (await FirebaseFirestore.instance
             .collection('Families')
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
             .orderBy(orderBy)
             .get(dataSource))
-        .docs);
+        .docs
+        .map(Family.fromQueryDoc)
+        .toList();
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() => {
-        'Name': name ?? '',
+  Json getHumanReadableMap() => {
+        'Name': name,
         'LastVisit': toDurationString(lastVisit),
         'FatherLastVisit': toDurationString(fatherLastVisit),
       };
 
   @override
-  Map<String, dynamic> getMap() => {
+  Json getMap() => {
         'Name': name,
         'AreaId': areaId,
         'Color': color.value,
-        'Location': locationPoints?.sublist(0),
+        'Location': locationPoints.sublist(0),
         'LocationConfirmed': locationConfirmed,
         'LastVisit': lastVisit,
         'FatherLastVisit': fatherLastVisit,
@@ -123,7 +126,7 @@ class Street extends DataObject
       };
 
   Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
-    if (locationPoints == null && useGPSIfNull)
+    if (locationPoints.isEmpty && useGPSIfNull)
       return FutureBuilder<PermissionStatus>(
         future: Location.instance.requestPermission(),
         builder: (context, data) {
@@ -137,8 +140,8 @@ class Street extends DataObject
                   );
                 return MapView(
                     childrenDepth: 3,
-                    initialLocation:
-                        LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                    initialLocation: LatLng(
+                        snapshot.data!.latitude!, snapshot.data!.longitude!),
                     editMode: editMode,
                     street: this);
               },
@@ -151,7 +154,7 @@ class Street extends DataObject
               street: this);
         },
       );
-    else if (locationPoints == null)
+    else if (locationPoints.isEmpty)
       return Text(
         'لم يتم تحديد موقع للشارع',
         style: TextStyle(
@@ -166,44 +169,48 @@ class Street extends DataObject
     );
   }
 
-  Stream<QuerySnapshot> getMembersLive(
+  Stream<JsonQuery> getMembersLive(
       {String orderBy = 'Name', bool descending = false}) {
-    return Street.getStreetMembersLive(areaId, id, orderBy, descending);
+    return Street.getStreetMembersLive(areaId!, id, orderBy, descending);
   }
 
   @override
-  Future<String> getParentName() => getAreaName();
+  Future<String?> getParentName() => getAreaName();
 
   Future<List<Person>> getPersonMembersList([bool tranucate = false]) async {
     if (tranucate) {
-      return Person.getAll((await FirebaseFirestore.instance
+      return (await FirebaseFirestore.instance
               .collection('Persons')
               .where('AreaId', isEqualTo: areaId)
               .where('StreetId', isEqualTo: ref)
               .limit(5)
               .get(dataSource))
-          .docs);
+          .docs
+          .map(Person.fromQueryDoc)
+          .toList();
     }
-    return Person.getAll((await FirebaseFirestore.instance
+    return (await FirebaseFirestore.instance
             .collection('Persons')
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
             .get(dataSource))
-        .docs);
+        .docs
+        .map(Person.fromQueryDoc)
+        .toList();
   }
 
   @override
-  Future<String> getSecondLine() async {
+  Future<String?> getSecondLine() async {
     String key = Hive.box('Settings').get('StreetSecondLine');
     if (key == 'Members') {
-      return await getMembersString();
+      return getMembersString();
     } else if (key == 'AreaId') {
-      return await getAreaName();
+      return getAreaName();
     } else if (key == 'LastEdit') {
       return (await FirebaseFirestore.instance
               .doc('Users/$lastEdit')
               .get(dataSource))
-          .data()['Name'];
+          .data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
@@ -214,22 +221,24 @@ class Street extends DataObject
       null,
       '',
       tranucateToDay(),
-      auth.FirebaseAuth.instance.currentUser.uid,
+      User.instance.uid,
     );
   }
 
-  static Street fromDoc(DocumentSnapshot data) =>
-      data.exists ? Street._createFromData(data.data(), data.reference) : null;
+  static Street? fromDoc(JsonDoc data) =>
+      data.exists ? Street._createFromData(data.data()!, data.reference) : null;
 
-  static Future<Street> fromId(String id) async => Street.fromDoc(
+  static Street fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
+
+  static Future<Street?> fromId(String id) async => Street.fromDoc(
         await FirebaseFirestore.instance.doc('Streets/$id').get(),
       );
 
-  static List<Street> getAll(List<DocumentSnapshot> streets) {
+  static List<Street?> getAll(List<JsonDoc> streets) {
     return streets.map(Street.fromDoc).toList();
   }
 
-  static Stream<QuerySnapshot> getAllForUser({
+  static Stream<JsonQuery> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
   }) {
@@ -270,11 +279,11 @@ class Street extends DataObject
             .asBroadcastStream()
             .first)
         .docs
-        .map(fromDoc)
+        .map(fromQueryDoc)
         .toList();
   }
 
-  static Map<String, dynamic> getEmptyExportMap() => {
+  static Json getEmptyExportMap() => {
         'ID': 'id',
         'Name': 'name',
         'AreaId': 'areaId.id',
@@ -286,7 +295,7 @@ class Street extends DataObject
         'LastEdit': 'lastEdit'
       };
 
-  static Map<String, dynamic> getHumanReadableMap2() => {
+  static Json getHumanReadableMap2() => {
         'Name': 'الاسم',
         'Color': 'اللون',
         'LastVisit': 'أخر زيارة',
@@ -297,8 +306,7 @@ class Street extends DataObject
   // @override
   // fireWeb.Reference get webPhotoRef => throw UnimplementedError();
 
-  static Stream<QuerySnapshot> getStreetMembersLive(
-      DocumentReference areaId, String id,
+  static Stream<JsonQuery> getStreetMembersLive(JsonRef areaId, String id,
       [String orderBy = 'Name', bool descending = false]) {
     return FirebaseFirestore.instance
         .collection('Families')

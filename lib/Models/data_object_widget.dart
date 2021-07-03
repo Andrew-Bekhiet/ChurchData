@@ -1,28 +1,29 @@
 import 'package:async/async.dart';
+import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:tinycolor/tinycolor.dart';
 
 import 'person.dart';
 
 class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
-  final DocumentReference doc;
-  final T Function(DocumentSnapshot) transform;
+  final JsonRef doc;
+  final T? Function(JsonDoc) transform;
 
-  final void Function() onLongPress;
-  final void Function() onTap;
-  final Widget trailing;
-  final Widget photo;
-  final Widget subtitle;
-  final Widget title;
+  final void Function()? onLongPress;
+  final void Function()? onTap;
+  final Widget? trailing;
+  final Widget? photo;
+  final Widget? subtitle;
+  final Widget? title;
   final bool wrapInCard;
   final bool isDense;
   final bool showSubtitle;
   const AsyncDataObjectWidget(this.doc, this.transform,
-      {this.isDense,
+      {this.isDense = false,
       this.onLongPress,
       this.onTap,
       this.trailing,
@@ -31,17 +32,17 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
       this.wrapInCard = true,
       this.photo,
       this.showSubtitle = true,
-      Key key})
+      Key? key})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<T>(
+    return FutureBuilder<T?>(
       future: doc.get(dataSource).then(transform),
       builder: (context, snapshot) {
         if (snapshot.hasError &&
             !snapshot.error.toString().toLowerCase().contains('denied'))
-          return ErrorWidget.builder(snapshot.error);
+          return ErrorWidget(snapshot.error!);
         if (snapshot.hasError) return Text('لا يمكن اظهار العنصر المطلوب');
 
         if (snapshot.connectionState != ConnectionState.done)
@@ -51,7 +52,7 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
           return Text('لا يوجد بيانات');
         }
         return DataObjectWidget<T>(
-          snapshot.data,
+          snapshot.data!,
           isDense: isDense,
           onLongPress: onLongPress,
           onTap: onTap,
@@ -70,20 +71,21 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
 class DataObjectWidget<T extends DataObject> extends StatelessWidget {
   final T current;
 
-  final void Function() onLongPress;
-  final void Function() onTap;
-  final Widget trailing;
-  final Widget photo;
-  final Widget subtitle;
-  final Widget title;
+  final void Function()? onLongPress;
+  final void Function()? onTap;
+  final Widget? trailing;
+  final Widget? photo;
+  final Widget? subtitle;
+  final Widget? title;
   final bool wrapInCard;
   final bool isDense;
   final bool showSubtitle;
 
-  final _memoizer = AsyncMemoizer<String>();
+  final _memoizer = AsyncMemoizer<String?>();
 
   DataObjectWidget(this.current,
-      {this.isDense = false,
+      {Key? key,
+      this.isDense = false,
       this.onLongPress,
       this.onTap,
       this.trailing,
@@ -91,7 +93,8 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       this.title,
       this.wrapInCard = true,
       this.photo,
-      this.showSubtitle = true});
+      this.showSubtitle = true})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -100,13 +103,14 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
       onLongPress: onLongPress,
       onTap: onTap ?? () => dataObjectTap(current, context),
       trailing: trailing ??
-          (current is Person ? (current as Person).getLeftWidget() : null),
+          ((current is Person || current is User)
+              ? (current as Person).getLeftWidget()
+              : null),
       title: title ?? Text(current.name),
       subtitle: showSubtitle
           ? subtitle ??
-              FutureBuilder(
-                future: _memoizer
-                    .runOnce(() async => await current.getSecondLine()),
+              FutureBuilder<String?>(
+                future: _memoizer.runOnce(current.getSecondLine),
                 builder: (cont, subT) {
                   if (subT.hasData) {
                     return Text(subT.data ?? '',
@@ -126,7 +130,8 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
           : null,
       leading: photo ??
           (current is PhotoObject
-              ? (current as PhotoObject).photo(current is Person)
+              ? (current as PhotoObject)
+                  .photo(cropToCircle: current is Person || current is User)
               : null),
     );
     return wrapInCard
@@ -137,7 +142,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
         : tile;
   }
 
-  Color _getColor(BuildContext context) {
+  Color? _getColor(BuildContext context) {
     if (current.color == Colors.transparent) return null;
     if (current.color.brightness > 170 &&
         Theme.of(context).brightness == Brightness.dark) {

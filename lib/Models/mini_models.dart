@@ -2,18 +2,18 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:churchdata/models/super_classes.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../utils/globals.dart';
 
 abstract class MiniModel extends DataObject {
   final String collectionName;
-  MiniModel(this.collectionName, String id, [String name = '', Color color])
+  MiniModel(this.collectionName, String id, [String name = '', Color? color])
       : super(FirebaseFirestore.instance.collection(collectionName).doc(id),
             name, color);
 
-  MiniModel.createFromData(
-      this.collectionName, Map<String, dynamic> data, String id)
+  MiniModel.createFromData(this.collectionName, Json data, String id)
       : super.createFromData(data,
             FirebaseFirestore.instance.collection(collectionName).doc(id));
 
@@ -22,13 +22,13 @@ abstract class MiniModel extends DataObject {
             null);
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
-    throw UnimplementedError();
+  Json getHumanReadableMap() {
+    return {};
   }
 
   @override
-  Future<String> getSecondLine() {
-    throw UnimplementedError();
+  Future<String?> getSecondLine() async {
+    return null;
   }
 
   @override
@@ -38,9 +38,9 @@ abstract class MiniModel extends DataObject {
 }
 
 class Church extends MiniModel with ParentObject<Father> {
-  String address;
+  String? address;
   Church(String id, String name, {this.address}) : super(id, name);
-  Church._createFromData(Map<String, dynamic> data, String id)
+  Church._createFromData(Json data, String id)
       : super.createFromData('Churches', data, id) {
     address = data['Address'];
   }
@@ -55,21 +55,24 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name, 'Address': address};
   }
 
-  Future<Stream<QuerySnapshot>> getMembersLive() async {
+  Stream<JsonQuery> getMembersLive() {
     return FirebaseFirestore.instance
         .collection('Fathers')
         .where('ChurchId', isEqualTo: ref)
         .snapshots();
   }
 
-  static Church fromDoc(DocumentSnapshot data) =>
+  static Church? fromDoc(JsonDoc data) =>
+      data.exists ? Church._createFromData(data.data()!, data.id) : null;
+
+  static Church fromQueryDoc(JsonQueryDoc data) =>
       Church._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('Churches')
         .orderBy('Name')
@@ -84,7 +87,7 @@ class Church extends MiniModel with ParentObject<Father> {
             .where('ChurchId', isEqualTo: ref)
             .get(dataSource))
         .docs
-        .map((i) => Father.fromDoc(i))
+        .map(Father.fromQueryDoc)
         .toList();
   }
 }
@@ -92,7 +95,7 @@ class Church extends MiniModel with ParentObject<Father> {
 class PersonState extends MiniModel {
   PersonState(String id, String name, Color color)
       : super('States', id, name, color);
-  PersonState._createFromData(Map<String, dynamic> data, String id)
+  PersonState._createFromData(Json data, String id)
       : super.createFromData('States', data, id) {
     color = Color(int.parse('0xFF' + data['Color']));
   }
@@ -105,14 +108,17 @@ class PersonState extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name, 'Color': color};
   }
 
-  static PersonState fromDoc(DocumentSnapshot data) =>
+  static PersonState? fromDoc(JsonDoc data) =>
+      data.exists ? PersonState._createFromData(data.data()!, data.id) : null;
+
+  static PersonState fromQueryDoc(JsonQueryDoc data) =>
       PersonState._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('States')
         .orderBy('Name')
@@ -122,7 +128,7 @@ class PersonState extends MiniModel {
 
 class College extends MiniModel {
   College(String id, String name) : super('Colleges', id, name);
-  College._createFromData(Map<String, dynamic> data, id)
+  College._createFromData(Json data, id)
       : super.createFromData('Colleges', data, id);
 
   College.createNew() : super.createNew('Colleges');
@@ -133,14 +139,17 @@ class College extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name};
   }
 
-  static College fromDoc(DocumentSnapshot data) =>
+  static College? fromDoc(JsonDoc data) =>
+      data.exists ? College._createFromData(data.data()!, data.id) : null;
+
+  static College fromQueryDoc(JsonQueryDoc data) =>
       College._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('Colleges')
         .orderBy('Name')
@@ -149,9 +158,9 @@ class College extends MiniModel {
 }
 
 class Father extends MiniModel with ChildObject<Church> {
-  DocumentReference churchId;
+  JsonRef? churchId;
   Father(String id, String name, this.churchId) : super('Fathers', id, name);
-  Father._createFromData(Map<String, dynamic> data, String id)
+  Father._createFromData(Json data, String id)
       : super.createFromData('Fathers', data, id) {
     churchId = data['ChurchId'];
   }
@@ -163,22 +172,25 @@ class Father extends MiniModel with ChildObject<Church> {
     return other is Father && id == other.id;
   }
 
-  Future<String> getChurchName() async {
-    if (churchId == null) return '';
+  Future<String?> getChurchName() async {
+    if (churchId == null) return null;
     return Church.fromDoc(
-      await churchId.get(),
-    ).name;
+      await churchId!.get(),
+    )?.name;
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name, 'ChurchId': churchId};
   }
 
-  static Father fromDoc(DocumentSnapshot data) =>
+  static Father? fromDoc(JsonDoc data) =>
+      data.exists ? Father._createFromData(data.data()!, data.id) : null;
+
+  static Father fromQueryDoc(JsonQueryDoc data) =>
       Father._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('Fathers')
         .orderBy('Name')
@@ -186,17 +198,17 @@ class Father extends MiniModel with ChildObject<Church> {
   }
 
   @override
-  Future<String> getParentName() async {
-    return (await churchId.get(dataSource)).data()['Name'];
+  Future<String?> getParentName() async {
+    return (await churchId?.get(dataSource))?.data()?['Name'];
   }
 
   @override
-  DocumentReference get parentId => churchId;
+  JsonRef? get parentId => churchId;
 }
 
 class Job extends MiniModel {
   Job(String id, String name) : super('Jobs', id, name);
-  Job._createFromData(Map<String, dynamic> data, String id)
+  Job._createFromData(Json data, String id)
       : super.createFromData('Jobs', data, id);
 
   Job.createNew() : super.createNew('Jobs');
@@ -207,14 +219,17 @@ class Job extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name};
   }
 
-  static Job fromDoc(DocumentSnapshot data) =>
+  static Job? fromDoc(JsonDoc data) =>
+      data.exists ? Job._createFromData(data.data()!, data.id) : null;
+
+  static Job fromQueryDoc(JsonQueryDoc data) =>
       Job._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('Jobs')
         .orderBy('Name')
@@ -224,7 +239,7 @@ class Job extends MiniModel {
 
 class PersonType extends MiniModel {
   PersonType(String id, String name) : super('Types', id, name);
-  PersonType._createFromData(Map<String, dynamic> data, String id)
+  PersonType._createFromData(Json data, String id)
       : super.createFromData('Types', data, id);
 
   PersonType.createNew() : super.createNew('Types');
@@ -235,14 +250,17 @@ class PersonType extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name};
   }
 
-  static PersonType fromDoc(DocumentSnapshot data) =>
+  static PersonType? fromDoc(JsonDoc data) =>
+      data.exists ? PersonType._createFromData(data.data()!, data.id) : null;
+
+  static PersonType fromQueryDoc(JsonQueryDoc data) =>
       PersonType._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('Types')
         .orderBy('Name')
@@ -252,7 +270,7 @@ class PersonType extends MiniModel {
 
 class ServingType extends MiniModel {
   ServingType(String id, String name) : super('ServingTypes', id, name);
-  ServingType._createFromData(Map<String, dynamic> data, String id)
+  ServingType._createFromData(Json data, String id)
       : super.createFromData('ServingTypes', data, id);
 
   ServingType.createNew() : super.createNew('ServingTypes');
@@ -263,14 +281,17 @@ class ServingType extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name};
   }
 
-  static ServingType fromDoc(DocumentSnapshot data) =>
+  static ServingType? fromDoc(JsonDoc data) =>
+      data.exists ? ServingType._createFromData(data.data()!, data.id) : null;
+
+  static ServingType fromQueryDoc(JsonQueryDoc data) =>
       ServingType._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('ServingTypes')
         .orderBy('Name')
@@ -280,15 +301,15 @@ class ServingType extends MiniModel {
 
 class StudyYear extends MiniModel {
   bool isCollegeYear;
-  StudyYear(String id, String name) : super('StudyYears', id, name);
-  StudyYear._createFromData(Map<String, dynamic> data, String id)
-      : super.createFromData('StudyYears', data, id) {
-    isCollegeYear = data['IsCollegeYear'];
-  }
+  StudyYear(String id, String name, {this.isCollegeYear = false})
+      : super('StudyYears', id, name);
+  StudyYear._createFromData(Json data, String id)
+      : isCollegeYear = data['IsCollegeYear'],
+        super.createFromData('StudyYears', data, id);
 
-  StudyYear.createNew() : super.createNew('StudyYears') {
-    isCollegeYear = false;
-  }
+  StudyYear.createNew()
+      : isCollegeYear = false,
+        super.createNew('StudyYears');
 
   @override
   bool operator ==(dynamic other) {
@@ -296,14 +317,17 @@ class StudyYear extends MiniModel {
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Name': name, 'IsCollegeYear': isCollegeYear};
   }
 
-  static StudyYear fromDoc(DocumentSnapshot data) =>
+  static StudyYear? fromDoc(JsonDoc data) =>
+      data.exists ? StudyYear._createFromData(data.data()!, data.id) : null;
+
+  static StudyYear fromQueryQueryDoc(JsonQueryDoc data) =>
       StudyYear._createFromData(data.data(), data.id);
 
-  static Future<QuerySnapshot> getAllForUser({String userUID}) {
+  static Future<JsonQuery> getAllForUser() {
     return FirebaseFirestore.instance
         .collection('StudyYears')
         .orderBy('Name')
@@ -312,25 +336,31 @@ class StudyYear extends MiniModel {
 }
 
 class History {
-  static Future<List<History>> getAllFromRef(CollectionReference ref) async {
+  static Future<List<History>> getAllFromRef(JsonCollectionRef ref) async {
     return (await ref
             .orderBy('Time', descending: true)
             .limit(1000)
             .get(dataSource))
         .docs
-        .map((e) => fromDoc(e))
+        .map(fromQueryDoc)
         .toList();
   }
 
-  static History fromDoc(DocumentSnapshot doc) {
+  static History? fromDoc(JsonDoc doc) {
+    return doc.exists
+        ? History(doc.id, doc.data()!['By'], doc.data()!['Time'], doc.reference)
+        : null;
+  }
+
+  static History fromQueryDoc(JsonQueryDoc doc) {
     return History(doc.id, doc.data()['By'], doc.data()['Time'], doc.reference);
   }
 
   String id;
-  String byUser;
-  Timestamp time;
+  String? byUser;
+  Timestamp? time;
 
-  DocumentReference ref;
+  JsonRef ref;
 
   History(this.id, this.byUser, this.time, this.ref);
 }

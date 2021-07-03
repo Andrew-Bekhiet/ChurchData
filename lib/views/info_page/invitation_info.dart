@@ -1,35 +1,38 @@
-import 'package:churchdata/models/user.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/invitation.dart';
+import 'package:churchdata/models/user.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/globals.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:tinycolor/tinycolor.dart';
-import 'package:intl/intl.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation invitation;
-  const InvitationInfo({Key key, this.invitation}) : super(key: key);
+  const InvitationInfo({Key? key, required this.invitation}) : super(key: key);
 
   void addTap(BuildContext context) {
-    Navigator.of(context)
+    navigator.currentState!
         .pushNamed('Data/EditInvitation', arguments: invitation.ref);
   }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Invitation>(
+    return StreamBuilder<Invitation?>(
       initialData: invitation,
       stream: invitation.ref.snapshots().map(Invitation.fromDoc),
       builder: (context, data) {
-        Invitation invitation = data.data;
-        if (invitation == null)
+        if (!data.hasData)
           return Scaffold(
             body: Center(
               child: Text('تم حذف الدعوة'),
             ),
           );
+
+        Invitation invitation = data.data!;
+
         return Scaffold(
           body: CustomScrollView(
             slivers: [
@@ -61,17 +64,17 @@ class InvitationInfo extends StatelessWidget {
                               },
                             ),
                             onPressed: () async {
-                              dynamic result = await Navigator.of(context)
+                              dynamic result = await navigator.currentState!
                                   .pushNamed('EditInvitation',
                                       arguments: invitation);
-                              if (result is DocumentReference) {
-                                ScaffoldMessenger.of(context).showSnackBar(
+                              if (result is JsonRef) {
+                                scaffoldMessenger.currentState!.showSnackBar(
                                   SnackBar(
                                     content: Text('تم الحفظ بنجاح'),
                                   ),
                                 );
                               } else if (result == 'deleted')
-                                Navigator.of(context).pop();
+                                navigator.currentState!.pop();
                             },
                             tooltip: 'تعديل',
                           )
@@ -93,9 +96,11 @@ class InvitationInfo extends StatelessWidget {
                         );
                       },
                     ),
-                    onPressed: () async {
-                      await Share.share(invitation.link);
-                    },
+                    onPressed: invitation.link != null
+                        ? () async {
+                            await Share.share(invitation.link!);
+                          }
+                        : null,
                     tooltip: 'مشاركة الدعوة',
                   ),
                 ],
@@ -129,12 +134,13 @@ class InvitationInfo extends StatelessWidget {
                       invitation.link,
                       items: [
                         IconButton(
-                            onPressed: (invitation.link ?? '').isNotEmpty
-                                ? () async {
-                                    await Share.share(invitation.link);
-                                  }
-                                : null,
-                            icon: Icon(Icons.share)),
+                          onPressed: invitation.link != null
+                              ? () async {
+                                  await Share.share(invitation.link!);
+                                }
+                              : null,
+                          icon: Icon(Icons.share),
+                        ),
                       ],
                     ),
                     ListTile(
@@ -142,29 +148,31 @@ class InvitationInfo extends StatelessWidget {
                           ? Text('تم الاستخدام بواسطة')
                           : Text('لم يتم الاستخدام بعد'),
                       subtitle: invitation.used
-                          ? FutureBuilder<String>(
-                              future: User.onlyName(invitation.usedBy),
+                          ? FutureBuilder<String?>(
+                              future: User.onlyName(invitation.usedBy!),
                               builder: (context, data) => data.hasData
-                                  ? Text(data.data)
-                                  : LinearProgressIndicator())
+                                  ? Text(data.data!)
+                                  : LinearProgressIndicator(),
+                            )
                           : null,
                     ),
                     ListTile(
                       title: Text('تم توليد اللينك بواسطة'),
-                      subtitle: FutureBuilder<String>(
+                      subtitle: FutureBuilder<String?>(
                           future: User.onlyName(invitation.generatedBy),
                           builder: (context, data) => data.hasData
                               ? Row(
                                   children: <Widget>[
                                     Expanded(
-                                      child: Text(data.data),
+                                      child: Text(data.data!),
                                     ),
                                     Text(
                                         invitation.generatedOn != null
                                             ? DateFormat(
                                                     'yyyy/M/d   h:m a', 'ar-EG')
                                                 .format(
-                                                invitation.generatedOn.toDate(),
+                                                invitation.generatedOn!
+                                                    .toDate(),
                                               )
                                             : '',
                                         style: Theme.of(context)
@@ -180,20 +188,17 @@ class InvitationInfo extends StatelessWidget {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              invitation.expiryDate != null
-                                  ? DateFormat('yyyy/M/d', 'ar-EG').format(
-                                      invitation.expiryDate.toDate(),
-                                    )
-                                  : '',
+                              DateFormat('yyyy/M/d', 'ar-EG').format(
+                                invitation.expiryDate.toDate(),
+                              ),
                             ),
                           ),
                           Text(
-                              invitation.expiryDate != null
-                                  ? DateFormat('h:m a', 'ar-EG').format(
-                                      invitation.expiryDate.toDate(),
-                                    )
-                                  : '',
-                              style: Theme.of(context).textTheme.overline),
+                            DateFormat('h:m a', 'ar-EG').format(
+                              invitation.expiryDate.toDate(),
+                            ),
+                            style: Theme.of(context).textTheme.overline,
+                          ),
                         ],
                       ),
                     ),
@@ -201,67 +206,67 @@ class InvitationInfo extends StatelessWidget {
                       title: Text('صلاحيات المستخدم المدعوو'),
                       subtitle: Column(
                         children: [
-                          if (invitation.permissions['manageUsers'] == true)
+                          if (invitation.permissions?['manageUsers'] == true)
                             ListTile(
                               leading: Icon(const IconData(0xef3d,
                                   fontFamily: 'MaterialIconsR')),
                               title: Text('إدارة المستخدمين'),
                             ),
-                          if (invitation.permissions['manageAllowedUsers'] ==
+                          if (invitation.permissions?['manageAllowedUsers'] ==
                               true)
                             ListTile(
                               leading: Icon(const IconData(0xef3d,
                                   fontFamily: 'MaterialIconsR')),
                               title: Text('إدارة مستخدمين محددين'),
                             ),
-                          if (invitation.permissions['superAccess'] == true)
+                          if (invitation.permissions?['superAccess'] == true)
                             ListTile(
                               leading: Icon(const IconData(0xef56,
                                   fontFamily: 'MaterialIconsR')),
                               title: Text('رؤية جميع البيانات'),
                             ),
-                          if (invitation.permissions['manageDeleted'] == true)
+                          if (invitation.permissions?['manageDeleted'] == true)
                             ListTile(
                               leading: Icon(Icons.delete_outline),
                               title: Text('استرجاع المحذوفات'),
                             ),
-                          if (invitation.permissions['secretary'] == true)
+                          if (invitation.permissions?['secretary'] == true)
                             ListTile(
                               leading: Icon(Icons.shield),
                               title: Text('تسجيل حضور الخدام'),
                             ),
-                          if (invitation.permissions['write'] == true)
+                          if (invitation.permissions?['write'] == true)
                             ListTile(
                               leading: Icon(Icons.edit),
                               title: Text('تعديل البيانات'),
                             ),
-                          if (invitation.permissions['exportClasses'] == true)
+                          if (invitation.permissions?['exportClasses'] == true)
                             ListTile(
                               leading: Icon(Icons.cloud_download),
                               title: Text('تصدير فصل لملف إكسل'),
                             ),
-                          if (invitation.permissions['birthdayNotify'] == true)
+                          if (invitation.permissions?['birthdayNotify'] == true)
                             ListTile(
                               leading: Icon(Icons.cake),
                               title: Text('إشعار أعياد الميلاد'),
                             ),
-                          if (invitation.permissions['confessionsNotify'] ==
+                          if (invitation.permissions?['confessionsNotify'] ==
                               true)
                             ListTile(
                               leading: Icon(Icons.notifications_active),
                               title: Text('إشعار الاعتراف'),
                             ),
-                          if (invitation.permissions['tanawolNotify'] == true)
+                          if (invitation.permissions?['tanawolNotify'] == true)
                             ListTile(
                               leading: Icon(Icons.notifications_active),
                               title: Text('إشعار التناول'),
                             ),
-                          if (invitation.permissions['kodasNotify'] == true)
+                          if (invitation.permissions?['kodasNotify'] == true)
                             ListTile(
                               leading: Icon(Icons.notifications_active),
                               title: Text('إشعار القداس'),
                             ),
-                          if (invitation.permissions['meetingNotify'] == true)
+                          if (invitation.permissions?['meetingNotify'] == true)
                             ListTile(
                               leading: Icon(Icons.notifications_active),
                               title: Text('إشعار حضور الاجتماع'),

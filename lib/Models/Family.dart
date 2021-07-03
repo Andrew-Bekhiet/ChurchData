@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:churchdata/models/street.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,20 +11,20 @@ import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'super_classes.dart';
-import '../utils/helpers.dart';
 import '../utils/globals.dart';
+import '../utils/helpers.dart';
 import 'map_view.dart';
 import 'person.dart';
+import 'super_classes.dart';
 import 'user.dart';
 
 class Family extends DataObject
     with PhotoObject, ParentObject<Person>, ChildObject<Street> {
-  DocumentReference _streetId;
+  JsonRef? _streetId;
 
-  DocumentReference get streetId => _streetId;
+  JsonRef? get streetId => _streetId;
 
-  set streetId(DocumentReference streetId) {
+  set streetId(JsonRef? streetId) {
     if (streetId != null && _streetId != streetId) {
       _streetId = streetId;
       setAreaIdFromStreet();
@@ -33,28 +33,28 @@ class Family extends DataObject
     _streetId = streetId;
   }
 
-  DocumentReference areaId;
+  JsonRef? areaId;
 
-  DocumentReference insideFamily;
-  DocumentReference insideFamily2;
+  JsonRef? insideFamily;
+  JsonRef? insideFamily2;
 
-  String address;
-  String notes;
+  String? address;
+  String? notes;
 
   bool locationConfirmed;
-  GeoPoint locationPoint;
+  GeoPoint? locationPoint;
 
-  Timestamp lastVisit;
-  Timestamp fatherLastVisit;
+  Timestamp? lastVisit;
+  Timestamp? fatherLastVisit;
 
-  String lastEdit;
+  String? lastEdit;
 
   bool isStore;
 
-  Family(String id, this.areaId, this._streetId, String name, this.address,
+  Family(String? id, this.areaId, this._streetId, String name, this.address,
       this.lastVisit, this.fatherLastVisit, this.lastEdit,
       {Color color = Colors.transparent,
-      DocumentReference ref,
+      JsonRef? ref,
       this.isStore = false,
       this.locationPoint,
       this.insideFamily,
@@ -72,19 +72,19 @@ class Family extends DataObject
     defaultIcon = Icons.group;
   }
 
-  Family._createFromData(Map<dynamic, dynamic> data, DocumentReference ref)
-      : super.createFromData(data, ref) {
+  Family._createFromData(Json data, JsonRef ref)
+      : locationConfirmed = data['LocationConfirmed'] ?? false,
+        isStore = data['IsStore'] ?? false,
+        super.createFromData(data, ref) {
     areaId = data['AreaId'];
     _streetId = data['StreetId'];
     insideFamily = data['InsideFamily'];
     insideFamily2 = data['InsideFamily2'];
 
-    isStore = data['IsStore'] ?? false;
     address = data['Address'];
     notes = data['Notes'];
 
     locationPoint = data['Location'];
-    locationConfirmed = data['LocationConfirmed'] ?? false;
 
     lastVisit = data['LastVisit'];
     fatherLastVisit = data['FatherLastVisit'];
@@ -96,13 +96,13 @@ class Family extends DataObject
   }
 
   @override
-  DocumentReference get parentId => streetId;
+  JsonRef? get parentId => streetId;
 
   @override
   Reference get photoRef => throw UnimplementedError();
 
-  Future<String> getAreaName() async {
-    return (await areaId.get(dataSource)).data()['Name'];
+  Future<String?> getAreaName() async {
+    return (await areaId?.get(dataSource))?.data()?['Name'];
   }
 
   @override
@@ -110,24 +110,26 @@ class Family extends DataObject
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
       return Person.getAll((await FirebaseFirestore.instance
-              .collection('Persons')
-              .where('AreaId', isEqualTo: areaId)
-              .where('FamilyId', isEqualTo: ref)
-              .limit(5)
-              .get(dataSource))
-          .docs);
+                  .collection('Persons')
+                  .where('AreaId', isEqualTo: areaId)
+                  .where('FamilyId', isEqualTo: ref)
+                  .limit(5)
+                  .get(dataSource))
+              .docs)
+          .cast<Person>();
     }
     return Person.getAll((await FirebaseFirestore.instance
-            .collection('Persons')
-            .where('AreaId', isEqualTo: areaId)
-            .where('FamilyId', isEqualTo: ref)
-            .get(dataSource))
-        .docs);
+                .collection('Persons')
+                .where('AreaId', isEqualTo: areaId)
+                .where('FamilyId', isEqualTo: ref)
+                .get(dataSource))
+            .docs)
+        .cast<Person>();
   }
 
   @override
-  Map<String, dynamic> getHumanReadableMap() => {
-        'Name': name ?? '',
+  Json getHumanReadableMap() => {
+        'Name': name,
         'Address': address ?? '',
         'Notes': notes ?? '',
         'LastVisit': toDurationString(lastVisit),
@@ -136,16 +138,16 @@ class Family extends DataObject
         'IsStore': isStore ? 'محل' : 'عائلة'
       };
 
-  Future<String> getInsideFamilyName() async {
-    return (await insideFamily.get(dataSource)).data()['Name'];
+  Future<String?> getInsideFamilyName() async {
+    return (await insideFamily?.get(dataSource))?.data()?['Name'];
   }
 
-  Future<String> getInsideFamily2Name() async {
-    return (await insideFamily2.get(dataSource)).data()['Name'];
+  Future<String?> getInsideFamily2Name() async {
+    return (await insideFamily2?.get(dataSource))?.data()?['Name'];
   }
 
   @override
-  Map<String, dynamic> getMap() => {
+  Json getMap() => {
         'AreaId': areaId,
         'StreetId': streetId,
         'Name': name,
@@ -177,8 +179,8 @@ class Family extends DataObject
                   );
                 return MapView(
                     childrenDepth: 3,
-                    initialLocation:
-                        LatLng(snapshot.data.latitude, snapshot.data.longitude),
+                    initialLocation: LatLng(
+                        snapshot.data!.latitude!, snapshot.data!.longitude!),
                     editMode: editMode,
                     family: this);
               },
@@ -202,38 +204,38 @@ class Family extends DataObject
     return MapView(editMode: editMode, family: this, childrenDepth: 3);
   }
 
-  Stream<List<QuerySnapshot>> getMembersLive(
+  Stream<List<JsonQuery>> getMembersLive(
       {String orderBy = 'Name', bool descending = false}) {
-    return Family.getFamilyMembersLive(areaId, id, orderBy, descending);
+    return Family.getFamilyMembersLive(areaId!, id, orderBy, descending);
   }
 
   @override
-  Future<String> getParentName() => getStreetName();
+  Future<String?> getParentName() => getStreetName();
 
   @override
-  Future<String> getSecondLine() async {
+  Future<String?> getSecondLine() async {
     String key = Hive.box('Settings').get('FamilySecondLine');
     if (key == 'Members') {
-      return await getMembersString();
+      return getMembersString();
     } else if (key == 'AreaId') {
-      return await getAreaName();
+      return getAreaName();
     } else if (key == 'StreetId') {
-      return await getStreetName();
+      return getStreetName();
     } else if (key == 'LastEdit') {
       return (await FirebaseFirestore.instance
               .doc('Users/$lastEdit')
               .get(dataSource))
-          .data()['Name'];
+          .data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
 
-  Future<String> getStreetName() async {
-    return (await streetId.get(dataSource)).data()['Name'];
+  Future<String?> getStreetName() async {
+    return (await streetId?.get(dataSource))?.data()?['Name'];
   }
 
   Future<void> setAreaIdFromStreet() async {
-    areaId = (await streetId.get(dataSource)).data()['AreaId'];
+    areaId = (await streetId?.get(dataSource))?.data()?['AreaId'];
   }
 
   static Family empty() {
@@ -245,18 +247,20 @@ class Family extends DataObject
       '',
       tranucateToDay(),
       tranucateToDay(),
-      auth.FirebaseAuth.instance.currentUser.uid,
+      User.instance.uid,
     );
   }
 
-  static Family fromDoc(DocumentSnapshot data) =>
-      data.exists ? Family._createFromData(data.data(), data.reference) : null;
+  static Family? fromDoc(JsonDoc data) =>
+      data.exists ? Family._createFromData(data.data()!, data.reference) : null;
 
-  static Future<Family> fromId(String id) async => Family.fromDoc(
+  static Family fromQueryDoc(JsonDoc data) => fromDoc(data)!;
+
+  static Future<Family?> fromId(String id) async => Family.fromDoc(
         await FirebaseFirestore.instance.doc('Families/$id').get(),
       );
 
-  static List<Family> getAll(List<DocumentSnapshot> families) {
+  static List<Family?> getAll(List<JsonDoc> families) {
     return families.map(Family.fromDoc).toList();
   }
 
@@ -268,11 +272,11 @@ class Family extends DataObject
             .asBroadcastStream()
             .first)
         .docs
-        .map(fromDoc)
+        .map(fromQueryDoc)
         .toList();
   }
 
-  static Stream<QuerySnapshot> getAllForUser({
+  static Stream<JsonQuery> getAllForUser({
     String orderBy = 'Name',
     bool descending = false,
   }) {
@@ -305,7 +309,7 @@ class Family extends DataObject
         );
   }
 
-  static Map<String, dynamic> getEmptyExportMap() => {
+  static Json getEmptyExportMap() => {
         'ID': 'id',
         'AreaId': 'areaId.id',
         'StreetId': 'streetId.id',
@@ -320,8 +324,7 @@ class Family extends DataObject
         'IsStore': 'isStore'
       };
 
-  static Stream<List<QuerySnapshot>> getFamilyMembersLive(
-      DocumentReference areaId, String id,
+  static Stream<List<JsonQuery>> getFamilyMembersLive(JsonRef areaId, String id,
       [String orderBy = 'Name', bool descending = false]) {
     return User.instance.stream
         .asyncMap(
@@ -337,7 +340,8 @@ class Family extends DataObject
         )
         .switchMap(
           (a) => a == null
-              ? Rx.combineLatest3(
+              ? Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
+                      List<JsonQuery>>(
                   FirebaseFirestore.instance
                       .collection('Persons')
                       .where('AreaId', isEqualTo: areaId)
@@ -369,8 +373,9 @@ class Family extends DataObject
                       )
                       .orderBy('Name')
                       .snapshots(),
-                  (a, b, c) => <QuerySnapshot>[a, b, c])
-              : Rx.combineLatest3(
+                  (a, b, c) => <JsonQuery>[a, b, c])
+              : Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
+                  List<JsonQuery>>(
                   FirebaseFirestore.instance
                       .collection('Persons')
                       .where('AreaId', isEqualTo: areaId)
@@ -404,14 +409,12 @@ class Family extends DataObject
                       )
                       .orderBy('Name')
                       .snapshots(),
-                  (a, b, c) => <QuerySnapshot>[a, b, c]),
+                  (a, b, c) => <JsonQuery>[a, b, c],
+                ),
         );
   }
 
-  // @override
-  // fireWeb.Reference get webPhotoRef => throw UnimplementedError();
-
-  static Map<String, dynamic> getHumanReadableMap2() => {
+  static Json getHumanReadableMap2() => {
         'Name': 'الاسم',
         'Address': 'العنوان',
         'Notes': 'الملاحظات',

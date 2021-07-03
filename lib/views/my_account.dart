@@ -1,4 +1,4 @@
-import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -14,7 +14,7 @@ import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class MyAccount extends StatefulWidget {
-  MyAccount({Key key}) : super(key: key);
+  MyAccount({Key? key}) : super(key: key);
 
   @override
   _MyAccountState createState() => _MyAccountState();
@@ -31,7 +31,6 @@ class _MyAccountState extends State<MyAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: !kIsWeb,
       body: Consumer<User>(
         builder: (c, user, _) {
           return NestedScrollView(
@@ -41,9 +40,9 @@ class _MyAccountState extends State<MyAccount> {
                   IconButton(
                     icon: Icon(Icons.info_outline),
                     onPressed: () async {
-                      var person = await user.getPerson();
+                      final person = await user.getPerson();
                       if (person == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffoldMessenger.currentState!.showSnackBar(
                           SnackBar(
                             content: Text('لم يتم إيجاد بيانات للمستخدم'),
                             duration: Duration(seconds: 3),
@@ -51,7 +50,7 @@ class _MyAccountState extends State<MyAccount> {
                         );
                         return;
                       }
-                      personTap(await user.getPerson(), context);
+                      personTap(person, context);
                     },
                     tooltip: 'عرض بياناتي داخل البرنامج',
                   ),
@@ -62,18 +61,20 @@ class _MyAccountState extends State<MyAccount> {
                         builder: (context) => AlertDialog(
                           actions: <Widget>[
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(true),
+                              onPressed: () =>
+                                  navigator.currentState!.pop(true),
                               icon: Icon(Icons.camera),
                               label: Text('التقاط صورة من الكاميرا'),
                             ),
                             TextButton.icon(
-                              onPressed: () => Navigator.of(context).pop(false),
+                              onPressed: () =>
+                                  navigator.currentState!.pop(false),
                               icon: Icon(Icons.photo_library),
                               label: Text('اختيار من المعرض'),
                             ),
                             TextButton.icon(
                               onPressed: () =>
-                                  Navigator.of(context).pop('delete'),
+                                  navigator.currentState!.pop('delete'),
                               icon: Icon(Icons.delete),
                               label: Text('حذف الصورة'),
                             ),
@@ -91,18 +92,18 @@ class _MyAccountState extends State<MyAccount> {
                                     icon: Icon(Icons.delete),
                                     label: Text('حذف'),
                                     onPressed: () =>
-                                        Navigator.pop(context, true),
+                                        navigator.currentState!.pop(true),
                                   ),
                                   TextButton(
                                     onPressed: () =>
-                                        Navigator.pop(context, false),
+                                        navigator.currentState!.pop(false),
                                     child: Text('تراجع'),
                                   )
                                 ],
                               ),
                             ) ??
                             false) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
@@ -111,8 +112,8 @@ class _MyAccountState extends State<MyAccount> {
                               .call();
                           user.reloadImage();
                           setState(() {});
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                             content: Text('تم بنجاح'),
                           ));
                         }
@@ -123,50 +124,54 @@ class _MyAccountState extends State<MyAccount> {
                                   .isGranted) ||
                           !(await Permission.camera.request()).isGranted)
                         return;
-                      var selectedImage = (await ImagePicker().getImage(
+                      final selectedImage = await ImagePicker().getImage(
                           source: source
                               ? ImageSource.camera
-                              : ImageSource.gallery));
+                              : ImageSource.gallery);
                       if (selectedImage == null) return;
-                      var finalImage = (await ImageCropper.cropImage(
-                          sourcePath: selectedImage.path,
-                          cropStyle: CropStyle.circle,
-                          androidUiSettings: AndroidUiSettings(
-                              toolbarTitle: 'قص الصورة',
-                              toolbarColor: Theme.of(context).primaryColor,
-                              toolbarWidgetColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .headline6
-                                  .color,
-                              initAspectRatio: CropAspectRatioPreset.original,
-                              lockAspectRatio: false)));
+                      var finalImage = await ImageCropper.cropImage(
+                        sourcePath: selectedImage.path,
+                        cropStyle: CropStyle.circle,
+                        androidUiSettings: AndroidUiSettings(
+                          toolbarTitle: 'قص الصورة',
+                          toolbarColor: Theme.of(context).primaryColor,
+                          toolbarWidgetColor: Theme.of(context)
+                              .primaryTextTheme
+                              .headline6
+                              ?.color,
+                          initAspectRatio: CropAspectRatioPreset.original,
+                          lockAspectRatio: false,
+                        ),
+                      );
+                      if (finalImage != null) return;
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
                               content: Text('هل تريد تغير الصورة؟'),
                               actions: [
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
+                                  onPressed: () =>
+                                      navigator.currentState!.pop(true),
                                   child: Text('تغيير'),
                                 ),
                                 TextButton(
                                   onPressed: () =>
-                                      Navigator.pop(context, false),
+                                      navigator.currentState!.pop(false),
                                   child: Text('تراجع'),
                                 )
                               ],
                             ),
                           ) ??
                           false) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                           content: Text('جار التحميل'),
                           duration: Duration(minutes: 2),
                         ));
-                        await user.photoRef.putFile(finalImage);
+                        await user.photoRef.putFile(finalImage!);
                         user.reloadImage();
                         setState(() {});
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        scaffoldMessenger.currentState!;
+                        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                           content: Text('تم بنجاح'),
                         ));
                       }
@@ -192,6 +197,7 @@ class _MyAccountState extends State<MyAccount> {
               ),
             ],
             body: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               children: <Widget>[
                 ListTile(
                   title: Text('الاسم:'),
@@ -199,7 +205,7 @@ class _MyAccountState extends State<MyAccount> {
                 ),
                 ListTile(
                   title: Text('البريد الاكتروني:'),
-                  subtitle: Text(user.email ?? ''),
+                  subtitle: Text(user.email),
                 ),
                 ListTile(
                   title: Text('الصلاحيات:',
@@ -269,12 +275,12 @@ class _MyAccountState extends State<MyAccount> {
                     title: Text('التأكيد على المواقع'),
                   ),
                 ElevatedButton.icon(
-                  onPressed: () => changeName(user.name, user.uid),
+                  onPressed: () => changeName(user.name, user.uid!),
                   icon: Icon(Icons.edit),
                   label: Text('تغيير الاسم'),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () => changePass(),
+                  onPressed: changePass,
                   icon: Icon(Icons.security),
                   label: Text('تغيير كلمة السر'),
                 )
@@ -291,16 +297,16 @@ class _MyAccountState extends State<MyAccount> {
     if (await showDialog(
           context: context,
           builder: (context) {
-            return DataDialog(
+            return AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState!.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState!.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -312,15 +318,11 @@ class _MyAccountState extends State<MyAccount> {
                     child: TextFormField(
                       decoration: InputDecoration(
                         labelText: 'الاسم',
-                        border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: Theme.of(context).primaryColor),
-                        ),
                       ),
                       controller: name,
                       textInputAction: TextInputAction.done,
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return 'هذا الحقل مطلوب';
                         }
                         return null;
@@ -344,16 +346,16 @@ class _MyAccountState extends State<MyAccount> {
     if (await showDialog(
           context: context,
           builder: (context) {
-            return DataDialog(
+            return AlertDialog(
               actions: <Widget>[
                 TextButton.icon(
                   icon: Icon(Icons.done),
-                  onPressed: () => Navigator.of(context).pop(true),
+                  onPressed: () => navigator.currentState!.pop(true),
                   label: Text('تغيير'),
                 ),
                 TextButton.icon(
                   icon: Icon(Icons.cancel),
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => navigator.currentState!.pop(false),
                   label: Text('الغاء الأمر'),
                 ),
               ],
@@ -399,7 +401,7 @@ class _MyAccountState extends State<MyAccount> {
 
   Future _submitPass() async {
     if (textFields[0].text == '' || textFields[1].text == '') {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('كلمة السر لا يمكن ان تكون فارغة!'),
           duration: Duration(seconds: 26),
@@ -407,7 +409,7 @@ class _MyAccountState extends State<MyAccount> {
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Text('جار تحديث كلمة السر...'),
         duration: Duration(seconds: 26),
@@ -431,8 +433,8 @@ class _MyAccountState extends State<MyAccount> {
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم تحديث كلمة السر بنجاح'),
             duration: Duration(seconds: 3),
@@ -440,8 +442,8 @@ class _MyAccountState extends State<MyAccount> {
         );
         setState(() {});
       } else {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('كلمة السر القديمة خاطئة'),
             duration: Duration(seconds: 3),
@@ -449,8 +451,8 @@ class _MyAccountState extends State<MyAccount> {
         );
       }
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('كلمتا السر غير متطابقتين!'),
           duration: Duration(seconds: 3),

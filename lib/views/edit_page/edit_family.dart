@@ -1,16 +1,17 @@
 import 'dart:async';
 
-import 'package:churchdata/models/list_options.dart';
-import 'package:churchdata/models/user.dart';
-import 'package:churchdata/models/street.dart';
-import 'package:churchdata/models/family.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
+import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/search_filters.dart';
+import 'package:churchdata/models/street.dart';
+import 'package:churchdata/models/user.dart';
+import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
@@ -18,9 +19,9 @@ import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
 class EditFamily extends StatefulWidget {
-  final Family family;
+  final Family? family;
 
-  EditFamily({Key key, this.family}) : super(key: key);
+  EditFamily({Key? key, this.family}) : super(key: key);
   @override
   _EditFamilyState createState() => _EditFamilyState();
 }
@@ -28,7 +29,7 @@ class EditFamily extends StatefulWidget {
 class _EditFamilyState extends State<EditFamily> {
   GlobalKey<FormState> form = GlobalKey<FormState>();
 
-  Family family;
+  late Family family;
 
   void addressChanged(String value) {
     family.address = value;
@@ -45,301 +46,282 @@ class _EditFamilyState extends State<EditFamily> {
       body: Form(
         key: form,
         child: Padding(
-          padding: EdgeInsets.all(5),
-          child: ListView(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text('محل'),
-                  Switch(
-                    value: family.isStore,
-                    onChanged: (v) {
-                      family.isStore = v;
-                      setState(() {});
+          padding: EdgeInsets.all(8),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Text('محل'),
+                    Switch(
+                      value: family.isStore,
+                      onChanged: (v) {
+                        family.isStore = v;
+                        setState(() {});
+                      },
+                    ),
+                  ],
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'اسم ال' + (family.isStore ? 'محل' : 'عائلة'),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    initialValue: family.name,
+                    onChanged: nameChanged,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
                     },
                   ),
-                ],
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'اسم ال' + (family.isStore ? 'محل' : 'عائلة'),
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor),
-                    ),
-                  ),
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                  initialValue: family.name,
-                  onChanged: nameChanged,
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'هذا الحقل مطلوب';
-                    }
-                    return null;
-                  },
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: TextFormField(
-                  maxLines: null,
-                  decoration: InputDecoration(
-                    labelText: 'العنوان',
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor),
-                    ),
-                  ),
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                  initialValue: family.address,
-                  onChanged: addressChanged,
-                  validator: (value) {
-                    return null;
-                  },
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: TextFormField(
-                  maxLines: null,
-                  decoration: InputDecoration(
-                    labelText: 'ملاحظات',
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor),
-                    ),
-                  ),
-                  textInputAction: TextInputAction.next,
-                  onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
-                  initialValue: family.notes,
-                  onChanged: notesChanged,
-                  validator: (value) {
-                    return null;
-                  },
-                ),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(
-                  const IconData(0xe568, fontFamily: 'MaterialIconsR'),
-                ),
-                label: Text('تعديل مكان ال' +
-                    (family.isStore ? 'محل' : 'عائلة') +
-                    ' على الخريطة'),
-                onPressed: () async {
-                  var oldPoint = family.locationPoint != null
-                      ? GeoPoint(family.locationPoint.latitude,
-                          family.locationPoint.longitude)
-                      : null;
-                  var rslt = await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => Scaffold(
-                        appBar: AppBar(
-                          actions: <Widget>[
-                            IconButton(
-                              icon: Icon(Icons.done),
-                              onPressed: () => Navigator.pop(context, true),
-                              tooltip: 'حفظ',
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () => Navigator.pop(context, false),
-                              tooltip: 'حذف التحديد',
-                            )
-                          ],
-                          title: Text('تعديل مكان ${family.name} على الخريطة'),
-                        ),
-                        body: family.getMapView(
-                            editMode: true, useGPSIfNull: true),
-                      ),
-                    ),
-                  );
-                  if (rslt == null) {
-                    family.locationPoint = oldPoint;
-                  } else if (rslt == false) {
-                    family.locationPoint = null;
-                  }
-                },
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: InkWell(
-                  onTap: selectStreet,
-                  child: InputDecorator(
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    maxLines: null,
                     decoration: InputDecoration(
-                      labelText: 'داخل شارع',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
+                      labelText: 'العنوان',
                     ),
-                    child: FutureBuilder(
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    initialValue: family.address,
+                    onChanged: addressChanged,
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: TextFormField(
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      labelText: 'ملاحظات',
+                    ),
+                    textInputAction: TextInputAction.next,
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    initialValue: family.notes,
+                    onChanged: notesChanged,
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                ElevatedButton.icon(
+                  icon: Icon(
+                    const IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                  ),
+                  label: Text('تعديل مكان ال' +
+                      (family.isStore ? 'محل' : 'عائلة') +
+                      ' على الخريطة'),
+                  onPressed: () async {
+                    var oldPoint = family.locationPoint != null
+                        ? GeoPoint(family.locationPoint!.latitude,
+                            family.locationPoint!.longitude)
+                        : null;
+                    var rslt = await navigator.currentState!.push(
+                      MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          appBar: AppBar(
+                            actions: <Widget>[
+                              IconButton(
+                                icon: Icon(Icons.done),
+                                onPressed: () =>
+                                    navigator.currentState!.pop(true),
+                                tooltip: 'حفظ',
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () =>
+                                    navigator.currentState!.pop(false),
+                                tooltip: 'حذف التحديد',
+                              )
+                            ],
+                            title:
+                                Text('تعديل مكان ${family.name} على الخريطة'),
+                          ),
+                          body: family.getMapView(
+                              editMode: true, useGPSIfNull: true),
+                        ),
+                      ),
+                    );
+                    if (rslt == null) {
+                      family.locationPoint = oldPoint;
+                    } else if (rslt == false) {
+                      family.locationPoint = null;
+                    }
+                  },
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: selectStreet,
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'داخل شارع',
+                      ),
+                      child: FutureBuilder<String?>(
                         future: family.streetId == null
                             ? null
                             : family.getStreetName(),
                         builder: (con, data) {
-                          if (data.connectionState == ConnectionState.done) {
-                            return Text(data.data);
+                          if (data.hasData) {
+                            return Text(data.data!);
                           } else if (data.connectionState ==
                               ConnectionState.waiting) {
                             return LinearProgressIndicator();
                           } else {
                             return Text('لا يوجد');
                           }
-                        }),
+                        },
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Flexible(
-                      flex: 3,
-                      child: InkWell(
-                        onTap: selectFamily,
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            labelText:
-                                family.isStore ? 'ادارة المحل' : 'داخل عائلة',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Flexible(
+                        flex: 3,
+                        child: InkWell(
+                          onTap: selectFamily,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText:
+                                  family.isStore ? 'ادارة المحل' : 'داخل عائلة',
                             ),
-                          ),
-                          child: FutureBuilder(
+                            child: FutureBuilder<String?>(
                               future: family.insideFamily == null
                                   ? Future(() => null)
                                   : family.getInsideFamilyName(),
                               builder: (con, data) {
                                 if (data.hasData) {
-                                  return Text(data.data);
+                                  return Text(data.data!);
                                 } else if (data.connectionState ==
                                     ConnectionState.waiting) {
                                   return LinearProgressIndicator();
                                 } else {
                                   return Text('لا يوجد');
                                 }
-                              }),
-                        ),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 2,
-                      child: TextButton.icon(
-                        icon: Icon(Icons.close),
-                        onPressed: () => setState(() {
-                          family.insideFamily = null;
-                        }),
-                        label: Text('حذف العائلة'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    Flexible(
-                      flex: 3,
-                      child: InkWell(
-                        onTap: selectFamily2,
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            labelText: 'داخل عائلة 2',
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).primaryColor),
+                              },
                             ),
                           ),
-                          child: FutureBuilder(
+                        ),
+                      ),
+                      Flexible(
+                        flex: 2,
+                        child: TextButton.icon(
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() {
+                            family.insideFamily = null;
+                          }),
+                          label: Text('حذف العائلة'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      Flexible(
+                        flex: 3,
+                        child: InkWell(
+                          onTap: selectFamily2,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'داخل عائلة 2',
+                            ),
+                            child: FutureBuilder<String?>(
                               future: family.insideFamily2 == null
                                   ? Future(() => null)
                                   : family.getInsideFamily2Name(),
                               builder: (con, data) {
                                 if (data.hasData) {
-                                  return Text(data.data);
+                                  return Text(data.data!);
                                 } else if (data.connectionState ==
                                     ConnectionState.waiting) {
                                   return LinearProgressIndicator();
                                 } else {
                                   return Text('لا يوجد');
                                 }
-                              }),
+                              },
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    Flexible(
-                      flex: 2,
-                      child: TextButton.icon(
-                        icon: Icon(Icons.close),
-                        onPressed: () => setState(() {
-                          family.insideFamily2 = null;
-                        }),
-                        label: Text('حذف العائلة'),
+                      Flexible(
+                        flex: 2,
+                        child: TextButton.icon(
+                          icon: Icon(Icons.close),
+                          onPressed: () => setState(() {
+                            family.insideFamily2 = null;
+                          }),
+                          label: Text('حذف العائلة'),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: InkWell(
-                  onTap: () => _selectDate(context),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'تاريخ أخر زيارة',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                    ),
-                    child: Text(DateFormat('yyyy/M/d').format(
-                      family.lastVisit.toDate(),
-                    )),
+                    ],
                   ),
                 ),
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: InkWell(
-                  onTap: () => _selectDate2(context),
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
-                      border: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _selectDate(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'تاريخ أخر زيارة',
                       ),
+                      child: family.lastVisit != null
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                family.lastVisit!.toDate(),
+                              ),
+                            )
+                          : null,
                     ),
-                    child: family.fatherLastVisit != null
-                        ? Text(DateFormat('yyyy/M/d').format(
-                            family.fatherLastVisit.toDate(),
-                          ))
-                        : Text(DateFormat('yyyy/M/d').format(
-                            DateTime(DateTime.now().year, DateTime.now().month,
-                                DateTime.now().day),
-                          )),
                   ),
                 ),
-              ),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(primary: family.color),
-                onPressed: selectColor,
-                icon: Icon(Icons.color_lens),
-                label: Text('اللون'),
-              ),
-            ].map((w) => Focus(child: w)).toList(),
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  child: InkWell(
+                    onTap: () => _selectDate2(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
+                      ),
+                      child: family.fatherLastVisit != null
+                          ? Text(DateFormat('yyyy/M/d').format(
+                              family.fatherLastVisit!.toDate(),
+                            ))
+                          : null,
+                    ),
+                  ),
+                ),
+                ElevatedButton.icon(
+                  style: family.color != Colors.transparent
+                      ? ElevatedButton.styleFrom(primary: family.color)
+                      : null,
+                  onPressed: selectColor,
+                  icon: Icon(Icons.color_lens),
+                  label: Text('اللون'),
+                ),
+                SizedBox(height: 100),
+              ].map((w) => Focus(child: w)).toList(),
+            ),
           ),
         ),
       ),
@@ -380,13 +362,13 @@ class _EditFamilyState extends State<EditFamily> {
             actions: <Widget>[
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context, true);
+                  navigator.currentState!.pop(true);
                 },
                 child: Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  navigator.currentState!.pop();
                 },
                 child: Text('تراجع'),
               ),
@@ -394,7 +376,7 @@ class _EditFamilyState extends State<EditFamily> {
           ),
         ) ==
         true) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار حذف ال' +
               (family.isStore ? 'محل' : 'عائلة') +
@@ -408,15 +390,15 @@ class _EditFamilyState extends State<EditFamily> {
         // ignore: unawaited_futures
         family.ref.delete();
       }
-      Navigator.of(context).pop('deleted');
+      navigator.currentState!.pop('deleted');
     }
   }
 
   @override
-  void didChangeDependencies() async {
-    super.didChangeDependencies();
-    family ??= (widget.family ?? Family.empty()).copyWith();
-    await family.setAreaIdFromStreet();
+  void initState() {
+    super.initState();
+    family = (widget.family ?? Family.empty()).copyWith();
+    family.setAreaIdFromStreet();
   }
 
   void nameChanged(String value) {
@@ -429,15 +411,15 @@ class _EditFamilyState extends State<EditFamily> {
 
   Future save() async {
     try {
-      if (form.currentState.validate() && family.streetId != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (form.currentState!.validate() && family.streetId != null) {
+        scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
         );
         if (family.locationPoint != null &&
-            family.locationPoint != widget.family.locationPoint) {
+            family.locationPoint != widget.family?.locationPoint) {
           if (User.instance.approveLocations) {
             family.locationConfirmed = await showDialog(
               context: context,
@@ -450,11 +432,11 @@ class _EditFamilyState extends State<EditFamily> {
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
+                    onPressed: () => navigator.currentState!.pop(true),
                     child: Text('نعم'),
                   ),
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
+                    onPressed: () => navigator.currentState!.pop(false),
                     child: Text('لا'),
                   )
                 ],
@@ -466,7 +448,7 @@ class _EditFamilyState extends State<EditFamily> {
           }
         }
 
-        family.lastEdit = auth.FirebaseAuth.instance.currentUser.uid;
+        family.lastEdit = User.instance.uid!;
 
         bool update = family.id != 'null';
         if (!update)
@@ -475,12 +457,12 @@ class _EditFamilyState extends State<EditFamily> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await family.update(old: widget.family.getMap());
+          await family.update(old: widget.family?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           family.update(
-            old: widget.family.getMap(),
+            old: widget.family?.getMap() ?? {},
           );
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
@@ -491,7 +473,7 @@ class _EditFamilyState extends State<EditFamily> {
           family.set();
         }
 
-        Navigator.of(context).pop(family.ref);
+        navigator.currentState!.pop(family.ref);
       } else {
         await showDialog(
           context: context,
@@ -506,8 +488,8 @@ class _EditFamilyState extends State<EditFamily> {
           .setCustomKey('LastErrorIn', 'FamilyP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Family', family.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(
             err.toString(),
@@ -525,7 +507,7 @@ class _EditFamilyState extends State<EditFamily> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              navigator.currentState!.pop();
               setState(() {
                 family.color = Colors.transparent;
               });
@@ -536,7 +518,7 @@ class _EditFamilyState extends State<EditFamily> {
         content: ColorsList(
           selectedColor: family.color,
           onSelect: (color) {
-            Navigator.of(context).pop();
+            navigator.currentState!.pop();
             setState(() {
               family.color = color;
             });
@@ -547,52 +529,47 @@ class _EditFamilyState extends State<EditFamily> {
     );
   }
 
-  void selectFamily() {
-    final BehaviorSubject<String> _searchStream =
-        BehaviorSubject<String>.seeded('');
+  Future<void> selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    showDialog(
+    final listOptions = DataObjectListOptions<Family>(
+      tap: (value) {
+        navigator.currentState!.pop();
+        setState(() {
+          family.insideFamily =
+              FirebaseFirestore.instance.collection('Families').doc(value.id);
+        });
+        FocusScope.of(context).nextFocus();
+      },
+      itemsStream: _orderOptions
+          .switchMap((value) => Family.getAllForUser(
+              orderBy: value.orderBy, descending: !value.asc))
+          .map((s) => s.docs.map(Family.fromQueryDoc).toList()),
+    );
+    await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Family>(
-          searchQuery: _searchStream,
-          tap: (value) {
-            Navigator.of(context).pop();
-            setState(() {
-              family.insideFamily = FirebaseFirestore.instance
-                  .collection('Families')
-                  .doc(value.id);
-            });
-            FocusScope.of(context).nextFocus();
-          },
-          itemsStream: _orderOptions
-              .switchMap((value) => Family.getAllForUser(
-                  orderBy: value.orderBy, descending: !value.asc))
-              .map((s) => s.docs.map(Family.fromDoc).toList()),
-        );
         return Dialog(
           child: Scaffold(
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                Navigator.of(context).pop();
-                family.insideFamily = (await Navigator.of(context)
-                        .pushNamed('Data/EditFamily')) as DocumentReference ??
+                navigator.currentState!.pop();
+                family.insideFamily = await navigator.currentState!
+                        .pushNamed('Data/EditFamily') as JsonRef? ??
                     family.insideFamily;
                 setState(() {});
               },
               tooltip: 'إضافة عائلة جديدة',
               child: Icon(Icons.group_add),
             ),
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
               height: MediaQuery.of(context).size.height - 110,
               child: Column(
                 children: [
                   SearchFilters(
                     1,
-                    searchStream: _searchStream,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       OrderOptions(),
@@ -602,6 +579,7 @@ class _EditFamilyState extends State<EditFamily> {
                   Expanded(
                     child: DataObjectList<Family>(
                       options: listOptions,
+                      autoDisposeController: true,
                     ),
                   ),
                 ],
@@ -611,54 +589,50 @@ class _EditFamilyState extends State<EditFamily> {
         );
       },
     );
+    await _orderOptions.close();
   }
 
-  void selectFamily2() {
-    final BehaviorSubject<String> _searchStream =
-        BehaviorSubject<String>.seeded('');
+  void selectFamily2() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    showDialog(
+    final listOptions = DataObjectListOptions<Family>(
+      tap: (value) {
+        navigator.currentState!.pop();
+        setState(() {
+          family.insideFamily2 =
+              FirebaseFirestore.instance.collection('Families').doc(value.id);
+        });
+        FocusScope.of(context).nextFocus();
+      },
+      itemsStream: _orderOptions
+          .switchMap((value) => Family.getAllForUser(
+              orderBy: value.orderBy, descending: !value.asc))
+          .map((s) => s.docs.map(Family.fromQueryDoc).toList()),
+    );
+    await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Family>(
-          searchQuery: _searchStream,
-          tap: (value) {
-            Navigator.of(context).pop();
-            setState(() {
-              family.insideFamily2 = FirebaseFirestore.instance
-                  .collection('Families')
-                  .doc(value.id);
-            });
-            FocusScope.of(context).nextFocus();
-          },
-          itemsStream: _orderOptions
-              .switchMap((value) => Family.getAllForUser(
-                  orderBy: value.orderBy, descending: !value.asc))
-              .map((s) => s.docs.map(Family.fromDoc).toList()),
-        );
         return Dialog(
           child: Scaffold(
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                Navigator.of(context).pop();
-                family.insideFamily2 = (await Navigator.of(context)
-                        .pushNamed('Data/EditFamily')) as DocumentReference ??
+                navigator.currentState!.pop();
+                family.insideFamily2 = await navigator.currentState!
+                        .pushNamed('Data/EditFamily') as JsonRef? ??
                     family.insideFamily2;
                 setState(() {});
               },
               tooltip: 'إضافة عائلة جديدة',
               child: Icon(Icons.group_add),
             ),
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
               height: MediaQuery.of(context).size.height - 110,
               child: Column(
                 children: [
                   SearchFilters(
                     1,
-                    searchStream: _searchStream,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       OrderOptions(),
@@ -668,6 +642,7 @@ class _EditFamilyState extends State<EditFamily> {
                   Expanded(
                     child: DataObjectList<Family>(
                       options: listOptions,
+                      autoDisposeController: true,
                     ),
                   ),
                 ],
@@ -677,54 +652,51 @@ class _EditFamilyState extends State<EditFamily> {
         );
       },
     );
+    await _orderOptions.close();
   }
 
-  void selectStreet() {
-    final BehaviorSubject<String> _searchStream =
-        BehaviorSubject<String>.seeded('');
+  void selectStreet() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(OrderOptions());
 
-    showDialog(
+    final listOptions = DataObjectListOptions<Street>(
+      tap: (value) {
+        navigator.currentState!.pop();
+        setState(() {
+          family.streetId =
+              FirebaseFirestore.instance.collection('Streets').doc(value.id);
+        });
+        FocusScope.of(context).nextFocus();
+      },
+      itemsStream: _orderOptions
+          .switchMap((value) => Street.getAllForUser(
+              orderBy: value.orderBy, descending: !value.asc))
+          .map((s) => s.docs.map(Street.fromQueryDoc).toList()),
+    );
+
+    await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListOptions<Street>(
-          searchQuery: _searchStream,
-          tap: (value) {
-            Navigator.of(context).pop();
-            setState(() {
-              family.streetId = FirebaseFirestore.instance
-                  .collection('Streets')
-                  .doc(value.id);
-            });
-            FocusScope.of(context).nextFocus();
-          },
-          itemsStream: _orderOptions
-              .switchMap((value) => Street.getAllForUser(
-                  orderBy: value.orderBy, descending: !value.asc))
-              .map((s) => s.docs.map(Street.fromDoc).toList()),
-        );
         return Dialog(
           child: Scaffold(
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                Navigator.of(context).pop();
-                family.streetId = (await Navigator.of(context)
-                        .pushNamed('Data/EditStreet')) as DocumentReference ??
+                navigator.currentState!.pop();
+                family.streetId = await navigator.currentState!
+                        .pushNamed('Data/EditStreet') as JsonRef? ??
                     family.streetId;
                 setState(() {});
               },
               tooltip: 'إضافة شارع جديد جديدة',
               child: Icon(Icons.add_road),
             ),
-            body: Container(
+            body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
               height: MediaQuery.of(context).size.height - 110,
               child: Column(
                 children: [
                   SearchFilters(
                     1,
-                    searchStream: _searchStream,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       OrderOptions(),
@@ -734,6 +706,7 @@ class _EditFamilyState extends State<EditFamily> {
                   Expanded(
                     child: DataObjectList<Street>(
                       options: listOptions,
+                      autoDisposeController: true,
                     ),
                   ),
                 ],
@@ -743,12 +716,13 @@ class _EditFamilyState extends State<EditFamily> {
         );
       },
     );
+    await _orderOptions.close();
   }
 
   Future _selectDate(BuildContext context) async {
-    DateTime picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: family.lastVisit.toDate(),
+      initialDate: family.lastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),
       lastDate: DateTime.now(),
     );
@@ -760,7 +734,7 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   Future _selectDate2(BuildContext context) async {
-    DateTime picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: family.fatherLastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),

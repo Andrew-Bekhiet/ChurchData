@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 class DoubleCircularNotchedButton extends NotchedShape {
   const DoubleCircularNotchedButton();
   @override
-  Path getOuterPath(Rect host, Rect guest) {
+  Path getOuterPath(Rect host, Rect? guest) {
     if (guest == null || !host.overlaps(guest)) return Path()..addRect(host);
 
     final double notchRadius = guest.height / 2.0;
@@ -24,7 +24,7 @@ class DoubleCircularNotchedButton extends NotchedShape {
     final double p2yB = math.sqrt(r * r - p2xB * p2xB);
 
     ///Cut-out 1
-    final List<Offset> px = List<Offset>.generate(6, (_) => Offset(0, 0));
+    final List<Offset> px = List<Offset>.generate(6, (_) => Offset.zero);
 
     px[0] = Offset(a - s1, b);
     px[1] = Offset(a, b);
@@ -39,7 +39,7 @@ class DoubleCircularNotchedButton extends NotchedShape {
       px[i] += Offset(0 + (notchRadius + 12), 0); //Cut-out 1 positions
 
     ///Cut-out 2
-    final List<Offset> py = List<Offset>.generate(6, (_) => Offset(0, 0));
+    final List<Offset> py = List<Offset>.generate(6, (_) => Offset.zero);
 
     py[0] = Offset(a - s1, b);
     py[1] = Offset(a, b);

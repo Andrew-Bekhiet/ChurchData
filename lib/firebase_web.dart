@@ -1,6 +1,7 @@
+import 'package:churchdata/typedefs.dart';
 import 'package:firebase/firebase.dart' as firebase;
-import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase/src/interop/remote_config_interop.dart';
+import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 export 'package:cloud_firestore/cloud_firestore.dart';
@@ -64,17 +65,11 @@ class FirebaseMessaging {
           notification: RemoteNotification(
               title: d.notification.title, body: d.notification.body)));
 
-  static Stream<RemoteMessage> get onMessageOpenedApp => Stream.empty();
+  static Stream<RemoteMessage> get onMessageOpenedApp => const Stream.empty();
 }
 
 class RemoteConfig implements firebase.RemoteConfig {
   static firebase.RemoteConfig get instance => firebase.remoteConfig();
-
-  @override
-  Map<String, dynamic> defaultConfig;
-
-  @override
-  DateTime get fetchTime => instance.fetchTime;
 
   @override
   RemoteConfigJsImpl get jsObject => instance.jsObject;
@@ -88,26 +83,26 @@ class RemoteConfig implements firebase.RemoteConfig {
 
   @override
   Future<bool> activate() async {
-    return await instance.activate();
+    return instance.activate();
   }
 
   Future<bool> activateFetched() async {
-    return await instance.fetchAndActivate();
+    return instance.fetchAndActivate();
   }
 
   @override
   Future<void> ensureInitialized() async {
-    return await instance.ensureInitialized();
+    return instance.ensureInitialized();
   }
 
   @override
-  Future<void> fetch({Duration expiration}) async {
-    return await instance.fetch();
+  Future<void> fetch({Duration? expiration}) async {
+    return instance.fetch();
   }
 
   @override
   Future<bool> fetchAndActivate() async {
-    return await instance.fetchAndActivate();
+    return instance.fetchAndActivate();
   }
 
   @override
@@ -135,7 +130,7 @@ class RemoteConfig implements firebase.RemoteConfig {
     return instance.getValue(key);
   }
 
-  Future<void> setDefaults(Map<String, dynamic> defaults) async {
+  Future<void> setDefaults(Json defaults) async {
     instance.defaultConfig = defaults;
   }
 
@@ -143,4 +138,10 @@ class RemoteConfig implements firebase.RemoteConfig {
   void setLogLevel(firebase.RemoteConfigLogLevel value) {
     instance.setLogLevel(value);
   }
+
+  @override
+  late Map<String, dynamic> defaultConfig;
+
+  @override
+  DateTime? get fetchTime => instance.fetchTime;
 }

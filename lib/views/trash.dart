@@ -1,57 +1,59 @@
+import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/models.dart';
+import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-import 'lists.dart';
 import '../models/super_classes.dart';
 
 class Trash extends StatelessWidget {
-  const Trash({Key key}) : super(key: key);
+  const Trash({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    final listOptions = DataObjectListOptions<TrashDay>(
-      onLongPress: (_) {},
-      tap: (day) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
-      },
-      searchQuery: BehaviorSubject<String>.seeded(''),
-      itemsStream: FirebaseFirestore.instance
-          .collection('Deleted')
-          .orderBy('Time', descending: true)
-          .snapshots()
-          .map(
-            (s) => s.docs
-                .map(
-                  (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
-                )
-                .toList(),
-          ),
-    );
     return Scaffold(
       appBar: AppBar(title: Text('سلة المحذوفات')),
-      body: DataObjectList<TrashDay>(options: listOptions),
+      body: DataObjectList<TrashDay>(
+        autoDisposeController: true,
+        options: DataObjectListOptions<TrashDay>(
+          onLongPress: (_) {},
+          tap: (day) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+          },
+          itemsStream: FirebaseFirestore.instance
+              .collection('Deleted')
+              .orderBy('Time', descending: true)
+              .snapshots()
+              .map(
+                (s) => s.docs
+                    .map(
+                      (d) => TrashDay(d.data()['Time'].toDate(), d.reference),
+                    )
+                    .toList(),
+              ),
+        ),
+      ),
     );
   }
 }
 
 class TrashDay extends DataObject {
   final DateTime date;
-  TrashDay(this.date, DocumentReference ref)
+  TrashDay(this.date, JsonRef ref)
       : super(ref, date.toUtc().toIso8601String().split('T')[0],
             Colors.transparent);
 
   @override
-  Map<String, dynamic> getHumanReadableMap() {
+  Json getHumanReadableMap() {
     return {'Time': toDurationString(Timestamp.fromDate(date))};
   }
 
   @override
-  Map<String, dynamic> getMap() {
+  Json getMap() {
     return {'Time': Timestamp.fromDate(date)};
   }
 
@@ -68,7 +70,7 @@ class TrashDay extends DataObject {
 
 class TrashDayScreen extends StatefulWidget {
   final TrashDay day;
-  const TrashDayScreen(this.day, {Key key}) : super(key: key);
+  const TrashDayScreen(this.day, {Key? key}) : super(key: key);
 
   @override
   _TrashDayScreenState createState() => _TrashDayScreenState();
@@ -76,94 +78,20 @@ class TrashDayScreen extends StatefulWidget {
 
 class _TrashDayScreenState extends State<TrashDayScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
-  TabController _tabController;
+  late TabController _tabController;
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode searchFocus = FocusNode();
+
+  late final DataObjectListOptions<Area> _areasOptions;
+  late final DataObjectListOptions<Street> _streetsOptions;
+  late final DataObjectListOptions<Family> _familiesOptions;
+  late final DataObjectListOptions<Person> _personsOptions;
 
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
   @override
   Widget build(BuildContext context) {
-    final DataObjectListOptions<Area> _areasOptions =
-        DataObjectListOptions<Area>(
-      searchQuery: _searchQuery,
-      //Listen to Ordering options and combine it
-      //with the Data Stream from Firestore
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Areas')
-              : widget.day.ref
-                  .collection('Areas')
-                  .where('Allowed', arrayContains: User.instance.uid))
-          .snapshots()
-          .map(
-            (s) => s.docs.map(Area.fromDoc).toList(),
-          ),
-    );
-    final DataObjectListOptions<Street> _streetsOptions =
-        DataObjectListOptions<Street>(
-      searchQuery: _searchQuery,
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Streets').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots()
-                  .switchMap(
-                    (areas) => widget.day.ref
-                        .collection('Streets')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
-                        .snapshots(),
-                  ))
-          .map(
-        (s) => s.docs.map(Street.fromDoc).toList(),
-      ),
-    );
-    final DataObjectListOptions<Family> _familiesOptions =
-        DataObjectListOptions<Family>(
-      searchQuery: _searchQuery,
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Families').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots()
-                  .switchMap(
-                    (areas) => widget.day.ref
-                        .collection('Families')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
-                        .snapshots(),
-                  ))
-          .map(
-        (s) => s.docs.map(Family.fromDoc).toList(),
-      ),
-    );
-    final DataObjectListOptions<Person> _personsOptions =
-        DataObjectListOptions<Person>(
-      searchQuery: _searchQuery,
-      itemsStream: (User.instance.superAccess
-              ? widget.day.ref.collection('Persons').snapshots()
-              : FirebaseFirestore.instance
-                  .collection('Areas')
-                  .where('Allowed', arrayContains: User.instance.uid)
-                  .snapshots()
-                  .switchMap(
-                    (areas) => widget.day.ref
-                        .collection('Persons')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
-                        .snapshots(),
-                  ))
-          .map(
-        (s) => s.docs.map(Person.fromDoc).toList(),
-      ),
-    );
-
     return Scaffold(
       appBar: AppBar(
         actions: <Widget>[
@@ -171,7 +99,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
             initialData: _showSearch.value,
             stream: _showSearch,
             builder: (context, showSearch) {
-              return !showSearch.data
+              return !showSearch.data!
                   ? IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () {
@@ -193,7 +121,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               child: Image.asset('assets/streets.png',
                   width: IconTheme.of(context).size,
                   height: IconTheme.of(context).size,
-                  color: Theme.of(context).primaryTextTheme.bodyText1.color),
+                  color: Theme.of(context).primaryTextTheme.bodyText1?.color),
             ),
             Tab(
               icon: Icon(Icons.group),
@@ -207,7 +135,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
           initialData: _showSearch.value,
           stream: _showSearch,
           builder: (context, showSearch) {
-            return showSearch.data
+            return showSearch.data!
                 ? TextField(
                     focusNode: searchFocus,
                     decoration: InputDecoration(
@@ -216,7 +144,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                               color: Theme.of(context)
                                   .primaryTextTheme
                                   .headline6
-                                  .color),
+                                  ?.color),
                           onPressed: () {
                             _searchQuery.add('');
                             _showSearch.add(false);
@@ -230,11 +158,9 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
-        shape: CircularNotchedRectangle(),
         child: AnimatedBuilder(
           animation: _tabController,
-          builder: (context, _) => StreamBuilder(
+          builder: (context, _) => StreamBuilder<List>(
             stream: _tabController.index == 0
                 ? _areasOptions.objectsData
                 : _tabController.index == 1
@@ -255,7 +181,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                                 : 'شخص'),
                 textAlign: TextAlign.center,
                 strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size / 7.5),
+                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
                 style: Theme.of(context).primaryTextTheme.bodyText1,
               );
             },
@@ -265,10 +191,22 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          DataObjectList<Area>(options: _areasOptions),
-          DataObjectList<Street>(options: _streetsOptions),
-          DataObjectList<Family>(options: _familiesOptions),
-          DataObjectList<Person>(options: _personsOptions),
+          DataObjectList<Area>(
+            autoDisposeController: false,
+            options: _areasOptions,
+          ),
+          DataObjectList<Street>(
+            autoDisposeController: false,
+            options: _streetsOptions,
+          ),
+          DataObjectList<Family>(
+            autoDisposeController: false,
+            options: _familiesOptions,
+          ),
+          DataObjectList<Person>(
+            autoDisposeController: false,
+            options: _personsOptions,
+          ),
         ],
       ),
     );
@@ -277,13 +215,96 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance!.addObserver(this);
     _tabController = TabController(vsync: this, length: 4);
-    WidgetsBinding.instance.addObserver(this);
+
+    _areasOptions = DataObjectListOptions<Area>(
+      searchQuery: _searchQuery,
+      //Listen to Ordering options and combine it
+      //with the Data Stream from Firestore
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Areas')
+              : widget.day.ref
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid))
+          .snapshots()
+          .map(
+            (s) => s.docs.map(Area.fromQueryDoc).toList(),
+          ),
+    );
+    _streetsOptions = DataObjectListOptions<Street>(
+      searchQuery: _searchQuery,
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Streets').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Streets')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Street.fromQueryDoc).toList(),
+      ),
+    );
+    _familiesOptions = DataObjectListOptions<Family>(
+      searchQuery: _searchQuery,
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Families').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Families')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Family.fromQueryDoc).toList(),
+      ),
+    );
+    _personsOptions = DataObjectListOptions<Person>(
+      searchQuery: _searchQuery,
+      itemsStream: (User.instance.superAccess
+              ? widget.day.ref.collection('Persons').snapshots()
+              : FirebaseFirestore.instance
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .snapshots()
+                  .switchMap(
+                    (areas) => widget.day.ref
+                        .collection('Persons')
+                        .where('AreaId',
+                            whereIn:
+                                areas.docs.map((e) => e.reference).toList())
+                        .snapshots(),
+                  ))
+          .map(
+        (s) => s.docs.map(Person.fromQueryDoc).toList(),
+      ),
+    );
   }
 
   @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+  Future<void> dispose() async {
     super.dispose();
+    WidgetsBinding.instance!.removeObserver(this);
+
+    await _areasOptions.dispose();
+    await _streetsOptions.dispose();
+    await _familiesOptions.dispose();
+    await _personsOptions.dispose();
+
+    await _showSearch.close();
+    await _searchQuery.close();
   }
 }

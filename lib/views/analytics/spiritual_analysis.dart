@@ -9,15 +9,15 @@ import 'package:intl/intl.dart' as intl;
 import 'analytics_indicators.dart';
 
 class SpiritualAnalysis extends StatefulWidget {
-  final List<Area> areas;
-  SpiritualAnalysis({Key key, this.areas}) : super(key: key);
+  final List<Area>? areas;
+  SpiritualAnalysis({Key? key, this.areas}) : super(key: key);
 
   @override
   _SpiritualAnalysisState createState() => _SpiritualAnalysisState();
 }
 
 class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
-  List<Area> areas;
+  List<Area>? areas;
   DateTimeRange range = DateTimeRange(
       start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
   DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
@@ -70,14 +70,14 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
               return StreamBuilder<List<Area>>(
                 initialData: widget.areas,
                 stream: Area.getAllForUser()
-                    .map((s) => s.docs.map(Area.fromDoc).toList()),
+                    .map((s) => s.docs.map(Area.fromQueryDoc).toList()),
                 builder: (context, snapshot) {
-                  if (snapshot.hasError) return ErrorWidget(snapshot.error);
+                  if (snapshot.hasError) return ErrorWidget(snapshot.error!);
                   if (!snapshot.hasData)
                     return const Center(child: CircularProgressIndicator());
 
                   areas ??= snapshot.data;
-                  final areasByRef = {for (var a in areas) a.ref.path: a};
+                  final areasByRef = {for (var a in areas!) a.ref.path: a};
 
                   return SingleChildScrollView(
                     child: Column(
@@ -105,7 +105,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                                               ),
                                             ),
                                   ),
-                                  child: dialog,
+                                  child: dialog!,
                                 ),
                                 helpText: null,
                                 context: context,
@@ -132,7 +132,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                         ListTile(
                           title: Text('لمناطق: '),
                           subtitle: Text(
-                            areas.map((c) => c.name).toList().join(', '),
+                            areas!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -140,10 +140,10 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                             icon: Icon(Icons.list_alt),
                             tooltip: 'اختيار المناطق',
                             onPressed: () async {
-                              var rslt = await selectAreas(context, areas);
+                              var rslt = await selectAreas(context, areas!);
                               if (rslt != null && rslt.isNotEmpty)
                                 setState(() => areas = rslt);
-                              else if (rslt.isNotEmpty)
+                              else if (rslt != null)
                                 await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -156,7 +156,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          areas: areas,
+                          areas: areas!,
                           areasByRef: areasByRef,
                           collectionGroup: 'TanawolHistory',
                           title: 'التناول',
@@ -164,7 +164,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                         ),
                         HistoryAnalysisWidget(
                           range: range,
-                          areas: areas,
+                          areas: areas!,
                           areasByRef: areasByRef,
                           collectionGroup: 'ConfessionHistory',
                           title: 'الاعتراف',

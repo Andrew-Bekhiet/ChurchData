@@ -1,23 +1,23 @@
 import 'package:churchdata/models/list_options.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'mini_lists/users_list.dart';
 
 class UsersPage extends StatelessWidget {
-  UsersPage({Key key}) : super(key: key);
+  UsersPage({Key? key}) : super(key: key);
 
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
-  final BehaviorSubject<String> _search = BehaviorSubject<String>.seeded('');
   final FocusNode searchFocus = FocusNode();
+
+  final _listOptions = DataObjectListOptions<User>(
+    itemsStream: Stream.fromFuture(User.getUsersForEdit()),
+  );
 
   @override
   Widget build(BuildContext context) {
-    var _listOptions = DataObjectListOptions<User>(
-      itemsStream: Stream.fromFuture(User.getUsersForEdit()),
-      searchQuery: _search,
-    );
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -25,7 +25,7 @@ class UsersPage extends StatelessWidget {
             initialData: false,
             stream: _showSearch,
             builder: (context, showSearch) {
-              return !showSearch.data
+              return !showSearch.data!
                   ? IconButton(
                       icon: Icon(Icons.search),
                       onPressed: () {
@@ -39,13 +39,14 @@ class UsersPage extends StatelessWidget {
           IconButton(
               icon: Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
-              onPressed: () => Navigator.pushNamed(context, 'Invitations')),
+              onPressed: () =>
+                  navigator.currentState!.pushNamed('Invitations')),
         ],
         title: StreamBuilder<bool>(
           initialData: false,
           stream: _showSearch,
           builder: (context, showSearch) {
-            return showSearch.data
+            return showSearch.data!
                 ? TextField(
                     focusNode: searchFocus,
                     decoration: InputDecoration(
@@ -54,35 +55,34 @@ class UsersPage extends StatelessWidget {
                               color: Theme.of(context)
                                   .primaryTextTheme
                                   .headline6
-                                  .color),
+                                  ?.color),
                           onPressed: () {
-                            _search.add('');
+                            _listOptions.searchQuery.add('');
                             _showSearch.add(false);
                           },
                         ),
                         hintText: 'بحث ...'),
-                    onChanged: _search.add,
+                    onChanged: _listOptions.searchQuery.add,
                   )
                 : Text('المستخدمون');
           },
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Theme.of(context).primaryColor,
-        shape: const CircularNotchedRectangle(),
-        child: StreamBuilder(
+        child: StreamBuilder<List>(
           stream: _listOptions.objectsData,
           builder: (context, snapshot) {
             return Text(
               (snapshot.data?.length ?? 0).toString() + ' مستخدم',
               textAlign: TextAlign.center,
-              strutStyle: StrutStyle(height: IconTheme.of(context).size / 7.5),
+              strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
               style: Theme.of(context).primaryTextTheme.bodyText1,
             );
           },
         ),
       ),
       body: UsersList(
+        autoDisposeController: true,
         listOptions: _listOptions,
       ),
     );
