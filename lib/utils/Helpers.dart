@@ -54,7 +54,7 @@ import '../models/theme_notifier.dart';
 import '../models/user.dart';
 import 'globals.dart';
 
-void areaTap(Area area, BuildContext context) {
+void areaTap(Area area) {
   navigator.currentState!.pushNamed('AreaInfo', arguments: area);
 }
 
@@ -136,22 +136,22 @@ void changeTheme({Brightness? brightness, required BuildContext context}) {
   );
 }
 
-void dataObjectTap(DataObject obj, BuildContext context) {
+void dataObjectTap(DataObject obj) {
   if (obj is Area)
-    areaTap(obj, context);
+    areaTap(obj);
   else if (obj is Street)
-    streetTap(obj, context);
+    streetTap(obj);
   else if (obj is Family)
-    familyTap(obj, context);
+    familyTap(obj);
   else if (obj is Person)
-    personTap(obj, context);
+    personTap(obj);
   else if (obj is User)
-    userTap(obj, context);
+    userTap(obj);
   else
     throw UnimplementedError();
 }
 
-void familyTap(Family family, BuildContext context) {
+void familyTap(Family family) {
   navigator.currentState!.pushNamed('FamilyInfo', arguments: family);
 }
 
@@ -613,7 +613,7 @@ Future<void> onNotificationClicked(String? payload) async {
   }
 }
 
-void personTap(Person person, BuildContext context) {
+void personTap(Person person) {
   navigator.currentState!.pushNamed('PersonInfo', arguments: person);
 }
 
@@ -746,40 +746,32 @@ Future processClickedNotification(BuildContext context,
   }
 }
 
-Future processLink(Uri deepLink, BuildContext context) async {
+Future processLink(Uri deepLink) async {
   try {
     if (deepLink.pathSegments[0] == 'viewArea') {
-      areaTap(
-          Area.fromDoc(
-            await FirebaseFirestore.instance
-                .doc('Areas/${deepLink.queryParameters['AreaId']}')
-                .get(),
-          )!,
-          context);
+      areaTap(Area.fromDoc(
+        await FirebaseFirestore.instance
+            .doc('Areas/${deepLink.queryParameters['AreaId']}')
+            .get(),
+      )!);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
-      streetTap(
-          Street.fromDoc(
-            await FirebaseFirestore.instance
-                .doc('Streets/${deepLink.queryParameters['StreetId']}')
-                .get(),
-          )!,
-          context);
+      streetTap(Street.fromDoc(
+        await FirebaseFirestore.instance
+            .doc('Streets/${deepLink.queryParameters['StreetId']}')
+            .get(),
+      )!);
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
-      familyTap(
-          Family.fromDoc(
-            await FirebaseFirestore.instance
-                .doc('Families/${deepLink.queryParameters['FamilyId']}')
-                .get(),
-          )!,
-          context);
+      familyTap(Family.fromDoc(
+        await FirebaseFirestore.instance
+            .doc('Families/${deepLink.queryParameters['FamilyId']}')
+            .get(),
+      )!);
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
-      personTap(
-          Person.fromDoc(
-            await FirebaseFirestore.instance
-                .doc('Persons/${deepLink.queryParameters['PersonId']}')
-                .get(),
-          )!,
-          context);
+      personTap(Person.fromDoc(
+        await FirebaseFirestore.instance
+            .doc('Persons/${deepLink.queryParameters['PersonId']}')
+            .get(),
+      )!);
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       await navigator.currentState!.push(
         MaterialPageRoute(
@@ -790,19 +782,21 @@ Future processLink(Uri deepLink, BuildContext context) async {
       );
     } else if (deepLink.pathSegments[0] == 'viewUser') {
       if (User.instance.manageUsers) {
-        userTap(await User.fromID(deepLink.queryParameters['UID']!), context);
+        userTap(await User.fromID(deepLink.queryParameters['UID']!));
       } else {
-        await showErrorDialog(
-            context, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+        await showErrorDialog(navigator.currentContext!,
+            'ليس لديك الصلاحية لرؤية محتويات الرابط!');
       }
     } else {
-      await showErrorDialog(context, 'رابط غير صالح!');
+      await showErrorDialog(navigator.currentContext!, 'رابط غير صالح!');
     }
   } catch (err, stcTrace) {
     if (err.toString().contains('PERMISSION_DENIED')) {
-      await showErrorDialog(context, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+      await showErrorDialog(
+          navigator.currentContext!, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
     } else {
-      await showErrorDialog(context, 'حدث خطأ! أثناء قراءة محتويات الرابط');
+      await showErrorDialog(
+          navigator.currentContext!, 'حدث خطأ! أثناء قراءة محتويات الرابط');
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'Helpers.processLink');
       await FirebaseCrashlytics.instance.recordError(err, stcTrace);
@@ -1408,15 +1402,15 @@ Future<void> showMessage(
                     : attachement.photo(false),
                 onTap: () {
                   if (attachement is Area) {
-                    areaTap(attachement, context);
+                    areaTap(attachement);
                   } else if (attachement is Street) {
-                    streetTap(attachement, context);
+                    streetTap(attachement);
                   } else if (attachement is Family) {
-                    familyTap(attachement, context);
+                    familyTap(attachement);
                   } else if (attachement is Person) {
-                    personTap(attachement, context);
+                    personTap(attachement);
                   } else if (attachement is User) {
-                    userTap(attachement, context);
+                    userTap(attachement);
                   }
                 },
               ),
@@ -1453,8 +1447,7 @@ Future<void> showPendingMessage([BuildContext? context]) async {
         no.Notification.fromMessage(pendingMessage.data),
       );
     else
-      await processLink(
-          Uri.parse(pendingMessage.data['attachement']), context!);
+      await processLink(Uri.parse(pendingMessage.data['attachement']));
   }
 }
 
@@ -1510,7 +1503,7 @@ Future<int> storeNotification(messaging_types.RemoteMessage message) async {
   return Hive.box<Map>('Notifications').add(message.data);
 }
 
-void streetTap(Street street, BuildContext context) {
+void streetTap(Street street) {
   navigator.currentState!.pushNamed('StreetInfo', arguments: street);
 }
 
@@ -1551,12 +1544,12 @@ Timestamp tranucateToDay({DateTime? time}) {
   );
 }
 
-void userTap(User user, BuildContext context) async {
+void userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
     dynamic rslt = await showDialog(
-        context: context,
+        context: navigator.currentContext!,
         builder: (context) => DataDialog(
               actions: <Widget>[
                 if (user.personRef != null)
@@ -1610,7 +1603,7 @@ void userTap(User user, BuildContext context) async {
           ..approved = true
           // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
           ..notifyListeners();
-        userTap(user, context);
+        userTap(user);
         scaffoldMessenger.currentState!;
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(

@@ -66,7 +66,7 @@ class _AreaInfoState extends State<AreaInfo> {
       },
     );
     _listOptions = DataObjectListController<Street>(
-      tap: (street) => streetTap(street, context),
+      tap: streetTap,
       itemsStream: _orderOptions.switchMap(
         (o) => widget.area
             .getMembersLive(orderBy: o.orderBy, descending: !o.asc)

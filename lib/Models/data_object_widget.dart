@@ -101,7 +101,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
     final tile = ListTile(
       dense: isDense,
       onLongPress: onLongPress,
-      onTap: onTap ?? () => dataObjectTap(current, context),
+      onTap: onTap ?? () => dataObjectTap(current),
       trailing: trailing ??
           ((current is Person || current is User)
               ? (current as Person).getLeftWidget()

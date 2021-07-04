@@ -1373,7 +1373,7 @@ class _RootState extends State<Root>
         if (dynamicLink == null) return;
         Uri deepLink = dynamicLink.link;
 
-        await processLink(deepLink, context);
+        await processLink(deepLink);
       },
       onError: (e) async {
         debugPrint('DynamicLinks onError $e');
@@ -1381,7 +1381,7 @@ class _RootState extends State<Root>
     );
     if (data == null) return;
     Uri deepLink = data.link;
-    await processLink(deepLink, context);
+    await processLink(deepLink);
   }
 
   void showPendingUIDialogs() async {

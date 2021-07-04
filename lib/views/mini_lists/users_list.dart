@@ -65,7 +65,7 @@ class _UsersListState extends State<UsersList> {
                 onTap: (User current) {
                   if (!_listOptions.selectionMode.value) {
                     _listOptions.tap == null
-                        ? dataObjectTap(current, context)
+                        ? dataObjectTap(current)
                         : _listOptions.tap!(current);
                   } else {
                     _listOptions.toggleSelected(current);

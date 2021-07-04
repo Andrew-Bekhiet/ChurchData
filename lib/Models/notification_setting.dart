@@ -1,5 +1,4 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/views/settings.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';

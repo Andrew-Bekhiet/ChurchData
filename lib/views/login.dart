@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:churchdata/typedefs.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'

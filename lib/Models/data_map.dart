@@ -116,7 +116,7 @@ class MegaMap extends StatelessWidget {
                                 content: Text(s.name),
                                 action: SnackBarAction(
                                   label: 'فتح',
-                                  onPressed: () => streetTap(s, context),
+                                  onPressed: () => streetTap(s),
                                 ),
                               ),
                             );
@@ -147,7 +147,7 @@ class MegaMap extends StatelessWidget {
                               f.color == Colors.transparent ? null : f.color,
                           action: SnackBarAction(
                             label: 'فتح',
-                            onPressed: () => familyTap(f, context),
+                            onPressed: () => familyTap(f),
                           ),
                         ),
                       );

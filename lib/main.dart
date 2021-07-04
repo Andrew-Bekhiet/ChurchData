@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/models/data_map.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/views/analytics/activity_analysis.dart';
 import 'package:churchdata/views/analytics/spiritual_analysis.dart';
@@ -88,9 +90,6 @@ void main() async {
   };
 
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser?.uid != null)
-    await User.instance.initialized;
 
   final User user = User.instance;
   await _initConfigs();
@@ -180,7 +179,34 @@ void main() async {
   );
 }
 
+final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
+final bool kUseFirebaseEmulators =
+    dotenv.env['kUseFirebaseEmulators']?.toString() == 'true';
+
 Future _initConfigs() async {
+  //dot env
+  await dotenv.load(fileName: '.env');
+
+  //Firebase initialization
+  if (kDebugMode && kUseFirebaseEmulators) {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: dotenv.env['apiKey']!,
+          appId: dotenv.env['appId']!,
+          messagingSenderId: 'messagingSenderId',
+          projectId: dotenv.env['projectId']!,
+          databaseURL: kEmulatorsHost + ':9199'),
+    );
+    await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9000);
+    firestore.FirebaseFirestore.instance
+        .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
+    FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
+  } else
+    await Firebase.initializeApp();
+
+  if (auth.FirebaseAuth.instance.currentUser?.uid != null)
+    await User.instance.initialized;
+
   //Hive initialization:
   await Hive.initFlutter();
 

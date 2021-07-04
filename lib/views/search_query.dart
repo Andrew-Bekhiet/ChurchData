@@ -992,7 +992,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Area>(
             autoDisposeController: true,
             options: DataObjectListController<Area>(
-              tap: (a) => areaTap(a, context),
+              tap: areaTap,
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
@@ -1006,7 +1006,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Street>(
             autoDisposeController: true,
             options: DataObjectListController<Street>(
-              tap: (s) => streetTap(s, context),
+              tap: streetTap,
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
@@ -1020,7 +1020,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Family>(
             autoDisposeController: true,
             options: DataObjectListController<Family>(
-              tap: (f) => familyTap(f, context),
+              tap: familyTap,
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isEqualTo: queryValue,
@@ -1035,7 +1035,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
@@ -1060,7 +1060,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           autoDisposeController: true,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isEqualTo: queryValue,
@@ -1076,7 +1076,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Area>(
             autoDisposeController: true,
             options: DataObjectListController<Area>(
-              tap: (a) => areaTap(a, context),
+              tap: areaTap,
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
@@ -1089,7 +1089,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Street>(
             autoDisposeController: true,
             options: DataObjectListController<Street>(
-              tap: (s) => streetTap(s, context),
+              tap: streetTap,
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
@@ -1102,7 +1102,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Family>(
             autoDisposeController: true,
             options: DataObjectListController<Family>(
-              tap: (f) => familyTap(f, context),
+              tap: familyTap,
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       arrayContains: queryValue)
@@ -1116,7 +1116,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: persons
                   .where('BirthDay',
                       arrayContains: queryValue != null
@@ -1134,7 +1134,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           autoDisposeController: true,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     arrayContains: queryValue)
@@ -1149,7 +1149,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Area>(
             autoDisposeController: true,
             options: DataObjectListController<Area>(
-              tap: (a) => areaTap(a, context),
+              tap: areaTap,
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
@@ -1162,7 +1162,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Street>(
             autoDisposeController: true,
             options: DataObjectListController<Street>(
-              tap: (s) => streetTap(s, context),
+              tap: streetTap,
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
@@ -1175,7 +1175,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Family>(
             autoDisposeController: true,
             options: DataObjectListController<Family>(
-              tap: (f) => familyTap(f, context),
+              tap: familyTap,
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isGreaterThanOrEqualTo: queryValue)
@@ -1189,7 +1189,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: persons
                   .where('BirthDay',
                       isGreaterThanOrEqualTo: queryValue != null
@@ -1207,7 +1207,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           autoDisposeController: true,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isGreaterThanOrEqualTo: queryValue)
@@ -1222,7 +1222,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Area>(
             autoDisposeController: true,
             options: DataObjectListController<Area>(
-              tap: (a) => areaTap(a, context),
+              tap: areaTap,
               itemsStream: areas
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
@@ -1235,7 +1235,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Street>(
             autoDisposeController: true,
             options: DataObjectListController<Street>(
-              tap: (s) => streetTap(s, context),
+              tap: streetTap,
               itemsStream: streets
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
@@ -1248,7 +1248,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Family>(
             autoDisposeController: true,
             options: DataObjectListController<Family>(
-              tap: (f) => familyTap(f, context),
+              tap: familyTap,
               itemsStream: families
                   .where(childItems[parentIndex][childIndex].value.value,
                       isLessThanOrEqualTo: queryValue)
@@ -1262,7 +1262,7 @@ class _SearchQueryState extends State<SearchQuery> {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
-              tap: (p) => personTap(p, context),
+              tap: personTap,
               itemsStream: persons
                   .where('BirthDay',
                       isLessThanOrEqualTo: queryValue != null
@@ -1280,7 +1280,7 @@ class _SearchQueryState extends State<SearchQuery> {
         body = DataObjectList<Person>(
           autoDisposeController: true,
           options: DataObjectListController<Person>(
-            tap: (p) => personTap(p, context),
+            tap: personTap,
             itemsStream: persons
                 .where(childItems[parentIndex][childIndex].value.value,
                     isLessThanOrEqualTo: queryValue)

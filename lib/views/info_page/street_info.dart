@@ -58,7 +58,7 @@ class _StreetInfoState extends State<StreetInfo> {
       );
     }
     _listOptions = DataObjectListController<Family>(
-      tap: (family) => familyTap(family, context),
+      tap: familyTap,
       itemsStream: _orderOptions.switchMap(
         (o) => widget.street
             .getMembersLive(orderBy: o.orderBy, descending: !o.asc)

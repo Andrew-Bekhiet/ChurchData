@@ -71,7 +71,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
       );
     }
     _listOptions = DataObjectListController(
-      tap: (o) => dataObjectTap(o, context),
+      tap: dataObjectTap,
       itemsStream: _orderOptions.switchMap(
         (o) => widget.family
             .getMembersLive(orderBy: o.orderBy, descending: !o.asc)

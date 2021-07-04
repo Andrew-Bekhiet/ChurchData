@@ -4,7 +4,6 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/notification_setting.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
-import 'package:churchdata/typedefs.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';

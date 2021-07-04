@@ -1,4 +1,3 @@
-import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';

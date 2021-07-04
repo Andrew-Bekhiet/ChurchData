@@ -170,7 +170,7 @@ class _StreetMap extends StatelessWidget {
                               f.color == Colors.transparent ? null : f.color,
                           action: SnackBarAction(
                             label: 'فتح',
-                            onPressed: () => familyTap(f, context),
+                            onPressed: () => familyTap(f),
                           ),
                         ),
                       );
@@ -271,7 +271,7 @@ class _FamilyMap extends StatelessWidget {
                             content: Text(street.name),
                             action: SnackBarAction(
                               label: 'فتح',
-                              onPressed: () => streetTap(street, context),
+                              onPressed: () => streetTap(street),
                             ),
                           ),
                         );
@@ -416,7 +416,9 @@ class _AreaMap extends StatelessWidget {
                                 content: Text(s.name),
                                 action: SnackBarAction(
                                   label: 'فتح',
-                                  onPressed: () => streetTap(s, context),
+                                  onPressed: () => streetTap(
+                                    s,
+                                  ),
                                 ),
                               ),
                             );
@@ -424,10 +426,10 @@ class _AreaMap extends StatelessWidget {
                           endCap: Cap.roundCap,
                           jointType: JointType.round,
                           color: s.color == Colors.transparent
-                              ? ((s.locationConfirmed)
+                              ? (s.locationConfirmed
                                   ? Colors.black
                                   : Colors.black.withOpacity(0.25))
-                              : ((s.locationConfirmed)
+                              : (s.locationConfirmed
                                   ? s.color
                                   : s.color.withOpacity(0.25)),
                           points: s.locationPoints.map(fromGeoPoint).toList(),
@@ -447,7 +449,7 @@ class _AreaMap extends StatelessWidget {
                               f.color == Colors.transparent ? null : f.color,
                           action: SnackBarAction(
                             label: 'فتح',
-                            onPressed: () => familyTap(f, context),
+                            onPressed: () => familyTap(f),
                           ),
                         ),
                       );

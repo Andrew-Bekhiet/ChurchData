@@ -75,7 +75,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
               onTap: (T current) {
                 if (!_listOptions.selectionMode.value) {
                   _listOptions.tap == null
-                      ? dataObjectTap(current, context)
+                      ? dataObjectTap(current)
                       : _listOptions.tap!(current);
                 } else {
                   _listOptions.toggleSelected(current);

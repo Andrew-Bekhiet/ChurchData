@@ -50,7 +50,7 @@ class _MyAccountState extends State<MyAccount> {
                         );
                         return;
                       }
-                      personTap(person, context);
+                      personTap(person);
                     },
                     tooltip: 'عرض بياناتي داخل البرنامج',
                   ),

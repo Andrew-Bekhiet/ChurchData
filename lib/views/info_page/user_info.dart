@@ -75,7 +75,7 @@ class _UserInfoState extends State<UserInfo> {
                     );
                     return;
                   }
-                  personTap(person, context);
+                  personTap(person);
                 },
                 tooltip: 'عرض بيانات المستخدم داخل البرنامج',
               ),
@@ -213,7 +213,7 @@ class _UserInfoState extends State<UserInfo> {
                         child: DataObjectList<Area>(
                           autoDisposeController: true,
                           options: DataObjectListController(
-                            tap: (a) => areaTap(a, context),
+                            tap: areaTap,
                             itemsStream: Area.getAllForUser(
                                     uid: user.superAccess ? null : user.uid)
                                 .map((s) =>
