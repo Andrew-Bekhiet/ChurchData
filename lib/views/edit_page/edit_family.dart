@@ -166,21 +166,22 @@ class _EditFamilyState extends State<EditFamily> {
                       decoration: InputDecoration(
                         labelText: 'داخل شارع',
                       ),
-                      child: FutureBuilder<String?>(
-                        future: family.streetId == null
-                            ? null
-                            : family.getStreetName(),
-                        builder: (con, data) {
-                          if (data.hasData) {
-                            return Text(data.data!);
-                          } else if (data.connectionState ==
-                              ConnectionState.waiting) {
-                            return LinearProgressIndicator();
-                          } else {
-                            return Text('لا يوجد');
-                          }
-                        },
-                      ),
+                      isEmpty: family.streetId == null,
+                      child: family.streetId != null
+                          ? FutureBuilder<String?>(
+                              future: family.getStreetName(),
+                              builder: (con, data) {
+                                if (data.hasData) {
+                                  return Text(data.data!);
+                                } else if (data.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return LinearProgressIndicator();
+                                } else {
+                                  return Text('لا يوجد');
+                                }
+                              },
+                            )
+                          : null,
                     ),
                   ),
                 ),
@@ -200,21 +201,22 @@ class _EditFamilyState extends State<EditFamily> {
                               labelText:
                                   family.isStore ? 'ادارة المحل' : 'داخل عائلة',
                             ),
-                            child: FutureBuilder<String?>(
-                              future: family.insideFamily == null
-                                  ? Future(() => null)
-                                  : family.getInsideFamilyName(),
-                              builder: (con, data) {
-                                if (data.hasData) {
-                                  return Text(data.data!);
-                                } else if (data.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return LinearProgressIndicator();
-                                } else {
-                                  return Text('لا يوجد');
-                                }
-                              },
-                            ),
+                            isEmpty: family.insideFamily == null,
+                            child: family.insideFamily != null
+                                ? FutureBuilder<String?>(
+                                    future: family.getInsideFamilyName(),
+                                    builder: (con, data) {
+                                      if (data.hasData) {
+                                        return Text(data.data!);
+                                      } else if (data.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return LinearProgressIndicator();
+                                      } else {
+                                        return Text('لا يوجد');
+                                      }
+                                    },
+                                  )
+                                : null,
                           ),
                         ),
                       ),
@@ -246,21 +248,22 @@ class _EditFamilyState extends State<EditFamily> {
                             decoration: InputDecoration(
                               labelText: 'داخل عائلة 2',
                             ),
-                            child: FutureBuilder<String?>(
-                              future: family.insideFamily2 == null
-                                  ? Future(() => null)
-                                  : family.getInsideFamily2Name(),
-                              builder: (con, data) {
-                                if (data.hasData) {
-                                  return Text(data.data!);
-                                } else if (data.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return LinearProgressIndicator();
-                                } else {
-                                  return Text('لا يوجد');
-                                }
-                              },
-                            ),
+                            isEmpty: family.insideFamily2 == null,
+                            child: family.insideFamily2 != null
+                                ? FutureBuilder<String?>(
+                                    future: family.getInsideFamily2Name(),
+                                    builder: (con, data) {
+                                      if (data.hasData) {
+                                        return Text(data.data!);
+                                      } else if (data.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return LinearProgressIndicator();
+                                      } else {
+                                        return Text('لا يوجد');
+                                      }
+                                    },
+                                  )
+                                : null,
                           ),
                         ),
                       ),

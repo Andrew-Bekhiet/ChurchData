@@ -307,6 +307,7 @@ class _EditPersonState extends State<EditPerson> {
                                     person.birthDate?.toDate() ??
                                         DateTime.now()),
                             child: InputDecorator(
+                              isEmpty: person.birthDate == null,
                               decoration: InputDecoration(
                                 labelText: 'تاريخ الميلاد',
                               ),
@@ -756,6 +757,7 @@ class _EditPersonState extends State<EditPerson> {
                                     person.lastTanawol?.toDate() ??
                                         DateTime.now()),
                             child: InputDecorator(
+                              isEmpty: person.lastTanawol == null,
                               decoration: InputDecoration(
                                 labelText: 'تاريخ أخر تناول',
                               ),
@@ -786,6 +788,7 @@ class _EditPersonState extends State<EditPerson> {
                               person.lastConfession?.toDate() ?? DateTime.now(),
                             ),
                             child: InputDecorator(
+                              isEmpty: person.lastConfession == null,
                               decoration: InputDecoration(
                                 labelText: 'تاريخ أخر اعتراف',
                               ),
@@ -806,6 +809,7 @@ class _EditPersonState extends State<EditPerson> {
                       child: InkWell(
                         onTap: _selectFamily,
                         child: InputDecorator(
+                          isEmpty: person.familyId == null,
                           decoration: InputDecoration(
                             labelText: 'داخل عائلة',
                           ),
@@ -897,6 +901,7 @@ class _EditPersonState extends State<EditPerson> {
                                       person.lastCall?.toDate() ??
                                           DateTime.now()),
                               child: InputDecorator(
+                                isEmpty: person.lastCall == null,
                                 decoration: InputDecoration(
                                   labelText: 'تاريخ أخر مكالمة',
                                 ),

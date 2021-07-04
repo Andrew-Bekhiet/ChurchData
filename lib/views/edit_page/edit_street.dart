@@ -73,20 +73,22 @@ class _EditStreetState extends State<EditStreet> {
                       decoration: InputDecoration(
                         labelText: 'داخل منطقة',
                       ),
-                      child: FutureBuilder<String?>(
-                          future: street.areaId == null
-                              ? null
-                              : street.getAreaName(),
-                          builder: (con, data) {
-                            if (data.hasData) {
-                              return Text(data.data!);
-                            } else if (data.connectionState ==
-                                ConnectionState.waiting) {
-                              return LinearProgressIndicator();
-                            } else {
-                              return Text('لا يوجد');
-                            }
-                          }),
+                      isEmpty: street.areaId == null,
+                      child: street.areaId != null
+                          ? FutureBuilder<String?>(
+                              future: street.getAreaName(),
+                              builder: (con, data) {
+                                if (data.hasData) {
+                                  return Text(data.data!);
+                                } else if (data.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return LinearProgressIndicator();
+                                } else {
+                                  return Text('لا يوجد');
+                                }
+                              },
+                            )
+                          : null,
                     ),
                   ),
                 ),
