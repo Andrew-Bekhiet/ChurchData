@@ -14,6 +14,7 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -222,6 +223,7 @@ class _EditPersonState extends State<EditPerson> {
                         child: TextFormField(
                           decoration: InputDecoration(
                             labelText: e.key,
+                            hintText: 'مثال: 012345',
                             suffixIcon: IconButton(
                               icon: Icon(Icons.edit),
                               tooltip: 'تعديل اسم الهاتف',
@@ -231,22 +233,27 @@ class _EditPersonState extends State<EditPerson> {
                                 var rslt = await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => navigator
-                                              .currentState!
-                                              .pop(name.text),
-                                          child: Text('حفظ'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => navigator
-                                              .currentState!
-                                              .pop('delete'),
-                                          child: Text('حذف'),
-                                        ),
-                                      ],
-                                      title: Text('اسم الهاتف'),
-                                      content: TextField(controller: name)),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => navigator.currentState!
+                                            .pop(name.text),
+                                        child: Text('حفظ'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => navigator.currentState!
+                                            .pop('delete'),
+                                        child: Text('حذف'),
+                                      ),
+                                    ],
+                                    title: Text('اسم الهاتف'),
+                                    content: TextField(
+                                      autofocus: true,
+                                      controller: name,
+                                      decoration: InputDecoration(
+                                        hintText: 'مثال: تليفون الأب',
+                                      ),
+                                    ),
+                                  ),
                                 );
                                 if (rslt == 'delete') {
                                   person.phones.remove(e.key);
@@ -278,59 +285,51 @@ class _EditPersonState extends State<EditPerson> {
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        navigator.currentState!.pop(name.text),
-                                    child: Text('حفظ'),
-                                  ),
-                                ],
-                                title: Text('اسم الهاتف'),
-                                content: TextField(controller: name)),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      navigator.currentState!.pop(name.text),
+                                  child: Text('حفظ'),
+                                ),
+                              ],
+                              title: Text('اسم الهاتف'),
+                              content: TextField(
+                                autofocus: true,
+                                controller: name,
+                                decoration: InputDecoration(
+                                  hintText: 'مثال: تليفون الأب',
+                                ),
+                              ),
+                            ),
                           ) !=
                           null) setState(() => person.phones[name.text] = '');
                     },
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: InkWell(
-                            onTap: () async => person.birthDate =
-                                await _selectDate(
-                                    'تاريخ الميلاد',
-                                    person.birthDate?.toDate() ??
-                                        DateTime.now()),
-                            child: InputDecorator(
-                              isEmpty: person.birthDate == null,
-                              decoration: InputDecoration(
-                                labelText: 'تاريخ الميلاد',
-                              ),
-                              child: person.birthDate != null
-                                  ? Text(DateFormat('yyyy/M/d').format(
-                                      person.birthDate!.toDate(),
-                                    ))
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Flexible(
-                        flex: 2,
-                        child: TextButton.icon(
-                          icon: Icon(Icons.close),
-                          onPressed: () => setState(() {
-                            person.birthDate = null;
-                          }),
-                          label: Text('حذف التاريخ'),
-                        ),
-                      ),
-                    ],
+                  TapableFormField<Timestamp?>(
+                    initialValue: person.birthDate,
+                    onTap: (state) async => state.didChange(
+                      person.birthDate = await _selectDate(
+                            'تاريخ الميلاد',
+                            person.birthDate?.toDate() ?? DateTime.now(),
+                          ) ??
+                          person.birthDate,
+                    ),
+                    decoration: (context, state) => InputDecoration(
+                      labelText: 'تاريخ الميلاد',
+                      suffixIcon: person.birthDate != null
+                          ? IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () =>
+                                  state.didChange(person.birthDate = null),
+                            )
+                          : null,
+                    ),
+                    validator: (_) => null,
+                    builder: (context, state) => person.birthDate != null
+                        ? Text(DateFormat('yyyy/M/d').format(
+                            person.birthDate!.toDate(),
+                          ))
+                        : null,
                   ),
                   Row(
                     children: <Widget>[
@@ -580,26 +579,31 @@ class _EditPersonState extends State<EditPerson> {
                           child: InkWell(
                             onTap: _selectType,
                             child: InputDecorator(
+                              isEmpty:
+                                  person.type == null || person.type!.isEmpty,
                               decoration: InputDecoration(
                                 labelText: 'نوع الفرد',
                               ),
-                              child: FutureBuilder<String?>(
-                                future: cache['PersonStringType']!
-                                        .fetch(person.getStringType)
-                                    as Future<String?>,
-                                builder: (cote, ty) {
-                                  if (ty.connectionState ==
-                                          ConnectionState.done &&
-                                      ty.hasData) {
-                                    return Text(ty.data!);
-                                  } else if (ty.connectionState ==
-                                      ConnectionState.done)
-                                    return Text('');
-                                  else {
-                                    return LinearProgressIndicator();
-                                  }
-                                },
-                              ),
+                              child:
+                                  person.type != null && person.type!.isNotEmpty
+                                      ? FutureBuilder<String?>(
+                                          future: cache['PersonStringType']!
+                                                  .fetch(person.getStringType)
+                                              as Future<String?>,
+                                          builder: (cote, ty) {
+                                            if (ty.connectionState ==
+                                                    ConnectionState.done &&
+                                                ty.hasData) {
+                                              return Text(ty.data!);
+                                            } else if (ty.connectionState ==
+                                                ConnectionState.done)
+                                              return Text('');
+                                            else {
+                                              return LinearProgressIndicator();
+                                            }
+                                          },
+                                        )
+                                      : null,
                             ),
                           ),
                         ),
@@ -741,67 +745,57 @@ class _EditPersonState extends State<EditPerson> {
                       ),
                     ],
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: InkWell(
-                            onTap: () async => person.lastTanawol =
-                                await _selectDate(
-                                    'تاريخ أخر تناول',
-                                    person.lastTanawol?.toDate() ??
-                                        DateTime.now()),
-                            child: InputDecorator(
-                              isEmpty: person.lastTanawol == null,
-                              decoration: InputDecoration(
-                                labelText: 'تاريخ أخر تناول',
-                              ),
-                              child: person.lastTanawol != null
-                                  ? Text(DateFormat('yyyy/M/d').format(
-                                      person.lastTanawol!.toDate(),
-                                    ))
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  TapableFormField<Timestamp?>(
+                    initialValue: person.lastTanawol,
+                    onTap: (state) async => state.didChange(
+                      person.lastTanawol = await _selectDate(
+                            'تاريخ أخر تناول',
+                            person.lastTanawol?.toDate() ?? DateTime.now(),
+                          ) ??
+                          person.lastTanawol,
+                    ),
+                    decoration: (context, state) => InputDecoration(
+                      labelText: 'تاريخ أخر تناول',
+                      suffixIcon: person.lastTanawol != null
+                          ? IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () =>
+                                  state.didChange(person.lastTanawol = null),
+                            )
+                          : null,
+                    ),
+                    validator: (_) => null,
+                    builder: (context, state) => person.lastTanawol != null
+                        ? Text(DateFormat('yyyy/M/d').format(
+                            person.lastTanawol!.toDate(),
+                          ))
+                        : null,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      Flexible(
-                        flex: 3,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: InkWell(
-                            onTap: () async =>
-                                person.lastConfession = await _selectDate(
-                              'تاريخ أخر اعتراف',
-                              person.lastConfession?.toDate() ?? DateTime.now(),
-                            ),
-                            child: InputDecorator(
-                              isEmpty: person.lastConfession == null,
-                              decoration: InputDecoration(
-                                labelText: 'تاريخ أخر اعتراف',
-                              ),
-                              child: person.lastConfession != null
-                                  ? Text(DateFormat('yyyy/M/d').format(
-                                      person.lastConfession!.toDate(),
-                                    ))
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  TapableFormField<Timestamp?>(
+                    initialValue: person.lastConfession,
+                    onTap: (state) async => state.didChange(
+                      person.lastConfession = await _selectDate(
+                            'تاريخ أخر اعتراف',
+                            person.lastConfession?.toDate() ?? DateTime.now(),
+                          ) ??
+                          person.lastConfession,
+                    ),
+                    decoration: (context, state) => InputDecoration(
+                      labelText: 'تاريخ أخر اعتراف',
+                      suffixIcon: person.lastConfession != null
+                          ? IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () =>
+                                  state.didChange(person.lastConfession = null),
+                            )
+                          : null,
+                    ),
+                    validator: (_) => null,
+                    builder: (context, state) => person.lastConfession != null
+                        ? Text(DateFormat('yyyy/M/d').format(
+                            person.lastConfession!.toDate(),
+                          ))
+                        : null,
                   ),
                   if (!widget.userData)
                     Container(
@@ -885,36 +879,31 @@ class _EditPersonState extends State<EditPerson> {
                       },
                     ),
                   if (!widget.userData)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        Flexible(
-                          flex: 3,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: InkWell(
-                              onTap: () async => person.lastCall =
-                                  await _selectDate(
-                                      'تاريخ أخر مكالمة',
-                                      person.lastCall?.toDate() ??
-                                          DateTime.now()),
-                              child: InputDecorator(
-                                isEmpty: person.lastCall == null,
-                                decoration: InputDecoration(
-                                  labelText: 'تاريخ أخر مكالمة',
-                                ),
-                                child: person.lastCall != null
-                                    ? Text(DateFormat('yyyy/M/d').format(
-                                        person.lastCall!.toDate(),
-                                      ))
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                    TapableFormField<Timestamp?>(
+                      initialValue: person.lastCall,
+                      onTap: (state) async => state.didChange(
+                        person.lastCall = await _selectDate(
+                              'تاريخ أخر مكالمة',
+                              person.lastCall?.toDate() ?? DateTime.now(),
+                            ) ??
+                            person.lastCall,
+                      ),
+                      decoration: (context, state) => InputDecoration(
+                        labelText: 'تاريخ أخر مكالمة',
+                        suffixIcon: person.lastCall != null
+                            ? IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () =>
+                                    state.didChange(person.lastCall = null),
+                              )
+                            : null,
+                      ),
+                      validator: (_) => null,
+                      builder: (context, state) => person.lastCall != null
+                          ? Text(DateFormat('yyyy/M/d').format(
+                              person.lastCall!.toDate(),
+                            ))
+                          : null,
                     ),
                   if (!widget.userData)
                     Container(
@@ -1007,23 +996,28 @@ class _EditPersonState extends State<EditPerson> {
                             child: InkWell(
                               onTap: _selectArea,
                               child: InputDecorator(
+                                isEmpty: person.servingAreaId == null ||
+                                    !person.isServant,
                                 decoration: InputDecoration(
                                   labelText: 'منطقة الخدمة',
                                 ),
-                                child: FutureBuilder<String?>(
-                                  future: cache['ServingAreaName']!
-                                          .fetch(person.getServingAreaName)
-                                      as Future<String?>,
-                                  builder: (contextt, dataServ) {
-                                    if (dataServ.hasData) {
-                                      return Text(dataServ.data!);
-                                    } else if (dataServ.connectionState ==
-                                        ConnectionState.waiting) {
-                                      return LinearProgressIndicator();
-                                    }
-                                    return Text('');
-                                  },
-                                ),
+                                child: person.servingAreaId != null &&
+                                        person.isServant
+                                    ? FutureBuilder<String?>(
+                                        future: cache['ServingAreaName']!.fetch(
+                                                person.getServingAreaName)
+                                            as Future<String?>,
+                                        builder: (contextt, dataServ) {
+                                          if (dataServ.hasData) {
+                                            return Text(dataServ.data!);
+                                          } else if (dataServ.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return LinearProgressIndicator();
+                                          }
+                                          return Text('');
+                                        },
+                                      )
+                                    : null,
                               ),
                             ),
                           );
@@ -1379,7 +1373,7 @@ class _EditPersonState extends State<EditPerson> {
     await _orderOptions.close();
   }
 
-  Future<Timestamp> _selectDate(String helpText, DateTime initialDate) async {
+  Future<Timestamp?> _selectDate(String helpText, DateTime initialDate) async {
     DateTime? picked = await showDatePicker(
       helpText: helpText,
       locale: Locale('ar', 'EG'),
@@ -1393,7 +1387,7 @@ class _EditPersonState extends State<EditPerson> {
       FocusScope.of(context).nextFocus();
       return Timestamp.fromDate(picked);
     }
-    return Timestamp.fromDate(initialDate);
+    return null;
   }
 
   void _selectFamily() async {

@@ -285,20 +285,22 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
               FutureBuilder<String?>(
                 future: father.getChurchName(),
                 builder: (con, name) {
-                  return name.hasData
-                      ? Card(
-                          child: ListTile(
-                            title: Text(name.data!),
-                            onTap: () async => churchTap(
-                              context,
-                              Church.fromDoc(
-                                await father.churchId!.get(),
-                              )!,
-                              false,
-                            ),
-                          ),
-                        )
-                      : LinearProgressIndicator();
+                  if (name.hasData)
+                    return Card(
+                      child: ListTile(
+                        title: Text(name.data!),
+                        onTap: () async => churchTap(
+                          context,
+                          Church.fromDoc(
+                            await father.churchId!.get(),
+                          )!,
+                          false,
+                        ),
+                      ),
+                    );
+                  else if (name.connectionState == ConnectionState.waiting)
+                    return LinearProgressIndicator();
+                  return Text('');
                 },
               ),
           ],

@@ -220,8 +220,12 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getJobName(),
                             builder: (context, data) {
-                              if (data.hasData) return Text(data.data!);
-                              return LinearProgressIndicator();
+                              if (data.hasData)
+                                return Text(data.data!);
+                              else if (data.connectionState ==
+                                  ConnectionState.waiting)
+                                return LinearProgressIndicator();
+                              return Text('');
                             },
                           ),
                         ),
@@ -241,8 +245,12 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getStudyYearName(),
                             builder: (context, data) {
-                              if (data.hasData) return Text(data.data!);
-                              return LinearProgressIndicator();
+                              if (data.hasData)
+                                return Text(data.data!);
+                              else if (data.connectionState ==
+                                  ConnectionState.waiting)
+                                return LinearProgressIndicator();
+                              return Text('');
                             },
                           ),
                         ),
@@ -272,8 +280,12 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getStringType(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return LinearProgressIndicator();
+                            if (data.hasData)
+                              return Text(data.data!);
+                            else if (data.connectionState ==
+                                ConnectionState.waiting)
+                              return LinearProgressIndicator();
+                            return Text('');
                           },
                         ),
                       ),
@@ -282,8 +294,12 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getChurchName(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return LinearProgressIndicator();
+                            if (data.hasData)
+                              return Text(data.data!);
+                            else if (data.connectionState ==
+                                ConnectionState.waiting)
+                              return LinearProgressIndicator();
+                            return Text('');
                           },
                         ),
                       ),
@@ -296,8 +312,12 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getCFatherName(),
                           builder: (context, data) {
-                            if (data.hasData) return Text(data.data!);
-                            return LinearProgressIndicator();
+                            if (data.hasData)
+                              return Text(data.data!);
+                            else if (data.connectionState ==
+                                ConnectionState.waiting)
+                              return LinearProgressIndicator();
+                            return Text('');
                           },
                         ),
                       ),
@@ -357,7 +377,10 @@ class PersonInfo extends StatelessWidget {
                                   title: Text('منطقة الخدمة'),
                                   subtitle: Text(data.data!),
                                 );
-                              return Container();
+                              else if (data.connectionState ==
+                                  ConnectionState.waiting)
+                                return LinearProgressIndicator();
+                              return Text('');
                             },
                           ),
                         ),
@@ -367,8 +390,12 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getServingTypeName(),
                             builder: (context, data) {
-                              if (data.hasData) return Text(data.data!);
-                              return LinearProgressIndicator();
+                              if (data.hasData)
+                                return Text(data.data!);
+                              else if (data.connectionState ==
+                                  ConnectionState.waiting)
+                                return LinearProgressIndicator();
+                              return Text('');
                             },
                           ),
                         ),
