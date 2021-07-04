@@ -91,8 +91,9 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  final User user = User.instance;
   await _initConfigs();
+
+  final User user = User.instance;
 
   bool? darkTheme = Hive.box('Settings').get('DarkTheme');
   bool greatFeastTheme =

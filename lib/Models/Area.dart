@@ -243,8 +243,8 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
       '',
       false,
       false,
-      tranucateToDay(),
-      tranucateToDay(),
+      null,
+      null,
       [User.instance.uid!],
       User.instance.uid,
     );

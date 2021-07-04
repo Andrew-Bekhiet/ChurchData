@@ -469,7 +469,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                             'LocationConfirmed': !family.locationConfirmed,
                             'LastEdit': User.instance.uid
                           });
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text('تم الحفظ بنجاح'),
@@ -480,7 +480,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                               'LastErrorIn', 'FamilyInfo.showMap');
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text(

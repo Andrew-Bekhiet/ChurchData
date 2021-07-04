@@ -262,7 +262,7 @@ class _FamilyMap extends StatelessWidget {
                       startCap: Cap.roundCap,
                       width: 5,
                       onTap: () {
-                        scaffoldMessenger.currentState!;
+                        scaffoldMessenger.currentState!.hideCurrentSnackBar();
                         scaffoldMessenger.currentState!.showSnackBar(
                           SnackBar(
                             backgroundColor: street.color == Colors.transparent

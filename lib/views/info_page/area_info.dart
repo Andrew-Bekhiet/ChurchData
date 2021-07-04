@@ -645,7 +645,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             'LocationConfirmed': !area.locationConfirmed,
                             'LastEdit': User.instance.uid
                           });
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text('تم الحفظ بنجاح'),
@@ -656,7 +656,7 @@ class _AreaInfoState extends State<AreaInfo> {
                               .setCustomKey('LastErrorIn', 'AreaInfo.showMap');
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text(

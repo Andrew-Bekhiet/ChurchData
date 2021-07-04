@@ -220,7 +220,7 @@ class Street extends DataObject
       null,
       null,
       '',
-      tranucateToDay(),
+      null,
       User.instance.uid,
     );
   }

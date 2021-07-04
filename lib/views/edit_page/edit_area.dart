@@ -72,8 +72,8 @@ class _EditAreaState extends State<EditArea> {
                   onPressed: () async {
                     var source = await showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        actions: <Widget>[
+                      builder: (context) => SimpleDialog(
+                        children: <Widget>[
                           TextButton.icon(
                             onPressed: () => navigator.currentState!.pop(true),
                             icon: Icon(Icons.camera),
@@ -84,12 +84,13 @@ class _EditAreaState extends State<EditArea> {
                             icon: Icon(Icons.photo_library),
                             label: Text('اختيار من المعرض'),
                           ),
-                          TextButton.icon(
-                            onPressed: () =>
-                                navigator.currentState!.pop('delete'),
-                            icon: Icon(Icons.delete),
-                            label: Text('حذف الصورة'),
-                          ),
+                          if (changedImage != null || area.hasPhoto)
+                            TextButton.icon(
+                              onPressed: () =>
+                                  navigator.currentState!.pop('delete'),
+                              icon: Icon(Icons.delete),
+                              label: Text('حذف الصورة'),
+                            ),
                         ],
                       ),
                     );
@@ -101,8 +102,7 @@ class _EditAreaState extends State<EditArea> {
                       setState(() {});
                       return;
                     }
-                    if ((source &&
-                            !(await Permission.storage.request()).isGranted) ||
+                    if (source as bool &&
                         !(await Permission.camera.request()).isGranted) return;
                     var selectedImage = await ImagePicker().getImage(
                         source:
@@ -246,6 +246,7 @@ class _EditAreaState extends State<EditArea> {
                     child: InkWell(
                       onTap: () => _selectDate(context),
                       child: InputDecorator(
+                        isEmpty: area.lastVisit == null,
                         decoration: InputDecoration(
                           labelText: 'تاريخ أخر زيارة',
                         ),
@@ -262,6 +263,7 @@ class _EditAreaState extends State<EditArea> {
                     child: InkWell(
                       onTap: () => _selectDate2(context),
                       child: InputDecorator(
+                        isEmpty: area.fatherLastVisit == null,
                         decoration: InputDecoration(
                           labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                         ),
@@ -454,14 +456,15 @@ class _EditAreaState extends State<EditArea> {
           area.set();
         }
 
-        navigator.currentState!.pop(area.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        if (mounted) navigator.currentState!.pop(area.ref);
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'AreaP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Area', area.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(

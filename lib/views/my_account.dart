@@ -58,8 +58,8 @@ class _MyAccountState extends State<MyAccount> {
                     onPressed: () async {
                       var source = await showDialog(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          actions: <Widget>[
+                        builder: (context) => SimpleDialog(
+                          children: <Widget>[
                             TextButton.icon(
                               onPressed: () =>
                                   navigator.currentState!.pop(true),
@@ -112,16 +112,14 @@ class _MyAccountState extends State<MyAccount> {
                               .call();
                           user.reloadImage();
                           setState(() {});
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                             content: Text('تم بنجاح'),
                           ));
                         }
                         return;
                       }
-                      if ((source &&
-                              !(await Permission.storage.request())
-                                  .isGranted) ||
+                      if (source as bool &&
                           !(await Permission.camera.request()).isGranted)
                         return;
                       final selectedImage = await ImagePicker().getImage(
@@ -170,7 +168,7 @@ class _MyAccountState extends State<MyAccount> {
                         await user.photoRef.putFile(finalImage!);
                         user.reloadImage();
                         setState(() {});
-                        scaffoldMessenger.currentState!;
+                        scaffoldMessenger.currentState!.hideCurrentSnackBar();
                         scaffoldMessenger.currentState!.showSnackBar(SnackBar(
                           content: Text('تم بنجاح'),
                         ));
@@ -433,7 +431,7 @@ class _MyAccountState extends State<MyAccount> {
           await showErrorDialog(context, 'حدث خطأ أثناء تحديث كلمة السر!');
           return;
         }
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم تحديث كلمة السر بنجاح'),
@@ -442,7 +440,7 @@ class _MyAccountState extends State<MyAccount> {
         );
         setState(() {});
       } else {
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('كلمة السر القديمة خاطئة'),
@@ -451,7 +449,7 @@ class _MyAccountState extends State<MyAccount> {
         );
       }
     } else {
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('كلمتا السر غير متطابقتين!'),

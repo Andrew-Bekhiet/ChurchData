@@ -252,7 +252,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
         'fcmToken': await FirebaseMessaging.instance.getToken(),
       });
       await Hive.box('Settings').put('FCM_Token_Registered', true);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserRgisteration._submit');

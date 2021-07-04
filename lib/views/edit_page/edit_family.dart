@@ -282,6 +282,7 @@ class _EditFamilyState extends State<EditFamily> {
                   child: InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
+                      isEmpty: family.lastVisit == null,
                       decoration: InputDecoration(
                         labelText: 'تاريخ أخر زيارة',
                       ),
@@ -300,6 +301,7 @@ class _EditFamilyState extends State<EditFamily> {
                   child: InkWell(
                     onTap: () => _selectDate2(context),
                     child: InputDecorator(
+                      isEmpty: family.fatherLastVisit == null,
                       decoration: InputDecoration(
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
@@ -473,7 +475,8 @@ class _EditFamilyState extends State<EditFamily> {
           family.set();
         }
 
-        navigator.currentState!.pop(family.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        if (mounted) navigator.currentState!.pop(family.ref);
       } else {
         await showDialog(
           context: context,
@@ -488,7 +491,7 @@ class _EditFamilyState extends State<EditFamily> {
           .setCustomKey('LastErrorIn', 'FamilyP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Family', family.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(

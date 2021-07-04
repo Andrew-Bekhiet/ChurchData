@@ -89,8 +89,8 @@ class _EditPersonState extends State<EditPerson> {
                 ), onPressed: () async {
                   var source = await showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
-                      actions: <Widget>[
+                    builder: (context) => SimpleDialog(
+                      children: <Widget>[
                         TextButton.icon(
                           onPressed: () => navigator.currentState!.pop(true),
                           icon: Icon(Icons.camera),
@@ -101,12 +101,13 @@ class _EditPersonState extends State<EditPerson> {
                           icon: Icon(Icons.photo_library),
                           label: Text('اختيار من المعرض'),
                         ),
-                        TextButton.icon(
-                          onPressed: () =>
-                              navigator.currentState!.pop('delete'),
-                          icon: Icon(Icons.delete),
-                          label: Text('حذف الصورة'),
-                        ),
+                        if (changedImage != null || person.hasPhoto)
+                          TextButton.icon(
+                            onPressed: () =>
+                                navigator.currentState!.pop('delete'),
+                            icon: Icon(Icons.delete),
+                            label: Text('حذف الصورة'),
+                          ),
                       ],
                     ),
                   );
@@ -118,8 +119,7 @@ class _EditPersonState extends State<EditPerson> {
                     setState(() {});
                     return;
                   }
-                  if ((source &&
-                          !(await Permission.storage.request()).isGranted) ||
+                  if (source as bool &&
                       !(await Permission.camera.request()).isGranted) return;
                   var selectedImage = await ImagePicker().getImage(
                       source:
@@ -1240,7 +1240,8 @@ class _EditPersonState extends State<EditPerson> {
           // ignore: unawaited_futures
           person.set();
         }
-        navigator.currentState!.pop(person.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        if (mounted) navigator.currentState!.pop(person.ref);
       } else {
         await showDialog(
             context: context,
@@ -1255,7 +1256,7 @@ class _EditPersonState extends State<EditPerson> {
           .setCustomKey('LastErrorIn', 'PersonP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Person', person.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(
@@ -1289,14 +1290,14 @@ class _EditPersonState extends State<EditPerson> {
       await FirebaseFunctions.instance.httpsCallable('registerUserData').call({
         'data': person.getUserRegisterationMap(),
       });
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       navigator.currentState!.pop(person.ref);
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'PersonP.saveUserData');
       await FirebaseCrashlytics.instance.setCustomKey('Person', person.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(

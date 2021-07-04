@@ -298,7 +298,7 @@ class _EditInvitationState extends State<EditInvitation> {
                 );
                 Navigator.of(innerContext).pop();
                 await widget.invitation.ref.delete();
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
@@ -310,7 +310,7 @@ class _EditInvitationState extends State<EditInvitation> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: Text(
@@ -375,7 +375,7 @@ class _EditInvitationState extends State<EditInvitation> {
             await widget.invitation.update(old: update);
           }
         }
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(widget.invitation.ref);
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
@@ -396,7 +396,7 @@ class _EditInvitationState extends State<EditInvitation> {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
         duration: Duration(seconds: 7),

@@ -319,7 +319,7 @@ class _UserPState extends State<UserP> {
                 await FirebaseFunctions.instance
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': widget.user.uid});
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('unapproved');
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
@@ -331,7 +331,7 @@ class _UserPState extends State<UserP> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.unapproveUser');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: Text(
@@ -379,7 +379,7 @@ class _UserPState extends State<UserP> {
                 await FirebaseFunctions.instance
                     .httpsCallable('deleteUser')
                     .call({'affectedUser': widget.user.uid});
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
@@ -391,7 +391,7 @@ class _UserPState extends State<UserP> {
                 await FirebaseCrashlytics.instance
                     .setCustomKey('LastErrorIn', 'UserPState.delete');
                 await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-                scaffoldMessenger.currentState!;
+                scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 scaffoldMessenger.currentState!.showSnackBar(
                   SnackBar(
                     content: Text(
@@ -460,7 +460,7 @@ class _UserPState extends State<UserP> {
       // : await functions()
       //     .httpsCallable('resetPassword')
       //     .call({'affectedUser': widget.user.uid});
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
@@ -523,7 +523,7 @@ class _UserPState extends State<UserP> {
           }
           await batch.commit();
         }
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(widget.user.uid);
       }
     } catch (err, stkTrace) {
@@ -531,7 +531,7 @@ class _UserPState extends State<UserP> {
           .setCustomKey('LastErrorIn', 'UserPState.save');
       await FirebaseCrashlytics.instance.setCustomKey('User', widget.user.uid!);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(

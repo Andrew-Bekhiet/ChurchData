@@ -366,7 +366,7 @@ class _StreetInfoState extends State<StreetInfo> {
                             'LocationConfirmed': !street.locationConfirmed,
                             'LastEdit': User.instance.uid
                           });
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text('تم الحفظ بنجاح'),
@@ -377,7 +377,7 @@ class _StreetInfoState extends State<StreetInfo> {
                               'LastErrorIn', 'StreetInfo.showMap');
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
-                          scaffoldMessenger.currentState!;
+                          scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
                             SnackBar(
                               content: Text(

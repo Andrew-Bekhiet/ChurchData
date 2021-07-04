@@ -281,7 +281,7 @@ void import(BuildContext context) async {
               fileData,
               SettableMetadata(
                   customMetadata: {'createdBy': User.instance.uid!}));
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('جار استيراد الملف...'),
@@ -291,7 +291,7 @@ void import(BuildContext context) async {
       await FirebaseFunctions.instance
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text('تم الاستيراد بنجاح'),
@@ -299,11 +299,11 @@ void import(BuildContext context) async {
         ),
       );
     } else {
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       await showErrorDialog(context, 'ملف غير صالح');
     }
   } catch (e) {
-    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.hideCurrentSnackBar();
     await showErrorDialog(context, e.toString());
   }
 }
@@ -316,7 +316,7 @@ Future importArea(
     List<String>? keys;
     String uid = User.instance.uid!;
 
-    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.hideCurrentSnackBar();
     scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Text('جار رفع البيانات ...'),
@@ -339,7 +339,7 @@ Future importArea(
 
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.hideCurrentSnackBar();
           scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
@@ -395,7 +395,7 @@ Future importArea(
 
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.hideCurrentSnackBar();
           scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
@@ -455,7 +455,7 @@ Future importArea(
       }
       if (batchCount % 500 == 0 && batchCount != 0) {
         await batchUpdate.commit().catchError((onError) {
-          scaffoldMessenger.currentState!;
+          scaffoldMessenger.currentState!.hideCurrentSnackBar();
           scaffoldMessenger.currentState!.showSnackBar(
             SnackBar(
               content: Text(
@@ -468,7 +468,7 @@ Future importArea(
           if (decoder.tables.values.elementAt(2).rows.indexOf(row) ==
               decoder.tables.values.elementAt(2).rows.length - 1) {
             end = true;
-            scaffoldMessenger.currentState!;
+            scaffoldMessenger.currentState!.hideCurrentSnackBar();
             scaffoldMessenger.currentState!.showSnackBar(
               SnackBar(
                 content: Text(
@@ -545,7 +545,7 @@ Future importArea(
 
     if (!end) {
       await batchUpdate.commit().catchError((onError) {
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text(
@@ -555,7 +555,7 @@ Future importArea(
           ),
         );
       }).then((k) {
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text(
@@ -571,7 +571,7 @@ Future importArea(
     await FirebaseCrashlytics.instance
         .setCustomKey('LastErrorIn', 'Helpers.importArea');
     await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.hideCurrentSnackBar();
     scaffoldMessenger.currentState!.showSnackBar(
       SnackBar(
         content: Text(
@@ -1604,7 +1604,7 @@ void userTap(User user) async {
           // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
           ..notifyListeners();
         userTap(user);
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),
@@ -1627,7 +1627,7 @@ void userTap(User user) async {
         await FirebaseFunctions.instance
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
-        scaffoldMessenger.currentState!;
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           SnackBar(
             content: Text('تم بنجاح'),

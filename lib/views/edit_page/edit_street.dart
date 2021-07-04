@@ -135,6 +135,7 @@ class _EditStreetState extends State<EditStreet> {
                   child: InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
+                      isEmpty: street.lastVisit == null,
                       decoration: InputDecoration(
                         labelText: 'تاريخ أخر زيارة',
                       ),
@@ -151,6 +152,7 @@ class _EditStreetState extends State<EditStreet> {
                   child: InkWell(
                     onTap: () => _selectDate2(context),
                     child: InputDecorator(
+                      isEmpty: street.fatherLastVisit == null,
                       decoration: InputDecoration(
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
@@ -313,7 +315,8 @@ class _EditStreetState extends State<EditStreet> {
           street.set();
         }
 
-        navigator.currentState!.pop(street.ref);
+        scaffoldMessenger.currentState!.hideCurrentSnackBar();
+        if (mounted) navigator.currentState!.pop(street.ref);
       } else {
         await showDialog(
             context: context,
@@ -328,7 +331,7 @@ class _EditStreetState extends State<EditStreet> {
           .setCustomKey('LastErrorIn', 'StreetP.save');
       await FirebaseCrashlytics.instance.setCustomKey('Street', street.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      scaffoldMessenger.currentState!;
+      scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
           content: Text(

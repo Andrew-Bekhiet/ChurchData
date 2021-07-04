@@ -245,8 +245,8 @@ class Family extends DataObject
       null,
       '',
       '',
-      tranucateToDay(),
-      tranucateToDay(),
+      null,
+      null,
       User.instance.uid,
     );
   }

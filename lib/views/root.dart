@@ -85,7 +85,7 @@ class _RootState extends State<Root>
     }
     if (result == null) return;
 
-    scaffoldMessenger.currentState!;
+    scaffoldMessenger.currentState!.hideCurrentSnackBar();
     if (result is JsonRef) {
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
