@@ -12,25 +12,39 @@ service cloud.firestore {
       return checkUserRegistered() && request.auth.token.approveLocations;
     }
     
-    function checkLocationConfirmed(){
-        return canApproveLocations() ||
-            (!request.resource.data.keys().hasAny(['Location']) && !request.resource.data.keys().hasAny(['LocationConfirmed']))
-            || (request.resource.data.keys().hasAny(['LocationConfirmed']) && (request.resource.data.LocationConfirmed == false || (request.resource.data.keys().hasAny(['Location']) && request.resource.data.Location == resource.data.Location && request.resource.data.LocationConfirmed == resource.data.LocationConfirmed)))
-            || (request.resource.data.keys().hasAny(['Location']) && request.resource.data.Location != resource.data.Location && request.resource.data.keys().hasAny(['LocationConfirmed']) && request.resource.data.LocationConfirmed == false);
+    function checkLocationConfirmed(create){
+        return canApproveLocations()
+        || debug(isTheSame('Location', create) && isTheSame('LocationConfirmed', create))
+        || debug(!isTheSame('Location', create)
+          && request.resource.data.keys().hasAny(['LocationConfirmed'])
+          && request.resource.data['LocationConfirmed'] == false)
+        || debug(!isTheSame('Location', create) && (resource.data['LocationConfirmed'] == false || resource.data['LocationConfirmed'] == null));
+    }
+
+    function isTheSame(fieldName, create){
+      return create || resource.data[fieldName] == request.resource.data[fieldName] || !request.resource.data.keys().hasAny([fieldName]);
     }
     
     match /Areas{
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
       match /{area} {
         allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
-        allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)  && request.auth.token.write;
-        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
-        allow create: if checkUserRegistered() && (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+        allow delete: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed) && request.auth.token.write;
+        allow update: if checkUserRegistered()
+          && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed)
+          && (request.resource.data.Allowed == resource.data.Allowed || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && (request.resource.data.Allowed.removeAll(resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.allowedUsers) || resource.data.Allowed.removeAll(request.resource.data.Allowed).hasOnly(get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.allowedUsers)))))
+          && checkLocationConfirmed(false)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write;
+        allow create: if checkUserRegistered()
+          && (request.resource.data.Allowed.hasOnly([request.auth.uid]) || (request.auth.token.manageUsers || (request.auth.token.manageAllowedUsers && request.resource.data.Allowed.hasOnly(get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.allowedUsers))))
+          && checkLocationConfirmed(true)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write;
         match /{history=**} {
           allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in (get(/databases/$(database)/documents/Areas/$(area))).data.Allowed);
         }
@@ -38,19 +52,25 @@ service cloud.firestore {
     }
     match /Streets {
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
       match /{street} {
         allow read: if checkUserRegistered() &&
-          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
+          (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed);
         allow delete: if checkUserRegistered() &&
-          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
-        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
-        allow create: if checkUserRegistered() &&
-          (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+          (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed) && request.auth.token.write;
+        allow update: if checkLocationConfirmed(false)
+          && (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write
+          && request.resource.data.AreaId != null;
+        allow create: if checkLocationConfirmed(true)
+          && (request.auth.token.superAccess || request.auth.uid in get(request.resource.data.AreaId).data.Allowed)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write
+          && request.resource.data.AreaId != null;
         
         match /{history=**} {
           allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Streets/$(street)).data.AreaId).data.Allowed);
@@ -59,19 +79,29 @@ service cloud.firestore {
     }
     match /Families {
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
       }
       match /{family} {
         allow read: if checkUserRegistered() &&
-          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed));
+          (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed);
         allow delete: if checkUserRegistered() &&
-          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
-        allow update: if checkLocationConfirmed() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
-        allow create: if checkUserRegistered() &&
-          (request.resource.data.LocationConfirmed != true || (request.resource.data.LocationConfirmed && canApproveLocations())) && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write;
+          (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed) && request.auth.token.write;
+        allow update: if checkLocationConfirmed(false)
+          && (request.auth.token.superAccess
+            || request.auth.uid in get(resource.data.AreaId).data.Allowed)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write
+          && request.resource.data.AreaId != null
+          && request.resource.data.StreetId != null;
+        allow create: if checkLocationConfirmed(true)
+          && (request.auth.token.superAccess
+            || request.auth.uid in get(request.resource.data.AreaId).data.Allowed)
+          && request.resource.data.LastEdit == request.auth.uid
+          && request.auth.token.write
+          && request.resource.data.AreaId != null
+          && request.resource.data.StreetId != null;
       
         match /{history=**} {
           allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Families/$(family)).data.AreaId).data.Allowed);
@@ -80,7 +110,6 @@ service cloud.firestore {
     }
     match /Persons {
       allow list: if checkUserRegistered() && request.auth.token.superAccess;
-      allow write: if checkUserRegistered() && request.auth.token.superAccess && request.auth.token.write;
       match /null {
         allow write: if false;
         allow read: if checkUserRegistered();
@@ -89,15 +118,59 @@ service cloud.firestore {
         allow delete: if checkUserRegistered() &&
           (request.auth.token.superAccess || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed)) && request.auth.token.write;
         allow read: if (checkUserRegistered() &&
-          (request.auth.token.superAccess || resource.data.AreaId == null || (resource.data.AreaId != null && request.auth.uid in get(resource.data.AreaId).data.Allowed))) ||
-          (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person);
-        allow create, update: if (checkUserRegistered() && request.resource.data.LastEdit == request.auth.uid && request.auth.token.write) || (request.auth.uid != null && request.auth.token.personRef == 'Persons/' + person);
+          (request.auth.token.superAccess
+            || resource.data.AreaId == null
+            || request.auth.uid in get(resource.data.AreaId).data.Allowed)) ||
+          (request.auth.uid != null
+            && request.auth.token.personRef == 'Persons/' + person);
+        allow create, update: if (checkUserRegistered()
+            && request.resource.data.LastEdit == request.auth.uid
+            && request.auth.token.write
+            && request.resource.data.AreaId != null
+            && request.resource.data.StreetId != null
+            && request.resource.data.FamilyId != null)
+          || (request.auth.uid != null
+            && request.auth.token.personRef == 'Persons/' + person);
       
         match /{history=**} {
           allow read: if checkUserRegistered() && (request.auth.token.superAccess || request.auth.uid in get(get(/databases/$(database)/documents/Persons/$(person)).data.AreaId).data.Allowed);
         }
       }
     }
+
+    match /{path=**}/{parent}/{doc} {
+      allow read: if checkUserRegistered()
+      && (parent == 'EditHistory' || parent == 'VisitHistory' || parent == 'FatherVisitHistory' || parent == 'CallHistory' || parent == 'TanawolHistory' || parent == 'ConfessionHistory')
+      && (request.auth.token.superAccess || request.auth.uid in get(resource.data.AreaId).data.Allowed);
+    }
+    
+    match /Invitations {
+      allow list: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+      match /{invitation} {
+        allow read: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
+        allow create: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && request.resource.data.GeneratedBy == request.auth.uid && request.resource.data.GeneratedOn.toMillis() == request.time.toMillis();
+        allow delete, update: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers) && resource.data.GeneratedBy == request.auth.uid;
+      }
+    }
+
+    match /Deleted {
+      allow list: if checkUserRegistered() && request.auth.token.superAccess;
+      allow write: if false;
+      match /{item} {
+        allow read: if checkUserRegistered() && request.auth.token.superAccess;
+        match /Areas {
+          allow write: if false;
+          allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
+            && (request.auth.token.superAccess || request.auth.uid in resource.data.Allowed);
+        }
+        match /{item=**} {
+          allow write: if false;
+          allow read: if checkUserRegistered() && request.auth.token.manageDeleted == true
+            && (request.auth.token.superAccess || resource.data.AreaId == null || request.auth.uid in get(resource.data.AreaId).data.Allowed);
+        }
+      }
+    }
+
     match /Users {
       allow read: if checkUserRegistered();
       allow write: if false;
@@ -106,7 +179,7 @@ service cloud.firestore {
         allow read: if checkUserRegistered();
       }
       match /{user=**} {
-        allow write: if false;
+        allow write: if checkUserRegistered() && (request.auth.token.manageUsers || request.auth.token.manageAllowedUsers);
         allow read: if checkUserRegistered();
       }
     }
