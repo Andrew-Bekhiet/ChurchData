@@ -15,11 +15,10 @@ import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:churchdata/views/search_query.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -275,12 +274,9 @@ void import(BuildContext context) async {
         ),
       );
       final filename = DateTime.now().toIso8601String();
-      await FirebaseStorage.instance
-          .ref('Imports/' + filename + '.xlsx')
-          .putData(
-              fileData,
-              SettableMetadata(
-                  customMetadata: {'createdBy': User.instance.uid!}));
+      await firebaseStorage.ref('Imports/' + filename + '.xlsx').putData(
+          fileData,
+          SettableMetadata(customMetadata: {'createdBy': User.instance.uid!}));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
@@ -288,7 +284,7 @@ void import(BuildContext context) async {
           duration: Duration(minutes: 9),
         ),
       );
-      await FirebaseFunctions.instance
+      await firebaseFunctions
           .httpsCallable('importFromExcel')
           .call({'fileId': filename + '.xlsx'});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -311,7 +307,7 @@ void import(BuildContext context) async {
 Future importArea(
     SpreadsheetDecoder decoder, Area area, BuildContext context) async {
   try {
-    WriteBatch batchUpdate = FirebaseFirestore.instance.batch();
+    WriteBatch batchUpdate = firestore.batch();
     int batchCount = 1;
     List<String>? keys;
     String uid = User.instance.uid!;
@@ -349,10 +345,10 @@ Future importArea(
             ),
           );
         });
-        batchUpdate = FirebaseFirestore.instance.batch();
+        batchUpdate = firestore.batch();
       }
       batchUpdate.set(
-        FirebaseFirestore.instance.collection('Streets').doc(row[0]),
+        firestore.collection('Streets').doc(row[0]),
         Map.fromIterables(
             keys,
             List<String?>.from(
@@ -405,10 +401,10 @@ Future importArea(
             ),
           );
         });
-        batchUpdate = FirebaseFirestore.instance.batch();
+        batchUpdate = firestore.batch();
       }
       batchUpdate.set(
-        FirebaseFirestore.instance.collection('Families').doc(row[0]),
+        firestore.collection('Families').doc(row[0]),
         Map.fromIterables(
             keys,
             List<String?>.from(
@@ -419,7 +415,7 @@ Future importArea(
           if (key == 'StreetId')
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Streets/${value.toString()}'),
+              firestore.doc('Streets/${value.toString()}'),
             );
           if (key == 'LastVisit' || key == 'FatherLastVisit')
             return MapEntry(
@@ -480,10 +476,10 @@ Future importArea(
             );
           }
         });
-        batchUpdate = FirebaseFirestore.instance.batch();
+        batchUpdate = firestore.batch();
       }
       batchUpdate.set(
-        FirebaseFirestore.instance.collection('Persons').doc(row[0]),
+        firestore.collection('Persons').doc(row[0]),
         Map.fromIterables(
             keys,
             List<String?>.from(
@@ -493,18 +489,18 @@ Future importArea(
           if (key == 'FamilyId') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Families/$value'),
+              firestore.doc('Families/$value'),
             );
           } else if (key == 'StreetId') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Streets/$value'),
+              firestore.doc('Streets/$value'),
             );
           } else if (key == 'AreaId' || key == 'ServingAreaId') {
             if (key == 'AreaId') return MapEntry(key, area.ref);
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Areas/$value'),
+              firestore.doc('Areas/$value'),
             );
           } else if (key.contains('BirthDa') || key.startsWith('Last')) {
             return MapEntry(
@@ -517,22 +513,22 @@ Future importArea(
           } else if (key == 'StudyYear' || key == 'Job' || key == 'State') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('${key}s/$value'),
+              firestore.doc('${key}s/$value'),
             );
           } else if (key == 'Church') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('${key}es/$value'),
+              firestore.doc('${key}es/$value'),
             );
           } else if (key == 'CFather') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Fathers/$value'),
+              firestore.doc('Fathers/$value'),
             );
           } else if (key == 'ServantUserId') {
             return MapEntry(
               key,
-              FirebaseFirestore.instance.doc('Users/$value'),
+              firestore.doc('Users/$value'),
             );
           }
           if (key == 'Color') return MapEntry(key, int.parse(value));
@@ -750,25 +746,25 @@ Future processLink(Uri deepLink) async {
   try {
     if (deepLink.pathSegments[0] == 'viewArea') {
       areaTap(Area.fromDoc(
-        await FirebaseFirestore.instance
+        await firestore
             .doc('Areas/${deepLink.queryParameters['AreaId']}')
             .get(),
       )!);
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
       streetTap(Street.fromDoc(
-        await FirebaseFirestore.instance
+        await firestore
             .doc('Streets/${deepLink.queryParameters['StreetId']}')
             .get(),
       )!);
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
       familyTap(Family.fromDoc(
-        await FirebaseFirestore.instance
+        await firestore
             .doc('Families/${deepLink.queryParameters['FamilyId']}')
             .get(),
       )!);
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
       personTap(Person.fromDoc(
-        await FirebaseFirestore.instance
+        await firestore
             .doc('Persons/${deepLink.queryParameters['PersonId']}')
             .get(),
       )!);
@@ -848,7 +844,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
       ) ==
       true) {
     try {
-      await FirebaseFunctions.instance.httpsCallable('recoverDoc').call({
+      await firebaseFunctions.httpsCallable('recoverDoc').call({
         'deletedPath': path,
         'keepBackup': keepBackup,
         'nested': nested,
@@ -917,10 +913,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                   showSubtitle: false,
                 ),
                 selectionMode: true,
-                itemsStream: FirebaseFirestore.instance
-                    .collection('Users')
-                    .snapshots()
-                    .map(
+                itemsStream: firestore.collection('Users').snapshots().map(
                       (s) => s.docs
                           .map((e) => User.fromQueryDoc(e)..uid = e.id)
                           .toList(),
@@ -1037,7 +1030,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
     } else if (attachement is Person) {
       link = 'Person?PersonId=${attachement.id}';
     }
-    await FirebaseFunctions.instance.httpsCallable('sendMessageToUsers').call({
+    await firebaseFunctions.httpsCallable('sendMessageToUsers').call({
       'users': users.map((e) => e.uid).toList(),
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
@@ -1149,7 +1142,7 @@ Future<String> shareUserRaw(String uid) async {
 
 void showBirthDayNotification() async {
   await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   var user = User.instance;
   var source = GetOptions(
@@ -1159,7 +1152,7 @@ void showBirthDayNotification() async {
               : Source.serverAndCache);
   JsonQuery docs;
   if (user.superAccess) {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where(
           'BirthDay',
@@ -1176,10 +1169,10 @@ void showBirthDayNotification() async {
         .limit(20)
         .get(source);
   } else {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
+            whereIn: (await firestore
                     .collection('Areas')
                     .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
@@ -1219,7 +1212,7 @@ void showBirthDayNotification() async {
 
 void showConfessionNotification() async {
   await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   var user = User.instance;
   var source = GetOptions(
@@ -1229,16 +1222,16 @@ void showConfessionNotification() async {
               : Source.serverAndCache);
   JsonQuery docs;
   if (user.superAccess) {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where('LastConfession', isLessThan: Timestamp.now())
         .limit(20)
         .get(source);
   } else {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
+            whereIn: (await firestore
                     .collection('Areas')
                     .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
@@ -1372,9 +1365,7 @@ Future<void> showMessage(
   );
   String scndLine = await attachement.getSecondLine() ?? '';
   var user = notification.from != ''
-      ? await FirebaseFirestore.instance
-          .doc('Users/${notification.from}')
-          .get(dataSource)
+      ? await firestore.doc('Users/${notification.from}').get(dataSource)
       : null;
   await showDialog(
     context: context,
@@ -1453,7 +1444,7 @@ Future<void> showPendingMessage([BuildContext? context]) async {
 
 void showTanawolNotification() async {
   await Firebase.initializeApp();
-  if (auth.FirebaseAuth.instance.currentUser == null) return;
+  if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   var user = User.instance;
   var source = GetOptions(
@@ -1463,16 +1454,16 @@ void showTanawolNotification() async {
               : Source.serverAndCache);
   JsonQuery docs;
   if (user.superAccess) {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where('LastTanawol', isLessThan: Timestamp.now())
         .limit(20)
         .get(source);
   } else {
-    docs = await FirebaseFirestore.instance
+    docs = await firestore
         .collection('Persons')
         .where('AreaId',
-            whereIn: (await FirebaseFirestore.instance
+            whereIn: (await firestore
                     .collection('Areas')
                     .where('Allowed', arrayContains: User.instance.uid!)
                     .get(source))
@@ -1596,7 +1587,7 @@ void userTap(User user) async {
         ),
       );
       try {
-        await FirebaseFunctions.instance
+        await firebaseFunctions
             .httpsCallable('approveUser')
             .call({'affectedUser': user.uid});
         user
@@ -1624,7 +1615,7 @@ void userTap(User user) async {
         ),
       );
       try {
-        await FirebaseFunctions.instance
+        await firebaseFunctions
             .httpsCallable('deleteUser')
             .call({'affectedUser': user.uid});
         scaffoldMessenger.currentState!.hideCurrentSnackBar();

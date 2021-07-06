@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,12 +38,7 @@ class Street extends DataObject
       List<GeoPoint>? locationPoints,
       this.locationConfirmed = false})
       : locationPoints = locationPoints ?? [],
-        super(
-            ref ??
-                FirebaseFirestore.instance
-                    .collection('Streets')
-                    .doc(id ?? 'null'),
-            name,
+        super(ref ?? firestore.collection('Streets').doc(id ?? 'null'), name,
             color);
 
   Street._createFromData(Json data, JsonRef ref)
@@ -84,7 +80,7 @@ class Street extends DataObject
   Future<List<Family>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return (await FirebaseFirestore.instance
+      return (await firestore
               .collection('Families')
               .where('AreaId', isEqualTo: areaId)
               .where('StreetId', isEqualTo: ref)
@@ -95,7 +91,7 @@ class Street extends DataObject
           .map(Family.fromQueryDoc)
           .toList();
     }
-    return (await FirebaseFirestore.instance
+    return (await firestore
             .collection('Families')
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
@@ -179,7 +175,7 @@ class Street extends DataObject
 
   Future<List<Person>> getPersonMembersList([bool tranucate = false]) async {
     if (tranucate) {
-      return (await FirebaseFirestore.instance
+      return (await firestore
               .collection('Persons')
               .where('AreaId', isEqualTo: areaId)
               .where('StreetId', isEqualTo: ref)
@@ -189,7 +185,7 @@ class Street extends DataObject
           .map(Person.fromQueryDoc)
           .toList();
     }
-    return (await FirebaseFirestore.instance
+    return (await firestore
             .collection('Persons')
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
@@ -207,9 +203,7 @@ class Street extends DataObject
     } else if (key == 'AreaId') {
       return getAreaName();
     } else if (key == 'LastEdit') {
-      return (await FirebaseFirestore.instance
-              .doc('Users/$lastEdit')
-              .get(dataSource))
+      return (await firestore.doc('Users/$lastEdit').get(dataSource))
           .data()?['Name'];
     }
     return getHumanReadableMap()[key];
@@ -231,7 +225,7 @@ class Street extends DataObject
   static Street fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
   static Future<Street?> fromId(String id) async => Street.fromDoc(
-        await FirebaseFirestore.instance.doc('Streets/$id').get(),
+        await firestore.doc('Streets/$id').get(),
       );
 
   static List<Street?> getAll(List<JsonDoc> streets) {
@@ -246,7 +240,7 @@ class Street extends DataObject
         .asyncMap(
           (u) async => u.superAccess
               ? null
-              : (await FirebaseFirestore.instance
+              : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
@@ -256,11 +250,11 @@ class Street extends DataObject
         )
         .switchMap(
           (a) => a == null
-              ? FirebaseFirestore.instance
+              ? firestore
                   .collection('Streets')
                   .orderBy(orderBy, descending: descending)
                   .snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Streets')
                   .where(
                     'AreaId',
@@ -308,12 +302,12 @@ class Street extends DataObject
 
   static Stream<JsonQuery> getStreetMembersLive(JsonRef areaId, String id,
       [String orderBy = 'Name', bool descending = false]) {
-    return FirebaseFirestore.instance
+    return firestore
         .collection('Families')
         .where('AreaId', isEqualTo: areaId)
         .where(
           'StreetId',
-          isEqualTo: FirebaseFirestore.instance.collection('Streets').doc(id),
+          isEqualTo: firestore.collection('Streets').doc(id),
         )
         .orderBy(orderBy, descending: descending)
         .snapshots();

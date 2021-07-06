@@ -2,6 +2,7 @@ import 'package:churchdata/EncryptionKeys.dart';
 import 'package:churchdata/main.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -246,7 +247,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
       ),
     );
     try {
-      await FirebaseFunctions.instance.httpsCallable('registerAccount').call({
+      await firebaseFunctions.httpsCallable('registerAccount').call({
         'name': _userName,
         'password': Encryption.encryptPassword(password),
         'fcmToken': await FirebaseMessaging.instance.getToken(),
@@ -269,7 +270,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
       context: context,
       builder: (context) => AlertDialog(
         title: FutureBuilder<HttpsCallableResult>(
-          future: FirebaseFunctions.instance
+          future: firebaseFunctions
               .httpsCallable('registerWithLink')
               .call({'link': registerationLink}),
           builder: (context, snapshot) {

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               GoogleAuthProvider.credential(
                                   idToken: googleAuth.idToken,
                                   accessToken: googleAuth.accessToken);
-                          await auth.FirebaseAuth.instance
+                          await firebaseAuth
                               .signInWithCredential(credential)
                               .catchError((er) {
                             if (er.toString().contains(
@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // @override
   // void initState() {
   //   super.initState();
-  //   killMe = auth.FirebaseAuth.instance.authStateChanges().listen((user) async {
+  //   killMe = firebaseAuth.authStateChanges().listen((user) async {
   //     setState(() {});
   //   });
   // }

@@ -7,13 +7,11 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -1061,7 +1059,7 @@ class _RootState extends State<Root>
                               );
                               try {
                                 String filename = Uri.decodeComponent(
-                                    (await FirebaseFunctions.instance
+                                    (await firebaseFunctions
                                             .httpsCallable('exportToExcel')
                                             .call({'onlyArea': rslt.id}))
                                         .data);
@@ -1071,7 +1069,7 @@ class _RootState extends State<Root>
                                             '/' +
                                             filename.replaceAll(':', ''))
                                     .create(recursive: true);
-                                await FirebaseStorage.instance
+                                await firebaseStorage
                                     .ref(filename)
                                     .writeToFile(file);
                                 scaffoldMessenger.currentState!
@@ -1129,7 +1127,7 @@ class _RootState extends State<Root>
                             );
                             try {
                               String filename = Uri.decodeComponent(
-                                  (await FirebaseFunctions.instance
+                                  (await firebaseFunctions
                                           .httpsCallable('exportToExcel')
                                           .call())
                                       .data);
@@ -1139,7 +1137,7 @@ class _RootState extends State<Root>
                                           '/' +
                                           filename.replaceAll(':', ''))
                                   .create(recursive: true);
-                              await FirebaseStorage.instance
+                              await firebaseStorage
                                   .ref(filename)
                                   .writeToFile(file);
                               scaffoldMessenger.currentState!
@@ -1225,7 +1223,7 @@ class _RootState extends State<Root>
                 title: Text('تسجيل الخروج'),
                 onTap: () async {
                   mainScfld.currentState!.openEndDrawer();
-                  await auth.FirebaseAuth.instance.signOut();
+                  await firebaseAuth.signOut();
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
                   // ignore: unawaited_futures
                   navigator.currentState!.pushReplacement(

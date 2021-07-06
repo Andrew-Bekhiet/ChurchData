@@ -1,6 +1,7 @@
 import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,7 +58,7 @@ class HistoryProperty extends StatelessWidget {
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => FutureBuilder<JsonDoc>(
                       future: history.data![i].byUser != null
-                          ? FirebaseFirestore.instance
+                          ? firestore
                               .doc('Users/' + history.data![i].byUser!)
                               .get(dataSource)
                           : null,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -361,8 +362,7 @@ class _EditInvitationState extends State<EditInvitation> {
           duration: Duration(seconds: 15),
         ));
         if (widget.invitation.id == '') {
-          widget.invitation.ref =
-              FirebaseFirestore.instance.collection('Invitations').doc();
+          widget.invitation.ref = firestore.collection('Invitations').doc();
           widget.invitation.generatedBy = User.instance.uid!;
           await widget.invitation.ref.set({
             ...widget.invitation.getMap(),

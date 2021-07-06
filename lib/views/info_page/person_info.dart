@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -9,7 +10,6 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';

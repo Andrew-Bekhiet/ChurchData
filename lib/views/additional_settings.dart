@@ -1,6 +1,6 @@
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +15,7 @@ class ChurchesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MiniModelList<Church>(
       title: 'الكنائس',
-      collection: FirebaseFirestore.instance.collection('Churches'),
+      collection: firestore.collection('Churches'),
       transformer: Church.fromQueryDoc,
       modify: (f) => churchTap(context, f, false),
       add: () => churchTap(context, Church.createNew(), true),
@@ -30,7 +30,7 @@ class FathersPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MiniModelList<Father>(
       title: 'الأباء الكهنة',
-      collection: FirebaseFirestore.instance.collection('Fathers'),
+      collection: firestore.collection('Fathers'),
       transformer: Father.fromQueryDoc,
       modify: (f) => fatherTap(context, f, false),
       add: () => fatherTap(context, Father.createNew(), true),
@@ -48,10 +48,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
             icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
             onPressed: () async {
               if (editMode) {
-                await FirebaseFirestore.instance
-                    .collection('Churches')
-                    .doc(church.id)
-                    .set(
+                await firestore.collection('Churches').doc(church.id).set(
                       church.getMap(),
                     );
               }
@@ -77,7 +74,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
                       style: TextButton.styleFrom(primary: Colors.red),
                       label: Text('نعم'),
                       onPressed: () async {
-                        await FirebaseFirestore.instance
+                        await firestore
                             .collection('Churches')
                             .doc(church.id)
                             .delete();
@@ -173,10 +170,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
             icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
             onPressed: () async {
               if (editMode) {
-                await FirebaseFirestore.instance
-                    .collection('Fathers')
-                    .doc(father.id)
-                    .set(
+                await firestore.collection('Fathers').doc(father.id).set(
                       father.getMap(),
                     );
               }
@@ -202,7 +196,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                         style: TextButton.styleFrom(primary: Colors.red),
                         label: Text('نعم'),
                         onPressed: () async {
-                          await FirebaseFirestore.instance
+                          await firestore
                               .collection('Fathers')
                               .doc(father.id)
                               .delete();

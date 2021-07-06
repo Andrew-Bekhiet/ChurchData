@@ -9,11 +9,11 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
-import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -420,21 +420,14 @@ class _EditAreaState extends State<EditArea> {
           }
         }
         bool update = area.id != 'null';
-        if (!update)
-          area.ref = FirebaseFirestore.instance.collection('Areas').doc();
+        if (!update) area.ref = firestore.collection('Areas').doc();
         if (changedImage != null) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('AreasPhotos/${area.id}')
-              .putFile(
+          await firebaseStorage.ref().child('AreasPhotos/${area.id}').putFile(
                 File(changedImage!),
               );
           area.hasPhoto = true;
         } else if (deletePhoto) {
-          await FirebaseStorage.instance
-              .ref()
-              .child('AreasPhotos/${area.id}')
-              .delete();
+          await firebaseStorage.ref().child('AreasPhotos/${area.id}').delete();
         }
 
         area.lastEdit = User.instance.uid;

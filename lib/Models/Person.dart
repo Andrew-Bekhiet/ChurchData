@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -107,12 +108,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       : _familyId = familyId,
         _streetId = streetId,
         phones = phones ?? {},
-        super(
-            ref ??
-                FirebaseFirestore.instance
-                    .collection('Persons')
-                    .doc(id ?? 'null'),
-            name,
+        super(ref ?? firestore.collection('Persons').doc(id ?? 'null'), name,
             color) {
     this.hasPhoto = hasPhoto;
     phones ??= {};
@@ -170,8 +166,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   JsonRef? get parentId => familyId;
 
   @override
-  Reference get photoRef =>
-      FirebaseStorage.instance.ref().child('PersonsPhotos/$id');
+  Reference get photoRef => firebaseStorage.ref().child('PersonsPhotos/$id');
 
   Future<String?> getAreaName() async {
     return (await areaId?.get(dataSource))?.data()?['Name'];
@@ -331,9 +326,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     } else if (key == 'CFather') {
       return getCFatherName();
     } else if (key == 'LastEdit') {
-      return (await FirebaseFirestore.instance
-              .doc('Users/$lastEdit')
-              .get(dataSource))
+      return (await firestore.doc('Users/$lastEdit').get(dataSource))
           .data()?['Name'];
     }
     return getHumanReadableMap()[key];
@@ -354,10 +347,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   Future<String?> getStringType() async {
     if (type == null || type!.isEmpty) return null;
-    return (await FirebaseFirestore.instance
-            .collection('Types')
-            .doc(type)
-            .get(dataSource))
+    return (await firestore.collection('Types').doc(type).get(dataSource))
         .data()?['Name'];
   }
 
@@ -404,7 +394,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   static Person fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
   static Future<Person?> fromId(String id) async => Person.fromDoc(
-        await FirebaseFirestore.instance.doc('Persons/$id').get(),
+        await firestore.doc('Persons/$id').get(),
       );
 
   static List<Person?> getAll(List<JsonDoc> persons) {
@@ -419,7 +409,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         .asyncMap(
           (u) async => u.superAccess
               ? null
-              : (await FirebaseFirestore.instance
+              : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
@@ -429,11 +419,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         )
         .switchMap(
           (a) => a == null
-              ? FirebaseFirestore.instance
+              ? firestore
                   .collection('Persons')
                   .orderBy(orderBy, descending: descending)
                   .snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Persons')
                   .where(
                     'AreaId',

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -61,12 +62,7 @@ class Family extends DataObject
       this.insideFamily2,
       this.locationConfirmed = false,
       this.notes})
-      : super(
-            ref ??
-                FirebaseFirestore.instance
-                    .collection('Families')
-                    .doc(id ?? 'null'),
-            name,
+      : super(ref ?? firestore.collection('Families').doc(id ?? 'null'), name,
             color) {
     hasPhoto = false;
     defaultIcon = Icons.group;
@@ -109,7 +105,7 @@ class Family extends DataObject
   Future<List<Person>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return Person.getAll((await FirebaseFirestore.instance
+      return Person.getAll((await firestore
                   .collection('Persons')
                   .where('AreaId', isEqualTo: areaId)
                   .where('FamilyId', isEqualTo: ref)
@@ -118,7 +114,7 @@ class Family extends DataObject
               .docs)
           .cast<Person>();
     }
-    return Person.getAll((await FirebaseFirestore.instance
+    return Person.getAll((await firestore
                 .collection('Persons')
                 .where('AreaId', isEqualTo: areaId)
                 .where('FamilyId', isEqualTo: ref)
@@ -222,9 +218,7 @@ class Family extends DataObject
     } else if (key == 'StreetId') {
       return getStreetName();
     } else if (key == 'LastEdit') {
-      return (await FirebaseFirestore.instance
-              .doc('Users/$lastEdit')
-              .get(dataSource))
+      return (await firestore.doc('Users/$lastEdit').get(dataSource))
           .data()?['Name'];
     }
     return getHumanReadableMap()[key];
@@ -257,7 +251,7 @@ class Family extends DataObject
   static Family fromQueryDoc(JsonDoc data) => fromDoc(data)!;
 
   static Future<Family?> fromId(String id) async => Family.fromDoc(
-        await FirebaseFirestore.instance.doc('Families/$id').get(),
+        await firestore.doc('Families/$id').get(),
       );
 
   static List<Family?> getAll(List<JsonDoc> families) {
@@ -284,7 +278,7 @@ class Family extends DataObject
         .asyncMap(
           (u) async => u.superAccess
               ? null
-              : (await FirebaseFirestore.instance
+              : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
@@ -294,11 +288,11 @@ class Family extends DataObject
         )
         .switchMap(
           (a) => a == null
-              ? FirebaseFirestore.instance
+              ? firestore
                   .collection('Families')
                   .orderBy(orderBy, descending: descending)
                   .snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Families')
                   .where(
                     'AreaId',
@@ -330,7 +324,7 @@ class Family extends DataObject
         .asyncMap(
           (u) async => u.superAccess
               ? null
-              : (await FirebaseFirestore.instance
+              : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
                       .get(dataSource))
@@ -342,70 +336,58 @@ class Family extends DataObject
           (a) => a == null
               ? Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
                       List<JsonQuery>>(
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Persons')
                       .where('AreaId', isEqualTo: areaId)
                       .where(
                         'FamilyId',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy(orderBy, descending: descending)
                       .snapshots(),
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Families')
                       .where(
                         'InsideFamily',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy('Name')
                       .snapshots(),
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Families')
                       .where(
                         'InsideFamily2',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy('Name')
                       .snapshots(),
                   (a, b, c) => <JsonQuery>[a, b, c])
               : Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
                   List<JsonQuery>>(
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Persons')
                       .where('AreaId', isEqualTo: areaId)
                       .where(
                         'FamilyId',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy(orderBy, descending: descending)
                       .snapshots(),
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Families')
                       .where('AreaId', isEqualTo: areaId)
                       .where(
                         'InsideFamily',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy('Name')
                       .snapshots(),
-                  FirebaseFirestore.instance
+                  firestore
                       .collection('Families')
                       .where('AreaId', isEqualTo: areaId)
                       .where(
                         'InsideFamily2',
-                        isEqualTo: FirebaseFirestore.instance
-                            .collection('Families')
-                            .doc(id),
+                        isEqualTo: firestore.collection('Families').doc(id),
                       )
                       .orderBy('Name')
                       .snapshots(),

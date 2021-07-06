@@ -11,8 +11,8 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
@@ -316,7 +316,7 @@ class _UserPState extends State<UserP> {
                   ),
                 );
                 navigator.currentState!.pop();
-                await FirebaseFunctions.instance
+                await firebaseFunctions
                     .httpsCallable('unApproveUser')
                     .call({'affectedUser': widget.user.uid});
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -376,7 +376,7 @@ class _UserPState extends State<UserP> {
                   ),
                 );
                 navigator.currentState!.pop();
-                await FirebaseFunctions.instance
+                await firebaseFunctions
                     .httpsCallable('deleteUser')
                     .call({'affectedUser': widget.user.uid});
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -454,7 +454,7 @@ class _UserPState extends State<UserP> {
     try {
       // !kIsWeb
       //     ?
-      await FirebaseFunctions.instance
+      await firebaseFunctions
           .httpsCallable('resetPassword')
           .call({'affectedUser': widget.user.uid});
       // : await functions()
@@ -491,16 +491,16 @@ class _UserPState extends State<UserP> {
         );
         var update = widget.user.getUpdateMap();
         if (old['name'] != widget.user.name)
-          await FirebaseFunctions.instance.httpsCallable('changeUserName').call(
+          await firebaseFunctions.httpsCallable('changeUserName').call(
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
         update..remove('name')..remove('allowedUsers');
         if (update.isNotEmpty)
-          await FirebaseFunctions.instance
+          await firebaseFunctions
               .httpsCallable('updatePermissions')
               .call({'affectedUser': widget.user.uid, 'permissions': update});
         if (childrenUsers != null) {
-          final batch = FirebaseFirestore.instance.batch();
-          final oldChildren = (await FirebaseFirestore.instance
+          final batch = firestore.batch();
+          final oldChildren = (await firestore
                   .collection('Users')
                   .where('allowedUsers', arrayContains: widget.user.uid)
                   .get())
@@ -611,7 +611,7 @@ class _UserPState extends State<UserP> {
       MaterialPageRoute(
         builder: (context) {
           return StreamBuilder<List<User>>(
-            stream: FirebaseFirestore.instance
+            stream: firestore
                 .collection('Users')
                 .where('allowedUsers', arrayContains: widget.user.uid)
                 .snapshots()

@@ -1,6 +1,7 @@
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -27,7 +28,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
   Future<void> _setRangeStart() async {
     if (minAvaliableSet) return;
     if (User.instance.superAccess)
-      minAvaliable = ((await FirebaseFirestore.instance
+      minAvaliable = ((await firestore
                   .collectionGroup('EditHistory')
                   .orderBy('Time')
                   .limit(1)
@@ -36,7 +37,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
               .data()['Time'] as Timestamp)
           .toDate();
     else
-      minAvaliable = ((await FirebaseFirestore.instance
+      minAvaliable = ((await firestore
                   .collectionGroup('EditHistory')
                   .where('AreaId', whereIn: await Area.getAllAreasForUser())
                   .orderBy('Time')

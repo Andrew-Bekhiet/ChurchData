@@ -1,6 +1,7 @@
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -78,8 +79,7 @@ class Invitation extends DataObject {
             DateTime.now().add(Duration(days: 1, minutes: 10))),
         link = '',
         generatedBy = User.instance.uid!,
-        super(FirebaseFirestore.instance.collection('Invitations').doc(''), '',
-            null) {
+        super(firestore.collection('Invitations').doc(''), '', null) {
     name = '';
     permissions = {};
   }

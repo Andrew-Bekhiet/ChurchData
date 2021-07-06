@@ -1,5 +1,3 @@
-library globals;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +49,7 @@ const List<Color> accents = <Color>[
   Colors.black
 ];
 
-AndroidParameters androidParameters = AndroidParameters(
+final AndroidParameters androidParameters = AndroidParameters(
   packageName: 'com.AndroidQuartz.churchdata',
   minimumVersion: 4,
   fallbackUrl:
@@ -60,13 +58,13 @@ AndroidParameters androidParameters = AndroidParameters(
 
 GetOptions dataSource = GetOptions(source: Source.serverAndCache);
 
-DynamicLinkParametersOptions dynamicLinkParametersOptions =
+final DynamicLinkParametersOptions dynamicLinkParametersOptions =
     DynamicLinkParametersOptions(
         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
 
-FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
+const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
-IosParameters iosParameters =
+final IosParameters iosParameters =
     IosParameters(bundleId: 'com.AndroidQuartz.churchdata');
 
 final GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();

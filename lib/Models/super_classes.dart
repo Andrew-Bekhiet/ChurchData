@@ -24,7 +24,7 @@ abstract class DataObject {
   String get id => ref.id;
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is DataObject && other.id == id && other.hashCode == hashCode;
   }
 

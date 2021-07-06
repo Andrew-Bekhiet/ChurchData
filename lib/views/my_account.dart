@@ -1,5 +1,5 @@
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
@@ -107,7 +107,7 @@ class _MyAccountState extends State<MyAccount> {
                             content: Text('جار التحميل'),
                             duration: Duration(minutes: 2),
                           ));
-                          await FirebaseFunctions.instance
+                          await firebaseFunctions
                               .httpsCallable('deleteImage')
                               .call();
                           user.reloadImage();
@@ -333,7 +333,7 @@ class _MyAccountState extends State<MyAccount> {
           },
         ) ==
         true) {
-      await FirebaseFunctions.instance
+      await firebaseFunctions
           .httpsCallable('changeUserName')
           .call({'newName': name.text, 'affectedUser': uid});
       if (mounted) setState(() {});
@@ -418,9 +418,7 @@ class _MyAccountState extends State<MyAccount> {
       User user = User.instance;
       if (user.password == Encryption.encryptPassword(textFields[0].text)) {
         try {
-          await FirebaseFunctions.instance
-              .httpsCallable('changePassword')
-              .call({
+          await firebaseFunctions.httpsCallable('changePassword').call({
             'oldPassword': textFields[0].text,
             'newPassword': Encryption.encryptPassword(textFields[1].text)
           });

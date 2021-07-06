@@ -11,6 +11,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -297,8 +298,7 @@ class _EditStreetState extends State<EditStreet> {
         street.lastEdit = User.instance.uid!;
 
         bool update = street.id != 'null';
-        if (!update)
-          street.ref = FirebaseFirestore.instance.collection('Streets').doc();
+        if (!update) street.ref = firestore.collection('Streets').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=
@@ -356,8 +356,7 @@ class _EditStreetState extends State<EditStreet> {
           tap: (value) {
             navigator.currentState!.pop();
             setState(() {
-              street.areaId =
-                  FirebaseFirestore.instance.collection('Areas').doc(value.id);
+              street.areaId = firestore.collection('Areas').doc(value.id);
             });
             FocusScope.of(context).nextFocus();
           },

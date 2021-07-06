@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -14,8 +15,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide User;
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
@@ -434,7 +434,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
         true) return;
     await family.ref.update({
       'LastVisit': Timestamp.now(),
-      'LastEdit': FirebaseAuth.instance.currentUser!.uid
+      'LastEdit': firebaseAuth.currentUser!.uid
     });
     scaffoldMessenger.currentState!.showSnackBar(SnackBar(
       content: Text('تم بنجاح'),

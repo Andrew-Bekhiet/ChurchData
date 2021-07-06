@@ -9,6 +9,7 @@ import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_model_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -664,10 +665,7 @@ class _SearchQueryState extends State<SearchQuery> {
         ),
         StreamBuilder<JsonQuery>(
           //12
-          stream: FirebaseFirestore.instance
-              .collection('States')
-              .orderBy('Name')
-              .snapshots(),
+          stream: firestore.collection('States').orderBy('Name').snapshots(),
           builder: (context, data) {
             if (data.hasData) {
               return DropdownButtonFormField<JsonRef?>(
@@ -719,7 +717,7 @@ class _SearchQueryState extends State<SearchQuery> {
         ),
         StreamBuilder<JsonQuery>(
             //13
-            stream: FirebaseFirestore.instance
+            stream: firestore
                 .collection('ServingTypes')
                 .orderBy('Name')
                 .snapshots(),
@@ -783,10 +781,8 @@ class _SearchQueryState extends State<SearchQuery> {
             }),
         StreamBuilder<JsonQuery>(
             //15
-            stream: FirebaseFirestore.instance
-                .collection('Colleges')
-                .orderBy('Name')
-                .snapshots(),
+            stream:
+                firestore.collection('Colleges').orderBy('Name').snapshots(),
             builder: (context, data) {
               if (data.hasData) {
                 return DropdownButtonFormField<JsonRef?>(
@@ -948,16 +944,16 @@ class _SearchQueryState extends State<SearchQuery> {
 
     bool isAdmin = User.instance.superAccess;
 
-    Query<Json> areas = FirebaseFirestore.instance.collection('Areas');
-    Query<Json> streets = FirebaseFirestore.instance.collection('Streets');
-    Query<Json> families = FirebaseFirestore.instance.collection('Families');
-    Query<Json> persons = FirebaseFirestore.instance.collection('Persons');
+    Query<Json> areas = firestore.collection('Areas');
+    Query<Json> streets = firestore.collection('Streets');
+    Query<Json> families = firestore.collection('Families');
+    Query<Json> persons = firestore.collection('Persons');
 
     if (!isAdmin) {
       areas = areas.where('Allowed', arrayContains: userId);
       streets = streets.where(
         'AreaId',
-        whereIn: (await FirebaseFirestore.instance
+        whereIn: (await firestore
                 .collection('Areas')
                 .where('Allowed', arrayContains: userId)
                 .get())
@@ -967,7 +963,7 @@ class _SearchQueryState extends State<SearchQuery> {
       );
       families = families.where(
         'AreaId',
-        whereIn: (await FirebaseFirestore.instance
+        whereIn: (await firestore
                 .collection('Areas')
                 .where('Allowed', arrayContains: userId)
                 .get())
@@ -977,7 +973,7 @@ class _SearchQueryState extends State<SearchQuery> {
       );
       persons = persons.where(
         'AreaId',
-        whereIn: (await FirebaseFirestore.instance
+        whereIn: (await firestore
                 .collection('Areas')
                 .where('Allowed', arrayContains: userId)
                 .get())
@@ -1421,7 +1417,7 @@ class _SearchQueryState extends State<SearchQuery> {
       birthDate = widget.query!['birthDate'] == 'true';
       queryValue = widget.query!['queryValue'] != null
           ? widget.query!['queryValue'].toString().startsWith('D')
-              ? FirebaseFirestore.instance.doc(
+              ? firestore.doc(
                   widget.query!['queryValue'].toString().substring(1),
                 )
               : widget.query!['queryValue'].toString().startsWith('T')
@@ -1466,8 +1462,7 @@ class _SearchQueryState extends State<SearchQuery> {
     final listOptions = DataObjectListController<Area>(
       tap: (areaSelected) {
         navigator.currentState!.pop();
-        queryValue =
-            FirebaseFirestore.instance.collection('Areas').doc(areaSelected.id);
+        queryValue = firestore.collection('Areas').doc(areaSelected.id);
         queryText = areaSelected.name;
       },
       itemsStream: _orderOptions
@@ -1531,9 +1526,7 @@ class _SearchQueryState extends State<SearchQuery> {
       tap: (familySelected) {
         navigator.currentState!.pop();
         setState(() {
-          queryValue = FirebaseFirestore.instance
-              .collection('Families')
-              .doc(familySelected.id);
+          queryValue = firestore.collection('Families').doc(familySelected.id);
           queryText = familySelected.name;
         });
       },
@@ -1588,9 +1581,8 @@ class _SearchQueryState extends State<SearchQuery> {
           tap: (streetSelected) {
             navigator.currentState!.pop();
             setState(() {
-              queryValue = FirebaseFirestore.instance
-                  .collection('Streets')
-                  .doc(streetSelected.id);
+              queryValue =
+                  firestore.collection('Streets').doc(streetSelected.id);
               queryText = streetSelected.name;
             });
           },
@@ -1637,7 +1629,7 @@ class _SearchQueryState extends State<SearchQuery> {
         return DataDialog(
           content: MiniModelList<PersonType>(
             title: 'أنواع الأشخاص',
-            collection: FirebaseFirestore.instance.collection('Types'),
+            collection: firestore.collection('Types'),
             modify: (type) {
               navigator.currentState!.pop();
               setState(() {

@@ -3,6 +3,7 @@ import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -24,7 +25,7 @@ class Trash extends StatelessWidget {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
           },
-          itemsStream: FirebaseFirestore.instance
+          itemsStream: firestore
               .collection('Deleted')
               .orderBy('Time', descending: true)
               .snapshots()
@@ -236,7 +237,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Streets').snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Areas')
                   .where('Allowed', arrayContains: User.instance.uid)
                   .snapshots()
@@ -256,7 +257,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Families').snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Areas')
                   .where('Allowed', arrayContains: User.instance.uid)
                   .snapshots()
@@ -276,7 +277,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
       searchQuery: _searchQuery,
       itemsStream: (User.instance.superAccess
               ? widget.day.ref.collection('Persons').snapshots()
-              : FirebaseFirestore.instance
+              : firestore
                   .collection('Areas')
                   .where('Allowed', arrayContains: User.instance.uid)
                   .snapshots()

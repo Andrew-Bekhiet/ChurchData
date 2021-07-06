@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
@@ -45,12 +46,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
     Color color = Colors.transparent,
     List<GeoPoint>? locationPoints,
   })  : locationPoints = locationPoints ?? [],
-        super(
-            ref ??
-                FirebaseFirestore.instance
-                    .collection('Areas')
-                    .doc(id ?? 'null'),
-            name,
+        super(ref ?? firestore.collection('Areas').doc(id ?? 'null'), name,
             color) {
     this.hasPhoto = hasPhoto;
     defaultIcon = Icons.pin_drop;
@@ -75,14 +71,13 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   }
 
   @override
-  Reference get photoRef =>
-      FirebaseStorage.instance.ref().child('AreasPhotos/$id');
+  Reference get photoRef => firebaseStorage.ref().child('AreasPhotos/$id');
 
   @override
   Future<List<Street>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return Street.getAll((await FirebaseFirestore.instance
+      return Street.getAll((await firestore
                   .collection('Streets')
                   .where('AreaId', isEqualTo: ref)
                   .orderBy(orderBy)
@@ -91,7 +86,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
               .docs)
           .cast<Street>();
     }
-    return Street.getAll((await FirebaseFirestore.instance
+    return Street.getAll((await firestore
                 .collection('Streets')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
@@ -103,7 +98,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   Future<List<Family>> getFamilyMembersList(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return Family.getAll((await FirebaseFirestore.instance
+      return Family.getAll((await firestore
                   .collection('Families')
                   .where('AreaId', isEqualTo: ref)
                   .limit(5)
@@ -112,7 +107,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
               .docs)
           .cast<Family>();
     }
-    return Family.getAll((await FirebaseFirestore.instance
+    return Family.getAll((await firestore
                 .collection('Families')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
@@ -192,7 +187,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   Future<List<Person>> getPersonMembersList(
       [String orderBy = 'Name', bool tranucate = false]) async {
     if (tranucate) {
-      return Person.getAll((await FirebaseFirestore.instance
+      return Person.getAll((await firestore
                   .collection('Persons')
                   .where('AreaId', isEqualTo: ref)
                   .limit(5)
@@ -201,7 +196,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
               .docs)
           .cast<Person>();
     }
-    return Person.getAll((await FirebaseFirestore.instance
+    return Person.getAll((await firestore
                 .collection('Persons')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
@@ -220,17 +215,14 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
         allowedUsers
             .take(5)
             .map(
-              (item) =>
-                  FirebaseFirestore.instance.doc('Users/$item').get(dataSource),
+              (item) => firestore.doc('Users/$item').get(dataSource),
             )
             .toList(),
       ))
           .map((e) => e.data()?['Name'])
           .join(',');
     } else if (key == 'LastEdit') {
-      return (await FirebaseFirestore.instance
-              .doc('Users/$lastEdit')
-              .get(dataSource))
+      return (await firestore.doc('Users/$lastEdit').get(dataSource))
           .data()?['Name'];
     }
     return getHumanReadableMap()[key];
@@ -256,7 +248,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   static Area fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
   static Future<Area?> fromId(String id) async => Area.fromDoc(
-        await FirebaseFirestore.instance.doc('Areas/$id').get(),
+        await firestore.doc('Areas/$id').get(),
       );
 
   static List<Area?> getAll(List<JsonDoc> areas) {
@@ -282,16 +274,16 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   }) {
     return User.instance.stream.switchMap((u) => uid == null
         ? u.superAccess
-            ? FirebaseFirestore.instance
+            ? firestore
                 .collection('Areas')
                 .orderBy(orderBy, descending: descending)
                 .snapshots()
-            : FirebaseFirestore.instance
+            : firestore
                 .collection('Areas')
                 .where('Allowed', arrayContains: uid ?? u.uid)
                 .orderBy(orderBy, descending: descending)
                 .snapshots()
-        : FirebaseFirestore.instance
+        : firestore
             .collection('Areas')
             .where('Allowed', arrayContains: uid)
             .orderBy(orderBy, descending: descending)
@@ -300,11 +292,11 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
 
   static Stream<JsonQuery> getAreaChildrenLive(String id,
       [String orderBy = 'Name', bool descending = false]) {
-    return FirebaseFirestore.instance
+    return firestore
         .collection('Streets')
         .where(
           'AreaId',
-          isEqualTo: FirebaseFirestore.instance.collection('Areas').doc(id),
+          isEqualTo: firestore.collection('Areas').doc(id),
         )
         .orderBy(orderBy, descending: descending)
         .snapshots();

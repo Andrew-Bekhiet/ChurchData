@@ -2,8 +2,8 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
@@ -116,7 +116,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       await person.ref.update({
         'LastConfession': person.lastConfession,
         'LastTanawol': person.lastTanawol,
-        'LastEdit': FirebaseAuth.instance.currentUser!.uid
+        'LastEdit': firebaseAuth.currentUser!.uid
       });
       navigator.currentState!.pop();
     } catch (err, stkTrace) {

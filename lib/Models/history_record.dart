@@ -1,5 +1,6 @@
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
@@ -58,7 +59,7 @@ class HistoryRecord {
         (a, b) => Tuple2<User, List<Area>>(a, b)).switchMap((value) {
       if (range != null && areas != null) {
         return Rx.combineLatestList<JsonQuery>(areas
-                .map((a) => FirebaseFirestore.instance
+                .map((a) => firestore
                     .collectionGroup(collectionGroup)
                     .where('AreaId', isEqualTo: a.ref)
                     .where(
@@ -75,7 +76,7 @@ class HistoryRecord {
             .map((s) => s.expand((n) => n.docs).toList());
       } else if (range != null) {
         if (value.item1.superAccess) {
-          return FirebaseFirestore.instance
+          return firestore
               .collectionGroup(collectionGroup)
               .where(
                 'Time',
@@ -90,7 +91,7 @@ class HistoryRecord {
               .map((s) => s.docs);
         } else {
           return Rx.combineLatestList<JsonQuery>(value.item2
-                  .map((a) => FirebaseFirestore.instance
+                  .map((a) => firestore
                       .collectionGroup(collectionGroup)
                       .where('AreaId', isEqualTo: a.ref)
                       .where(
@@ -108,7 +109,7 @@ class HistoryRecord {
         }
       } else if (areas != null) {
         return Rx.combineLatestList<JsonQuery>(areas
-                .map((a) => FirebaseFirestore.instance
+                .map((a) => firestore
                     .collectionGroup(collectionGroup)
                     .where('AreaId', isEqualTo: a.ref)
                     .orderBy('Time', descending: true)
@@ -116,7 +117,7 @@ class HistoryRecord {
                 .toList())
             .map((s) => s.expand((n) => n.docs).toList());
       }
-      return FirebaseFirestore.instance
+      return firestore
           .collectionGroup(collectionGroup)
           .orderBy('Time', descending: true)
           .snapshots()

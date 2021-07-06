@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
@@ -7,7 +8,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
@@ -112,7 +113,7 @@ class _UserInfoState extends State<UserInfo> {
             ListTile(
               title: Text('أخر ظهور على البرنامج:'),
               subtitle: StreamBuilder<Event>(
-                stream: FirebaseDatabase.instance
+                stream: firebaseDatabase
                     .reference()
                     .child('Users/${user.uid}/lastSeen')
                     .onValue,
@@ -243,7 +244,7 @@ class _UserInfoState extends State<UserInfo> {
                         trailing: trailing,
                         showSubtitle: false,
                       ),
-                      itemsStream: FirebaseFirestore.instance
+                      itemsStream: firestore
                           .collection('Users')
                           .where('allowedUsers', arrayContains: user.uid)
                           .snapshots()

@@ -16,12 +16,11 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -376,8 +375,7 @@ class _EditPersonState extends State<EditPerson> {
                                       cache['StudyYear']!.invalidate();
                                       setState(() {});
                                       person.studyYear = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
+                                          ? firestore.doc(value)
                                           : null;
                                       FocusScope.of(context).nextFocus();
                                     },
@@ -447,8 +445,7 @@ class _EditPersonState extends State<EditPerson> {
                                                 ),
                                           onChanged: (value) {
                                             person.college = value != null
-                                                ? FirebaseFirestore.instance
-                                                    .doc(value)
+                                                ? firestore.doc(value)
                                                 : null;
                                             FocusScope.of(context).nextFocus();
                                           },
@@ -510,8 +507,7 @@ class _EditPersonState extends State<EditPerson> {
                                           ),
                                     onChanged: (value) {
                                       person.job = value != null
-                                          ? FirebaseFirestore.instance
-                                              .doc(value)
+                                          ? firestore.doc(value)
                                           : null;
                                       FocusScope.of(context).nextFocus();
                                     },
@@ -650,7 +646,7 @@ class _EditPersonState extends State<EditPerson> {
                                         ),
                                   onChanged: (value) {
                                     person.church = value != null
-                                        ? FirebaseFirestore.instance.doc(value)
+                                        ? firestore.doc(value)
                                         : null;
                                     FocusScope.of(context).nextFocus();
                                   },
@@ -720,7 +716,7 @@ class _EditPersonState extends State<EditPerson> {
                                       ),
                                 onChanged: (value) {
                                   person.cFather = value != null
-                                      ? FirebaseFirestore.instance.doc(value)
+                                      ? firestore.doc(value)
                                       : null;
                                   FocusScope.of(context).nextFocus();
                                 },
@@ -826,7 +822,7 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!widget.userData)
                     StreamBuilder<JsonQuery>(
-                      stream: FirebaseFirestore.instance
+                      stream: firestore
                           .collection('States')
                           .orderBy('Name')
                           .snapshots(),
@@ -865,9 +861,8 @@ class _EditPersonState extends State<EditPerson> {
                                     ),
                                   ),
                             onChanged: (value) {
-                              person.state = value != null
-                                  ? FirebaseFirestore.instance.doc(value)
-                                  : null;
+                              person.state =
+                                  value != null ? firestore.doc(value) : null;
                               FocusScope.of(context).nextFocus();
                             },
                             decoration: InputDecoration(
@@ -1203,11 +1198,10 @@ class _EditPersonState extends State<EditPerson> {
           return _saveUserData();
         }
         bool update = person.id != 'null';
-        if (!update)
-          person.ref = FirebaseFirestore.instance.collection('Persons').doc();
+        if (!update) person.ref = firestore.collection('Persons').doc();
 
         if (changedImage != null) {
-          await FirebaseStorage.instance
+          await firebaseStorage
               .ref()
               .child('PersonsPhotos/${person.id}')
               .putFile(
@@ -1215,7 +1209,7 @@ class _EditPersonState extends State<EditPerson> {
               );
           person.hasPhoto = true;
         } else if (deletePhoto) {
-          await FirebaseStorage.instance
+          await firebaseStorage
               .ref()
               .child('PersonsPhotos/${person.id}')
               .delete();
@@ -1270,23 +1264,20 @@ class _EditPersonState extends State<EditPerson> {
   Future _saveUserData() async {
     try {
       if (person.id == '') {
-        person.ref = FirebaseFirestore.instance.collection('Persons').doc();
+        person.ref = firestore.collection('Persons').doc();
       }
       if (changedImage != null) {
-        await FirebaseStorage.instance
-            .ref()
-            .child('PersonsPhotos/${person.id}')
-            .putFile(
+        await firebaseStorage.ref().child('PersonsPhotos/${person.id}').putFile(
               File(changedImage!),
             );
         person.hasPhoto = true;
       } else if (deletePhoto) {
-        await FirebaseStorage.instance
+        await firebaseStorage
             .ref()
             .child('PersonsPhotos/${person.id}')
             .delete();
       }
-      await FirebaseFunctions.instance.httpsCallable('registerUserData').call({
+      await firebaseFunctions.httpsCallable('registerUserData').call({
         'data': person.getUserRegisterationMap(),
       });
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -1316,8 +1307,7 @@ class _EditPersonState extends State<EditPerson> {
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
-          person.servingAreaId =
-              FirebaseFirestore.instance.collection('Areas').doc(value.id);
+          person.servingAreaId = firestore.collection('Areas').doc(value.id);
         });
         FocusScope.of(context).nextFocus();
       },
@@ -1398,8 +1388,7 @@ class _EditPersonState extends State<EditPerson> {
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
-          person.familyId =
-              FirebaseFirestore.instance.collection('Families').doc(value.id);
+          person.familyId = firestore.collection('Families').doc(value.id);
         });
         FocusScope.of(context).nextFocus();
       },
@@ -1461,7 +1450,7 @@ class _EditPersonState extends State<EditPerson> {
         builder: (context) {
           return MiniModelList<PersonType>(
             title: 'أنواع الأشخاص',
-            collection: FirebaseFirestore.instance.collection('Types'),
+            collection: firestore.collection('Types'),
             modify: (type) {
               navigator.currentState!.pop();
               cache['PersonStringType']!.invalidate();

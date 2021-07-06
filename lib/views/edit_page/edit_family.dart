@@ -10,6 +10,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -456,8 +457,7 @@ class _EditFamilyState extends State<EditFamily> {
         family.lastEdit = User.instance.uid!;
 
         bool update = family.id != 'null';
-        if (!update)
-          family.ref = FirebaseFirestore.instance.collection('Families').doc();
+        if (!update) family.ref = firestore.collection('Families').doc();
 
         if (update &&
             await Connectivity().checkConnectivity() !=
@@ -543,8 +543,7 @@ class _EditFamilyState extends State<EditFamily> {
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
-          family.insideFamily =
-              FirebaseFirestore.instance.collection('Families').doc(value.id);
+          family.insideFamily = firestore.collection('Families').doc(value.id);
         });
         FocusScope.of(context).nextFocus();
       },
@@ -606,8 +605,7 @@ class _EditFamilyState extends State<EditFamily> {
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
-          family.insideFamily2 =
-              FirebaseFirestore.instance.collection('Families').doc(value.id);
+          family.insideFamily2 = firestore.collection('Families').doc(value.id);
         });
         FocusScope.of(context).nextFocus();
       },
@@ -669,8 +667,7 @@ class _EditFamilyState extends State<EditFamily> {
       tap: (value) {
         navigator.currentState!.pop();
         setState(() {
-          family.streetId =
-              FirebaseFirestore.instance.collection('Streets').doc(value.id);
+          family.streetId = firestore.collection('Streets').doc(value.id);
         });
         FocusScope.of(context).nextFocus();
       },
