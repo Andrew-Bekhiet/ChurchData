@@ -135,10 +135,10 @@ void main() async {
       'Blocks running when LoadApp is false',
       (tester) async {
         when(remoteConfig.getString('LoadApp')).thenReturn('false');
+        when(remoteConfig.getString('LatestVersion')).thenReturn('9.0.0');
 
         await tester.pumpWidget(App());
 
-        await tester.pumpAndSettle();
         await tester.pumpAndSettle();
 
         expect(find.text('تحديث'), findsOneWidget);
