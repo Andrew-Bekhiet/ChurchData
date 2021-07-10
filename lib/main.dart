@@ -434,9 +434,10 @@ class AppState extends State<App> {
             showVersionInfo: true,
           );
 
-        if (snapshot.hasError && User.instance.password != null) {
+        if (snapshot.hasError) {
           if (snapshot.error.toString() ==
-              'Exception: Error Update User Data') {
+                  'Exception: Error Update User Data' &&
+              User.instance.password != null) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
@@ -444,11 +445,14 @@ class AppState extends State<App> {
               'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
             Updates.showUpdateDialog(context, canCancel: false);
           }
-          return Loading(
-            error: true,
-            message: snapshot.error.toString(),
-            showVersionInfo: true,
-          );
+          if (snapshot.error.toString() !=
+                  'Exception: Error Update User Data' ||
+              User.instance.password != null)
+            return Loading(
+              error: true,
+              message: snapshot.error.toString(),
+              showVersionInfo: true,
+            );
         }
 
         return StreamBuilder<User>(
@@ -572,7 +576,7 @@ class AppState extends State<App> {
         minimumFetchInterval: const Duration(minutes: 2)));
     await remoteConfig.fetchAndActivate();
 
-    if (remoteConfig.getString('LoadApp') != 'false') {
+    if (remoteConfig.getString('LoadApp') == 'false') {
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
       if (User.instance.uid != null) {
