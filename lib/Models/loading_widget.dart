@@ -1,4 +1,5 @@
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/views/updates.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -52,6 +53,9 @@ class Loading extends StatelessWidget {
                       onPressed: () {
                         if (message != 'Exception: Error Update User Data')
                           showErrorDialog(context, message);
+                        else if (message !=
+                            'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
+                          Updates.showUpdateDialog(context, canCancel: false);
                         else
                           showErrorUpdateDataDialog(context: context);
                       },
