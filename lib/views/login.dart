@@ -23,10 +23,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final btnShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(10),
-  );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,12 +51,15 @@ class _LoginScreenState extends State<LoginScreen> {
               children: <Widget>[
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      primary: Colors.white,
-                      shape: btnShape),
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    primary: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   onPressed: () async {
                     GoogleSignInAccount? googleUser =
-                        await GoogleSignIn().signIn();
+                        await googleSignIn.signIn();
                     if (googleUser != null) {
                       GoogleSignInAuthentication googleAuth =
                           await googleUser.authentication;

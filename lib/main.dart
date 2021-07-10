@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/models/data_map.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:churchdata/typedefs.dart';
@@ -23,7 +24,6 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
@@ -36,6 +36,7 @@ import 'package:firebase_messaging/firebase_messaging.dart'
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -91,100 +92,17 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await _initConfigs();
+  await initConfigs();
 
-  final User user = User.instance;
-
-  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
-  bool greatFeastTheme =
-      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-  MaterialColor color = Colors.cyan;
-  Color accent = Colors.cyanAccent;
-
-  final riseDay = getRiseDay();
-  if (greatFeastTheme &&
-      DateTime.now()
-          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
-    color = black;
-    accent = blackAccent;
-    darkTheme = true;
-  } else if (greatFeastTheme &&
-      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
-    darkTheme = false;
-  }
-
-  runApp(
-    MultiProvider(
-      providers: [
-        StreamProvider<User>.value(initialData: user, value: user.stream),
-        Provider<ThemeNotifier>(
-          create: (_) => ThemeNotifier(
-            ThemeData(
-              colorScheme: ColorScheme.fromSwatch(
-                primarySwatch: color,
-                brightness: darkTheme != null
-                    ? (darkTheme ? Brightness.dark : Brightness.light)
-                    : WidgetsBinding.instance!.window.platformBrightness,
-                accentColor: accent,
-              ),
-              accentColor: accent,
-              inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15),
-                  borderSide: BorderSide(color: color),
-                ),
-              ),
-              floatingActionButtonTheme:
-                  FloatingActionButtonThemeData(backgroundColor: color),
-              visualDensity: VisualDensity.adaptivePlatformDensity,
-              brightness: darkTheme != null
-                  ? (darkTheme ? Brightness.dark : Brightness.light)
-                  : WidgetsBinding.instance!.window.platformBrightness,
-              primaryColor: color,
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  primary: accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              outlinedButtonTheme: OutlinedButtonThemeData(
-                style: OutlinedButton.styleFrom(
-                  primary: accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  primary: accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              bottomAppBarTheme: BottomAppBarTheme(
-                color: accent,
-                shape: const CircularNotchedRectangle(),
-              ),
-            ),
-          ),
-        ),
-      ],
-      builder: (context, _) => App(),
-    ),
-  );
+  runApp(App());
 }
 
 final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
 final bool kUseFirebaseEmulators =
     dotenv.env['kUseFirebaseEmulators']?.toString() == 'true';
 
-Future _initConfigs() async {
+@visibleForTesting
+Future<void> initConfigs() async {
   //dot env
   await dotenv.load(fileName: '.env');
 
@@ -205,8 +123,7 @@ Future _initConfigs() async {
   } else
     await Firebase.initializeApp();
 
-  if (auth.FirebaseAuth.instance.currentUser?.uid != null)
-    await User.instance.initialized;
+  if (firebaseAuth.currentUser?.uid != null) await User.instance.initialized;
 
   //Hive initialization:
   await Hive.initFlutter();
@@ -224,6 +141,81 @@ Future _initConfigs() async {
       InitializationSettings(android: AndroidInitializationSettings('warning')),
       onSelectNotification: onNotificationClicked,
     );
+}
+
+@visibleForTesting
+ThemeData initTheme() {
+  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
+  bool greatFeastTheme =
+      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
+  MaterialColor color = Colors.cyan;
+  Color accent = Colors.cyanAccent;
+
+  final riseDay = getRiseDay();
+  if (greatFeastTheme &&
+      DateTime.now()
+          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+    color = black;
+    accent = blackAccent;
+    darkTheme = true;
+  } else if (greatFeastTheme &&
+      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+    darkTheme = false;
+  }
+
+  return ThemeData(
+    colorScheme: ColorScheme.fromSwatch(
+      primarySwatch: color,
+      brightness: darkTheme != null
+          ? (darkTheme ? Brightness.dark : Brightness.light)
+          : WidgetsBinding.instance!.window.platformBrightness,
+      accentColor: accent,
+    ),
+    accentColor: accent,
+    inputDecorationTheme: InputDecorationTheme(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: color),
+      ),
+    ),
+    floatingActionButtonTheme:
+        FloatingActionButtonThemeData(backgroundColor: color),
+    visualDensity: VisualDensity.adaptivePlatformDensity,
+    brightness: darkTheme != null
+        ? (darkTheme ? Brightness.dark : Brightness.light)
+        : WidgetsBinding.instance!.window.platformBrightness,
+    primaryColor: color,
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        primary: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    ),
+    bottomAppBarTheme: BottomAppBarTheme(
+      color: accent,
+      shape: const CircularNotchedRectangle(),
+    ),
+  );
 }
 
 class App extends StatefulWidget {
@@ -248,176 +240,187 @@ class AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return FeatureDiscovery.withProvider(
-      persistenceProvider: HivePersistenceProvider(),
-      child: StreamBuilder<ThemeData>(
-        initialData: context.read<ThemeNotifier>().theme,
-        stream: context.read<ThemeNotifier>().stream,
-        builder: (context, theme) {
-          return MaterialApp(
-            navigatorKey: navigator,
-            scaffoldMessengerKey: scaffoldMessenger,
-            debugShowCheckedModeBanner: false,
-            title: 'بيانات الكنيسة',
-            initialRoute: '/',
-            routes: {
-              '/': buildLoadAppWidget,
-              'Login': (context) => LoginScreen(),
-              'Data/EditArea': (context) => EditArea(
-                  area: ModalRoute.of(context)?.settings.arguments as Area? ??
-                      Area.empty()),
-              'Data/EditStreet': (context) {
-                if (ModalRoute.of(context)!.settings.arguments is Street)
-                  return EditStreet(
-                      street: ModalRoute.of(context)!.settings.arguments!
-                          as Street);
-                else {
-                  Street street = Street.empty()
-                    ..areaId =
-                        ModalRoute.of(context)!.settings.arguments as JsonRef?;
-                  return EditStreet(street: street);
-                }
+    return MultiProvider(
+      providers: [
+        StreamProvider<User>.value(
+            initialData: User.instance, value: User.instance.stream),
+        Provider<ThemeNotifier>(
+          create: (_) => ThemeNotifier(initTheme()),
+          dispose: (_, t) => t.dispose(),
+        ),
+      ],
+      builder: (context, _) => FeatureDiscovery.withProvider(
+        persistenceProvider: HivePersistenceProvider(),
+        child: StreamBuilder<ThemeData>(
+          initialData: context.read<ThemeNotifier>().theme,
+          stream: context.read<ThemeNotifier>().stream,
+          builder: (context, theme) {
+            return MaterialApp(
+              navigatorKey: navigator,
+              scaffoldMessengerKey: scaffoldMessenger,
+              debugShowCheckedModeBanner: false,
+              title: 'بيانات الكنيسة',
+              initialRoute: '/',
+              routes: {
+                '/': buildLoadAppWidget,
+                'Login': (context) => LoginScreen(),
+                'Data/EditArea': (context) => EditArea(
+                    area: ModalRoute.of(context)?.settings.arguments as Area? ??
+                        Area.empty()),
+                'Data/EditStreet': (context) {
+                  if (ModalRoute.of(context)!.settings.arguments is Street)
+                    return EditStreet(
+                        street: ModalRoute.of(context)!.settings.arguments!
+                            as Street);
+                  else {
+                    Street street = Street.empty()
+                      ..areaId = ModalRoute.of(context)!.settings.arguments
+                          as JsonRef?;
+                    return EditStreet(street: street);
+                  }
+                },
+                'Data/EditFamily': (context) {
+                  if (ModalRoute.of(context)!.settings.arguments is Family)
+                    return EditFamily(
+                        family: ModalRoute.of(context)!.settings.arguments!
+                            as Family);
+                  else if (ModalRoute.of(context)!.settings.arguments is Json) {
+                    Family family = Family.empty()
+                      ..streetId = (ModalRoute.of(context)!.settings.arguments
+                          as Json?)?['StreetId']
+                      ..insideFamily = (ModalRoute.of(context)!
+                          .settings
+                          .arguments as Json?)?['Family']
+                      ..isStore = (ModalRoute.of(context)!.settings.arguments
+                          as Json?)?['IsStore'];
+                    return EditFamily(family: family);
+                  } else {
+                    Family family = Family.empty()
+                      ..streetId = ModalRoute.of(context)!.settings.arguments
+                          as JsonRef?;
+                    return EditFamily(family: family);
+                  }
+                },
+                'Data/EditPerson': (context) {
+                  if (ModalRoute.of(context)!.settings.arguments is Person)
+                    return EditPerson(
+                        person: ModalRoute.of(context)!.settings.arguments!
+                            as Person);
+                  else {
+                    Person person = Person()
+                      ..familyId = ModalRoute.of(context)!.settings.arguments
+                          as JsonRef?;
+                    return EditPerson(person: person);
+                  }
+                },
+                'EditInvitation': (context) => EditInvitation(
+                    invitation: ModalRoute.of(context)!.settings.arguments
+                            as Invitation? ??
+                        Invitation.empty()),
+                'MyAccount': (context) => MyAccount(),
+                'ActivityAnalysis': (context) => ActivityAnalysis(
+                      areas: ModalRoute.of(context)!.settings.arguments
+                          as List<Area>?,
+                    ),
+                'SpiritualAnalysis': (context) => SpiritualAnalysis(
+                      areas: ModalRoute.of(context)!.settings.arguments
+                          as List<Area>?,
+                    ),
+                'Notifications': (context) => NotificationsPage(),
+                'Update': (context) => Update(),
+                'Search': (context) => SearchQuery(),
+                'Trash': (context) => Trash(),
+                'DataMap': (context) => DataMap(),
+                'AreaInfo': (context) => AreaInfo(
+                    area: ModalRoute.of(context)!.settings.arguments as Area? ??
+                        Area.empty()),
+                'StreetInfo': (context) => StreetInfo(
+                    street:
+                        ModalRoute.of(context)!.settings.arguments as Street? ??
+                            Street.empty()),
+                'FamilyInfo': (context) => FamilyInfo(
+                    family:
+                        ModalRoute.of(context)!.settings.arguments as Family? ??
+                            Family.empty()),
+                'PersonInfo': (context) => PersonInfo(
+                    person:
+                        ModalRoute.of(context)!.settings.arguments as Person? ??
+                            Person()),
+                'UserInfo': (context) => UserInfo(
+                    user: ModalRoute.of(context)!.settings.arguments! as User),
+                'InvitationInfo': (context) => InvitationInfo(
+                    invitation: ModalRoute.of(context)!.settings.arguments!
+                        as Invitation),
+                'Settings': (context) => settingsui.Settings(),
+                'Settings/Churches': (context) => ChurchesPage(),
+                'Settings/Fathers': (context) => FathersPage(),
+                'Settings/Jobs': (context) => MiniModelList(
+                      collection: firestore.FirebaseFirestore.instance
+                          .collection('Jobs'),
+                      title: 'الوظائف',
+                      transformer: Job.fromQueryDoc,
+                    ),
+                'Settings/StudyYears': (context) => MiniModelList(
+                      collection: firestore.FirebaseFirestore.instance
+                          .collection('StudyYears'),
+                      title: 'السنوات الدراسية',
+                      transformer: StudyYear.fromQueryQueryDoc,
+                    ),
+                'Settings/Colleges': (context) => MiniModelList(
+                      collection: firestore.FirebaseFirestore.instance
+                          .collection('Colleges'),
+                      title: 'الكليات',
+                      transformer: College.fromQueryDoc,
+                    ),
+                'Settings/ServingTypes': (context) => MiniModelList(
+                      collection: firestore.FirebaseFirestore.instance
+                          .collection('ServingTypes'),
+                      title: 'أنواع الخدمات',
+                      transformer: ServingType.fromQueryDoc,
+                    ),
+                'Settings/PersonTypes': (context) => MiniModelList(
+                      collection: firestore.FirebaseFirestore.instance
+                          .collection('Types'),
+                      title: 'أنواع الأشخاص',
+                      transformer: PersonType.fromQueryDoc,
+                    ),
+                'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
+                    person:
+                        ModalRoute.of(context)!.settings.arguments! as Person),
+                'Invitations': (context) => InvitationsPage(),
+                'EditUserData': (context) => FutureBuilder<Person?>(
+                      future: User.getCurrentPerson(),
+                      builder: (context, data) {
+                        if (data.hasError)
+                          return Center(child: ErrorWidget(data.error!));
+                        if (!data.hasData)
+                          return Scaffold(
+                            resizeToAvoidBottomInset: !kIsWeb,
+                            body: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        return EditPerson(person: data.data!, userData: true);
+                      },
+                    ),
               },
-              'Data/EditFamily': (context) {
-                if (ModalRoute.of(context)!.settings.arguments is Family)
-                  return EditFamily(
-                      family: ModalRoute.of(context)!.settings.arguments!
-                          as Family);
-                else if (ModalRoute.of(context)!.settings.arguments is Json) {
-                  Family family = Family.empty()
-                    ..streetId = (ModalRoute.of(context)!.settings.arguments
-                        as Json?)?['StreetId']
-                    ..insideFamily = (ModalRoute.of(context)!.settings.arguments
-                        as Json?)?['Family']
-                    ..isStore = (ModalRoute.of(context)!.settings.arguments
-                        as Json?)?['IsStore'];
-                  return EditFamily(family: family);
-                } else {
-                  Family family = Family.empty()
-                    ..streetId =
-                        ModalRoute.of(context)!.settings.arguments as JsonRef?;
-                  return EditFamily(family: family);
-                }
-              },
-              'Data/EditPerson': (context) {
-                if (ModalRoute.of(context)!.settings.arguments is Person)
-                  return EditPerson(
-                      person: ModalRoute.of(context)!.settings.arguments!
-                          as Person);
-                else {
-                  Person person = Person()
-                    ..familyId =
-                        ModalRoute.of(context)!.settings.arguments as JsonRef?;
-                  return EditPerson(person: person);
-                }
-              },
-              'EditInvitation': (context) => EditInvitation(
-                  invitation: ModalRoute.of(context)!.settings.arguments
-                          as Invitation? ??
-                      Invitation.empty()),
-              'MyAccount': (context) => MyAccount(),
-              'ActivityAnalysis': (context) => ActivityAnalysis(
-                    areas: ModalRoute.of(context)!.settings.arguments
-                        as List<Area>?,
-                  ),
-              'SpiritualAnalysis': (context) => SpiritualAnalysis(
-                    areas: ModalRoute.of(context)!.settings.arguments
-                        as List<Area>?,
-                  ),
-              'Notifications': (context) => NotificationsPage(),
-              'Update': (context) => Update(),
-              'Search': (context) => SearchQuery(),
-              'Trash': (context) => Trash(),
-              'DataMap': (context) => DataMap(),
-              'AreaInfo': (context) => AreaInfo(
-                  area: ModalRoute.of(context)!.settings.arguments as Area? ??
-                      Area.empty()),
-              'StreetInfo': (context) => StreetInfo(
-                  street:
-                      ModalRoute.of(context)!.settings.arguments as Street? ??
-                          Street.empty()),
-              'FamilyInfo': (context) => FamilyInfo(
-                  family:
-                      ModalRoute.of(context)!.settings.arguments as Family? ??
-                          Family.empty()),
-              'PersonInfo': (context) => PersonInfo(
-                  person:
-                      ModalRoute.of(context)!.settings.arguments as Person? ??
-                          Person()),
-              'UserInfo': (context) => UserInfo(
-                  user: ModalRoute.of(context)!.settings.arguments! as User),
-              'InvitationInfo': (context) => InvitationInfo(
-                  invitation: ModalRoute.of(context)!.settings.arguments!
-                      as Invitation),
-              'Settings': (context) => settingsui.Settings(),
-              'Settings/Churches': (context) => ChurchesPage(),
-              'Settings/Fathers': (context) => FathersPage(),
-              'Settings/Jobs': (context) => MiniModelList(
-                    collection:
-                        firestore.FirebaseFirestore.instance.collection('Jobs'),
-                    title: 'الوظائف',
-                    transformer: Job.fromQueryDoc,
-                  ),
-              'Settings/StudyYears': (context) => MiniModelList(
-                    collection: firestore.FirebaseFirestore.instance
-                        .collection('StudyYears'),
-                    title: 'السنوات الدراسية',
-                    transformer: StudyYear.fromQueryQueryDoc,
-                  ),
-              'Settings/Colleges': (context) => MiniModelList(
-                    collection: firestore.FirebaseFirestore.instance
-                        .collection('Colleges'),
-                    title: 'الكليات',
-                    transformer: College.fromQueryDoc,
-                  ),
-              'Settings/ServingTypes': (context) => MiniModelList(
-                    collection: firestore.FirebaseFirestore.instance
-                        .collection('ServingTypes'),
-                    title: 'أنواع الخدمات',
-                    transformer: ServingType.fromQueryDoc,
-                  ),
-              'Settings/PersonTypes': (context) => MiniModelList(
-                    collection: firestore.FirebaseFirestore.instance
-                        .collection('Types'),
-                    title: 'أنواع الأشخاص',
-                    transformer: PersonType.fromQueryDoc,
-                  ),
-              'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
-                  person:
-                      ModalRoute.of(context)!.settings.arguments! as Person),
-              'Invitations': (context) => InvitationsPage(),
-              'EditUserData': (context) => FutureBuilder<Person?>(
-                    future: User.getCurrentPerson(),
-                    builder: (context, data) {
-                      if (data.hasError)
-                        return Center(child: ErrorWidget(data.error!));
-                      if (!data.hasData)
-                        return Scaffold(
-                          resizeToAvoidBottomInset: !kIsWeb,
-                          body: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      return EditPerson(person: data.data!, userData: true);
-                    },
-                  ),
-            },
-            localizationsDelegates: [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: [
-              Locale('ar', 'EG'),
-            ],
-            themeMode: theme.data!.brightness == Brightness.dark
-                ? ThemeMode.dark
-                : ThemeMode.light,
-            locale: Locale('ar', 'EG'),
-            theme: theme.data,
-            darkTheme: theme.data,
-          );
-        },
+              localizationsDelegates: [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: [
+                Locale('ar', 'EG'),
+              ],
+              themeMode: theme.data!.brightness == Brightness.dark
+                  ? ThemeMode.dark
+                  : ThemeMode.light,
+              locale: Locale('ar', 'EG'),
+              theme: theme.data,
+              darkTheme: theme.data,
+            );
+          },
+        ),
       ),
     );
   }
@@ -437,6 +440,9 @@ class AppState extends State<App> {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
             });
+          } else if (snapshot.error.toString() ==
+              'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
+            Updates.showUpdateDialog(context, canCancel: false);
           }
           return Loading(
             error: true,
@@ -480,7 +486,7 @@ class AppState extends State<App> {
   Future configureFirebaseMessaging() async {
     if (!Hive.box('Settings')
             .get('FCM_Token_Registered', defaultValue: false) &&
-        auth.FirebaseAuth.instance.currentUser != null) {
+        firebaseAuth.currentUser != null) {
       try {
         if (kIsWeb)
           await firestore.FirebaseFirestore.instance.enablePersistence();
@@ -552,21 +558,21 @@ class AppState extends State<App> {
     );
   }
 
+  @visibleForTesting
   Future<void> loadApp(BuildContext context) async {
-    await RemoteConfig.instance.setDefaults(<String, dynamic>{
+    await remoteConfig.setDefaults(<String, dynamic>{
       'LatestVersion': (await PackageInfo.fromPlatform()).version,
       'LoadApp': 'false',
       'DownloadLink':
           'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
               'download/ChurchData.apk',
     });
-    await RemoteConfig.instance.setConfigSettings(RemoteConfigSettings(
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 30),
         minimumFetchInterval: const Duration(minutes: 2)));
-    await RemoteConfig.instance.fetchAndActivate();
+    await remoteConfig.fetchAndActivate();
 
-    if (RemoteConfig.instance.getString('LoadApp') == 'false') {
-      await Updates.showUpdateDialog(context, canCancel: false);
+    if (remoteConfig.getString('LoadApp') != 'false') {
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
       if (User.instance.uid != null) {

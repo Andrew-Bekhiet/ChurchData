@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:churchdata/models/data_dialog.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
@@ -21,7 +22,7 @@ class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
     Version latest = Version.parse(
-      RemoteConfig.instance.getString('LatestVersion'),
+      remoteConfig.getString('LatestVersion'),
     );
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&
         canCancel) {
@@ -29,7 +30,7 @@ class Updates {
         barrierDismissible: canCancel,
         context: context,
         builder: (context) {
-          return DataDialog(
+          return AlertDialog(
             content: Text(canCancel
                 ? 'هل تريد التحديث إلى إصدار $latest؟'
                 : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
@@ -37,19 +38,19 @@ class Updates {
               TextButton(
                 onPressed: () async {
                   if (await canLaunch(
-                    RemoteConfig.instance
+                    remoteConfig
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'),
                   )) {
                     await launch(
-                      RemoteConfig.instance
+                      remoteConfig
                           .getString('DownloadLink')
                           .replaceFirst('https://', 'https:'),
                     );
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                      text: RemoteConfig.instance.getString('DownloadLink'),
+                      text: remoteConfig.getString('DownloadLink'),
                     ));
                     scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
@@ -71,7 +72,7 @@ class Updates {
         barrierDismissible: canCancel,
         context: context,
         builder: (context) {
-          return DataDialog(
+          return AlertDialog(
             title: Text(''),
             content: Text(canCancel
                 ? 'هل تريد التحديث إلى إصدار $latest؟'
@@ -81,19 +82,19 @@ class Updates {
                 onPressed: () async {
                   navigator.currentState!.pop();
                   if (await canLaunch(
-                    RemoteConfig.instance
+                    remoteConfig
                         .getString('DownloadLink')
                         .replaceFirst('https://', 'https:'),
                   )) {
                     await launch(
-                      RemoteConfig.instance
+                      remoteConfig
                           .getString('DownloadLink')
                           .replaceFirst('https://', 'https:'),
                     );
                   } else {
                     navigator.currentState!.pop();
                     await Clipboard.setData(ClipboardData(
-                      text: RemoteConfig.instance.getString('DownloadLink'),
+                      text: remoteConfig.getString('DownloadLink'),
                     ));
                     scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(
@@ -158,7 +159,7 @@ class _UpdateState extends State<Update> {
                   Text('آخر إصدار:',
                       style: Theme.of(context).textTheme.bodyText2),
                   Text(
-                    RemoteConfig.instance.getString('LatestVersion'),
+                    remoteConfig.getString('LatestVersion'),
                   ),
                 ],
               ),
