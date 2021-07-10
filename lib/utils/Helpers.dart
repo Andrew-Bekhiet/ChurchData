@@ -1308,7 +1308,7 @@ Future showErrorUpdateDataDialog(
               userPerson = await User.getCurrentPerson();
               if (userPerson != null &&
                   userPerson.lastTanawol != null &&
-                  userPerson.lastTanawol != null &&
+                  userPerson.lastConfession != null &&
                   ((userPerson.lastTanawol!.millisecondsSinceEpoch +
                               2592000000) >
                           DateTime.now().millisecondsSinceEpoch &&
