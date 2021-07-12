@@ -117,7 +117,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   Person._createFromData(Json data, JsonRef ref)
       : isStudent = data['IsStudent'] ?? false,
-        isServant = data['IsServant'],
+        isServant = data['IsServant'] ?? false,
         phones = data['Phones']?.cast<String, dynamic>() ?? {},
         super.createFromData(data, ref) {
     _familyId = data['FamilyId'];
