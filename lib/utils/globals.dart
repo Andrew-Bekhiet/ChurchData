@@ -62,7 +62,7 @@ final DynamicLinkParametersOptions dynamicLinkParametersOptions =
     DynamicLinkParametersOptions(
         shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
 
-const FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
+FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
 
 final IosParameters iosParameters =
     IosParameters(bundleId: 'com.AndroidQuartz.churchdata');
@@ -96,6 +96,7 @@ List<Color> primaries = <Color>[
 
 const String uriPrefix = 'https://churchdata.page.link';
 
+bool reportUID = true;
 bool configureMessaging = true;
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
 
