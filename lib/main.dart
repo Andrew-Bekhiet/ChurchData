@@ -230,6 +230,7 @@ class AppState extends State<App> {
   StreamSubscription? userTokenListener;
 
   bool showFormOnce = false;
+  bool updateUserDataDialogShown = false;
 
   @override
   void dispose() {
@@ -429,7 +430,8 @@ class AppState extends State<App> {
     return FutureBuilder<void>(
       future: loadApp(context),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.connectionState != ConnectionState.done)
+        if (snapshot.connectionState != ConnectionState.done &&
+            !snapshot.hasError)
           return Loading(
             showVersionInfo: true,
           );
@@ -437,9 +439,11 @@ class AppState extends State<App> {
         if (snapshot.hasError) {
           if (snapshot.error.toString() ==
                   'Exception: Error Update User Data' &&
-              User.instance.password != null) {
+              User.instance.password != null &&
+              !updateUserDataDialogShown) {
             WidgetsBinding.instance!.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
+              updateUserDataDialogShown = true;
             });
           } else if (snapshot.error.toString() ==
               'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج') {
@@ -581,7 +585,7 @@ class AppState extends State<App> {
     } else {
       if (User.instance.uid != null) {
         await configureFirebaseMessaging();
-        if (!kIsWeb)
+        if (!kIsWeb && reportUID)
           await FirebaseCrashlytics.instance
               .setCustomKey('UID', User.instance.uid!);
         if (!await User.instance.userDataUpToDate()) {
