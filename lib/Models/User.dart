@@ -23,7 +23,6 @@ import '../EncryptionKeys.dart';
 import '../utils/globals.dart';
 import 'person.dart';
 
-@GenerateMocks([User])
 class User extends DataObject with PhotoObject {
   static final User instance = User._initInstance();
 
@@ -143,14 +142,15 @@ class User extends DataObject with PhotoObject {
 
           Json idTokenClaims;
           try {
-            var idToken;
+            auth.IdTokenResult? idToken;
             if ((await Connectivity().checkConnectivity()) !=
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
+
               if (kIsWeb)
-                await Encryption.setUserData(idToken.claims);
+                await Encryption.setUserData(idToken.claims ?? {});
               else {
-                for (var item in idToken.claims.entries) {
+                for (var item in idToken.claims?.entries.toList() ?? []) {
                   await flutterSecureStorage.write(
                       key: item.key, value: item.value?.toString());
                 }
@@ -180,7 +180,8 @@ class User extends DataObject with PhotoObject {
             idTokenClaims = idToken?.claims ??
                 (kIsWeb
                     ? await Encryption.getUserData()
-                    : await flutterSecureStorage.readAll());
+                    : await flutterSecureStorage.readAll()) ??
+                {};
           } on Exception {
             if (kIsWeb)
               idTokenClaims = await Encryption.getUserData() ?? {};
