@@ -1,31 +1,31 @@
 {
-	"folders": [
-		{
-			"name":"ChurchData-Frontend",
-			"path": "."
-		},
-		{
-			"name":"ChurchData-Backend",
-			"path": "..\\FirebaseTools\\ChurchData\\functions"
-		}
-	],
-	"settings": {
-		"workbench.colorCustomizations": {
-			"activityBar.activeBackground": "#08e3ff",
-			"activityBar.activeBorder": "#ff20e6",
-			"activityBar.background": "#08e3ff",
-			"activityBar.foreground": "#15202b",
-			"activityBar.inactiveForeground": "#15202b99",
-			"activityBarBadge.background": "#ff20e6",
-			"activityBarBadge.foreground": "#e7e7e7",
-			"statusBar.background": "#00bcd4",
-			"statusBar.foreground": "#15202b",
-			"statusBarItem.hoverBackground": "#008fa1",
-			"titleBar.activeBackground": "#00bcd4",
-			"titleBar.activeForeground": "#15202b",
-			"titleBar.inactiveBackground": "#00bcd499",
-			"titleBar.inactiveForeground": "#15202b99"
-		},
-		"peacock.color": "#00BCD4"
-	}
+  "folders": [
+    {
+      "name": "ChurchData-Frontend",
+      "path": "."
+    },
+    {
+      "name": "ChurchData-Backend",
+      "path": "..\\FirebaseTools\\ChurchData"
+    }
+  ],
+  "settings": {
+    "workbench.colorCustomizations": {
+      "activityBar.activeBackground": "#08e3ff",
+      "activityBar.activeBorder": "#ff20e6",
+      "activityBar.background": "#08e3ff",
+      "activityBar.foreground": "#15202b",
+      "activityBar.inactiveForeground": "#15202b99",
+      "activityBarBadge.background": "#ff20e6",
+      "activityBarBadge.foreground": "#e7e7e7",
+      "statusBar.background": "#00bcd4",
+      "statusBar.foreground": "#15202b",
+      "statusBarItem.hoverBackground": "#008fa1",
+      "titleBar.activeBackground": "#00bcd4",
+      "titleBar.activeForeground": "#15202b",
+      "titleBar.inactiveBackground": "#00bcd499",
+      "titleBar.inactiveForeground": "#15202b99"
+    },
+    "peacock.color": "#00BCD4"
+  }
 }

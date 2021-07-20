@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:async/async.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/models/data_map.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:churchdata/typedefs.dart';
@@ -114,12 +117,15 @@ Future<void> initConfigs() async {
           appId: dotenv.env['appId']!,
           messagingSenderId: 'messagingSenderId',
           projectId: dotenv.env['projectId']!,
-          databaseURL: kEmulatorsHost + ':9199'),
+          databaseURL: kEmulatorsHost + ':9000'),
     );
-    await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9000);
+    await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
+    await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
         .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
     FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
+    firebaseDatabase =
+        FirebaseDatabase(databaseURL: 'http://' + kEmulatorsHost + ':9000');
   } else
     await Firebase.initializeApp();
 
@@ -226,6 +232,7 @@ class App extends StatefulWidget {
 }
 
 class AppState extends State<App> {
+  final AsyncMemoizer<void> _loader = AsyncMemoizer();
   StreamSubscription<ConnectivityResult>? connection;
   StreamSubscription? userTokenListener;
 
@@ -428,7 +435,7 @@ class AppState extends State<App> {
 
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<void>(
-      future: loadApp(context),
+      future: _loader.runOnce(loadApp),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done &&
             !snapshot.hasError)
@@ -567,7 +574,7 @@ class AppState extends State<App> {
   }
 
   @visibleForTesting
-  Future<void> loadApp(BuildContext context) async {
+  Future<void> loadApp() async {
     await remoteConfig.setDefaults(<String, dynamic>{
       'LatestVersion': (await PackageInfo.fromPlatform()).version,
       'LoadApp': 'false',
