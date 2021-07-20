@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:mockito/annotations.dart';
 
 import '../EncryptionKeys.dart';
 import '../utils/globals.dart';
@@ -195,7 +194,7 @@ class User extends DataObject with PhotoObject {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
           await userTokenListener?.cancel();
-          uid = null;
+          _uid = null;
           notifyListeners();
         }
       },
@@ -229,9 +228,9 @@ class User extends DataObject with PhotoObject {
     await userTokenListener?.cancel();
     if (!_initialized.isCompleted) _initialized.complete(false);
     _initialized = Completer<bool>();
-    uid = null;
+    _uid = null;
     notifyListeners();
-    await GoogleSignIn().signOut();
+    await googleSignIn.signOut();
     await firebaseAuth.signOut();
     await connectionListener?.cancel();
   }
