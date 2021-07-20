@@ -2,20 +2,32 @@
 // in churchdata/test/widget_test.dart.
 // Do not manually edit this file.
 
-import 'dart:async' as _i10;
-import 'dart:ui' as _i11;
+import 'dart:async' as _i13;
+import 'dart:ui' as _i14;
 
 import 'package:cloud_functions/cloud_functions.dart' as _i4;
 import 'package:cloud_functions_platform_interface/src/https_callable_options.dart'
-    as _i7;
+    as _i10;
 import 'package:cloud_functions_platform_interface/src/platform_interface/platform_interface_firebase_functions.dart'
     as _i3;
+import 'package:firebase_auth/firebase_auth.dart' as _i9;
+import 'package:firebase_auth_mocks/src/mock_user.dart' as _i15;
+import 'package:firebase_auth_platform_interface/src/action_code_settings.dart'
+    as _i18;
+import 'package:firebase_auth_platform_interface/src/auth_credential.dart'
+    as _i17;
+import 'package:firebase_auth_platform_interface/src/id_token_result.dart'
+    as _i8;
+import 'package:firebase_auth_platform_interface/src/providers/phone_auth.dart'
+    as _i19;
+import 'package:firebase_auth_platform_interface/src/user_info.dart' as _i16;
+import 'package:firebase_auth_platform_interface/src/user_metadata.dart' as _i7;
 import 'package:firebase_core/firebase_core.dart' as _i2;
-import 'package:firebase_remote_config/firebase_remote_config.dart' as _i8;
+import 'package:firebase_remote_config/firebase_remote_config.dart' as _i11;
 import 'package:firebase_remote_config_platform_interface/src/remote_config_settings.dart'
     as _i5;
 import 'package:firebase_remote_config_platform_interface/src/remote_config_status.dart'
-    as _i9;
+    as _i12;
 import 'package:firebase_remote_config_platform_interface/src/remote_config_value.dart'
     as _i6;
 import 'package:mockito/mockito.dart' as _i1;
@@ -47,6 +59,29 @@ class _FakeRemoteConfigSettings extends _i1.Fake
 class _FakeRemoteConfigValue extends _i1.Fake implements _i6.RemoteConfigValue {
 }
 
+class _FakeUserMetadata extends _i1.Fake implements _i7.UserMetadata {
+  @override
+  String toString() => super.toString();
+}
+
+class _FakeIdTokenResult extends _i1.Fake implements _i8.IdTokenResult {
+  @override
+  String toString() => super.toString();
+}
+
+class _FakeUserCredential extends _i1.Fake implements _i9.UserCredential {
+  @override
+  String toString() => super.toString();
+}
+
+class _FakeConfirmationResult extends _i1.Fake
+    implements _i9.ConfirmationResult {}
+
+class _FakeUser extends _i1.Fake implements _i9.User {
+  @override
+  String toString() => super.toString();
+}
+
 /// A class which mocks [FirebaseFunctions].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -69,7 +104,7 @@ class MockFirebaseFunctions extends _i1.Mock implements _i4.FirebaseFunctions {
           returnValue: <dynamic, dynamic>{}) as Map<dynamic, dynamic>);
   @override
   _i4.HttpsCallable httpsCallable(String? name,
-          {_i7.HttpsCallableOptions? options}) =>
+          {_i10.HttpsCallableOptions? options}) =>
       (super.noSuchMethod(
           Invocation.method(#httpsCallable, [name], {#options: options}),
           returnValue: _FakeHttpsCallable()) as _i4.HttpsCallable);
@@ -82,7 +117,7 @@ class MockFirebaseFunctions extends _i1.Mock implements _i4.FirebaseFunctions {
 /// A class which mocks [RemoteConfig].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockRemoteConfig extends _i1.Mock implements _i8.RemoteConfig {
+class MockRemoteConfig extends _i1.Mock implements _i11.RemoteConfig {
   MockRemoteConfig() {
     _i1.throwOnMissingStub(this);
   }
@@ -95,10 +130,10 @@ class MockRemoteConfig extends _i1.Mock implements _i8.RemoteConfig {
       (super.noSuchMethod(Invocation.getter(#lastFetchTime),
           returnValue: _FakeDateTime()) as DateTime);
   @override
-  _i9.RemoteConfigFetchStatus get lastFetchStatus =>
+  _i12.RemoteConfigFetchStatus get lastFetchStatus =>
       (super.noSuchMethod(Invocation.getter(#lastFetchStatus),
-              returnValue: _i9.RemoteConfigFetchStatus.noFetchYet)
-          as _i9.RemoteConfigFetchStatus);
+              returnValue: _i12.RemoteConfigFetchStatus.noFetchYet)
+          as _i12.RemoteConfigFetchStatus);
   @override
   _i5.RemoteConfigSettings get settings => (super.noSuchMethod(
       Invocation.getter(#settings),
@@ -112,23 +147,23 @@ class MockRemoteConfig extends _i1.Mock implements _i8.RemoteConfig {
       (super.noSuchMethod(Invocation.getter(#pluginConstants),
           returnValue: <dynamic, dynamic>{}) as Map<dynamic, dynamic>);
   @override
-  _i10.Future<bool> activate() =>
+  _i13.Future<bool> activate() =>
       (super.noSuchMethod(Invocation.method(#activate, []),
-          returnValue: Future<bool>.value(false)) as _i10.Future<bool>);
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
   @override
-  _i10.Future<void> ensureInitialized() =>
+  _i13.Future<void> ensureInitialized() =>
       (super.noSuchMethod(Invocation.method(#ensureInitialized, []),
           returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future.value()) as _i10.Future<void>);
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
   @override
-  _i10.Future<void> fetch() =>
+  _i13.Future<void> fetch() =>
       (super.noSuchMethod(Invocation.method(#fetch, []),
           returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future.value()) as _i10.Future<void>);
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
   @override
-  _i10.Future<bool> fetchAndActivate() =>
+  _i13.Future<bool> fetchAndActivate() =>
       (super.noSuchMethod(Invocation.method(#fetchAndActivate, []),
-          returnValue: Future<bool>.value(false)) as _i10.Future<bool>);
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
   @override
   Map<String, _i6.RemoteConfigValue> getAll() =>
       (super.noSuchMethod(Invocation.method(#getAll, []),
@@ -155,23 +190,23 @@ class MockRemoteConfig extends _i1.Mock implements _i8.RemoteConfig {
       (super.noSuchMethod(Invocation.method(#getValue, [key]),
           returnValue: _FakeRemoteConfigValue()) as _i6.RemoteConfigValue);
   @override
-  _i10.Future<void> setConfigSettings(
+  _i13.Future<void> setConfigSettings(
           _i5.RemoteConfigSettings? remoteConfigSettings) =>
       (super.noSuchMethod(
           Invocation.method(#setConfigSettings, [remoteConfigSettings]),
           returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future.value()) as _i10.Future<void>);
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
   @override
-  _i10.Future<void> setDefaults(Map<String, dynamic>? defaultParameters) =>
+  _i13.Future<void> setDefaults(Map<String, dynamic>? defaultParameters) =>
       (super.noSuchMethod(Invocation.method(#setDefaults, [defaultParameters]),
           returnValue: Future<void>.value(),
-          returnValueForMissingStub: Future.value()) as _i10.Future<void>);
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
   @override
-  void addListener(_i11.VoidCallback? listener) =>
+  void addListener(_i14.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#addListener, [listener]),
           returnValueForMissingStub: null);
   @override
-  void removeListener(_i11.VoidCallback? listener) =>
+  void removeListener(_i14.VoidCallback? listener) =>
       super.noSuchMethod(Invocation.method(#removeListener, [listener]),
           returnValueForMissingStub: null);
   @override
@@ -181,4 +216,137 @@ class MockRemoteConfig extends _i1.Mock implements _i8.RemoteConfig {
   void notifyListeners() =>
       super.noSuchMethod(Invocation.method(#notifyListeners, []),
           returnValueForMissingStub: null);
+}
+
+/// A class which mocks [MockUser].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockMockUser extends _i1.Mock implements _i15.MockUser {
+  MockMockUser() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  bool get isAnonymous =>
+      (super.noSuchMethod(Invocation.getter(#isAnonymous), returnValue: false)
+          as bool);
+  @override
+  bool get emailVerified =>
+      (super.noSuchMethod(Invocation.getter(#emailVerified), returnValue: false)
+          as bool);
+  @override
+  String get uid =>
+      (super.noSuchMethod(Invocation.getter(#uid), returnValue: '') as String);
+  @override
+  _i7.UserMetadata get metadata =>
+      (super.noSuchMethod(Invocation.getter(#metadata),
+          returnValue: _FakeUserMetadata()) as _i7.UserMetadata);
+  @override
+  List<Object?> get props =>
+      (super.noSuchMethod(Invocation.getter(#props), returnValue: <Object?>[])
+          as List<Object?>);
+  @override
+  List<_i16.UserInfo> get providerData =>
+      (super.noSuchMethod(Invocation.getter(#providerData),
+          returnValue: <_i16.UserInfo>[]) as List<_i16.UserInfo>);
+  @override
+  _i13.Future<String> getIdToken([bool? forceRefresh = false]) =>
+      (super.noSuchMethod(Invocation.method(#getIdToken, [forceRefresh]),
+          returnValue: Future<String>.value('')) as _i13.Future<String>);
+  @override
+  String toString() => super.toString();
+  @override
+  _i13.Future<void> delete() =>
+      (super.noSuchMethod(Invocation.method(#delete, []),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<_i8.IdTokenResult> getIdTokenResult(
+          [bool? forceRefresh = false]) =>
+      (super.noSuchMethod(Invocation.method(#getIdTokenResult, [forceRefresh]),
+              returnValue:
+                  Future<_i8.IdTokenResult>.value(_FakeIdTokenResult()))
+          as _i13.Future<_i8.IdTokenResult>);
+  @override
+  _i13.Future<_i9.UserCredential> linkWithCredential(
+          _i17.AuthCredential? credential) =>
+      (super.noSuchMethod(Invocation.method(#linkWithCredential, [credential]),
+              returnValue:
+                  Future<_i9.UserCredential>.value(_FakeUserCredential()))
+          as _i13.Future<_i9.UserCredential>);
+  @override
+  _i13.Future<_i9.ConfirmationResult> linkWithPhoneNumber(String? phoneNumber,
+          [_i9.RecaptchaVerifier? verifier]) =>
+      (super.noSuchMethod(
+              Invocation.method(#linkWithPhoneNumber, [phoneNumber, verifier]),
+              returnValue: Future<_i9.ConfirmationResult>.value(
+                  _FakeConfirmationResult()))
+          as _i13.Future<_i9.ConfirmationResult>);
+  @override
+  _i13.Future<_i9.UserCredential> reauthenticateWithCredential(
+          _i17.AuthCredential? credential) =>
+      (super.noSuchMethod(
+              Invocation.method(#reauthenticateWithCredential, [credential]),
+              returnValue:
+                  Future<_i9.UserCredential>.value(_FakeUserCredential()))
+          as _i13.Future<_i9.UserCredential>);
+  @override
+  _i13.Future<void> reload() =>
+      (super.noSuchMethod(Invocation.method(#reload, []),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> sendEmailVerification(
+          [_i18.ActionCodeSettings? actionCodeSettings]) =>
+      (super.noSuchMethod(
+          Invocation.method(#sendEmailVerification, [actionCodeSettings]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<_i9.User> unlink(String? providerId) =>
+      (super.noSuchMethod(Invocation.method(#unlink, [providerId]),
+              returnValue: Future<_i9.User>.value(_FakeUser()))
+          as _i13.Future<_i9.User>);
+  @override
+  _i13.Future<void> updateEmail(String? newEmail) =>
+      (super.noSuchMethod(Invocation.method(#updateEmail, [newEmail]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> updatePassword(String? newPassword) =>
+      (super.noSuchMethod(Invocation.method(#updatePassword, [newPassword]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> updatePhoneNumber(
+          _i19.PhoneAuthCredential? phoneCredential) =>
+      (super.noSuchMethod(
+          Invocation.method(#updatePhoneNumber, [phoneCredential]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> updateDisplayName(String? displayName) =>
+      (super.noSuchMethod(Invocation.method(#updateDisplayName, [displayName]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> updatePhotoURL(String? photoURL) =>
+      (super.noSuchMethod(Invocation.method(#updatePhotoURL, [photoURL]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> updateProfile({String? displayName, String? photoURL}) =>
+      (super.noSuchMethod(
+          Invocation.method(#updateProfile, [],
+              {#displayName: displayName, #photoURL: photoURL}),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+  @override
+  _i13.Future<void> verifyBeforeUpdateEmail(String? newEmail,
+          [_i18.ActionCodeSettings? actionCodeSettings]) =>
+      (super.noSuchMethod(
+          Invocation.method(
+              #verifyBeforeUpdateEmail, [newEmail, actionCodeSettings]),
+          returnValue: Future<void>.value(),
+          returnValueForMissingStub: Future.value()) as _i13.Future<void>);
 }
