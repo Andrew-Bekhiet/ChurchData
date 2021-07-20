@@ -23,79 +23,84 @@ class UpdateUserDataErrorPage extends StatefulWidget {
 class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   late Person person;
 
+  final GlobalKey<FormState> _form = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('تحديث بيانات المستخدم'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          TapableFormField<Timestamp?>(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            decoration: (context, state) => InputDecoration(
-              errorText: state.errorText,
-              labelText: 'تاريخ أخر تناول',
-              suffixIcon: state.isValid
-                  ? const Icon(Icons.done, color: Colors.green)
-                  : const Icon(Icons.close, color: Colors.red),
-              border: OutlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).primaryColor),
+      body: Form(
+        key: _form,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            TapableFormField<Timestamp?>(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              decoration: (context, state) => InputDecoration(
+                errorText: state.errorText,
+                labelText: 'تاريخ أخر تناول',
+                suffixIcon: state.isValid
+                    ? const Icon(Icons.done, color: Colors.green)
+                    : const Icon(Icons.close, color: Colors.red),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                ),
               ),
+              initialValue: person.lastTanawol,
+              onTap: (state) async {
+                state.didChange(await _selectDate(
+                        'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
+                    person.lastTanawol);
+              },
+              builder: (context, state) {
+                return state.value != null
+                    ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                    : null;
+              },
+              onSaved: (v) => person.lastTanawol = v!,
+              validator: (value) => value == null
+                  ? 'برجاء اختيار تاريخ أخر تناول'
+                  : value.toDate().isBefore(
+                          DateTime.now().subtract(const Duration(days: 60)))
+                      ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
+                      : null,
             ),
-            initialValue: person.lastTanawol,
-            onTap: (state) async {
-              state.didChange(await _selectDate(
-                      'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
-                  person.lastTanawol);
-            },
-            builder: (context, state) {
-              return state.value != null
-                  ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
-                  : null;
-            },
-            onSaved: (v) => person.lastTanawol = v!,
-            validator: (value) => value == null
-                ? 'برجاء اختيار تاريخ أخر تناول'
-                : value.toDate().isBefore(
-                        DateTime.now().subtract(const Duration(days: 60)))
-                    ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
-                    : null,
-          ),
-          TapableFormField<Timestamp?>(
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            decoration: (context, state) => InputDecoration(
-              errorText: state.errorText,
-              labelText: 'تاريخ أخر اعتراف',
-              suffixIcon: state.isValid
-                  ? const Icon(Icons.done, color: Colors.green)
-                  : const Icon(Icons.close, color: Colors.red),
-              border: OutlineInputBorder(
-                borderSide: BorderSide(color: Theme.of(context).primaryColor),
+            TapableFormField<Timestamp?>(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              decoration: (context, state) => InputDecoration(
+                errorText: state.errorText,
+                labelText: 'تاريخ أخر اعتراف',
+                suffixIcon: state.isValid
+                    ? const Icon(Icons.done, color: Colors.green)
+                    : const Icon(Icons.close, color: Colors.red),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                ),
               ),
+              initialValue: person.lastConfession,
+              onTap: (state) async {
+                state.didChange(await _selectDate(
+                        'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
+                    person.lastConfession);
+              },
+              builder: (context, state) {
+                return state.value != null
+                    ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
+                    : null;
+              },
+              onSaved: (v) => person.lastConfession = v!,
+              validator: (value) => value == null
+                  ? 'برجاء اختيار تاريخ أخر اعتراف'
+                  : value.toDate().isBefore(
+                          DateTime.now().subtract(const Duration(days: 60)))
+                      ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
+                      : null,
             ),
-            initialValue: person.lastConfession,
-            onTap: (state) async {
-              state.didChange(await _selectDate(
-                      'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
-                  person.lastConfession);
-            },
-            builder: (context, state) {
-              return state.value != null
-                  ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
-                  : null;
-            },
-            onSaved: (v) => person.lastConfession = v!,
-            validator: (value) => value == null
-                ? 'برجاء اختيار تاريخ أخر اعتراف'
-                : value.toDate().isBefore(
-                        DateTime.now().subtract(const Duration(days: 60)))
-                    ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
-                    : null,
-          ),
-          const SizedBox(height: 40),
-        ],
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: save,
@@ -111,8 +116,12 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     person = widget.person.copyWith();
   }
 
+  bool _saveLock = false;
   Future save() async {
+    if (_saveLock || !_form.currentState!.validate()) return;
     try {
+      _saveLock = true;
+      _form.currentState!.save();
       await person.ref.update({
         'LastConfession': person.lastConfession,
         'LastTanawol': person.lastTanawol,
@@ -128,6 +137,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           .setCustomKey('LastErrorIn', 'UpdateUserDataError.save');
       await FirebaseCrashlytics.instance.setCustomKey('Person', person.id);
       await FirebaseCrashlytics.instance.recordError(err, stkTrace);
+    } finally {
+      _saveLock = false;
     }
   }
 
