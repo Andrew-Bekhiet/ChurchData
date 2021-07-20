@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata/main.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -116,6 +117,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
+                if (kDebugMode && kUseFirebaseEmulators)
+                  ElevatedButton(
+                    onPressed: () async {
+                      await firebaseAuth.signInWithEmailAndPassword(
+                          email: 'admin@churchdata.org',
+                          password: 'admin@churchdata.org');
+                    },
+                    child: Text('{debug only} Email and password'),
+                  ),
                 Container(height: MediaQuery.of(context).size.height / 38),
                 RichText(
                   textAlign: TextAlign.center,
