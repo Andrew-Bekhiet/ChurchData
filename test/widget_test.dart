@@ -1,4 +1,6 @@
 import 'package:churchdata/main.dart';
+import 'package:churchdata/models/loading_widget.dart';
+import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
@@ -17,6 +19,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -86,7 +89,7 @@ void main() async {
   //FlutterSecureStorage Mocks
   flutterSecureStorage = FakeFlutterSecureStorage();
 
-  setUp(() async {
+  setUpAll(() async {
     //dot env
 
 //Plugins mocks
@@ -134,33 +137,246 @@ void main() async {
 
     reportUID = false;
   });
+  group('Widgets structrures', () {
+    group('LoadingWidget', () {
+      testWidgets('Normal', (tester) async {
+        await tester.pumpWidget(wrapWithMaterialApp(Loading()));
+        await tester.pump();
+
+        expect(find.byType(Image), findsOneWidget);
+        expect(find.text('جار التحميل...'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(
+            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+            findsNothing);
+      });
+
+      testWidgets('With version', (tester) async {
+        await tester.pumpWidget(wrapWithMaterialApp(Loading(
+          showVersionInfo: true,
+        )));
+        await tester.pump();
+
+        expect(find.byType(Image), findsOneWidget);
+        expect(find.text('جار التحميل...'), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(
+            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+            findsOneWidget);
+      });
+
+      group('Errors', () {
+        testWidgets('Other errors', (tester) async {
+          await tester.pumpWidget(wrapWithMaterialApp(Loading(
+            error: true,
+            message: '{Error message}',
+          )));
+          await tester.pump();
+
+          expect(find.byType(Image), findsOneWidget);
+
+          expect(find.text('جار التحميل...'), findsNothing);
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+
+          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+              findsOneWidget);
+          expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(
+              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+              findsOneWidget);
+
+          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('{Error message}'), findsOneWidget);
+        });
+        testWidgets('Update User Data Error', (tester) async {
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              Loading(
+                error: true,
+                message: 'Exception: Error Update User Data',
+              ),
+              routes: {
+                'UpdateUserDataError': (context) =>
+                    UpdateUserDataErrorPage(person: Person()),
+              },
+            ),
+          );
+          await tester.pump();
+
+          expect(find.byType(Image), findsOneWidget);
+
+          expect(find.text('جار التحميل...'), findsNothing);
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+
+          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+              findsOneWidget);
+          expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(
+              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+              findsOneWidget);
+
+          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('تحديث بيانات التناول والاعتراف'), findsOneWidget);
+
+          await tester.tap(find.text('تحديث بيانات التناول والاعتراف'));
+          await tester.pumpAndSettle();
+
+          expect(find.byType(UpdateUserDataErrorPage), findsOneWidget);
+        });
+        testWidgets('Cannot Load App Error', (tester) async {
+          when(remoteConfig.getString('LoadApp')).thenReturn('false');
+          when(remoteConfig.getString('LatestVersion')).thenReturn('9.0.0');
+
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              Loading(
+                error: true,
+                message: 'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج',
+              ),
+              routes: {
+                'UpdateUserDataError': (context) =>
+                    UpdateUserDataErrorPage(person: Person()),
+              },
+            ),
+          );
+          await tester.pump();
+
+          expect(find.byType(Image), findsOneWidget);
+
+          expect(find.text('جار التحميل...'), findsNothing);
+          expect(find.byType(CircularProgressIndicator), findsNothing);
+
+          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+              findsOneWidget);
+          expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(
+              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+              findsOneWidget);
+
+          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.pumpAndSettle();
+
+          expect(find.text('تحديث'), findsOneWidget);
+
+          when(remoteConfig.getString('LoadApp')).thenReturn('true');
+          when(remoteConfig.getString('LatestVersion')).thenReturn('8.0.0');
+        });
+      });
+    });
+    testWidgets(
+      'Login Screen',
+      (tester) async {
+        await tester.pumpWidget(wrapWithMaterialApp(LoginScreen()));
+
+        expect(find.text('بيانات الكنيسة'), findsOneWidget);
+        expect(find.textContaining('تسجيل الدخول'), findsWidgets);
+        expect(find.text('Google'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'UpdateUserDataErrorPage',
+      (tester) async {
+        DateTime lastConfession =
+            DateTime.now().subtract(Duration(days: 2 * 30));
+        DateTime lastTanawol =
+            DateTime.now().subtract(Duration(days: (2 * 30) + 1));
+
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            UpdateUserDataErrorPage(
+              person: Person(
+                  lastConfession: Timestamp.fromDate(lastConfession),
+                  lastTanawol: Timestamp.fromDate(lastTanawol)),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(Icons.save), findsOneWidget);
+
+        Finder lastTanawolMatcher =
+            find.text(DateFormat('yyyy/M/d').format(lastTanawol));
+        Finder lastConfessionMatcher =
+            find.text(DateFormat('yyyy/M/d').format(lastConfession));
+        expect(lastConfessionMatcher, findsOneWidget);
+        expect(lastTanawolMatcher, findsOneWidget);
+
+        expect(
+            find.descendant(
+              of: find.ancestor(
+                of: lastConfessionMatcher,
+                matching: find.byType(Container),
+              ),
+              matching: find.byIcon(Icons.close),
+            ),
+            findsOneWidget);
+        expect(
+            find.descendant(
+              of: find.ancestor(
+                of: lastTanawolMatcher,
+                matching: find.byType(Container),
+              ),
+              matching: find.byIcon(Icons.close),
+            ),
+            findsOneWidget);
+
+        await tester.tap(lastConfessionMatcher);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DatePickerDialog), findsOneWidget);
+        if (lastConfession.day != 27)
+          await tester.tap(find.text('٢٧'));
+        else
+          await tester.tap(find.text('٢٨'));
+
+        await tester.tap(find.text('حسنًا'));
+        await tester.pumpAndSettle();
+
+        lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
+            DateTime(lastConfession.year, lastConfession.month,
+                lastConfession.day != 27 ? 27 : 28)));
+        expect(lastConfessionMatcher, findsOneWidget);
+//
+
+        await tester.tap(lastTanawolMatcher);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DatePickerDialog), findsOneWidget);
+        if (lastTanawol.day != 27)
+          await tester.tap(find.text('٢٧'));
+        else
+          await tester.tap(find.text('٢٨'));
+
+        await tester.tap(find.text('حسنًا'));
+        await tester.pumpAndSettle();
+
+        lastTanawolMatcher = find.text(DateFormat('yyyy/M/d').format(DateTime(
+            lastTanawol.year,
+            lastTanawol.month,
+            lastTanawol.day != 27 ? 27 : 28)));
+        expect(lastTanawolMatcher, findsNWidgets(2));
+      },
+    );
+  });
   group('Initialization tests', () {
     group('Login', () {
       testWidgets(
         'Displays Login screen when not logged in',
         (tester) async {
-          await tester.pumpWidget(App());
-
           expect(firebaseAuth.currentUser, null);
+
+          await tester.pumpWidget(App());
 
           await tester.pumpAndSettle();
 
           expect(find.byType(LoginScreen), findsOneWidget);
         },
-        tags: ['logic'],
-      );
-
-      testWidgets(
-        'Login Screen Structure',
-        (tester) async {
-          await tester.pumpWidget(App());
-          await tester.pumpAndSettle();
-
-          expect(find.text('بيانات الكنيسة'), findsOneWidget);
-          expect(find.textContaining('تسجيل الدخول'), findsWidgets);
-          expect(find.text('Google'), findsOneWidget);
-        },
-        tags: ['widgetStructure'],
       );
 
       testWidgets(
@@ -176,7 +392,6 @@ void main() async {
 
           expect(firebaseAuth.currentUser?.uid, '8t7we9rhuiU%762');
         },
-        tags: ['logic'],
       );
       tearDownAll(User.instance.signOut);
     });
@@ -186,7 +401,7 @@ void main() async {
       DateTime lastTanawol =
           DateTime.now().subtract(Duration(days: (2 * 30) + 1));
 
-      setUp(() async {
+      setUpAll(() async {
         await firebaseAuth.signInWithCustomToken('token');
         await User.instance.initialized;
 
@@ -197,6 +412,12 @@ void main() async {
           },
         );
       });
+
+      tearDownAll(() async {
+        await User.instance.signOut();
+        await firestore.doc('Persons/user').delete();
+      });
+
       testWidgets(
         'Displays UpdateUserDataError when needed',
         (tester) async {
@@ -205,96 +426,6 @@ void main() async {
 
           expect(find.text('تحديث بيانات التناول والاعتراف'), findsOneWidget);
         },
-        tags: ['logic'],
-      );
-      testWidgets(
-        'User can update its lastConfession and lastTanawol',
-        (tester) async {
-          await tester.pumpWidget(App());
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.text('تحديث بيانات التناول والاعتراف'));
-
-          await tester.pumpAndSettle();
-
-          expect(find.byType(UpdateUserDataErrorPage), findsOneWidget);
-        },
-        tags: ['logic'],
-      );
-
-      testWidgets(
-        'UpdateUserDataErrorPage structure',
-        (tester) async {
-          await tester.pumpWidget(App());
-          await tester.pumpAndSettle();
-
-          await tester.tap(find.text('تحديث بيانات التناول والاعتراف'));
-
-          await tester.pumpAndSettle();
-
-          Finder lastTanawolMatcher =
-              find.text(DateFormat('yyyy/M/d').format(lastTanawol));
-          Finder lastConfessionMatcher =
-              find.text(DateFormat('yyyy/M/d').format(lastConfession));
-          expect(lastConfessionMatcher, findsOneWidget);
-          expect(lastTanawolMatcher, findsOneWidget);
-
-          expect(
-              find.descendant(
-                of: find.ancestor(
-                  of: lastConfessionMatcher,
-                  matching: find.byType(Container),
-                ),
-                matching: find.byIcon(Icons.close),
-              ),
-              findsOneWidget);
-          expect(
-              find.descendant(
-                of: find.ancestor(
-                  of: lastTanawolMatcher,
-                  matching: find.byType(Container),
-                ),
-                matching: find.byIcon(Icons.close),
-              ),
-              findsOneWidget);
-
-          await tester.tap(lastConfessionMatcher);
-          await tester.pumpAndSettle();
-
-          expect(find.byType(DatePickerDialog), findsOneWidget);
-          if (lastConfession.day != 27)
-            await tester.tap(find.text('٢٧'));
-          else
-            await tester.tap(find.text('٢٨'));
-
-          await tester.tap(find.text('حسنًا'));
-          await tester.pumpAndSettle();
-
-          lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
-              DateTime(lastConfession.year, lastConfession.month,
-                  lastConfession.day != 27 ? 27 : 28)));
-          expect(lastConfessionMatcher, findsOneWidget);
-//
-
-          await tester.tap(lastTanawolMatcher);
-          await tester.pumpAndSettle();
-
-          expect(find.byType(DatePickerDialog), findsOneWidget);
-          if (lastTanawol.day != 27)
-            await tester.tap(find.text('٢٧'));
-          else
-            await tester.tap(find.text('٢٨'));
-
-          await tester.tap(find.text('حسنًا'));
-          await tester.pumpAndSettle();
-
-          lastTanawolMatcher = find.text(DateFormat('yyyy/M/d').format(DateTime(
-              lastTanawol.year,
-              lastTanawol.month,
-              lastTanawol.day != 27 ? 27 : 28)));
-          expect(lastTanawolMatcher, findsNWidgets(2));
-        },
-        tags: ['widgetStructure'],
       );
 
       testWidgets(
@@ -363,7 +494,6 @@ void main() async {
                 .millisecondsSinceEpoch,
           );
         },
-        tags: ['logic'],
       );
     });
 
@@ -378,10 +508,35 @@ void main() async {
         await tester.pumpAndSettle();
 
         expect(find.text('تحديث'), findsOneWidget);
-      },
-      tags: ['logic'],
+
+        when(remoteConfig.getString('LoadApp')).thenReturn('true');
+        when(remoteConfig.getString('LatestVersion')).thenReturn('8.0.0');
+    },
     );
   });
+}
+
+Widget wrapWithMaterialApp(Widget widget,
+    {Map<String, Widget Function(BuildContext)>? routes}) {
+  return MaterialApp(
+    navigatorKey: navigator,
+    scaffoldMessengerKey: scaffoldMessenger,
+    debugShowCheckedModeBanner: false,
+    title: 'بيانات الكنيسة',
+    routes: {
+      '/': (_) => widget,
+      ...routes ?? {},
+    },
+    localizationsDelegates: [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: [
+      Locale('ar', 'EG'),
+    ],
+    locale: Locale('ar', 'EG'),
+  );
 }
 
 class FakeFirebaseAuth implements auth.FirebaseAuth {
