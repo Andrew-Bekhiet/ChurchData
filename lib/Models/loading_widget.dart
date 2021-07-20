@@ -51,13 +51,13 @@ class Loading extends StatelessWidget {
                       label: Text('اضغط لمزيد من المعلومات'),
                       icon: Icon(Icons.error),
                       onPressed: () {
-                        if (message != 'Exception: Error Update User Data')
-                          showErrorDialog(context, message);
-                        else if (message !=
+                        if (message == 'Exception: Error Update User Data')
+                          showErrorUpdateDataDialog(context: context);
+                        else if (message ==
                             'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج')
                           Updates.showUpdateDialog(context, canCancel: false);
                         else
-                          showErrorUpdateDataDialog(context: context);
+                          showErrorDialog(context, message);
                       },
                     )
                   else
