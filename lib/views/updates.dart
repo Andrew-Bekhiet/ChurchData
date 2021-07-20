@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
