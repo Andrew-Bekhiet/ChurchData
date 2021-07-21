@@ -10,10 +10,8 @@ import '../EncryptionKeys.dart';
 import '../models/user.dart';
 import '../utils/helpers.dart';
 
-export 'package:tuple/tuple.dart';
-
-var authKey = GlobalKey<ScaffoldState>();
-final LocalAuthentication _localAuthentication = LocalAuthentication();
+@visibleForTesting
+LocalAuthentication localAuthentication = LocalAuthentication();
 
 class AuthScreen extends StatefulWidget {
   final Widget? nextWidget;
@@ -50,59 +48,64 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _localAuthentication.canCheckBiometrics,
+      future: localAuthentication.canCheckBiometrics,
       builder: (context, future) {
         bool? canCheckBio = false;
         if (future.hasData) canCheckBio = future.data;
         return Scaffold(
-          key: authKey,
           appBar: AppBar(
-            leading: Container(),
+            automaticallyImplyLeading: false,
             title: const Text('برجاء التحقق للمتابعة'),
           ),
-          body: ListView(
+          body: Padding(
             padding: const EdgeInsets.all(8.0),
-            children: <Widget>[
-              Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
-              const Divider(),
-              TextFormField(
-                decoration: InputDecoration(
-                  suffix: IconButton(
-                    icon: Icon(obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
-                    tooltip:
-                        obscurePassword ? 'اظهار كلمة السر' : 'اخفاء كلمة السر',
-                    onPressed: () =>
-                        setState(() => obscurePassword = !obscurePassword),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
+                const Divider(),
+                TextFormField(
+                  decoration: InputDecoration(
+                    suffix: IconButton(
+                      icon: Icon(obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      tooltip: obscurePassword
+                          ? 'اظهار كلمة السر'
+                          : 'اخفاء كلمة السر',
+                      onPressed: () =>
+                          setState(() => obscurePassword = !obscurePassword),
+                    ),
+                    labelText: 'كلمة السر',
                   ),
-                  labelText: 'كلمة السر',
+                  textInputAction: TextInputAction.done,
+                  obscureText: obscurePassword,
+                  autocorrect: false,
+                  autofocus: future.hasData && !future.data!,
+                  controller: _passwordText,
+                  focusNode: _passwordFocus,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'هذا الحقل مطلوب';
+                    }
+                    return null;
+                  },
+                  onFieldSubmitted: _submit,
                 ),
-                textInputAction: TextInputAction.done,
-                obscureText: obscurePassword,
-                autocorrect: false,
-                autofocus: future.hasData && !future.data!,
-                controller: _passwordText,
-                focusNode: _passwordFocus,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'هذا الحقل مطلوب';
-                  }
-                  return null;
-                },
-                onFieldSubmitted: _submit,
-              ),
-              ElevatedButton(
-                onPressed: () => _submit(_passwordText.text),
-                child: const Text('تسجيل الدخول'),
-              ),
-              if (canCheckBio!)
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.fingerprint),
-                  label: const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-                  onPressed: _authenticate,
+                ElevatedButton(
+                  onPressed: () => _submit(_passwordText.text),
+                  child: const Text('تسجيل الدخول'),
                 ),
-            ],
+                if (canCheckBio!)
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.fingerprint),
+                    label:
+                        const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+                    onPressed: _authenticate,
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -117,9 +120,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   void _authenticate() async {
     try {
-      if (!await _localAuthentication.canCheckBiometrics) return;
+      if (!await localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
-      bool value = await _localAuthentication.authenticate(
+      bool value = await localAuthentication.authenticate(
           localizedReason: 'برجاء التحقق للمتابعة',
           biometricOnly: true,
           useErrorDialogs: false);

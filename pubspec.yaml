@@ -97,7 +97,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.9.0
   golden_toolkit: ^0.9.0
   google_sign_in_mocks: ^0.2.1
-  mockito: ^5.0.10
+  mockito: ^5.0.11
   pedantic: ^1.11.1
 
 flutter_icons:

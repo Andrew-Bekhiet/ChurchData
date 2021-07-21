@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:churchdata/EncryptionKeys.dart';
 import 'package:churchdata/main.dart';
 import 'package:churchdata/models/loading_widget.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/views/auth_screen.dart';
 import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
 import 'package:churchdata/views/login.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
@@ -25,6 +29,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_mocks/google_sign_in_mocks.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,7 +39,7 @@ import 'package:intl/intl.dart';
 
 import 'widget_test.mocks.dart';
 
-@GenerateMocks([FirebaseFunctions, RemoteConfig, MockUser])
+@GenerateMocks([FirebaseFunctions, RemoteConfig, MockUser, LocalAuthentication])
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
@@ -89,6 +94,9 @@ void main() async {
   //FlutterSecureStorage Mocks
   flutterSecureStorage = FakeFlutterSecureStorage();
 
+//local_auth Mocks
+  localAuthentication = MockLocalAuthentication();
+
   setUpAll(() async {
     //dot env
 
@@ -136,6 +144,14 @@ void main() async {
     configureMessaging = false;
 
     reportUID = false;
+
+    when(localAuthentication.canCheckBiometrics).thenAnswer((_) async => true);
+    when(localAuthentication.isDeviceSupported()).thenAnswer((_) async => true);
+    when(localAuthentication.authenticate(
+            localizedReason: 'برجاء التحقق للمتابعة',
+            biometricOnly: true,
+            useErrorDialogs: false))
+        .thenAnswer((_) async => true);
   });
   group('Widgets structrures', () {
     group('LoadingWidget', () {
@@ -363,6 +379,45 @@ void main() async {
         expect(lastTanawolMatcher, findsNWidgets(2));
       },
     );
+
+    group('AuthScreen', () {
+      testWidgets('With Biometrics', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            AuthScreen(),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(BackButton), findsNothing);
+        expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
+        expect(find.byType(Image), findsOneWidget);
+
+        expect(find.text('كلمة السر'), findsOneWidget);
+        expect(find.text('تسجيل الدخول'), findsOneWidget);
+        expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+            findsOneWidget);
+      });
+      testWidgets('Without Biometrics', (tester) async {
+        when(localAuthentication.canCheckBiometrics)
+            .thenAnswer((_) async => false);
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            AuthScreen(),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byType(BackButton), findsNothing);
+        expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
+        expect(find.byType(Image), findsOneWidget);
+
+        expect(find.text('كلمة السر'), findsOneWidget);
+        expect(find.text('تسجيل الدخول'), findsOneWidget);
+        expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+            findsNothing);
+      });
+    });
   });
   group('Initialization tests', () {
     group('Login', () {
@@ -394,6 +449,115 @@ void main() async {
         },
       );
       tearDownAll(User.instance.signOut);
+    });
+
+    group('Entering with AuthScreen', () {
+      Completer<bool> _authCompleter = Completer();
+      setUp(() {
+        when(localAuthentication.canCheckBiometrics)
+            .thenAnswer((_) async => true);
+        when(localAuthentication.authenticate(
+                localizedReason: 'برجاء التحقق للمتابعة',
+                biometricOnly: true,
+                useErrorDialogs: false))
+            .thenAnswer((_) => _authCompleter.future);
+      });
+
+      tearDown(() async {
+        if (!_authCompleter.isCompleted) _authCompleter.complete(false);
+        _authCompleter = Completer();
+      });
+      group('With password', () {
+        final _originalPassword = User.instance.password;
+        const _passwordText = '1%Pass word*)';
+
+        setUp(() =>
+            User.instance.password = Encryption.encryptPassword(_passwordText));
+        tearDown(() => User.instance.password = _originalPassword);
+
+        testWidgets('Entering password', (tester) async {
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              AuthScreen(
+                nextRoute: 'Success',
+              ),
+              routes: {
+                'Success': (_) => Scaffold(body: Text('Test succeeded'))
+              },
+            ),
+          );
+          await tester.pump();
+
+          _authCompleter.complete(false);
+
+          await tester.enterText(
+              find.widgetWithText(TextFormField, 'كلمة السر'), _passwordText);
+          await tester.tap(find.text('تسجيل الدخول'));
+          await tester.pump();
+
+          await tester.pump();
+
+          expect(find.text('Test succeeded'), findsOneWidget);
+        });
+        group('Errors', () {
+          testWidgets('Empty Password', (tester) async {
+            await tester.pumpWidget(
+              wrapWithMaterialApp(
+                AuthScreen(),
+              ),
+            );
+            await tester.pump();
+
+            await tester.enterText(
+                find.widgetWithText(TextFormField, 'كلمة السر'), '');
+            await tester.tap(find.text('تسجيل الدخول'));
+            await tester.pump();
+
+            expect(find.text('كلمة سر فارغة!'), findsOneWidget);
+          });
+          testWidgets('Wrong Password', (tester) async {
+            await tester.pumpWidget(
+              wrapWithMaterialApp(
+                AuthScreen(),
+              ),
+            );
+            await tester.pump();
+
+            await tester.enterText(
+                find.widgetWithText(TextFormField, 'كلمة السر'), 'Wrong');
+            await tester.tap(find.text('تسجيل الدخول'));
+            await tester.pump();
+
+            expect(find.text('كلمة سر خاطئة!'), findsOneWidget);
+          });
+        });
+
+        testWidgets('With Biometrics', (tester) async {
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              AuthScreen(
+                nextRoute: 'Success',
+              ),
+              routes: {
+                'Success': (_) => Scaffold(body: Text('Test succeeded'))
+              },
+            ),
+          );
+          await tester.pump();
+
+          _authCompleter.complete(false);
+          _authCompleter = Completer();
+
+          await tester
+              .tap(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'));
+
+          _authCompleter.complete(true);
+
+          await tester.pumpAndSettle();
+
+          expect(find.text('Test succeeded'), findsOneWidget);
+        });
+      });
     });
 
     group('Updating lastConfession and lastTanawol', () {
@@ -511,7 +675,7 @@ void main() async {
 
         when(remoteConfig.getString('LoadApp')).thenReturn('true');
         when(remoteConfig.getString('LatestVersion')).thenReturn('8.0.0');
-    },
+      },
     );
   });
 }

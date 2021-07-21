@@ -30,6 +30,8 @@ import 'package:firebase_remote_config_platform_interface/src/remote_config_stat
     as _i12;
 import 'package:firebase_remote_config_platform_interface/src/remote_config_value.dart'
     as _i6;
+import 'package:local_auth/auth_strings.dart' as _i21;
+import 'package:local_auth/local_auth.dart' as _i20;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: avoid_redundant_argument_values
@@ -349,4 +351,73 @@ class MockMockUser extends _i1.Mock implements _i15.MockUser {
               #verifyBeforeUpdateEmail, [newEmail, actionCodeSettings]),
           returnValue: Future<void>.value(),
           returnValueForMissingStub: Future.value()) as _i13.Future<void>);
+}
+
+/// A class which mocks [LocalAuthentication].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocalAuthentication extends _i1.Mock
+    implements _i20.LocalAuthentication {
+  MockLocalAuthentication() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i13.Future<bool> get canCheckBiometrics =>
+      (super.noSuchMethod(Invocation.getter(#canCheckBiometrics),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  @override
+  _i13.Future<bool> authenticateWithBiometrics(
+          {String? localizedReason,
+          bool? useErrorDialogs = true,
+          bool? stickyAuth = false,
+          _i21.AndroidAuthMessages? androidAuthStrings =
+              const _i21.AndroidAuthMessages(),
+          _i21.IOSAuthMessages? iOSAuthStrings = const _i21.IOSAuthMessages(),
+          bool? sensitiveTransaction = true}) =>
+      (super.noSuchMethod(
+          Invocation.method(#authenticateWithBiometrics, [], {
+            #localizedReason: localizedReason,
+            #useErrorDialogs: useErrorDialogs,
+            #stickyAuth: stickyAuth,
+            #androidAuthStrings: androidAuthStrings,
+            #iOSAuthStrings: iOSAuthStrings,
+            #sensitiveTransaction: sensitiveTransaction
+          }),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  @override
+  _i13.Future<bool> authenticate(
+          {String? localizedReason,
+          bool? useErrorDialogs = true,
+          bool? stickyAuth = false,
+          _i21.AndroidAuthMessages? androidAuthStrings =
+              const _i21.AndroidAuthMessages(),
+          _i21.IOSAuthMessages? iOSAuthStrings = const _i21.IOSAuthMessages(),
+          bool? sensitiveTransaction = true,
+          bool? biometricOnly = false}) =>
+      (super.noSuchMethod(
+          Invocation.method(#authenticate, [], {
+            #localizedReason: localizedReason,
+            #useErrorDialogs: useErrorDialogs,
+            #stickyAuth: stickyAuth,
+            #androidAuthStrings: androidAuthStrings,
+            #iOSAuthStrings: iOSAuthStrings,
+            #sensitiveTransaction: sensitiveTransaction,
+            #biometricOnly: biometricOnly
+          }),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  @override
+  _i13.Future<bool> stopAuthentication() =>
+      (super.noSuchMethod(Invocation.method(#stopAuthentication, []),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  @override
+  _i13.Future<bool> isDeviceSupported() =>
+      (super.noSuchMethod(Invocation.method(#isDeviceSupported, []),
+          returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  @override
+  _i13.Future<List<_i20.BiometricType>> getAvailableBiometrics() =>
+      (super.noSuchMethod(Invocation.method(#getAvailableBiometrics, []),
+              returnValue: Future<List<_i20.BiometricType>>.value(
+                  <_i20.BiometricType>[]))
+          as _i13.Future<List<_i20.BiometricType>>);
 }
