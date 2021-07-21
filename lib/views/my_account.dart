@@ -31,8 +31,11 @@ class _MyAccountState extends State<MyAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Consumer<User>(
-        builder: (c, user, _) {
+      body: StreamBuilder<User>(
+        initialData: User.instance,
+        stream: User.instance.stream,
+        builder: (context, data) {
+          final user = data.data!;
           return NestedScrollView(
             headerSliverBuilder: (context, _) => <Widget>[
               SliverAppBar(
