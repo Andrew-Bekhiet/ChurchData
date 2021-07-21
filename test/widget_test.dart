@@ -71,21 +71,27 @@ void main() async {
   //FirebaseAuth
   MyMockUser user =
       MyMockUser(email: 'random@email.com', uid: '8t7we9rhuiU%762');
+
+  final Map<String, dynamic> userClaims = {
+    'password': 'password',
+    'manageUsers': false,
+    'superAccess': false,
+    'manageDeleted': false,
+    'write': true,
+    'exportAreas': false,
+    'birthdayNotify': false,
+    'confessionsNotify': false,
+    'tanawolNotify': false,
+    'approveLocations': false,
+    'approved': true,
+    'personRef': 'Persons/user'
+  };
+
   when(user.getIdTokenResult(false)).thenAnswer(
-    (_) async => auth.IdTokenResult({
-      'claims': {
-        'password': 'aaa',
-        'personRef': 'Persons/user',
-      }
-    }),
+    (_) async => auth.IdTokenResult({'claims': userClaims}),
   );
   when(user.getIdTokenResult(true)).thenAnswer(
-    (_) async => auth.IdTokenResult({
-      'claims': {
-        'password': 'aaa',
-        'personRef': 'Persons/user',
-      }
-    }),
+    (_) async => auth.IdTokenResult({'claims': userClaims}),
   );
 
   firebaseAuth = FakeFirebaseAuth(signedIn: false, mockUser: user);
@@ -452,6 +458,8 @@ void main() async {
       tearDownAll(User.instance.signOut);
     });
 
+    group('User registeration', () {});
+
     group('Entering with AuthScreen', () {
       Completer<bool> _authCompleter = Completer();
       setUp(() {
@@ -469,12 +477,19 @@ void main() async {
         _authCompleter = Completer();
       });
       group('With password', () {
-        final _originalPassword = User.instance.password;
+        final _originalPassword = userClaims['password'];
         const _passwordText = '1%Pass word*)';
 
-        setUp(() =>
-            User.instance.password = Encryption.encryptPassword(_passwordText));
-        tearDown(() => User.instance.password = _originalPassword);
+        setUp(() async {
+          userClaims['password'] = Encryption.encryptPassword(_passwordText);
+
+          await firebaseAuth.signInWithCustomToken('token');
+          await User.instance.initialized;
+        });
+        tearDown(() async {
+          await User.instance.signOut();
+          userClaims['password'] = _originalPassword;
+        });
 
         testWidgets('Entering password', (tester) async {
           tester.binding.window.physicalSizeTestValue =
