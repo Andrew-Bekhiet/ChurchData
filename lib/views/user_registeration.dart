@@ -36,12 +36,15 @@ class _UserRegisterationState extends State<UserRegisteration> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<User>(
-      builder: (context, user, _) {
+    return StreamBuilder<User>(
+      initialData: User.instance,
+      stream: User.instance.stream,
+      builder: (context, data) {
+        final user = data.data!;
         if (user.approved) {
           return Scaffold(
             appBar: AppBar(
-              leading: Container(),
+              automaticallyImplyLeading: false,
               title: Text('تسجيل حساب جديد'),
             ),
             body: Form(
@@ -148,84 +151,76 @@ class _UserRegisterationState extends State<UserRegisteration> {
             title: Text('في انتظار الموافقة'),
             actions: <Widget>[
               IconButton(
-                icon: Icon(Icons.exit_to_app),
+                icon: Icon(Icons.logout),
                 tooltip: 'تسجيل الخروج',
                 onPressed: () async {
-                  var user = User.instance;
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
-                  // ignore: unawaited_futures
-                  navigator.currentState!.pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) {
-                        navigator.currentState!
-                            .popUntil((route) => route.isFirst);
-                        return App();
-                      },
-                    ),
-                  );
-                  await user.signOut();
+                  await User.instance.signOut();
                 },
               )
             ],
           ),
-          body: Column(
-            children: [
-              Center(
-                child: Text(
-                  'يجب ان يتم الموافقة على دخولك للبيانات '
-                  'من قبل أحد '
-                  'المشرفين أو المسؤلين في البرنامج',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+          body: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Center(
+                  child: Text(
+                    'يجب ان يتم الموافقة على دخولك للبيانات '
+                    'من قبل أحد '
+                    'المشرفين أو المسؤلين في البرنامج',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-              Text('أو'),
-              Text(
-                'يمكنك ادخال لينك الدعوة هنا',
-                style: Theme.of(context).textTheme.bodyText1,
-              ),
-              Container(height: 10),
-              TextFormField(
-                decoration: InputDecoration(
-                  hintMaxLines: 3,
-                  hintText:
-                      'مثال: https://churchdata.page.link/ZaBc1KnFgh6K3YO92',
-                  helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
-                  labelText: 'لينك الدعوة',
+                Text('أو'),
+                Text(
+                  'يمكنك ادخال لينك الدعوة هنا',
+                  style: Theme.of(context).textTheme.bodyText1,
                 ),
-                maxLines: null,
-                textInputAction: TextInputAction.done,
-                controller: _linkController,
-                onFieldSubmitted: _registerUser,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) {
-                    return 'برجاء ادخال لينك الدخول لتفعيل حسابك';
-                  }
-                  return null;
-                },
-              ),
-              ElevatedButton(
-                onPressed: () => _registerUser(_linkController.text),
-                child: Text('تفعيل الحساب باللينك'),
-              ),
-              ElevatedButton.icon(
-                onPressed: () async {
-                  if (kIsWeb ||
-                      await navigator.currentState!.pushNamed('EditUserData')
-                          is JsonRef) {
-                    scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
-                        content: Text('تم الحفظ بنجاح'),
-                      ),
-                    );
-                  }
-                },
-                icon: Icon(Icons.edit),
-                label: Text('تعديل بياناتي'),
-              ),
-            ],
+                Container(height: 10),
+                TextFormField(
+                  decoration: InputDecoration(
+                    hintMaxLines: 3,
+                    hintText:
+                        'مثال: https://churchdata.page.link/ZaBc1KnFgh6K3YO92',
+                    helperText: 'يمكنك أن تسأل أحد المشرفين ليعطيك لينك دعوة',
+                    labelText: 'لينك الدعوة',
+                  ),
+                  maxLines: null,
+                  textInputAction: TextInputAction.done,
+                  controller: _linkController,
+                  onFieldSubmitted: _registerUser,
+                  validator: (value) {
+                    if (value?.isEmpty ?? true) {
+                      return 'برجاء ادخال لينك الدخول لتفعيل حسابك';
+                    }
+                    return null;
+                  },
+                ),
+                ElevatedButton(
+                  onPressed: () => _registerUser(_linkController.text),
+                  child: Text('تفعيل الحساب باللينك'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    if (kIsWeb ||
+                        await navigator.currentState!.pushNamed('EditUserData')
+                            is JsonRef) {
+                      scaffoldMessenger.currentState!.showSnackBar(
+                        SnackBar(
+                          content: Text('تم الحفظ بنجاح'),
+                        ),
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.edit),
+                  label: Text('تعديل بياناتي'),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -250,7 +245,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
       await firebaseFunctions.httpsCallable('registerAccount').call({
         'name': _userName,
         'password': Encryption.encryptPassword(password),
-        'fcmToken': await FirebaseMessaging.instance.getToken(),
+        'fcmToken': await firebaseMessaging.getToken(),
       });
       await Hive.box('Settings').put('FCM_Token_Registered', true);
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -264,32 +259,33 @@ class _UserRegisterationState extends State<UserRegisteration> {
   }
 
   void _registerUser(String registerationLink) async {
-    // ignore: unawaited_futures
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) => AlertDialog(
-        title: FutureBuilder<HttpsCallableResult>(
-          future: firebaseFunctions
-              .httpsCallable('registerWithLink')
-              .call({'link': registerationLink}),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Text(
-                  (snapshot.error as FirebaseFunctionsException).message!);
-            } else if (snapshot.connectionState == ConnectionState.done) {
-              navigator.currentState!.pop();
-            }
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircularProgressIndicator(),
-                Text('جار تفعيل الحساب...'),
-              ],
-            );
-          },
+    if (_formKey.currentState!.validate())
+      // ignore: unawaited_futures
+      showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+          title: FutureBuilder<HttpsCallableResult>(
+            future: firebaseFunctions
+                .httpsCallable('registerWithLink')
+                .call({'link': registerationLink}),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Text(
+                    (snapshot.error as FirebaseFunctionsException).message!);
+              } else if (snapshot.connectionState == ConnectionState.done) {
+                navigator.currentState!.pop();
+              }
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircularProgressIndicator(),
+                  Text('جار تفعيل الحساب...'),
+                ],
+              );
+            },
+          ),
         ),
-      ),
-    );
+      );
   }
 }

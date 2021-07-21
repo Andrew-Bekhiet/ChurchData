@@ -1195,7 +1195,6 @@ class _EditPersonState extends State<EditPerson> {
             );
             return;
           }
-          return _saveUserData();
         }
         bool update = person.id != 'null';
         if (!update) person.ref = firestore.collection('Persons').doc();
@@ -1220,11 +1219,26 @@ class _EditPersonState extends State<EditPerson> {
         if (update &&
             await Connectivity().checkConnectivity() !=
                 ConnectivityResult.none) {
-          await person.update(old: widget.person?.getMap() ?? {});
+          if (widget.userData)
+            await person.ref.set(
+                person.getMap()
+                  ..removeWhere((key, value) =>
+                      (widget.person?.getMap() ?? {})[key] == value),
+                SetOptions(merge: true));
+          else
+            await person.update(old: widget.person?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
-          // ignore: unawaited_futures
-          person.update(old: widget.person?.getMap() ?? {});
+          if (widget.userData)
+            // ignore: unawaited_futures
+            person.ref.set(
+                person.getMap()
+                  ..removeWhere((key, value) =>
+                      (widget.person?.getMap() ?? {})[key] == value),
+                SetOptions(merge: true));
+          else
+            // ignore: unawaited_futures
+            person.update(old: widget.person?.getMap() ?? {});
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await person.set();
@@ -1261,9 +1275,9 @@ class _EditPersonState extends State<EditPerson> {
     }
   }
 
-  Future _saveUserData() async {
+  /* Future _saveUserData() async {
     try {
-      if (person.id == '') {
+      if (person.id == 'null') {
         person.ref = firestore.collection('Persons').doc();
       }
       if (changedImage != null) {
@@ -1297,7 +1311,7 @@ class _EditPersonState extends State<EditPerson> {
         ),
       );
     }
-  }
+  } */
 
   void _selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =

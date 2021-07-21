@@ -401,14 +401,17 @@ class AppState extends State<App> {
                       builder: (context, data) {
                         if (data.hasError)
                           return Center(child: ErrorWidget(data.error!));
-                        if (!data.hasData)
+                        if (data.connectionState == ConnectionState.waiting)
                           return Scaffold(
                             resizeToAvoidBottomInset: !kIsWeb,
                             body: Center(
                               child: CircularProgressIndicator(),
                             ),
                           );
-                        return EditPerson(person: data.data!, userData: true);
+                        return EditPerson(
+                            person: data.data ??
+                                Person(ref: User.instance.personDocRef),
+                            userData: true);
                       },
                     ),
               },
@@ -514,13 +517,13 @@ class AppState extends State<App> {
         // ignore: empty_catches
       } catch (e) {}
       try {
-        bool permission = (await FirebaseMessaging.instance.requestPermission())
-                .authorizationStatus ==
-            AuthorizationStatus.authorized;
+        bool permission =
+            (await firebaseMessaging.requestPermission()).authorizationStatus ==
+                AuthorizationStatus.authorized;
         if (permission)
           await FirebaseFunctions.instance
               .httpsCallable('registerFCMToken')
-              .call({'token': await FirebaseMessaging.instance.getToken()});
+              .call({'token': await firebaseMessaging.getToken()});
         if (permission)
           await Hive.box('Settings').put('FCM_Token_Registered', true);
       } catch (err, stkTrace) {
@@ -595,7 +598,7 @@ class AppState extends State<App> {
         if (!kIsWeb && reportUID)
           await FirebaseCrashlytics.instance
               .setCustomKey('UID', User.instance.uid!);
-        if (!await User.instance.userDataUpToDate()) {
+        if (User.instance.approved && !await User.instance.userDataUpToDate()) {
           throw Exception('Error Update User Data');
         }
       }
