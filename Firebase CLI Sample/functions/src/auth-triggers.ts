@@ -50,20 +50,20 @@ export const onUserDeleted = functions.auth
 
 export const userSignUp = functions.auth.user().onCreate(async (user) => {
   let customClaims: object;
-  if ((await auth().listUsers(2)).users.length === 1) {
+  if ((await auth().listUsers(1)).users.length === 1) {
     customClaims = {
       password: null, //Empty password
-      manageUsers: false, //Can manage Users' names, reset passwords and permissions
-      superAccess: false, //Can read everything
-      manageDeleted: false, //Can read and restore deleted items
-      write: false, //Can write
-      exportAreas: false, //Can Export individual Areas to Excel sheet
-      birthdayNotify: false, //Can receive Birthday notifications
-      confessionsNotify: false, //Can receive Confessions notifications
-      tanawolNotify: false, //Can receive Tanawol notifications
-      approveLocations: false, //Can Approve entities' locations
-      approved: false, //A User with 'Manage Users' permission must approve new users
-      personRef: null, //DocumentReference path to linked Person
+      manageUsers: true, //Can manage Users' names, reset passwords and permissions
+      superAccess: true, //Can read everything
+      manageDeleted: true, //Can read and restore deleted items
+      write: true, //Can write
+      exportAreas: true, //Can Export individual Areas to Excel sheet
+      birthdayNotify: true, //Can receive Birthday notifications
+      confessionsNotify: true, //Can receive Confessions notifications
+      tanawolNotify: true, //Can receive Tanawol notifications
+      approveLocations: true, //Can Approve entities' locations
+      approved: true, //A User with 'Manage Users' permission must approve new users
+      personRef: firestore().collection('Persons').doc().path, //DocumentReference path to linked Person
     };
   } else {
     customClaims = {
@@ -78,7 +78,7 @@ export const userSignUp = functions.auth.user().onCreate(async (user) => {
       tanawolNotify: false, //Can receive Tanawol notifications
       approveLocations: false, //Can Approve entities' locations
       approved: false, //A User with 'Manage Users' permission must approve new users
-      personRef: null, //DocumentReference path to linked Person
+      personRef: firestore().collection("Persons").doc().path, //DocumentReference path to linked Person
     };
   }
   await messaging().sendToTopic(
