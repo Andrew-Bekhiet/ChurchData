@@ -283,6 +283,7 @@ void main() async {
         });
       });
     });
+
     testWidgets(
       'Login Screen',
       (tester) async {
@@ -476,6 +477,10 @@ void main() async {
         tearDown(() => User.instance.password = _originalPassword);
 
         testWidgets('Entering password', (tester) async {
+          tester.binding.window.physicalSizeTestValue =
+              Size(1080 * 3, 2400 * 3);
+          addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+
           await tester.pumpWidget(
             wrapWithMaterialApp(
               AuthScreen(
@@ -501,6 +506,10 @@ void main() async {
         });
         group('Errors', () {
           testWidgets('Empty Password', (tester) async {
+            tester.binding.window.physicalSizeTestValue =
+                Size(1080 * 3, 2400 * 3);
+            addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+
             await tester.pumpWidget(
               wrapWithMaterialApp(
                 AuthScreen(),
@@ -516,6 +525,10 @@ void main() async {
             expect(find.text('كلمة سر فارغة!'), findsOneWidget);
           });
           testWidgets('Wrong Password', (tester) async {
+            tester.binding.window.physicalSizeTestValue =
+                Size(1080 * 3, 2400 * 3);
+            addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+
             await tester.pumpWidget(
               wrapWithMaterialApp(
                 AuthScreen(),
@@ -533,6 +546,10 @@ void main() async {
         });
 
         testWidgets('With Biometrics', (tester) async {
+          tester.binding.window.physicalSizeTestValue =
+              Size(1080 * 3, 2400 * 3);
+          addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+
           await tester.pumpWidget(
             wrapWithMaterialApp(
               AuthScreen(

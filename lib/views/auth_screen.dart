@@ -59,52 +59,54 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
-                const Divider(),
-                TextFormField(
-                  decoration: InputDecoration(
-                    suffix: IconButton(
-                      icon: Icon(obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off),
-                      tooltip: obscurePassword
-                          ? 'اظهار كلمة السر'
-                          : 'اخفاء كلمة السر',
-                      onPressed: () =>
-                          setState(() => obscurePassword = !obscurePassword),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Image.asset(_getAssetImage(), fit: BoxFit.scaleDown),
+                  const Divider(),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      suffix: IconButton(
+                        icon: Icon(obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        tooltip: obscurePassword
+                            ? 'اظهار كلمة السر'
+                            : 'اخفاء كلمة السر',
+                        onPressed: () =>
+                            setState(() => obscurePassword = !obscurePassword),
+                      ),
+                      labelText: 'كلمة السر',
                     ),
-                    labelText: 'كلمة السر',
+                    textInputAction: TextInputAction.done,
+                    obscureText: obscurePassword,
+                    autocorrect: false,
+                    autofocus: future.hasData && !future.data!,
+                    controller: _passwordText,
+                    focusNode: _passwordFocus,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'هذا الحقل مطلوب';
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: _submit,
                   ),
-                  textInputAction: TextInputAction.done,
-                  obscureText: obscurePassword,
-                  autocorrect: false,
-                  autofocus: future.hasData && !future.data!,
-                  controller: _passwordText,
-                  focusNode: _passwordFocus,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'هذا الحقل مطلوب';
-                    }
-                    return null;
-                  },
-                  onFieldSubmitted: _submit,
-                ),
-                ElevatedButton(
-                  onPressed: () => _submit(_passwordText.text),
-                  child: const Text('تسجيل الدخول'),
-                ),
-                if (canCheckBio!)
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.fingerprint),
-                    label:
-                        const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-                    onPressed: _authenticate,
+                  ElevatedButton(
+                    onPressed: () => _submit(_passwordText.text),
+                    child: const Text('تسجيل الدخول'),
                   ),
-              ],
+                  if (canCheckBio!)
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.fingerprint),
+                      label: const Text(
+                          'إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+                      onPressed: _authenticate,
+                    ),
+                ],
+              ),
             ),
           ),
         );
