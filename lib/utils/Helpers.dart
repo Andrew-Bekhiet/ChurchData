@@ -1428,7 +1428,7 @@ Future<void> showMessage(
 
 Future<void> showPendingMessage([BuildContext? context]) async {
   context ??= mainScfld.currentContext;
-  var pendingMessage = await FirebaseMessaging.instance.getInitialMessage();
+  var pendingMessage = await firebaseMessaging.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
     navigator.currentState!.pushNamed('Notifications');
