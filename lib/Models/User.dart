@@ -201,6 +201,25 @@ class User extends DataObject with PhotoObject {
     );
   }
 
+  Future<void> forceRefresh() async {
+    Json? idTokenClaims;
+    try {
+      auth.IdTokenResult idToken =
+          await firebaseAuth.currentUser!.getIdTokenResult(true);
+
+      for (var item in idToken.claims!.entries) {
+        await flutterSecureStorage.write(
+            key: item.key, value: item.value?.toString());
+      }
+
+      idTokenClaims = idToken.claims;
+    } on Exception {
+      idTokenClaims = await flutterSecureStorage.readAll();
+      if (idTokenClaims.isEmpty) rethrow;
+    }
+    _refreshFromIdToken(firebaseAuth.currentUser!, idTokenClaims!);
+  }
+
   void _refreshFromIdToken(auth.User user, Json idTokenClaims) {
     uid = user.uid;
     name = user.displayName ?? '';
