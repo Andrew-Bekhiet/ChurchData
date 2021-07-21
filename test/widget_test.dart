@@ -9,7 +9,9 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/auth_screen.dart';
 import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
+import 'package:churchdata/views/edit_page/edit_person.dart';
 import 'package:churchdata/views/login.dart';
+import 'package:churchdata/views/user_registeration.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:connectivity_plus_platform_interface/method_channel_connectivity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,6 +21,7 @@ import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_auth_mocks/src/mock_confirmation_result.dart';
 import 'package:firebase_auth_mocks/src/mock_user_credential.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +42,14 @@ import 'package:intl/intl.dart';
 
 import 'widget_test.mocks.dart';
 
-@GenerateMocks([FirebaseFunctions, RemoteConfig, MockUser, LocalAuthentication])
+@GenerateMocks([
+  FirebaseMessaging,
+  FirebaseFunctions,
+  RemoteConfig,
+  MockUser,
+  LocalAuthentication,
+  HttpsCallable
+])
 void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
@@ -65,6 +75,7 @@ void main() async {
   firebaseDatabase = MockFirebaseDatabase();
   firebaseFunctions = MockFirebaseFunctions();
   firebaseStorage = MockFirebaseStorage();
+  firebaseMessaging = MockFirebaseMessaging();
   googleSignIn = MyGoogleSignInMock();
   remoteConfig = MockRemoteConfig();
 
@@ -95,7 +106,20 @@ void main() async {
   );
 
   firebaseAuth = FakeFirebaseAuth(signedIn: false, mockUser: user);
-  // firebaseAuth.userChanges().listen((e) => print(e));
+  when(firebaseMessaging.getToken()).thenAnswer((_) async => '{FCMToken}');
+  when(firebaseMessaging.requestPermission()).thenAnswer(
+    (_) async => NotificationSettings(
+      alert: AppleNotificationSetting.enabled,
+      announcement: AppleNotificationSetting.enabled,
+      authorizationStatus: AuthorizationStatus.authorized,
+      badge: AppleNotificationSetting.enabled,
+      carPlay: AppleNotificationSetting.enabled,
+      lockScreen: AppleNotificationSetting.enabled,
+      notificationCenter: AppleNotificationSetting.enabled,
+      showPreviews: AppleShowPreviewSetting.whenAuthenticated,
+      sound: AppleNotificationSetting.enabled,
+    ),
+  );
 
   //FlutterSecureStorage Mocks
   flutterSecureStorage = FakeFlutterSecureStorage();
@@ -387,6 +411,43 @@ void main() async {
       },
     );
 
+    group('UserRegisteration', () {
+      final _originalValue = userClaims['approved'];
+      setUp(() async {
+        await firebaseAuth.signInWithCustomToken('token');
+        await User.instance.initialized;
+      });
+      tearDown(() async {
+        userClaims['approved'] = _originalValue;
+        await User.instance.signOut();
+      });
+
+      testWidgets('When user is not approved', (tester) async {
+        userClaims['approved'] = false;
+        await User.instance.forceRefresh();
+
+        await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
+
+        expect(find.text('في انتظار الموافقة'), findsOneWidget);
+        expect(find.widgetWithIcon(IconButton, Icons.logout), findsOneWidget);
+        expect(find.text('لينك الدعوة'), findsOneWidget);
+        expect(find.text('تفعيل الحساب باللينك'), findsOneWidget);
+      });
+
+      testWidgets('When user is approved', (tester) async {
+        userClaims['approved'] = true;
+        await User.instance.forceRefresh();
+
+        await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
+
+        expect(find.text('تسجيل حساب جديد'), findsOneWidget);
+        expect(find.text('اسم المستخدم'), findsOneWidget);
+        expect(find.text('كلمة السر'), findsOneWidget);
+        expect(find.text('تأكيد كلمة السر'), findsOneWidget);
+        expect(find.text('انشاء حساب جديد'), findsOneWidget);
+      });
+    });
+
     group('AuthScreen', () {
       testWidgets('With Biometrics', (tester) async {
         await tester.pumpWidget(
@@ -458,7 +519,103 @@ void main() async {
       tearDownAll(User.instance.signOut);
     });
 
-    group('User registeration', () {});
+    group('User registeration', () {
+      final _originalApprovedValue = userClaims['approved'];
+      final _originalPasswordValue = userClaims['password'];
+      setUp(() async {
+        userClaims['approved'] = false;
+        userClaims['password'] = null;
+        await firebaseAuth.signInWithCustomToken('token');
+        await User.instance.initialized;
+        await User.instance.forceRefresh();
+      });
+      tearDown(() async {
+        userClaims['approved'] = _originalApprovedValue;
+        userClaims['password'] = _originalPasswordValue;
+        await User.instance.signOut();
+      });
+
+      testWidgets('Shows UserRegisteration widget', (tester) async {
+        await tester.pumpWidget(App());
+        await tester.pumpAndSettle();
+
+        expect(find.byType(UserRegisteration), findsOneWidget);
+      });
+
+      testWidgets('Using invitation link', (tester) async {
+        final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
+        when(firebaseFunctions.httpsCallable('registerWithLink'))
+            .thenReturn(mockHttpsCallable);
+        when(mockHttpsCallable
+                .call({'link': 'https://churchdata.page.link/fakeInvitation'}))
+            .thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
+
+        await tester.pumpWidget(App());
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('تفعيل الحساب باللينك'));
+        await tester.pump();
+
+        expect(
+            find.text('برجاء ادخال لينك الدخول لتفعيل حسابك'), findsOneWidget);
+
+        await tester.enterText(
+            find.widgetWithText(TextFormField, 'لينك الدعوة'),
+            'https://churchdata.page.link/fakeInvitation');
+        await tester.pump();
+
+        await tester.tap(find.text('تفعيل الحساب باللينك'));
+        await tester.pump();
+      });
+
+      testWidgets('Submitting account name and password', (tester) async {
+        final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
+        when(firebaseFunctions.httpsCallable('registerAccount'))
+            .thenReturn(mockHttpsCallable);
+        when(mockHttpsCallable.call(argThat(predicate((p) {
+          if (p == null) return false;
+          final Map<String, dynamic> m = p as Map<String, dynamic>;
+          return m['name'] == 'name' &&
+              m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
+              m['fcmToken'] == '{FCMToken}';
+        })))).thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
+
+        await firestore.doc('Persons/user').set(
+          {
+            'LastTanawol': Timestamp.now(),
+            'LastConfession': Timestamp.now(),
+          },
+        );
+
+        userClaims['approved'] = true;
+        await User.instance.forceRefresh();
+
+        await tester.pumpWidget(App());
+        await tester.pumpAndSettle();
+
+        expect(find.byType(UserRegisteration), findsOneWidget);
+
+        await tester.enterText(
+            find.widgetWithText(TextFormField, 'اسم المستخدم'), 'name');
+        await tester.enterText(
+            find.widgetWithText(TextFormField, 'كلمة السر'), 'Strong*P@ss9');
+        await tester.enterText(
+            find.widgetWithText(TextFormField, 'تأكيد كلمة السر'),
+            'Strong*P@ss9');
+        await tester.pump();
+
+        await tester.tap(find.text('انشاء حساب جديد'));
+        await tester.pump();
+
+        verify(mockHttpsCallable.call(argThat(predicate((p) {
+          if (p == null) return false;
+          final Map<String, dynamic> m = p as Map<String, dynamic>;
+          return m['name'] == 'name' &&
+              m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
+              m['fcmToken'] == '{FCMToken}';
+        }))));
+      });
+    });
 
     group('Entering with AuthScreen', () {
       Completer<bool> _authCompleter = Completer();
@@ -559,36 +716,32 @@ void main() async {
             expect(find.text('كلمة سر خاطئة!'), findsOneWidget);
           });
         });
+      });
 
-        testWidgets('With Biometrics', (tester) async {
-          tester.binding.window.physicalSizeTestValue =
-              Size(1080 * 3, 2400 * 3);
-          addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
+      testWidgets('With Biometrics', (tester) async {
+        tester.binding.window.physicalSizeTestValue = Size(1080 * 3, 2400 * 3);
+        addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
-          await tester.pumpWidget(
-            wrapWithMaterialApp(
-              AuthScreen(
-                nextRoute: 'Success',
-              ),
-              routes: {
-                'Success': (_) => Scaffold(body: Text('Test succeeded'))
-              },
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            AuthScreen(
+              nextRoute: 'Success',
             ),
-          );
-          await tester.pump();
+            routes: {'Success': (_) => Scaffold(body: Text('Test succeeded'))},
+          ),
+        );
+        await tester.pump();
 
-          _authCompleter.complete(false);
-          _authCompleter = Completer();
+        _authCompleter.complete(false);
+        _authCompleter = Completer();
 
-          await tester
-              .tap(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'));
+        await tester.tap(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'));
 
-          _authCompleter.complete(true);
+        _authCompleter.complete(true);
 
-          await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-          expect(find.text('Test succeeded'), findsOneWidget);
-        });
+        expect(find.text('Test succeeded'), findsOneWidget);
       });
     });
 
@@ -903,4 +1056,12 @@ class MyGoogleSignInMock extends Mock implements GoogleSignIn {
     _currentUser = null;
     return Future.value(_isCancelled ? null : _currentUser);
   }
+}
+
+class FakeHttpsCallableResult<T> extends Fake
+    implements HttpsCallableResult<T> {
+  FakeHttpsCallableResult(this.data);
+
+  @override
+  T data;
 }
