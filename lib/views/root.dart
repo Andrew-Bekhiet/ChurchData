@@ -532,32 +532,32 @@ class _RootState extends State<Root>
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
-              Consumer<User>(
-                builder: (context, user, _) => DrawerHeader(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/Logo.png'),
-                    ),
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 86, 213, 170),
-                        Color.fromARGB(255, 39, 124, 205)
-                      ],
-                      stops: [0, 1],
-                    ),
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/Logo.png'),
                   ),
-                  child: Container(),
+                  gradient: LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 86, 213, 170),
+                      Color.fromARGB(255, 39, 124, 205)
+                    ],
+                    stops: [0, 1],
+                  ),
                 ),
+                child: Container(),
               ),
               ListTile(
-                leading: Consumer<User>(
-                  builder: (context, user, snapshot) {
+                leading: StreamBuilder<User>(
+                  initialData: User.instance,
+                  stream: User.instance.stream,
+                  builder: (context, user) {
                     return DescribedFeatureOverlay(
                       backgroundDismissible: false,
                       barrierDismissible: false,
                       contentLocation: ContentLocation.below,
                       featureId: 'MyAccount',
-                      tapTarget: user.getPhoto(true, false),
+                      tapTarget: user.data!.getPhoto(true, false),
                       title: Text('حسابي'),
                       description: Column(
                         children: <Widget>[
@@ -596,7 +596,7 @@ class _RootState extends State<Root>
                       targetColor: Colors.transparent,
                       textColor:
                           Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                      child: user.getPhoto(true, false),
+                      child: user.data!.getPhoto(true, false),
                     );
                   },
                 ),
@@ -680,68 +680,72 @@ class _RootState extends State<Root>
                 },
               ),
               Divider(),
-              Consumer<User>(
-                builder: (context, user, _) => user.manageUsers ||
-                        user.manageAllowedUsers
-                    ? ListTile(
-                        leading: DescribedFeatureOverlay(
-                          backgroundDismissible: false,
-                          barrierDismissible: false,
-                          featureId: 'ActivityAnalysis',
-                          contentLocation: ContentLocation.below,
-                          tapTarget: const Icon(Icons.analytics_outlined),
-                          title: Text('تحليل بيانات الخدمة'),
-                          description: Column(
-                            children: [
-                              Text('يمكنك الأن تحليل بيانات الخدمة'
-                                  ' من حيث الافتقاد'
-                                  ' وتحديث البيانات وبيانات المكالمات'),
-                              OutlinedButton.icon(
-                                icon: Icon(Icons.forward),
-                                label: Text(
-                                  'التالي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2
-                                        ?.color,
+              StreamBuilder<User>(
+                initialData: User.instance,
+                stream: User.instance.stream,
+                builder: (context, user) {
+                  return user.data!.manageUsers || user.data!.manageAllowedUsers
+                      ? ListTile(
+                          leading: DescribedFeatureOverlay(
+                            backgroundDismissible: false,
+                            barrierDismissible: false,
+                            featureId: 'ActivityAnalysis',
+                            contentLocation: ContentLocation.below,
+                            tapTarget: const Icon(Icons.analytics_outlined),
+                            title: Text('تحليل بيانات الخدمة'),
+                            description: Column(
+                              children: [
+                                Text('يمكنك الأن تحليل بيانات الخدمة'
+                                    ' من حيث الافتقاد'
+                                    ' وتحديث البيانات وبيانات المكالمات'),
+                                OutlinedButton.icon(
+                                  icon: Icon(Icons.forward),
+                                  label: Text(
+                                    'التالي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          ?.color,
+                                    ),
+                                  ),
+                                  onPressed: () =>
+                                      FeatureDiscovery.completeCurrentStep(
+                                          context),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      FeatureDiscovery.dismissAll(context),
+                                  child: Text(
+                                    'تخطي',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyText2
+                                          ?.color,
+                                    ),
                                   ),
                                 ),
-                                onPressed: () =>
-                                    FeatureDiscovery.completeCurrentStep(
-                                        context),
-                              ),
-                              OutlinedButton(
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
-                                child: Text(
-                                  'تخطي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyText2
-                                        ?.color,
-                                  ),
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            targetColor: Colors.transparent,
+                            textColor: Theme.of(context)
+                                .primaryTextTheme
+                                .bodyText1!
+                                .color!,
+                            child: Icon(Icons.analytics_outlined),
                           ),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                          targetColor: Colors.transparent,
-                          textColor: Theme.of(context)
-                              .primaryTextTheme
-                              .bodyText1!
-                              .color!,
-                          child: Icon(Icons.analytics_outlined),
-                        ),
-                        title: Text('تحليل بيانات الخدمة'),
-                        onTap: () {
-                          mainScfld.currentState!.openEndDrawer();
-                          navigator.currentState!.pushNamed('ActivityAnalysis');
-                        },
-                      )
-                    : Container(),
+                          title: Text('تحليل بيانات الخدمة'),
+                          onTap: () {
+                            mainScfld.currentState!.openEndDrawer();
+                            navigator.currentState!
+                                .pushNamed('ActivityAnalysis');
+                          },
+                        )
+                      : Container();
+                },
               ),
               ListTile(
                 leading: DescribedFeatureOverlay(
@@ -1223,18 +1227,8 @@ class _RootState extends State<Root>
                 title: Text('تسجيل الخروج'),
                 onTap: () async {
                   mainScfld.currentState!.openEndDrawer();
-                  await firebaseAuth.signOut();
+                  await User.instance.signOut();
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
-                  // ignore: unawaited_futures
-                  navigator.currentState!.pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) {
-                        navigator.currentState!
-                            .popUntil((route) => route.isFirst);
-                        return App();
-                      },
-                    ),
-                  );
                 },
               ),
             ],
