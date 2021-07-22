@@ -394,7 +394,7 @@ class AppState extends State<App> {
                     ),
                 'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
                     person:
-                        ModalRoute.of(context)!.settings.arguments! as Person),
+                        ModalRoute.of(context)!.settings.arguments as Person? ?? Person(ref:User.instance.personDocRef,name:User.instance.name,),),
                 'Invitations': (context) => InvitationsPage(),
                 'EditUserData': (context) => FutureBuilder<Person?>(
                       future: User.getCurrentPerson(),

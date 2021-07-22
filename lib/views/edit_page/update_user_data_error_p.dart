@@ -1,4 +1,5 @@
 import 'package:churchdata/models/person.dart';
+import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
@@ -122,11 +123,15 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
     try {
       _saveLock = true;
       _form.currentState!.save();
-      await person.ref.update({
-        'LastConfession': person.lastConfession,
-        'LastTanawol': person.lastTanawol,
-        'LastEdit': firebaseAuth.currentUser!.uid
-      });
+      await person.ref.set(
+        {
+          'Name': person.name.isEmpty ? User.instance.name : person.name,
+          'LastConfession': person.lastConfession,
+          'LastTanawol': person.lastTanawol,
+          'LastEdit': firebaseAuth.currentUser!.uid
+        },
+        SetOptions(merge: true),
+      );
       navigator.currentState!.pop();
     } catch (err, stkTrace) {
       await showErrorDialog(
