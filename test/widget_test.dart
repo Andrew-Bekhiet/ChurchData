@@ -9,6 +9,8 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/auth_screen.dart';
 import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
+import 'package:churchdata/views/form_widgets/password_field.dart';
+import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/login.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -190,6 +192,194 @@ void main() async {
         .thenAnswer((_) async => true);
   });
 
+  group('Helping widgets', () {
+    group('Tapable Form Field', () {
+      testWidgets('Label', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: TapableFormField<String>(
+                initialValue: 'initialValue',
+                labelText: 'some label',
+                onTap: (state) {},
+                builder: (context, state) {},
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('some label'), findsOneWidget);
+      });
+
+      testWidgets('Decoration', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: TapableFormField<String>(
+                initialValue: 'initialValue',
+                decoration: (context, state) =>
+                    InputDecoration(labelText: 'Some label'),
+                onTap: (state) {},
+                builder: (context, state) {},
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Some label'), findsOneWidget);
+      });
+
+      testWidgets('Initial value', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: TapableFormField<String>(
+                initialValue: 'Initial Value',
+                decoration: (context, state) =>
+                    InputDecoration(labelText: 'Some label'),
+                onTap: (state) {},
+                builder: (context, state) => Text(state.value!),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Initial Value'), findsOneWidget);
+      });
+
+      testWidgets('Tapping', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: TapableFormField<String>(
+                initialValue: 'Initial Value',
+                decoration: (context, state) =>
+                    InputDecoration(labelText: 'Some label'),
+                onTap: (state) {
+                  showDialog(
+                    context: state.context,
+                    builder: (context) => AlertDialog(
+                      content: Text('Test succeeded'),
+                    ),
+                  );
+                },
+                builder: (context, state) => Text(state.value!),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Initial Value'));
+        await tester.pump();
+
+        expect(find.text('Test succeeded'), findsOneWidget);
+      });
+
+      testWidgets('Can change state', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: TapableFormField<String>(
+                initialValue: 'Initial Value',
+                decoration: (context, state) =>
+                    InputDecoration(labelText: 'Some label'),
+                onTap: (state) {
+                  state.didChange('Changed!');
+                },
+                builder: (context, state) => Text(state.value!),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Initial Value'));
+        await tester.pump();
+
+        expect(find.text('Changed!'), findsOneWidget);
+        expect(find.text('Initial Value'), findsNothing);
+      });
+    });
+
+    group('Password Form Field', () {
+      testWidgets('Label', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: PasswordFormField(
+                labelText: 'Password',
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('Password'), findsOneWidget);
+      });
+
+      testWidgets('Text obscuring', (tester) async {
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            Scaffold(
+              body: PasswordFormField(
+                key: Key('PasswordField'),
+                initialValue: 'initialValue',
+                labelText: 'Password',
+              ),
+            ),
+          ),
+        );
+
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(
+                  of: find.byKey(Key('PasswordField')),
+                  matching: find.byType(TextField),
+                ),
+              )
+              .obscureText,
+          true,
+        );
+
+        expect(find.byIcon(Icons.visibility_off), findsNothing);
+        expect(find.byIcon(Icons.visibility), findsOneWidget);
+
+        await tester.tap(find.byIcon(Icons.visibility));
+        await tester.pump();
+
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(
+                  of: find.byKey(Key('PasswordField')),
+                  matching: find.byType(TextField),
+                ),
+              )
+              .obscureText,
+          false,
+        );
+
+        expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+        expect(find.byIcon(Icons.visibility), findsNothing);
+
+        await tester.tap(find.byIcon(Icons.visibility_off));
+        await tester.pump();
+
+        expect(
+          tester
+              .widget<TextField>(
+                find.descendant(
+                  of: find.byKey(Key('PasswordField')),
+                  matching: find.byType(TextField),
+                ),
+              )
+              .obscureText,
+          true,
+        );
+        expect(find.byIcon(Icons.visibility_off), findsNothing);
+        expect(find.byIcon(Icons.visibility), findsOneWidget);
+      });
+    });
+  });
   group('Widgets structrures', () {
     group('LoadingWidget', () {
       testWidgets('Normal', (tester) async {
