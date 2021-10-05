@@ -83,7 +83,7 @@ class _UsersListState extends State<UsersList> {
                       return Checkbox(
                         value: snapshot.data!.containsKey(current.id),
                         onChanged: (v) {
-                          if (v == true) {
+                          if (v ?? false) {
                             _listOptions.select(current);
                           } else {
                             _listOptions.deselect(current);

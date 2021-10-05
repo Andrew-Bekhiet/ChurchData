@@ -1,6 +1,6 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/settings.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +11,7 @@ class NotificationSetting extends StatefulWidget {
   final int alarmId;
   final Function notificationCallback;
 
-  NotificationSetting(
+  const NotificationSetting(
       {Key? key,
       required this.label,
       required this.hiveKey,
@@ -55,7 +55,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
         Flexible(
           flex: 25,
           child: DropdownButtonFormField(
-            items: [
+            items: const [
               DropdownMenuItem(
                 value: DateType.day,
                 child: Text('يوم'),
@@ -73,7 +73,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
                 defaultValue: {'Period': 7})!.cast<String, int>()['Period']!),
             onSaved: (_) => onSave(),
             onChanged: (value) async {
-              if (value as DateType == DateType.month) {
+              if (value! as DateType == DateType.month) {
                 multiplier = 30;
               } else if (value == DateType.week) {
                 multiplier = 7;
@@ -85,24 +85,34 @@ class _NotificationSettingState extends State<NotificationSetting> {
         ),
         Flexible(
           flex: 25,
-          child: DateTimeField(
-            format: DateFormat(
-                'h:m' +
-                    (MediaQuery.of(context).alwaysUse24HourFormat ? '' : ' a'),
-                'ar-EG'),
-            resetIcon: null,
+          child: TapableFormField<DateTime>(
             initialValue: DateTime(2021, 1, 1, time.hour, time.minute),
-            onShowPicker: (context, initialValue) async {
-              var selected = await showTimePicker(
-                initialTime: TimeOfDay.fromDateTime(initialValue!),
+            onTap: (state) async {
+              final selected = await showTimePicker(
+                initialTime: TimeOfDay.fromDateTime(state.value!),
                 context: context,
               );
-              return DateTime(2020, 1, 1, selected?.hour ?? initialValue.hour,
-                  selected?.minute ?? initialValue.minute);
+
+              time = TimeOfDay(
+                  hour: state.value!.hour, minute: state.value!.minute);
+              state.didChange(
+                DateTime(2020, 1, 1, selected?.hour ?? state.value!.hour,
+                    selected?.minute ?? state.value!.minute),
+              );
             },
-            onChanged: (value) {
-              time = TimeOfDay(hour: value!.hour, minute: value.minute);
-            },
+            decoration: (context, state) => const InputDecoration(),
+            validator: (_) => null,
+            builder: (context, state) => state.value != null
+                ? Text(DateFormat(
+                        'h:m' +
+                            (MediaQuery.of(context).alwaysUse24HourFormat
+                                ? ''
+                                : ' a'),
+                        'ar-EG')
+                    .format(
+                    state.value!,
+                  ))
+                : null,
           ),
         ),
       ],
@@ -121,7 +131,7 @@ class _NotificationSettingState extends State<NotificationSetting> {
   }
 
   void onSave() async {
-    var current = notificationsSettings.get(widget.hiveKey, defaultValue: {
+    final current = notificationsSettings.get(widget.hiveKey, defaultValue: {
       'Hours': 11,
       'Minutes': 0,
       'Period': 7

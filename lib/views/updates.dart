@@ -10,7 +10,7 @@ import 'package:version/version.dart';
 import '../utils/globals.dart';
 
 class Update extends StatefulWidget {
-  Update({Key? key}) : super(key: key);
+  const Update({Key? key}) : super(key: key);
   @override
   _UpdateState createState() => _UpdateState();
 }
@@ -18,7 +18,7 @@ class Update extends StatefulWidget {
 class Updates {
   static Future showUpdateDialog(BuildContext context,
       {bool canCancel = true}) async {
-    Version latest = Version.parse(
+    final Version latest = Version.parse(
       remoteConfig.getString('LatestVersion'),
     );
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version) &&

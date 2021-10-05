@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/typedefs.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -15,7 +15,7 @@ import '../../models/user.dart';
 class EditInvitation extends StatefulWidget {
   final Invitation invitation;
 
-  EditInvitation({Key? key, required this.invitation}) : super(key: key);
+  const EditInvitation({Key? key, required this.invitation}) : super(key: key);
 
   @override
   _EditInvitationState createState() => _EditInvitationState();
@@ -369,7 +369,7 @@ class _EditInvitationState extends State<EditInvitation> {
             'GeneratedOn': FieldValue.serverTimestamp()
           });
         } else {
-          var update = widget.invitation.getMap()
+          final update = widget.invitation.getMap()
             ..removeWhere((key, value) => old[key] == value);
           if (update.isNotEmpty) {
             await widget.invitation.update(old: update);
@@ -414,7 +414,7 @@ class _EditInvitationState extends State<EditInvitation> {
         firstDate: DateTime.now(),
         lastDate: DateTime.now().add(Duration(days: 14)));
     if (picked != null && picked != initialDate) {
-      var time = await showTimePicker(
+      final time = await showTimePicker(
           context: context, initialTime: TimeOfDay.fromDateTime(initialDate));
       if (time != null)
         picked = picked.add(Duration(hours: time.hour, minutes: time.minute));

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DataDialog extends StatelessWidget {
-  DataDialog(
+  const DataDialog(
       {Key? key,
       this.actions,
       this.title,

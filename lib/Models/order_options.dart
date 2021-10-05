@@ -5,7 +5,7 @@ class OrderOptions {
   final String orderBy;
   final bool asc;
 
-  OrderOptions({
+  const OrderOptions({
     this.orderBy = 'Name',
     this.asc = true,
   });
@@ -14,5 +14,6 @@ class OrderOptions {
   int get hashCode => hashValues(orderBy, asc);
 
   @override
-  bool operator ==(dynamic o) => o is OrderOptions && o.hashCode == hashCode;
+  bool operator ==(dynamic other) =>
+      other is OrderOptions && other.hashCode == hashCode;
 }

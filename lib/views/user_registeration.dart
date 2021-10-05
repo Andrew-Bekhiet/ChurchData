@@ -1,5 +1,4 @@
 import 'package:churchdata/EncryptionKeys.dart';
-import 'package:churchdata/main.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
@@ -7,11 +6,9 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:provider/provider.dart';
 
 class UserRegisteration extends StatefulWidget {
   const UserRegisteration({Key? key}) : super(key: key);
@@ -45,7 +42,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
           return Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
-              title: Text('تسجيل حساب جديد'),
+              title: const Text('تسجيل حساب جديد'),
             ),
             body: Form(
               key: _formKey,
@@ -53,10 +50,10 @@ class _UserRegisterationState extends State<UserRegisteration> {
                 padding: const EdgeInsets.all(8.0),
                 children: <Widget>[
                   Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
-                  Divider(),
+                  const Divider(),
                   TextFormField(
                     autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       helperText:
                           'يرجى ادخال اسمك الذي سيظهر للمستخدمين في البرنامج',
                       labelText: 'اسم المستخدم',
@@ -139,7 +136,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                   ElevatedButton(
                     onPressed: () =>
                         _submit(_passwordText.text, _userName.text),
-                    child: Text('انشاء حساب جديد'),
+                    child: const Text('انشاء حساب جديد'),
                   ),
                 ],
               ),
@@ -148,10 +145,10 @@ class _UserRegisterationState extends State<UserRegisteration> {
         }
         return Scaffold(
           appBar: AppBar(
-            title: Text('في انتظار الموافقة'),
+            title: const Text('في انتظار الموافقة'),
             actions: <Widget>[
               IconButton(
-                icon: Icon(Icons.logout),
+                icon: const Icon(Icons.logout),
                 tooltip: 'تسجيل الخروج',
                 onPressed: () async {
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
@@ -164,7 +161,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
             key: _formKey,
             child: Column(
               children: [
-                Center(
+                const Center(
                   child: Text(
                     'يجب ان يتم الموافقة على دخولك للبيانات '
                     'من قبل أحد '
@@ -175,14 +172,14 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     ),
                   ),
                 ),
-                Text('أو'),
+                const Text('أو'),
                 Text(
                   'يمكنك ادخال لينك الدعوة هنا',
                   style: Theme.of(context).textTheme.bodyText1,
                 ),
                 Container(height: 10),
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintMaxLines: 3,
                     hintText:
                         'مثال: https://churchdata.page.link/ZaBc1KnFgh6K3YO92',
@@ -202,7 +199,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                 ),
                 ElevatedButton(
                   onPressed: () => _registerUser(_linkController.text),
-                  child: Text('تفعيل الحساب باللينك'),
+                  child: const Text('تفعيل الحساب باللينك'),
                 ),
                 ElevatedButton.icon(
                   onPressed: () async {
@@ -210,14 +207,14 @@ class _UserRegisterationState extends State<UserRegisteration> {
                         await navigator.currentState!.pushNamed('EditUserData')
                             is JsonRef) {
                       scaffoldMessenger.currentState!.showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text('تم الحفظ بنجاح'),
                         ),
                       );
                     }
                   },
-                  icon: Icon(Icons.edit),
-                  label: Text('تعديل بياناتي'),
+                  icon: const Icon(Icons.edit),
+                  label: const Text('تعديل بياناتي'),
                 ),
               ],
             ),
@@ -234,7 +231,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: const [
             Text('جار انشاء حساب جديد'),
             LinearProgressIndicator(),
           ],
@@ -272,13 +269,13 @@ class _UserRegisterationState extends State<UserRegisteration> {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text(
-                    (snapshot.error as FirebaseFunctionsException).message!);
+                    (snapshot.error! as FirebaseFunctionsException).message!);
               } else if (snapshot.connectionState == ConnectionState.done) {
                 navigator.currentState!.pop();
               }
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: const [
                   CircularProgressIndicator(),
                   Text('جار تفعيل الحساب...'),
                 ],

@@ -23,7 +23,6 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../main.dart';
 import '../models/list.dart';
 import '../models/list_controllers.dart';
 import '../models/order_options.dart';
@@ -122,7 +121,7 @@ class _RootState extends State<Root>
               initialData: _showSearch.value,
               stream: _showSearch,
               builder: (context, showSearch) {
-                return showSearch.data == true
+                return showSearch.data ?? false
                     ? IconButton(
                         icon: Icon(Icons.filter_list),
                         onPressed: () async {
@@ -333,11 +332,12 @@ class _RootState extends State<Root>
                   targetColor: Colors.transparent,
                   textColor:
                       Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                  child: Image.asset('assets/streets.png',
-                      width: IconTheme.of(context).size,
-                      height: IconTheme.of(context).size,
-                      color:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!),
+                  child: Image.asset(
+                    'assets/streets.png',
+                    width: IconTheme.of(context).size,
+                    height: IconTheme.of(context).size,
+                    color: Theme.of(context).primaryTextTheme.bodyText1!.color,
+                  ),
                 ),
               ),
               Tab(
@@ -427,7 +427,7 @@ class _RootState extends State<Root>
             initialData: _showSearch.value,
             stream: _showSearch,
             builder: (context, showSearch) {
-              return showSearch.data == true
+              return showSearch.data ?? false
                   ? TextField(
                       focusNode: searchFocus,
                       decoration: InputDecoration(
@@ -538,11 +538,11 @@ class _RootState extends State<Root>
                     image: AssetImage('assets/Logo.png'),
                   ),
                   gradient: LinearGradient(
-                    colors: [
+                    colors: const [
                       Color.fromARGB(255, 86, 213, 170),
                       Color.fromARGB(255, 39, 124, 205)
                     ],
-                    stops: [0, 1],
+                    stops: const [0, 1],
                   ),
                 ),
                 child: Container(),
@@ -1018,7 +1018,7 @@ class _RootState extends State<Root>
                           title: Text('تصدير منطقة إلى ملف اكسل'),
                           onTap: () async {
                             mainScfld.currentState!.openEndDrawer();
-                            Area? rslt = await showDialog(
+                            final Area? rslt = await showDialog(
                               context: context,
                               builder: (context) => Dialog(
                                 child: Column(
@@ -1062,12 +1062,12 @@ class _RootState extends State<Root>
                                 ),
                               );
                               try {
-                                String filename = Uri.decodeComponent(
+                                final String filename = Uri.decodeComponent(
                                     (await firebaseFunctions
                                             .httpsCallable('exportToExcel')
                                             .call({'onlyArea': rslt.id}))
                                         .data);
-                                var file = await File(
+                                final file = await File(
                                         (await getApplicationDocumentsDirectory())
                                                 .path +
                                             '/' +
@@ -1120,7 +1120,7 @@ class _RootState extends State<Root>
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                                  children: const [
                                     Text(
                                         'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
                                     LinearProgressIndicator(),
@@ -1130,12 +1130,12 @@ class _RootState extends State<Root>
                               ),
                             );
                             try {
-                              String filename = Uri.decodeComponent(
+                              final String filename = Uri.decodeComponent(
                                   (await firebaseFunctions
                                           .httpsCallable('exportToExcel')
                                           .call())
                                       .data);
-                              var file = await File(
+                              final file = await File(
                                       (await getApplicationDocumentsDirectory())
                                               .path +
                                           '/' +
@@ -1357,13 +1357,13 @@ class _RootState extends State<Root>
   }
 
   Future showDynamicLink() async {
-    PendingDynamicLinkData? data =
+    final PendingDynamicLinkData? data =
         await FirebaseDynamicLinks.instance.getInitialLink();
 
     FirebaseDynamicLinks.instance.onLink(
       onSuccess: (dynamicLink) async {
         if (dynamicLink == null) return;
-        Uri deepLink = dynamicLink.link;
+        final Uri deepLink = dynamicLink.link;
 
         await processLink(deepLink);
       },
@@ -1372,7 +1372,7 @@ class _RootState extends State<Root>
       },
     );
     if (data == null) return;
-    Uri deepLink = data.link;
+    final Uri deepLink = data.link;
     await processLink(deepLink);
   }
 

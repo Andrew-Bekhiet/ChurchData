@@ -197,7 +197,7 @@ class Street extends DataObject
 
   @override
   Future<String?> getSecondLine() async {
-    String key = Hive.box('Settings').get('StreetSecondLine');
+    final String key = Hive.box('Settings').get('StreetSecondLine');
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'AreaId') {

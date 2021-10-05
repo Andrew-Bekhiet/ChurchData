@@ -103,11 +103,11 @@ class _StreetMap extends StatelessWidget {
       }(),
       builder: (context, data) {
         if (!data.hasData)
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
 
-        Area? area = data.data!.item1;
+        final Area? area = data.data!.item1;
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
             compassEnabled: true,
@@ -207,7 +207,7 @@ class _FamilyMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
+    final LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
     return FutureBuilder<Tuple2<Area?, Street?>>(
       future: () async {
         return Tuple2<Area?, Street?>(
@@ -224,8 +224,8 @@ class _FamilyMap extends StatelessWidget {
             child: CircularProgressIndicator(),
           );
 
-        Area? area = data.data!.item1;
-        Street? street = data.data!.item2;
+        final Area? area = data.data!.item1;
+        final Street? street = data.data!.item2;
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
             compassEnabled: true,
@@ -336,7 +336,7 @@ class _AreaMap extends StatelessWidget {
       double x2 = 0;
       double y1 = 0;
       double y2 = 0;
-      var tmpList = area.locationPoints.sublist(0)
+      final tmpList = area.locationPoints.sublist(0)
         ..sort(
           (pnt1, pnt2) => pnt1.latitude.compareTo(pnt2.latitude),
         );

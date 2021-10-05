@@ -36,7 +36,7 @@ class Notification extends StatelessWidget {
                 ? snapshot.data is User
                     ? (snapshot.data! as User).getPhoto()
                     : snapshot.data is MessageIcon
-                        ? snapshot.data as MessageIcon
+                        ? snapshot.data! as MessageIcon
                         : DataObjectPhoto(
                             snapshot.data! as PhotoObject,
                             heroTag: snapshot.data,

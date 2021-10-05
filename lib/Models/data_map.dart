@@ -48,7 +48,7 @@ class MegaMap extends StatelessWidget {
   static const LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
   final LatLng? initialLocation;
 
-  MegaMap({Key? key, this.initialLocation}) : super(key: key);
+  const MegaMap({Key? key, this.initialLocation}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +62,13 @@ class MegaMap extends StatelessWidget {
       }(),
       builder: (context, data) {
         if (data.connectionState != ConnectionState.done)
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
 
-        List<Area> areas = data.data!.item1;
-        List<Street> streets = data.data!.item2;
-        List<Family> families = data.data!.item3;
+        final List<Area> areas = data.data!.item1;
+        final List<Street> streets = data.data!.item2;
+        final List<Family> families = data.data!.item3;
 
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(

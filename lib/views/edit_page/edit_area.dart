@@ -6,10 +6,10 @@ import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -26,7 +26,7 @@ import 'package:provider/provider.dart';
 class EditArea extends StatefulWidget {
   final Area? area;
 
-  EditArea({Key? key, this.area}) : super(key: key);
+  const EditArea({Key? key, this.area}) : super(key: key);
 
   @override
   _EditAreaState createState() => _EditAreaState();
@@ -70,7 +70,7 @@ class _EditAreaState extends State<EditArea> {
                     },
                   ),
                   onPressed: () async {
-                    var source = await showDialog(
+                    final source = await showDialog(
                       context: context,
                       builder: (context) => SimpleDialog(
                         children: <Widget>[
@@ -104,7 +104,7 @@ class _EditAreaState extends State<EditArea> {
                     }
                     if (source as bool &&
                         !(await Permission.camera.request()).isGranted) return;
-                    var selectedImage = await ImagePicker().getImage(
+                    final selectedImage = await ImagePicker().pickImage(
                         source:
                             source ? ImageSource.camera : ImageSource.gallery);
                     if (selectedImage == null) return;
@@ -207,8 +207,9 @@ class _EditAreaState extends State<EditArea> {
                     ),
                     label: Text('تعديل مكان المنطقة على الخريطة'),
                     onPressed: () async {
-                      List<GeoPoint> oldPoints = area.locationPoints.sublist(0);
-                      var rslt = await navigator.currentState!.push(
+                      final List<GeoPoint> oldPoints =
+                          area.locationPoints.sublist(0);
+                      final rslt = await navigator.currentState!.push(
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
@@ -419,7 +420,7 @@ class _EditAreaState extends State<EditArea> {
             area.locationConfirmed = false;
           }
         }
-        bool update = area.id != 'null';
+        final bool update = area.id != 'null';
         if (!update) area.ref = firestore.collection('Areas').doc();
         if (changedImage != null) {
           await firebaseStorage.ref().child('AreasPhotos/${area.id}').putFile(
@@ -566,7 +567,7 @@ class _EditAreaState extends State<EditArea> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: area.lastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),
@@ -580,7 +581,7 @@ class _EditAreaState extends State<EditArea> {
   }
 
   Future _selectDate2(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: area.fatherLastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),

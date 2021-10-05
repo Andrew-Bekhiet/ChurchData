@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -11,9 +10,10 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
@@ -25,7 +25,7 @@ import 'package:share_plus/share_plus.dart';
 class StreetInfo extends StatefulWidget {
   final Street street;
 
-  StreetInfo({Key? key, required this.street}) : super(key: key);
+  const StreetInfo({Key? key, required this.street}) : super(key: key);
 
   @override
   _StreetInfoState createState() => _StreetInfoState();
@@ -112,7 +112,7 @@ class _StreetInfoState extends State<StreetInfo> {
                         IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () async {
-                            dynamic result = await navigator.currentState!
+                            final dynamic result = await navigator.currentState!
                                 .pushNamed('Data/EditStreet',
                                     arguments: street);
                             if (result == null) return;
@@ -277,7 +277,7 @@ class _StreetInfoState extends State<StreetInfo> {
                           )
                         ],
                         onSelected: (type) async {
-                          dynamic result =
+                          final dynamic result =
                               await navigator.currentState!.pushNamed(
                             'Data/EditFamily',
                             arguments: {
@@ -339,7 +339,7 @@ class _StreetInfoState extends State<StreetInfo> {
   }
 
   void showMap(BuildContext context, Street street) {
-    bool approve = User.instance.approveLocations;
+    final bool approve = User.instance.approveLocations;
     navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) {

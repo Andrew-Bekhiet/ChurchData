@@ -13,10 +13,10 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -36,24 +36,25 @@ class EditPerson extends StatefulWidget {
   final Person? person;
   final bool userData;
 
-  EditPerson({Key? key, this.person, this.userData = false}) : super(key: key);
+  const EditPerson({Key? key, this.person, this.userData = false})
+      : super(key: key);
   @override
   _EditPersonState createState() => _EditPersonState();
 }
 
 class _EditPersonState extends State<EditPerson> {
   Map<String, AsyncCache> cache = {
-    'StudyYears': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'Colleges': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'Jobs': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'Fathers': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'Churches': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'ServingTypes': AsyncCache<JsonQuery>(Duration(minutes: 2)),
-    'ServingAreaName': AsyncCache<String?>(Duration(minutes: 2)),
-    'FamilyName': AsyncCache<String?>(Duration(minutes: 2)),
-    'PersonStringType': AsyncCache<String?>(Duration(minutes: 2)),
-    'StudyYear': AsyncCache<JsonDoc?>(Duration(minutes: 2)),
-    'College': AsyncCache<JsonDoc?>(Duration(minutes: 2)),
+    'StudyYears': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'Colleges': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'Jobs': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'Fathers': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'Churches': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'ServingTypes': AsyncCache<JsonQuery>(const Duration(minutes: 2)),
+    'ServingAreaName': AsyncCache<String?>(const Duration(minutes: 2)),
+    'FamilyName': AsyncCache<String?>(const Duration(minutes: 2)),
+    'PersonStringType': AsyncCache<String?>(const Duration(minutes: 2)),
+    'StudyYear': AsyncCache<JsonDoc?>(const Duration(minutes: 2)),
+    'College': AsyncCache<JsonDoc?>(const Duration(minutes: 2)),
   };
 
   String? changedImage;
@@ -87,7 +88,7 @@ class _EditPersonState extends State<EditPerson> {
                     );
                   },
                 ), onPressed: () async {
-                  var source = await showDialog(
+                  final source = await showDialog(
                     context: context,
                     builder: (context) => SimpleDialog(
                       children: <Widget>[
@@ -121,7 +122,7 @@ class _EditPersonState extends State<EditPerson> {
                   }
                   if (source as bool &&
                       !(await Permission.camera.request()).isGranted) return;
-                  var selectedImage = await ImagePicker().getImage(
+                  final selectedImage = await ImagePicker().pickImage(
                       source:
                           source ? ImageSource.camera : ImageSource.gallery);
                   if (selectedImage == null) return;
@@ -227,9 +228,9 @@ class _EditPersonState extends State<EditPerson> {
                               icon: Icon(Icons.edit),
                               tooltip: 'تعديل اسم الهاتف',
                               onPressed: () async {
-                                TextEditingController name =
+                                final TextEditingController name =
                                     TextEditingController(text: e.key);
-                                var rslt = await showDialog(
+                                final rslt = await showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     actions: [
@@ -279,7 +280,7 @@ class _EditPersonState extends State<EditPerson> {
                     icon: Icon(Icons.add),
                     label: Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
-                      TextEditingController name =
+                      final TextEditingController name =
                           TextEditingController(text: '');
                       if (await showDialog(
                             context: context,
@@ -364,13 +365,13 @@ class _EditPersonState extends State<EditPerson> {
                                           ),
                                         )
                                         .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
+                                      ..insert(
+                                        0,
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
                                     onChanged: (value) {
                                       cache['StudyYear']!.invalidate();
                                       setState(() {});
@@ -436,13 +437,13 @@ class _EditPersonState extends State<EditPerson> {
                                                 ),
                                               )
                                               .toList()
-                                                ..insert(
-                                                  0,
-                                                  DropdownMenuItem(
-                                                    value: null,
-                                                    child: Text(''),
-                                                  ),
-                                                ),
+                                            ..insert(
+                                              0,
+                                              DropdownMenuItem(
+                                                value: null,
+                                                child: Text(''),
+                                              ),
+                                            ),
                                           onChanged: (value) {
                                             person.college = value != null
                                                 ? firestore.doc(value)
@@ -498,13 +499,13 @@ class _EditPersonState extends State<EditPerson> {
                                           ),
                                         )
                                         .toList()
-                                          ..insert(
-                                            0,
-                                            DropdownMenuItem(
-                                              value: null,
-                                              child: Text(''),
-                                            ),
-                                          ),
+                                      ..insert(
+                                        0,
+                                        DropdownMenuItem(
+                                          value: null,
+                                          child: Text(''),
+                                        ),
+                                      ),
                                     onChanged: (value) {
                                       person.job = value != null
                                           ? firestore.doc(value)
@@ -637,13 +638,13 @@ class _EditPersonState extends State<EditPerson> {
                                         ),
                                       )
                                       .toList()
-                                        ..insert(
-                                          0,
-                                          DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          ),
-                                        ),
+                                    ..insert(
+                                      0,
+                                      DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      ),
+                                    ),
                                   onChanged: (value) {
                                     person.church = value != null
                                         ? firestore.doc(value)
@@ -707,13 +708,13 @@ class _EditPersonState extends State<EditPerson> {
                                       ),
                                     )
                                     .toList()
-                                      ..insert(
-                                        0,
-                                        DropdownMenuItem(
-                                          value: null,
-                                          child: Text(''),
-                                        ),
-                                      ),
+                                  ..insert(
+                                    0,
+                                    DropdownMenuItem(
+                                      value: null,
+                                      child: Text(''),
+                                    ),
+                                  ),
                                 onChanged: (value) {
                                   person.cFather = value != null
                                       ? firestore.doc(value)
@@ -853,13 +854,13 @@ class _EditPersonState extends State<EditPerson> {
                                   ),
                                 )
                                 .toList()
-                                  ..insert(
-                                    0,
-                                    DropdownMenuItem(
-                                      value: null,
-                                      child: Text(''),
-                                    ),
-                                  ),
+                              ..insert(
+                                0,
+                                DropdownMenuItem(
+                                  value: null,
+                                  child: Text(''),
+                                ),
+                              ),
                             onChanged: (value) {
                               person.state =
                                   value != null ? firestore.doc(value) : null;
@@ -949,13 +950,13 @@ class _EditPersonState extends State<EditPerson> {
                                         ),
                                       )
                                       .toList()
-                                        ..insert(
-                                          0,
-                                          DropdownMenuItem(
-                                            value: null,
-                                            child: Text(''),
-                                          ),
-                                        ),
+                                    ..insert(
+                                      0,
+                                      DropdownMenuItem(
+                                        value: null,
+                                        child: Text(''),
+                                      ),
+                                    ),
                                   onChanged: (value) {
                                     person.servingType = value;
                                     FocusScope.of(context).nextFocus();
@@ -1196,7 +1197,7 @@ class _EditPersonState extends State<EditPerson> {
             return;
           }
         }
-        bool update = person.id != 'null';
+        final bool update = person.id != 'null';
         if (!update) person.ref = firestore.collection('Persons').doc();
 
         if (changedImage != null) {
@@ -1214,7 +1215,7 @@ class _EditPersonState extends State<EditPerson> {
               .delete();
         }
 
-        person.lastEdit = User.instance.uid!;
+        person.lastEdit = User.instance.uid;
 
         if (update &&
             await Connectivity().checkConnectivity() !=
@@ -1378,7 +1379,7 @@ class _EditPersonState extends State<EditPerson> {
   }
 
   Future<Timestamp?> _selectDate(String helpText, DateTime initialDate) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       helpText: helpText,
       locale: Locale('ar', 'EG'),
       context: context,

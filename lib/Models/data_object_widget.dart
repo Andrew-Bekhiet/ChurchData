@@ -5,7 +5,7 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:flutter/material.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 
 import 'person.dart';
 

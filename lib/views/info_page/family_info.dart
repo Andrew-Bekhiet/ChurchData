@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -13,9 +12,10 @@ import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
@@ -28,7 +28,7 @@ import 'package:share_plus/share_plus.dart';
 class FamilyInfo extends StatefulWidget {
   final Family family;
 
-  FamilyInfo({Key? key, required this.family}) : super(key: key);
+  const FamilyInfo({Key? key, required this.family}) : super(key: key);
 
   @override
   _FamilyInfoState createState() => _FamilyInfoState();
@@ -126,7 +126,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                         IconButton(
                           icon: Icon(Icons.edit),
                           onPressed: () async {
-                            dynamic result = await navigator.currentState!
+                            final dynamic result = await navigator.currentState!
                                 .pushNamed('Data/EditFamily',
                                     arguments: family);
                             if (result == null) return;
@@ -300,7 +300,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
               child: StreamBuilder<List<DataObject>>(
                 stream: _listOptions.objectsData,
                 builder: (context, snapshot) {
-                  StringBuffer text = StringBuffer(
+                  final StringBuffer text = StringBuffer(
                       (snapshot.data?.whereType<Person>().length ?? 0)
                               .toString() +
                           ' شخص');
@@ -375,7 +375,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           )
                         ],
                         onSelected: (type) async {
-                          dynamic result = type == 'null'
+                          final dynamic result = type == 'null'
                               ? await navigator.currentState!.pushNamed(
                                   'Data/EditPerson',
                                   arguments: family.ref)
@@ -442,7 +442,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
   }
 
   void showMap(BuildContext context, Family family) {
-    bool approve = User.instance.approveLocations;
+    final bool approve = User.instance.approveLocations;
     navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) {

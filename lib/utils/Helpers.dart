@@ -13,9 +13,9 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:churchdata/views/search_query.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
@@ -24,8 +24,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
-import 'package:firebase_messaging/firebase_messaging.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -59,7 +57,7 @@ void areaTap(Area area) {
 
 void changeTheme({Brightness? brightness, required BuildContext context}) {
   bool? darkTheme = Hive.box('Settings').get('DarkTheme');
-  bool greatFeastTheme =
+  final bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
   MaterialColor color = Colors.cyan;
   Color accent = Colors.cyanAccent;
@@ -83,14 +81,6 @@ void changeTheme({Brightness? brightness, required BuildContext context}) {
           ? (darkTheme ? Brightness.dark : Brightness.light)
           : MediaQuery.of(context).platformBrightness);
   context.read<ThemeNotifier>().theme = ThemeData(
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: color,
-      brightness: darkTheme != null
-          ? (darkTheme ? Brightness.dark : Brightness.light)
-          : WidgetsBinding.instance!.window.platformBrightness,
-      accentColor: accent,
-    ),
-    accentColor: accent,
     floatingActionButtonTheme:
         FloatingActionButtonThemeData(backgroundColor: color),
     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -132,6 +122,13 @@ void changeTheme({Brightness? brightness, required BuildContext context}) {
       color: accent,
       shape: const CircularNotchedRectangle(),
     ),
+    colorScheme: ColorScheme.fromSwatch(
+      primarySwatch: color,
+      brightness: darkTheme != null
+          ? (darkTheme ? Brightness.dark : Brightness.light)
+          : WidgetsBinding.instance!.window.platformBrightness,
+      accentColor: accent,
+    ).copyWith(secondary: accent),
   );
 }
 
@@ -189,7 +186,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
 
 List<RadioListTile> getOrderingOptions(
     BehaviorSubject<OrderOptions> orderOptions, int? index) {
-  Json source = index == 0
+  final Json source = index == 0
       ? Area.getStaticHumanReadableMap()
       : index == 1
           ? Street.getHumanReadableMap2()
@@ -211,30 +208,30 @@ List<RadioListTile> getOrderingOptions(
         ),
       )
       .toList()
-        ..addAll(
-          [
-            RadioListTile(
-              value: 'true',
-              groupValue: orderOptions.value.asc.toString(),
-              title: Text('تصاعدي'),
-              onChanged: (value) {
-                orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
-              },
-            ),
-            RadioListTile(
-              value: 'false',
-              groupValue: orderOptions.value.asc.toString(),
-              title: Text('تنازلي'),
-              onChanged: (value) {
-                orderOptions.add(OrderOptions(
-                    orderBy: orderOptions.value.orderBy, asc: value == 'true'));
-                navigator.currentState!.pop();
-              },
-            ),
-          ],
-        );
+    ..addAll(
+      [
+        RadioListTile(
+          value: 'true',
+          groupValue: orderOptions.value.asc.toString(),
+          title: Text('تصاعدي'),
+          onChanged: (value) {
+            orderOptions.add(OrderOptions(
+                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            navigator.currentState!.pop();
+          },
+        ),
+        RadioListTile(
+          value: 'false',
+          groupValue: orderOptions.value.asc.toString(),
+          title: Text('تنازلي'),
+          onChanged: (value) {
+            orderOptions.add(OrderOptions(
+                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            navigator.currentState!.pop();
+          },
+        ),
+      ],
+    );
 }
 
 String getPhone(String phone, [bool whatsapp = true]) {
@@ -247,11 +244,11 @@ String getPhone(String phone, [bool whatsapp = true]) {
 
 DateTime getRiseDay([int? year]) {
   year ??= DateTime.now().year;
-  int a = year % 4;
-  int b = year % 7;
-  int c = year % 19;
-  int d = (19 * c + 15) % 30;
-  int e = (2 * a + 4 * b - d + 34) % 7;
+  final int a = year % 4;
+  final int b = year % 7;
+  final int c = year % 19;
+  final int d = (19 * c + 15) % 30;
+  final int e = (2 * a + 4 * b - d + 34) % 7;
 
   return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
 }
@@ -310,7 +307,7 @@ Future importArea(
     WriteBatch batchUpdate = firestore.batch();
     int batchCount = 1;
     List<String>? keys;
-    String uid = User.instance.uid!;
+    final String uid = User.instance.uid!;
 
     scaffoldMessenger.currentState!.hideCurrentSnackBar();
     scaffoldMessenger.currentState!.showSnackBar(
@@ -325,7 +322,7 @@ Future importArea(
       area.getMap(),
     );
 
-    for (List<dynamic> row in decoder.tables['Areas']!.rows) {
+    for (final List<dynamic> row in decoder.tables['Areas']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -358,7 +355,7 @@ Future importArea(
           if (key == 'Name')
             return MapEntry(
               key,
-              value.toString(),
+              value,
             );
           if (key == 'AreaId') return MapEntry(key, area.ref);
           if (key == 'Location')
@@ -372,7 +369,7 @@ Future importArea(
           return MapEntry(
             key,
             Timestamp.fromMillisecondsSinceEpoch(int.parse(
-              value.toString(),
+              value,
             )),
           );
         }),
@@ -381,7 +378,7 @@ Future importArea(
     }
 
     keys = null;
-    for (List<dynamic> row in decoder.tables['Families']!.rows) {
+    for (final List<dynamic> row in decoder.tables['Families']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -415,13 +412,13 @@ Future importArea(
           if (key == 'StreetId')
             return MapEntry(
               key,
-              firestore.doc('Streets/${value.toString()}'),
+              firestore.doc('Streets/$value'),
             );
           if (key == 'LastVisit' || key == 'FatherLastVisit')
             return MapEntry(
               key,
               Timestamp.fromMillisecondsSinceEpoch(int.parse(
-                value.toString(),
+                value,
               )),
             );
           if (key == 'Location')
@@ -442,7 +439,7 @@ Future importArea(
 
     keys = null;
     bool end = false;
-    for (List<dynamic> row in decoder.tables['Contacts']!.rows) {
+    for (final List<dynamic> row in decoder.tables['Contacts']!.rows) {
       if (keys == null) {
         keys = List<String>.from(
           row..removeAt(0),
@@ -506,7 +503,7 @@ Future importArea(
             return MapEntry(
                 key,
                 Timestamp.fromMillisecondsSinceEpoch(int.parse(
-                  value.toString(),
+                  value,
                 )));
           } else if (key.startsWith('Is') || key == 'HasPhoto') {
             return MapEntry(key, value == 'true');
@@ -589,7 +586,7 @@ Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
 void onForegroundMessage(messaging_types.RemoteMessage message,
     [BuildContext? context]) async {
   context ??= mainScfld.currentContext;
-  bool opened = Hive.isBoxOpen('Notifications');
+  final bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
   await storeNotification(message);
   scaffoldMessenger.currentState!.showSnackBar(
@@ -860,7 +857,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
 }
 
 Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
-  var _options = DataObjectListController<Area>(
+  final _options = DataObjectListController<Area>(
     itemsStream:
         Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
     selectionMode: true,
@@ -893,7 +890,7 @@ Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
 }
 
 void sendNotification(BuildContext context, dynamic attachement) async {
-  List<User>? users = await Navigator.push(
+  final List<User>? users = await Navigator.push(
     context,
     MaterialPageRoute(
       builder: (context) {
@@ -961,8 +958,8 @@ void sendNotification(BuildContext context, dynamic attachement) async {
       },
     ),
   );
-  var title = TextEditingController();
-  var content = TextEditingController();
+  final title = TextEditingController();
+  final content = TextEditingController();
   if (users != null &&
       await showDialog(
             context: context,
@@ -1144,8 +1141,8 @@ void showBirthDayNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1174,7 +1171,7 @@ void showBirthDayNotification() async {
         .where('AreaId',
             whereIn: (await firestore
                     .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid!)
+                    .where('Allowed', arrayContains: User.instance.uid)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
@@ -1199,13 +1196,16 @@ void showBirthDayNotification() async {
         2,
         'أعياد الميلاد',
         docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
-              'Birthday', 'إشعارات أعياد الميلاد', 'إشعارات أعياد الميلاد',
-              icon: 'birthday',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+            'Birthday',
+            'إشعارات أعياد الميلاد',
+            channelDescription: 'إشعارات أعياد الميلاد',
+            icon: 'birthday',
+            autoCancel: false,
+            visibility: NotificationVisibility.secret,
+            showWhen: false,
+          ),
         ),
         payload: 'Birthday');
 }
@@ -1214,8 +1214,8 @@ void showConfessionNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1233,7 +1233,7 @@ void showConfessionNotification() async {
         .where('AreaId',
             whereIn: (await firestore
                     .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid!)
+                    .where('Allowed', arrayContains: User.instance.uid)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
@@ -1247,9 +1247,9 @@ void showConfessionNotification() async {
         0,
         'انذار الاعتراف',
         docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-              'Confessions', 'إشعارات الاعتراف', 'إشعارات الاعتراف',
+        const NotificationDetails(
+          android: AndroidNotificationDetails('Confessions', 'إشعارات الاعتراف',
+              channelDescription: 'إشعارات الاعتراف',
               icon: 'warning',
               autoCancel: false,
               visibility: NotificationVisibility.secret,
@@ -1349,7 +1349,7 @@ void showLoadingDialog(BuildContext context) async {
     builder: (_) => AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
+        children: const <Widget>[
           Text('جار التحميل...'),
           CircularProgressIndicator(),
         ],
@@ -1360,11 +1360,11 @@ void showLoadingDialog(BuildContext context) async {
 
 Future<void> showMessage(
     BuildContext context, no.Notification notification) async {
-  var attachement = await getLinkObject(
+  final attachement = await getLinkObject(
     Uri.parse(notification.attachement!),
   );
-  String scndLine = await attachement.getSecondLine() ?? '';
-  var user = notification.from != ''
+  final String scndLine = await attachement.getSecondLine() ?? '';
+  final user = notification.from != ''
       ? await firestore.doc('Users/${notification.from}').get(dataSource)
       : null;
   await showDialog(
@@ -1428,7 +1428,7 @@ Future<void> showMessage(
 
 Future<void> showPendingMessage([BuildContext? context]) async {
   context ??= mainScfld.currentContext;
-  var pendingMessage = await firebaseMessaging.getInitialMessage();
+  final pendingMessage = await firebaseMessaging.getInitialMessage();
   if (pendingMessage != null) {
     // ignore: unawaited_futures
     navigator.currentState!.pushNamed('Notifications');
@@ -1446,8 +1446,8 @@ void showTanawolNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
-  var user = User.instance;
-  var source = GetOptions(
+  final user = User.instance;
+  final source = GetOptions(
       source:
           (await Connectivity().checkConnectivity()) == ConnectivityResult.none
               ? Source.cache
@@ -1465,7 +1465,7 @@ void showTanawolNotification() async {
         .where('AreaId',
             whereIn: (await firestore
                     .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid!)
+                    .where('Allowed', arrayContains: User.instance.uid)
                     .get(source))
                 .docs
                 .map((e) => e.reference)
@@ -1479,13 +1479,16 @@ void showTanawolNotification() async {
         1,
         'انذار التناول',
         docs.docs.map((e) => e.data()['Name']).join(', '),
-        NotificationDetails(
+        const NotificationDetails(
           android: AndroidNotificationDetails(
-              'Tanawol', 'إشعارات التناول', 'إشعارات التناول',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+            'Tanawol',
+            'إشعارات التناول',
+            channelDescription: 'إشعارات التناول',
+            icon: 'warning',
+            autoCancel: false,
+            visibility: NotificationVisibility.secret,
+            showWhen: false,
+          ),
         ),
         payload: 'Tanawol');
 }
@@ -1499,14 +1502,14 @@ void streetTap(Street street) {
 }
 
 void takeScreenshot(GlobalKey key) async {
-  RenderRepaintBoundary? boundary =
+  final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
   WidgetsBinding.instance!.addPostFrameCallback(
     (_) async {
-      ui.Image image = await boundary!.toImage(pixelRatio: 2);
-      ByteData byteData =
+      final ui.Image image = await boundary!.toImage(pixelRatio: 2);
+      final ByteData byteData =
           (await image.toByteData(format: ui.ImageByteFormat.png))!;
-      Uint8List pngBytes = byteData.buffer.asUint8List();
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
       await Share.shareFiles(
         [
           (await (await File((await getApplicationDocumentsDirectory()).path +
@@ -1539,7 +1542,7 @@ void userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
-    dynamic rslt = await showDialog(
+    final dynamic rslt = await showDialog(
         context: navigator.currentContext!,
         builder: (context) => DataDialog(
               actions: <Widget>[
@@ -1636,7 +1639,7 @@ void userTap(User user) async {
 
 class MessageIcon extends StatelessWidget {
   final String url;
-  MessageIcon(this.url, {Key? key}) : super(key: key);
+  const MessageIcon(this.url, {Key? key}) : super(key: key);
 
   Color get color => Colors.transparent;
   String get name => '';

@@ -9,9 +9,9 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
@@ -23,7 +23,7 @@ import 'package:rxdart/rxdart.dart';
 class UserP extends StatefulWidget {
   final User user;
 
-  UserP({Key? key, required this.user}) : super(key: key);
+  const UserP({Key? key, required this.user}) : super(key: key);
   @override
   _UserPState createState() => _UserPState();
 }
@@ -489,11 +489,13 @@ class _UserPState extends State<UserP> {
             duration: Duration(seconds: 15),
           ),
         );
-        var update = widget.user.getUpdateMap();
+        final update = widget.user.getUpdateMap();
         if (old['name'] != widget.user.name)
           await firebaseFunctions.httpsCallable('changeUserName').call(
               {'affectedUser': widget.user.uid, 'newName': widget.user.name});
-        update..remove('name')..remove('allowedUsers');
+        update
+          ..remove('name')
+          ..remove('allowedUsers');
         if (update.isNotEmpty)
           await firebaseFunctions
               .httpsCallable('updatePermissions')
@@ -550,7 +552,7 @@ class _UserPState extends State<UserP> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListController<Person>(
+        final listOptions = DataObjectListController<Person>(
           tap: (value) {
             navigator.currentState!.pop();
             setState(() {

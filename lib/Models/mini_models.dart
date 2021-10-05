@@ -86,6 +86,9 @@ class Church extends MiniModel with ParentObject<Father> {
         .map(Father.fromQueryDoc)
         .toList();
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class PersonState extends MiniModel {
@@ -117,6 +120,9 @@ class PersonState extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('States').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class College extends MiniModel {
@@ -145,6 +151,9 @@ class College extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Colleges').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class Father extends MiniModel with ChildObject<Church> {
@@ -191,6 +200,9 @@ class Father extends MiniModel with ChildObject<Church> {
 
   @override
   JsonRef? get parentId => churchId;
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class Job extends MiniModel {
@@ -219,6 +231,9 @@ class Job extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Jobs').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class PersonType extends MiniModel {
@@ -247,6 +262,9 @@ class PersonType extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Types').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class ServingType extends MiniModel {
@@ -275,6 +293,9 @@ class ServingType extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('ServingTypes').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class StudyYear extends MiniModel {
@@ -308,6 +329,9 @@ class StudyYear extends MiniModel {
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('StudyYears').orderBy('Name').get(dataSource);
   }
+
+  @override
+  int get hashCode => hashValues(id, super.hashCode);
 }
 
 class History {

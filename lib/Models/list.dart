@@ -27,7 +27,8 @@ class DataObjectList<T extends DataObject> extends StatefulWidget {
   final DataObjectListController<T>? options;
   final bool autoDisposeController;
 
-  DataObjectList({Key? key, this.options, required this.autoDisposeController})
+  const DataObjectList(
+      {Key? key, this.options, required this.autoDisposeController})
       : super(key: key);
 
   @override
@@ -60,7 +61,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
         return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           addAutomaticKeepAlives: _data.length < 500,
           cacheExtent: 200,
           itemCount: _data.length + 1,
@@ -134,13 +135,14 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
-                    List<Person> people = _listOptions.selected.value.values
+                    final List<Person> people = _listOptions
+                        .selected.value.values
                         .cast<Person>()
                         .toList()
-                          ..removeWhere((p) =>
-                              p.phone == '' ||
-                              p.phone == 'null' ||
-                              p.phone == null);
+                      ..removeWhere((p) =>
+                          p.phone == '' ||
+                          p.phone == 'null' ||
+                          p.phone == null);
                     if (people.isNotEmpty)
                       launch(
                         'sms:' +
@@ -174,7 +176,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   icon: ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
                     navigator.currentState!.pop();
-                    var con = TextEditingController();
+                    final con = TextEditingController();
                     String? msg = await showDialog(
                       context: context,
                       builder: (context) => AlertDialog(
@@ -198,11 +200,12 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                     );
                     if (msg != null) {
                       msg = Uri.encodeComponent(msg);
-                      for (Person person in _listOptions.selected.value.values
+                      for (final Person person in _listOptions
+                          .selected.value.values
                           .cast<Person>()
                           .where(
                               (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        String phone = getPhone(person.phone!);
+                        final String phone = getPhone(person.phone!);
                         await launch('https://wa.me/$phone?text=$msg');
                       }
                     }
@@ -214,7 +217,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
-                      for (Person item in _listOptions.selected.value.values
+                      for (final Person item in _listOptions
+                          .selected.value.values
                           .cast<Person>()
                           .where(
                               (p) => p.phone != null && p.phone!.isNotEmpty)) {

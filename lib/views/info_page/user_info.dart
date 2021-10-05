@@ -1,14 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ import '../edit_page/edit_user.dart';
 class UserInfo extends StatefulWidget {
   final User user;
 
-  UserInfo({Key? key, required this.user}) : super(key: key);
+  const UserInfo({Key? key, required this.user}) : super(key: key);
 
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -37,7 +37,7 @@ class _UserInfoState extends State<UserInfo> {
               IconButton(
                 icon: Icon(Icons.edit),
                 onPressed: () async {
-                  dynamic result = await navigator.currentState!.push(
+                  final dynamic result = await navigator.currentState!.push(
                     MaterialPageRoute(
                       builder: (co) => UserP(user: user),
                     ),
@@ -66,7 +66,7 @@ class _UserInfoState extends State<UserInfo> {
               IconButton(
                 icon: Icon(Icons.info_outline),
                 onPressed: () async {
-                  var person = await user.getPerson();
+                  final person = await user.getPerson();
                   if (person == null) {
                     scaffoldMessenger.currentState!.showSnackBar(
                       SnackBar(

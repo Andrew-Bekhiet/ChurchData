@@ -1,3 +1,5 @@
+// ignore_for_file:
+
 import 'dart:async';
 import 'dart:ui';
 
@@ -14,7 +16,6 @@ import 'package:firebase_database/firebase_database.dart'
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -97,11 +98,11 @@ class User extends DataObject with PhotoObject {
 
             Json idTokenClaims;
             try {
-              var idToken = await user.getIdTokenResult(true);
+              final idToken = await user.getIdTokenResult(true);
               if (kIsWeb)
                 await Encryption.setUserData(idToken.claims!);
               else {
-                for (var item in idToken.claims!.entries) {
+                for (final item in idToken.claims!.entries) {
                   await flutterSecureStorage.write(
                       key: item.key, value: item.value?.toString());
                 }
@@ -149,7 +150,7 @@ class User extends DataObject with PhotoObject {
               if (kIsWeb)
                 await Encryption.setUserData(idToken.claims ?? {});
               else {
-                for (var item in idToken.claims?.entries.toList() ?? []) {
+                for (final item in idToken.claims?.entries.toList() ?? []) {
                   await flutterSecureStorage.write(
                       key: item.key, value: item.value?.toString());
                 }
@@ -204,10 +205,10 @@ class User extends DataObject with PhotoObject {
   Future<void> forceRefresh() async {
     Json? idTokenClaims;
     try {
-      auth.IdTokenResult idToken =
+      final auth.IdTokenResult idToken =
           await firebaseAuth.currentUser!.getIdTokenResult(true);
 
-      for (var item in idToken.claims!.entries) {
+      for (final item in idToken.claims!.entries) {
         await flutterSecureStorage.write(
             key: item.key, value: item.value?.toString());
       }
@@ -442,11 +443,11 @@ class User extends DataObject with PhotoObject {
             builder: (context, setState) => FutureBuilder<String>(
               future: _photoUrlCache.fetch(
                 () async {
-                  String? cache = Hive.box<String>('PhotosURLsCache')
+                  final String? cache = Hive.box<String>('PhotosURLsCache')
                       .get(photoRef.fullPath);
 
                   if (cache == null) {
-                    String url = await photoRef
+                    final String url = await photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
                     await Hive.box<String>('PhotosURLsCache')
@@ -454,8 +455,9 @@ class User extends DataObject with PhotoObject {
 
                     return url;
                   }
-                  void Function(String) _updateCache = (String cache) async {
-                    String url = await photoRef
+
+                  void _updateCache(String cache) async {
+                    final String url = await photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
                     if (cache != url) {
@@ -464,7 +466,8 @@ class User extends DataObject with PhotoObject {
                       _photoUrlCache.invalidate();
                       setState(() {});
                     }
-                  };
+                  }
+
                   _updateCache(cache);
                   return cache;
                 },
@@ -615,7 +618,7 @@ class User extends DataObject with PhotoObject {
   String get id => uid!;
 
   Future<bool> userDataUpToDate() async {
-    var userPerson = await getPerson();
+    final userPerson = await getPerson();
     return userPerson != null &&
         userPerson.lastTanawol != null &&
         userPerson.lastConfession != null &&

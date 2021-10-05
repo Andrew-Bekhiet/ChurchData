@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import '../models/notification.dart' as n;
 
 class NotificationsPage extends StatefulWidget {
-  NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({Key? key}) : super(key: key);
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();

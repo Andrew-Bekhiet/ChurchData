@@ -6,7 +6,7 @@ class ColorsList extends StatelessWidget {
 
   final Color? selectedColor;
   final void Function(Color)? onSelect;
-  ColorsList({Key? key, this.colors, this.selectedColor, this.onSelect})
+  const ColorsList({Key? key, this.colors, this.selectedColor, this.onSelect})
       : super(key: key);
 
   @override

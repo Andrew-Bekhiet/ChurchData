@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:tinycolor/tinycolor.dart';
+import 'package:tinycolor2/tinycolor2.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation invitation;
@@ -31,7 +31,7 @@ class InvitationInfo extends StatelessWidget {
             ),
           );
 
-        Invitation invitation = data.data!;
+        final Invitation invitation = data.data!;
 
         return Scaffold(
           body: CustomScrollView(
@@ -64,7 +64,8 @@ class InvitationInfo extends StatelessWidget {
                               },
                             ),
                             onPressed: () async {
-                              dynamic result = await navigator.currentState!
+                              final dynamic result = await navigator
+                                  .currentState!
                                   .pushNamed('EditInvitation',
                                       arguments: invitation);
                               if (result is JsonRef) {

@@ -7,14 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
 
 import '../EncryptionKeys.dart';
 import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class MyAccount extends StatefulWidget {
-  MyAccount({Key? key}) : super(key: key);
+  const MyAccount({Key? key}) : super(key: key);
 
   @override
   _MyAccountState createState() => _MyAccountState();
@@ -59,7 +58,7 @@ class _MyAccountState extends State<MyAccount> {
                   ),
                   IconButton(
                     onPressed: () async {
-                      var source = await showDialog(
+                      final source = await showDialog(
                         context: context,
                         builder: (context) => SimpleDialog(
                           children: <Widget>[
@@ -125,12 +124,12 @@ class _MyAccountState extends State<MyAccount> {
                       if (source as bool &&
                           !(await Permission.camera.request()).isGranted)
                         return;
-                      final selectedImage = await ImagePicker().getImage(
+                      final selectedImage = await ImagePicker().pickImage(
                           source: source
                               ? ImageSource.camera
                               : ImageSource.gallery);
                       if (selectedImage == null) return;
-                      var finalImage = await ImageCropper.cropImage(
+                      final finalImage = await ImageCropper.cropImage(
                         sourcePath: selectedImage.path,
                         cropStyle: CropStyle.circle,
                         androidUiSettings: AndroidUiSettings(
@@ -294,7 +293,7 @@ class _MyAccountState extends State<MyAccount> {
   }
 
   void changeName(String oldName, String uid) async {
-    var name = TextEditingController(text: oldName);
+    final name = TextEditingController(text: oldName);
     if (await showDialog(
           context: context,
           builder: (context) {
@@ -418,7 +417,7 @@ class _MyAccountState extends State<MyAccount> {
     );
     if (textFields[2].text == textFields[1].text &&
         textFields[0].text.isNotEmpty) {
-      User user = User.instance;
+      final User user = User.instance;
       if (user.password == Encryption.encryptPassword(textFields[0].text)) {
         try {
           await firebaseFunctions.httpsCallable('changePassword').call({

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
@@ -10,6 +9,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +21,7 @@ import 'package:url_launcher/url_launcher.dart';
 class PersonInfo extends StatelessWidget {
   final Person person;
 
-  PersonInfo({Key? key, required this.person}) : super(key: key);
+  const PersonInfo({Key? key, required this.person}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,8 @@ class PersonInfo extends StatelessWidget {
                                   },
                                 ),
                                 onPressed: () async {
-                                  dynamic result = await navigator.currentState!
+                                  final dynamic result = await navigator
+                                      .currentState!
                                       .pushNamed('Data/EditPerson',
                                           arguments: person);
                                   if (result == null) return;
@@ -441,7 +442,7 @@ class PersonInfo extends StatelessWidget {
   }
 
   void _phoneCall(BuildContext context, String number) async {
-    var result = await showDialog(
+    final result = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         content: Text('هل تريد اجراء مكالمة الأن'),
@@ -462,7 +463,7 @@ class PersonInfo extends StatelessWidget {
     if (result == null) return;
     if (result) {
       await launch('tel:' + getPhone(number, false));
-      var recordLastCall = await showDialog(
+      final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
@@ -494,7 +495,8 @@ class PersonInfo extends StatelessWidget {
   Future<void> _contactAdd(
       BuildContext context, String phone, Person person) async {
     if ((await Permission.contacts.request()).isGranted) {
-      TextEditingController _name = TextEditingController(text: person.name);
+      final TextEditingController _name =
+          TextEditingController(text: person.name);
       if (await showDialog(
             context: context,
             builder: (context) => AlertDialog(

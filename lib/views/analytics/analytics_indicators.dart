@@ -17,7 +17,7 @@ class CartesianChart extends StatelessWidget {
   final Map<Timestamp, List<HistoryRecord>> data;
   final List<Area> areas;
 
-  CartesianChart(
+  const CartesianChart(
       {Key? key,
       required this.areas,
       required this.range,
@@ -133,7 +133,7 @@ class PieChart extends StatelessWidget {
         series: [
           PieSeries<Tuple2<int, String?>, String>(
             enableTooltip: true,
-            enableSmartLabels: true,
+            dataLabelSettings: DataLabelSettings(),
             dataLabelMapper: (entry, _) =>
                 (entry.item2 ?? 'غير معروف') +
                 ': ' +
@@ -184,20 +184,21 @@ class HistoryAnalysisWidget extends StatelessWidget {
         if (daysData.data!.isEmpty)
           return const Center(child: Text('لا يوجد سجل'));
 
-        List<HistoryRecord> data =
+        final List<HistoryRecord> data =
             daysData.data!.map(HistoryRecord.fromQueryDoc).toList();
 
         mergeSort<HistoryRecord>(data,
             compare: (o, n) => o.time.millisecondsSinceEpoch
                 .compareTo(n.time.millisecondsSinceEpoch));
 
-        Map<Timestamp, List<HistoryRecord>> groupedData =
+        final Map<Timestamp, List<HistoryRecord>> groupedData =
             groupBy<HistoryRecord, Timestamp>(
                 data, (d) => tranucateToDay(time: d.time.toDate()));
 
-        var list = groupBy<HistoryRecord, String?>(data, (s) => s.areaId?.path)
-            .entries
-            .toList();
+        final list =
+            groupBy<HistoryRecord, String?>(data, (s) => s.areaId?.path)
+                .entries
+                .toList();
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [

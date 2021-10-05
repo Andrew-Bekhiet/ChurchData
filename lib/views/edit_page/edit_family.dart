@@ -8,9 +8,9 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -22,7 +22,7 @@ import 'package:rxdart/rxdart.dart';
 class EditFamily extends StatefulWidget {
   final Family? family;
 
-  EditFamily({Key? key, this.family}) : super(key: key);
+  const EditFamily({Key? key, this.family}) : super(key: key);
   @override
   _EditFamilyState createState() => _EditFamilyState();
 }
@@ -122,11 +122,11 @@ class _EditFamilyState extends State<EditFamily> {
                       (family.isStore ? 'محل' : 'عائلة') +
                       ' على الخريطة'),
                   onPressed: () async {
-                    var oldPoint = family.locationPoint != null
+                    final oldPoint = family.locationPoint != null
                         ? GeoPoint(family.locationPoint!.latitude,
                             family.locationPoint!.longitude)
                         : null;
-                    var rslt = await navigator.currentState!.push(
+                    final rslt = await navigator.currentState!.push(
                       MaterialPageRoute(
                         builder: (context) => Scaffold(
                           appBar: AppBar(
@@ -454,9 +454,9 @@ class _EditFamilyState extends State<EditFamily> {
           }
         }
 
-        family.lastEdit = User.instance.uid!;
+        family.lastEdit = User.instance.uid;
 
-        bool update = family.id != 'null';
+        final bool update = family.id != 'null';
         if (!update) family.ref = firestore.collection('Families').doc();
 
         if (update &&
@@ -723,7 +723,7 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   Future _selectDate(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: family.lastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),
@@ -737,7 +737,7 @@ class _EditFamilyState extends State<EditFamily> {
   }
 
   Future _selectDate2(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: family.fatherLastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),

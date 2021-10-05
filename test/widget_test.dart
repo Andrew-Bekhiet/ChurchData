@@ -9,18 +9,18 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/auth_screen.dart';
 import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
-import 'package:churchdata/views/edit_page/edit_person.dart';
 import 'package:churchdata/views/login.dart';
 import 'package:churchdata/views/user_registeration.dart';
-import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
-import 'package:connectivity_plus_platform_interface/method_channel_connectivity.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
+import 'package:connectivity_plus_platform_interface/method_channel_connectivity.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_auth_mocks/src/mock_confirmation_result.dart';
 import 'package:firebase_auth_mocks/src/mock_user_credential.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
+import 'package:firebase_database_mocks/firebase_database_mocks.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
@@ -32,13 +32,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:google_sign_in_mocks/google_sign_in_mocks.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:firebase_database_mocks/firebase_database_mocks.dart';
-import 'package:intl/intl.dart';
 
 import 'widget_test.mocks.dart';
 
@@ -80,7 +79,7 @@ void main() async {
   remoteConfig = MockRemoteConfig();
 
   //FirebaseAuth
-  MyMockUser user =
+  final MyMockUser user =
       MyMockUser(email: 'random@email.com', uid: '8t7we9rhuiU%762');
 
   final Map<String, dynamic> userClaims = {
@@ -138,10 +137,12 @@ void main() async {
     });
 
     PackageInfo.setMockInitialValues(
-        appName: 'ChurchData',
-        packageName: 'com.AndroidQuartz.churchdata',
-        version: '8.0.0',
-        buildNumber: '0');
+      buildSignature: '',
+      appName: 'ChurchData',
+      packageName: 'com.AndroidQuartz.churchdata',
+      version: '8.0.0',
+      buildNumber: '0',
+    );
 
 //RemoteConfig mocks
     when(remoteConfig.setDefaults({
@@ -328,9 +329,9 @@ void main() async {
     testWidgets(
       'UpdateUserDataErrorPage',
       (tester) async {
-        DateTime lastConfession =
+        final DateTime lastConfession =
             DateTime.now().subtract(Duration(days: 2 * 30));
-        DateTime lastTanawol =
+        final DateTime lastTanawol =
             DateTime.now().subtract(Duration(days: (2 * 30) + 1));
 
         await tester.pumpWidget(
@@ -746,8 +747,9 @@ void main() async {
     });
 
     group('Updating lastConfession and lastTanawol', () {
-      DateTime lastConfession = DateTime.now().subtract(Duration(days: 2 * 30));
-      DateTime lastTanawol =
+      final DateTime lastConfession =
+          DateTime.now().subtract(Duration(days: 2 * 30));
+      final DateTime lastTanawol =
           DateTime.now().subtract(Duration(days: (2 * 30) + 1));
 
       setUpAll(() async {
@@ -876,12 +878,12 @@ Widget wrapWithMaterialApp(Widget widget,
       '/': (_) => widget,
       ...routes ?? {},
     },
-    localizationsDelegates: [
+    localizationsDelegates: const [
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
     ],
-    supportedLocales: [
+    supportedLocales: const [
       Locale('ar', 'EG'),
     ],
     locale: Locale('ar', 'EG'),

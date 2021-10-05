@@ -1,12 +1,12 @@
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 
 class InvitationsPage extends StatefulWidget {
-  InvitationsPage({Key? key}) : super(key: key);
+  const InvitationsPage({Key? key}) : super(key: key);
 
   @override
   _InvitationsPageState createState() => _InvitationsPageState();

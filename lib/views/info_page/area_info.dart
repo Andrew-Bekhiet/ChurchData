@@ -9,11 +9,11 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:feature_discovery/feature_discovery.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User, FirebaseAuth;
@@ -24,7 +24,7 @@ import 'package:share_plus/share_plus.dart';
 class AreaInfo extends StatefulWidget {
   final Area area;
 
-  AreaInfo({Key? key, required this.area}) : super(key: key);
+  const AreaInfo({Key? key, required this.area}) : super(key: key);
 
   @override
   _AreaInfoState createState() => _AreaInfoState();
@@ -185,7 +185,8 @@ class _AreaInfoState extends State<AreaInfo> {
                               ),
                             ),
                             onPressed: () async {
-                              dynamic result = await navigator.currentState!
+                              final dynamic result = await navigator
+                                  .currentState!
                                   .pushNamed('Data/EditArea', arguments: area);
                               if (result == null) return;
 
@@ -526,7 +527,7 @@ class _AreaInfoState extends State<AreaInfo> {
                     FloatingActionButton(
                       heroTag: null,
                       onPressed: () async {
-                        dynamic result = await navigator.currentState!
+                        final dynamic result = await navigator.currentState!
                             .pushNamed('Data/EditStreet', arguments: area.ref);
                         if (result == null) return;
 
@@ -618,7 +619,7 @@ class _AreaInfoState extends State<AreaInfo> {
   }
 
   void showMap(BuildContext context, Area area) {
-    bool approve = User.instance.approveLocations;
+    final bool approve = User.instance.approveLocations;
     navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) {

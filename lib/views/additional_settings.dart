@@ -1,6 +1,6 @@
 import 'package:churchdata/typedefs.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -54,7 +54,6 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
               }
               navigator.currentState!.pop();
               churchTap(context, church, !editMode);
-              ;
             },
             label: Text(editMode ? 'حفظ' : 'تعديل'),
           ),
@@ -136,7 +135,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
                       shrinkWrap: true,
                       itemCount: data.data?.size ?? 0,
                       itemBuilder: (context, i) {
-                        Father current =
+                        final Father current =
                             Father.fromQueryDoc(data.data!.docs[i]);
                         return Card(
                           child: ListTile(
@@ -256,13 +255,13 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                               ),
                             )
                             .toList()
-                              ..insert(
-                                0,
-                                DropdownMenuItem(
-                                  value: null,
-                                  child: Text(''),
-                                ),
-                              ),
+                          ..insert(
+                            0,
+                            DropdownMenuItem(
+                              value: null,
+                              child: Text(''),
+                            ),
+                          ),
                         onChanged: (value) {
                           father.churchId = value;
                         },

@@ -106,7 +106,7 @@ class EditHistoryProperty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var icon = IconButton(
+    final icon = IconButton(
       tooltip: 'السجل',
       icon: const Icon(Icons.history),
       onPressed: () {
@@ -236,11 +236,12 @@ class EditHistoryProperty extends StatelessWidget {
                       ),
                     ],
                   ),
-                  backgroundColor: Theme.of(context).accentColor,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
                       Theme.of(context).primaryTextTheme.bodyText1!.color!,
-                  child: icon)
+                  child: icon,
+                )
               : icon,
         );
       },

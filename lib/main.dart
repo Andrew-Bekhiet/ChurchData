@@ -1,14 +1,10 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:async/async.dart';
 import 'package:churchdata/models/data_map.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/analytics/activity_analysis.dart';
 import 'package:churchdata/views/analytics/spiritual_analysis.dart';
 import 'package:churchdata/views/edit_page/edit_family.dart';
@@ -27,22 +23,26 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User
     hide UserInfo;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
     hide User
     hide UserInfo;
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -144,7 +144,8 @@ Future<void> initConfigs() async {
 
   if (!kIsWeb)
     await FlutterLocalNotificationsPlugin().initialize(
-      InitializationSettings(android: AndroidInitializationSettings('warning')),
+      const InitializationSettings(
+          android: AndroidInitializationSettings('warning')),
       onSelectNotification: onNotificationClicked,
     );
 }
@@ -152,7 +153,7 @@ Future<void> initConfigs() async {
 @visibleForTesting
 ThemeData initTheme() {
   bool? darkTheme = Hive.box('Settings').get('DarkTheme');
-  bool greatFeastTheme =
+  final bool greatFeastTheme =
       Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
   MaterialColor color = Colors.cyan;
   Color accent = Colors.cyanAccent;
@@ -179,7 +180,6 @@ ThemeData initTheme() {
           : WidgetsBinding.instance!.window.platformBrightness,
       accentColor: accent,
     ),
-    accentColor: accent,
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(15),
@@ -225,7 +225,7 @@ ThemeData initTheme() {
 }
 
 class App extends StatefulWidget {
-  App({Key? key}) : super(key: key);
+  const App({Key? key}) : super(key: key);
 
   @override
   AppState createState() => AppState();
@@ -281,7 +281,7 @@ class AppState extends State<App> {
                         street: ModalRoute.of(context)!.settings.arguments!
                             as Street);
                   else {
-                    Street street = Street.empty()
+                    final Street street = Street.empty()
                       ..areaId = ModalRoute.of(context)!.settings.arguments
                           as JsonRef?;
                     return EditStreet(street: street);
@@ -293,7 +293,7 @@ class AppState extends State<App> {
                         family: ModalRoute.of(context)!.settings.arguments!
                             as Family);
                   else if (ModalRoute.of(context)!.settings.arguments is Json) {
-                    Family family = Family.empty()
+                    final Family family = Family.empty()
                       ..streetId = (ModalRoute.of(context)!.settings.arguments
                           as Json?)?['StreetId']
                       ..insideFamily = (ModalRoute.of(context)!
@@ -303,7 +303,7 @@ class AppState extends State<App> {
                           as Json?)?['IsStore'];
                     return EditFamily(family: family);
                   } else {
-                    Family family = Family.empty()
+                    final Family family = Family.empty()
                       ..streetId = ModalRoute.of(context)!.settings.arguments
                           as JsonRef?;
                     return EditFamily(family: family);
@@ -315,7 +315,7 @@ class AppState extends State<App> {
                         person: ModalRoute.of(context)!.settings.arguments!
                             as Person);
                   else {
-                    Person person = Person()
+                    final Person person = Person()
                       ..familyId = ModalRoute.of(context)!.settings.arguments
                           as JsonRef?;
                     return EditPerson(person: person);
@@ -393,8 +393,13 @@ class AppState extends State<App> {
                       transformer: PersonType.fromQueryDoc,
                     ),
                 'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
-                    person:
-                        ModalRoute.of(context)!.settings.arguments as Person? ?? Person(ref:User.instance.personDocRef,name:User.instance.name,),),
+                      person: ModalRoute.of(context)!.settings.arguments
+                              as Person? ??
+                          Person(
+                            ref: User.instance.personDocRef,
+                            name: User.instance.name,
+                          ),
+                    ),
                 'Invitations': (context) => InvitationsPage(),
                 'EditUserData': (context) => FutureBuilder<Person?>(
                       future: User.getCurrentPerson(),
@@ -415,12 +420,12 @@ class AppState extends State<App> {
                       },
                     ),
               },
-              localizationsDelegates: [
+              localizationsDelegates: const [
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: [
+              supportedLocales: const [
                 Locale('ar', 'EG'),
               ],
               themeMode: theme.data!.brightness == Brightness.dark
@@ -517,7 +522,7 @@ class AppState extends State<App> {
         // ignore: empty_catches
       } catch (e) {}
       try {
-        bool permission =
+        final bool permission =
             (await firebaseMessaging.requestPermission()).authorizationStatus ==
                 AuthorizationStatus.authorized;
         if (permission)
@@ -527,7 +532,6 @@ class AppState extends State<App> {
         if (permission)
           await Hive.box('Settings').put('FCM_Token_Registered', true);
       } catch (err, stkTrace) {
-        print(err.toString());
         await FirebaseCrashlytics.instance
             .setCustomKey('LastErrorIn', 'AppState.initState');
         await FirebaseCrashlytics.instance.recordError(err, stkTrace);

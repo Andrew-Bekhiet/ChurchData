@@ -4,7 +4,6 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/notification_setting.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
-import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../utils/globals.dart';
 import '../utils/helpers.dart';
+import 'form_widgets/tapable_form_field.dart';
 
 enum DateType {
   month,
@@ -23,7 +23,7 @@ enum DateType {
 }
 
 class Settings extends StatefulWidget {
-  Settings({Key? key}) : super(key: key);
+  const Settings({Key? key}) : super(key: key);
   @override
   SettingsState createState() => SettingsState();
 }
@@ -74,7 +74,7 @@ class SettingsState extends State<Settings> {
                         children: <Widget>[
                           ChoiceChip(
                             label: Text('المظهر الداكن'),
-                            selected: darkTheme == true,
+                            selected: darkTheme ?? false,
                             onSelected: (v) => setState(() => darkTheme = true),
                           ),
                           ChoiceChip(
@@ -195,14 +195,13 @@ class SettingsState extends State<Settings> {
                                 ),
                               )
                               .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color')
-                                ..add(
-                                  DropdownMenuItem(
-                                    value: 'Members',
-                                    child: Text('الشوارع بالمنطقة'),
-                                  ),
-                                ),
+                            ..removeWhere((element) => element.value == 'Color')
+                            ..add(
+                              DropdownMenuItem(
+                                value: 'Members',
+                                child: Text('الشوارع بالمنطقة'),
+                              ),
+                            ),
                           onSaved: (value) async {
                             await settings.put('AreaSecondLine', value);
                           },
@@ -225,14 +224,13 @@ class SettingsState extends State<Settings> {
                                 ),
                               )
                               .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color')
-                                ..add(
-                                  DropdownMenuItem(
-                                    value: 'Members',
-                                    child: Text('العائلات بالشارع'),
-                                  ),
-                                ),
+                            ..removeWhere((element) => element.value == 'Color')
+                            ..add(
+                              DropdownMenuItem(
+                                value: 'Members',
+                                child: Text('العائلات بالشارع'),
+                              ),
+                            ),
                           onSaved: (value) async {
                             await settings.put('StreetSecondLine', value);
                           },
@@ -255,14 +253,13 @@ class SettingsState extends State<Settings> {
                                 ),
                               )
                               .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color')
-                                ..add(
-                                  DropdownMenuItem(
-                                    value: 'Members',
-                                    child: Text('الأشخاص بالعائلة'),
-                                  ),
-                                ),
+                            ..removeWhere((element) => element.value == 'Color')
+                            ..add(
+                              DropdownMenuItem(
+                                value: 'Members',
+                                child: Text('الأشخاص بالعائلة'),
+                              ),
+                            ),
                           onSaved: (value) async {
                             await settings.put('FamilySecondLine', value);
                           },
@@ -285,8 +282,8 @@ class SettingsState extends State<Settings> {
                                 ),
                               )
                               .toList()
-                                ..removeWhere(
-                                    (element) => element.value == 'Color'),
+                            ..removeWhere(
+                                (element) => element.value == 'Color'),
                           onSaved: (value) async {
                             await settings.put('PersonSecondLine', value);
                           },
@@ -410,13 +407,7 @@ class SettingsState extends State<Settings> {
             children: <Widget>[
               Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
-                child: DateTimeField(
-                  format: DateFormat(
-                      'h:m' +
-                          (MediaQuery.of(context).alwaysUse24HourFormat
-                              ? ''
-                              : ' a'),
-                      'ar-EG'),
+                child: TapableFormField<DateTime>(
                   initialValue: DateTime(
                     2021,
                     1,
@@ -429,21 +420,32 @@ class SettingsState extends State<Settings> {
                       'Minutes': 0
                     })!.cast<String, int>()['Minutes']!,
                   ),
-                  resetIcon: null,
-                  onShowPicker: (context, initialValue) async {
-                    var selected = await showTimePicker(
-                      initialTime: TimeOfDay.fromDateTime(initialValue!),
+                  onTap: (state) async {
+                    final selected = await showTimePicker(
+                      initialTime: TimeOfDay.fromDateTime(state.value!),
                       context: context,
                     );
-                    return DateTime(
-                        2020,
-                        1,
-                        1,
-                        selected?.hour ?? initialValue.hour,
-                        selected?.minute ?? initialValue.minute);
+
+                    state.didChange(
+                      DateTime(2020, 1, 1, selected?.hour ?? state.value!.hour,
+                          selected?.minute ?? state.value!.minute),
+                    );
                   },
+                  decoration: (context, state) => const InputDecoration(),
+                  validator: (_) => null,
+                  builder: (context, state) => state.value != null
+                      ? Text(DateFormat(
+                              'h:m' +
+                                  (MediaQuery.of(context).alwaysUse24HourFormat
+                                      ? ''
+                                      : ' a'),
+                              'ar-EG')
+                          .format(
+                          state.value!,
+                        ))
+                      : null,
                   onSaved: (value) async {
-                    var current = notificationsSettings.get('BirthDayTime',
+                    final current = notificationsSettings.get('BirthDayTime',
                         defaultValue: {
                           'Hours': 11,
                           'Minutes': 0

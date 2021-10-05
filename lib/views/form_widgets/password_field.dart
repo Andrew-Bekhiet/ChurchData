@@ -60,7 +60,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
         onChanged: widget.onChanged,
         onFieldSubmitted: (_) {
           FocusScope.of(context).nextFocus();
-          if (widget.onFieldSubmitted != null) widget.onFieldSubmitted!(_);
+          widget.onFieldSubmitted?.call(_);
         },
         onSaved: widget.onSaved,
         validator: widget.validator ??

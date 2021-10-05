@@ -7,9 +7,9 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_model_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,7 @@ import '../utils/helpers.dart';
 class SearchQuery extends StatefulWidget {
   final Json? query;
 
-  SearchQuery({Key? key, this.query}) : super(key: key);
+  const SearchQuery({Key? key, this.query}) : super(key: key);
 
   @override
   _SearchQueryState createState() => _SearchQueryState();
@@ -372,7 +372,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   @override
   Widget build(BuildContext context) {
-    Widget equal = IndexedStack(
+    final Widget equal = IndexedStack(
       alignment: AlignmentDirectional.center,
       index: getWidgetIndex(),
       children: <Widget>[
@@ -489,13 +489,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -525,13 +525,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -561,13 +561,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -597,13 +597,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -651,7 +651,7 @@ class _SearchQueryState extends State<SearchQuery> {
                       queryValue = null;
                       queryText = 'فارغ';
                     } else {
-                      var now = DateTime.now().millisecondsSinceEpoch;
+                      final now = DateTime.now().millisecondsSinceEpoch;
                       queryValue = Timestamp.fromMillisecondsSinceEpoch(
                         now - (now % Duration.millisecondsPerDay),
                       );
@@ -695,13 +695,13 @@ class _SearchQueryState extends State<SearchQuery> {
                       ),
                     )
                     .toList()
-                      ..insert(
-                        0,
-                        DropdownMenuItem<JsonRef?>(
-                          value: null,
-                          child: Text(''),
-                        ),
-                      ),
+                  ..insert(
+                    0,
+                    DropdownMenuItem<JsonRef?>(
+                      value: null,
+                      child: Text(''),
+                    ),
+                  ),
                 onChanged: (value) async {
                   queryValue = value;
                   queryText =
@@ -737,13 +737,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -799,13 +799,13 @@ class _SearchQueryState extends State<SearchQuery> {
                         ),
                       )
                       .toList()
-                        ..insert(
-                          0,
-                          DropdownMenuItem(
-                            value: null,
-                            child: Text(''),
-                          ),
-                        ),
+                    ..insert(
+                      0,
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(''),
+                      ),
+                    ),
                   onChanged: (value) async {
                     queryValue = value;
                     queryText =
@@ -834,7 +834,7 @@ class _SearchQueryState extends State<SearchQuery> {
               children: <Widget>[
                 Text('عرض كل: '),
                 DropdownButton(
-                  items: <DropdownMenuItem>[
+                  items: const <DropdownMenuItem>[
                     DropdownMenuItem(
                       value: 0,
                       child: Text('المناطق'),
@@ -899,7 +899,7 @@ class _SearchQueryState extends State<SearchQuery> {
                   child: DropdownButton<bool>(
                     isExpanded: true,
                     value: descending,
-                    items: [
+                    items: const [
                       DropdownMenuItem(
                         value: false,
                         child: Text('تصاعدي'),
@@ -911,7 +911,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     ],
                     onChanged: (value) {
                       setState(() {
-                        descending = value == true;
+                        descending = value ?? false;
                       });
                     },
                   ),
@@ -940,9 +940,9 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void execute() async {
     late DataObjectList body;
-    String userId = User.instance.uid!;
+    final String userId = User.instance.uid!;
 
-    bool isAdmin = User.instance.superAccess;
+    final bool isAdmin = User.instance.superAccess;
 
     Query<Json> areas = firestore.collection('Areas');
     Query<Json> streets = firestore.collection('Streets');
@@ -1506,7 +1506,7 @@ class _SearchQueryState extends State<SearchQuery> {
   }
 
   void _selectDate() async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate:
           queryValue is! Timestamp ? DateTime.now() : queryValue.toDate(),
@@ -1577,7 +1577,7 @@ class _SearchQueryState extends State<SearchQuery> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListController<Street>(
+        final listOptions = DataObjectListController<Street>(
           tap: (streetSelected) {
             navigator.currentState!.pop();
             setState(() {

@@ -59,14 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    GoogleSignInAccount? googleUser =
+                    final GoogleSignInAccount? googleUser =
                         await googleSignIn.signIn();
                     if (googleUser != null) {
-                      GoogleSignInAuthentication googleAuth =
+                      final GoogleSignInAuthentication googleAuth =
                           await googleUser.authentication;
                       if (googleAuth.accessToken != null) {
                         try {
-                          AuthCredential credential =
+                          final AuthCredential credential =
                               GoogleAuthProvider.credential(
                                   idToken: googleAuth.idToken,
                                   accessToken: googleAuth.accessToken);
@@ -194,8 +194,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      var user = User.instance;
-      var settings = Hive.box('Settings');
+      final user = User.instance;
+      final settings = Hive.box('Settings');
       settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
       settings.get('AreaSecondLine') ??
@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 .values
                 .toList()
                 .any((e) => e)) {
-              var notificationsSettings =
+              final notificationsSettings =
                   Hive.box<Map>('NotificationsSettings');
               if (user.confessionsNotify) {
                 if (notificationsSettings.get('ConfessionTime') == null) {

@@ -9,9 +9,9 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
@@ -23,7 +23,8 @@ import 'package:rxdart/rxdart.dart';
 class EditStreet extends StatefulWidget {
   final Street? street;
 
-  EditStreet({Key? key, required this.street}) : super(key: key);
+  const EditStreet({Key? key, required this.street}) : super(key: key);
+
   @override
   _EditStreetState createState() => _EditStreetState();
 }
@@ -99,9 +100,9 @@ class _EditStreetState extends State<EditStreet> {
                     ),
                     label: Text('تعديل مكان الشارع على الخريطة'),
                     onPressed: () async {
-                      List<GeoPoint> oldPoints =
+                      final List<GeoPoint> oldPoints =
                           street.locationPoints.sublist(0);
-                      var rslt = await navigator.currentState!.push(
+                      final rslt = await navigator.currentState!.push(
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
@@ -295,9 +296,9 @@ class _EditStreetState extends State<EditStreet> {
           }
         }
 
-        street.lastEdit = User.instance.uid!;
+        street.lastEdit = User.instance.uid;
 
-        bool update = street.id != 'null';
+        final bool update = street.id != 'null';
         if (!update) street.ref = firestore.collection('Streets').doc();
 
         if (update &&
@@ -352,7 +353,7 @@ class _EditStreetState extends State<EditStreet> {
     await showDialog(
       context: context,
       builder: (context) {
-        var listOptions = DataObjectListController<Area>(
+        final listOptions = DataObjectListController<Area>(
           tap: (value) {
             navigator.currentState!.pop();
             setState(() {
@@ -452,7 +453,7 @@ class _EditStreetState extends State<EditStreet> {
   }
 
   Future<void> _selectDate2(BuildContext context) async {
-    DateTime? picked = await showDatePicker(
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: street.fatherLastVisit?.toDate() ?? DateTime.now(),
       firstDate: DateTime(1500),

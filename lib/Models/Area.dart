@@ -207,7 +207,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
 
   @override
   Future<String> getSecondLine() async {
-    String key = Hive.box('Settings').get('AreaSecondLine');
+    final String key = Hive.box('Settings').get('AreaSecondLine');
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'Allowed') {

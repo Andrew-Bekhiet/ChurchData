@@ -210,7 +210,7 @@ class Family extends DataObject
 
   @override
   Future<String?> getSecondLine() async {
-    String key = Hive.box('Settings').get('FamilySecondLine');
+    final String key = Hive.box('Settings').get('FamilySecondLine');
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'AreaId') {

@@ -1,9 +1,9 @@
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/user.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
@@ -60,7 +60,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                     ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
                     : null;
               },
-              onSaved: (v) => person.lastTanawol = v!,
+              onSaved: (v) => person.lastTanawol = v,
               validator: (value) => value == null
                   ? 'برجاء اختيار تاريخ أخر تناول'
                   : value.toDate().isBefore(
@@ -91,7 +91,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                     ? Text(DateFormat('yyyy/M/d').format(state.value!.toDate()))
                     : null;
               },
-              onSaved: (v) => person.lastConfession = v!,
+              onSaved: (v) => person.lastConfession = v,
               validator: (value) => value == null
                   ? 'برجاء اختيار تاريخ أخر اعتراف'
                   : value.toDate().isBefore(
@@ -148,7 +148,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   }
 
   Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
-    var picked = await showDatePicker(
+    final picked = await showDatePicker(
         helpText: helpText,
         locale: const Locale('ar', 'EG'),
         context: context,

@@ -98,6 +98,7 @@ const String uriPrefix = 'https://churchdata.page.link';
 
 bool reportUID = true;
 bool configureMessaging = true;
+// ignore: constant_identifier_names
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
 
 const MaterialColor white = MaterialColor(0xFFD8D8D8, <int, Color>{

@@ -1,7 +1,7 @@
 import 'package:churchdata/models/models.dart';
+import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -11,7 +11,7 @@ import 'analytics_indicators.dart';
 
 class SpiritualAnalysis extends StatefulWidget {
   final List<Area>? areas;
-  SpiritualAnalysis({Key? key, this.areas}) : super(key: key);
+  const SpiritualAnalysis({Key? key, this.areas}) : super(key: key);
 
   @override
   _SpiritualAnalysisState createState() => _SpiritualAnalysisState();
@@ -96,7 +96,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                             icon: Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
                             onPressed: () async {
-                              var rslt = await showDateRangePicker(
+                              final rslt = await showDateRangePicker(
                                 builder: (context, dialog) => Theme(
                                   data: Theme.of(context).copyWith(
                                     textTheme:
@@ -141,7 +141,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                             icon: Icon(Icons.list_alt),
                             tooltip: 'اختيار المناطق',
                             onPressed: () async {
-                              var rslt = await selectAreas(context, areas!);
+                              final rslt = await selectAreas(context, areas!);
                               if (rslt != null && rslt.isNotEmpty)
                                 setState(() => areas = rslt);
                               else if (rslt != null)
