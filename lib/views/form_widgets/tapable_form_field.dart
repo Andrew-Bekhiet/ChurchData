@@ -38,11 +38,7 @@ class TapableFormField<T> extends StatelessWidget {
                 : InputDecoration(
                     errorText: state.errorText,
                     labelText: labelText,
-                    border: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Theme.of(context).primaryColor),
-                    ),
-                  ).applyDefaults(Theme.of(context).inputDecorationTheme),
+                  ),
             isEmpty: state.value == null,
             child: builder(context, state),
           ),
