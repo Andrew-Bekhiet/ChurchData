@@ -511,6 +511,9 @@ void main() async {
       'AuthScreen',
       () {
         testWidgets('With Biometrics', (tester) async {
+          tester.binding.window.physicalSizeTestValue =
+              Size(1080 * 3, 2400 * 3);
+
           await tester.pumpWidget(
             wrapWithMaterialApp(
               AuthScreen(),
@@ -555,6 +558,9 @@ void main() async {
               findsOneWidget);
         });
         testWidgets('Without Biometrics', (tester) async {
+          tester.binding.window.physicalSizeTestValue =
+              Size(1080 * 3, 2400 * 3);
+
           addTearDown(() async {
             when(localAuthentication.canCheckBiometrics)
                 .thenAnswer((_) async => true);
@@ -821,7 +827,6 @@ void main() async {
         testWidgets('Entering password', (tester) async {
           tester.binding.window.physicalSizeTestValue =
               Size(1080 * 3, 2400 * 3);
-          addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
           await tester.pumpWidget(
             wrapWithMaterialApp(
@@ -853,7 +858,6 @@ void main() async {
           testWidgets('Empty Password', (tester) async {
             tester.binding.window.physicalSizeTestValue =
                 Size(1080 * 3, 2400 * 3);
-            addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
             await tester.pumpWidget(
               wrapWithMaterialApp(
@@ -874,7 +878,6 @@ void main() async {
           testWidgets('Wrong Password', (tester) async {
             tester.binding.window.physicalSizeTestValue =
                 Size(1080 * 3, 2400 * 3);
-            addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
             await tester.pumpWidget(
               wrapWithMaterialApp(
@@ -897,7 +900,6 @@ void main() async {
 
       testWidgets('With Biometrics', (tester) async {
         tester.binding.window.physicalSizeTestValue = Size(1080 * 3, 2400 * 3);
-        addTearDown(tester.binding.window.clearPhysicalSizeTestValue);
 
         await tester.pumpWidget(
           wrapWithMaterialApp(
