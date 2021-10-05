@@ -48,6 +48,7 @@ class Loading extends StatelessWidget {
                       : 'جار التحميل...'),
                   if (error)
                     OutlinedButton.icon(
+                      key: const Key('ClickForMore'),
                       label: Text('اضغط لمزيد من المعلومات'),
                       icon: Icon(Icons.error),
                       onPressed: () {

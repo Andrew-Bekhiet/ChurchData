@@ -47,11 +47,16 @@ class _UserRegisterationState extends State<UserRegisteration> {
             body: Form(
               key: _formKey,
               child: ListView(
+                key: const Key('ListView'),
                 padding: const EdgeInsets.all(8.0),
                 children: <Widget>[
-                  Image.asset('assets/Logo.png', fit: BoxFit.scaleDown),
+                  Image.asset(
+                    'assets/Logo.png',
+                    fit: BoxFit.scaleDown,
+                  ),
                   const Divider(),
                   TextFormField(
+                    key: const Key('UsernameField'),
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: const InputDecoration(
                       helperText:
@@ -70,6 +75,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
                   ),
                   TextFormField(
+                    key: const Key('Password'),
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
                       hintMaxLines: 3,
@@ -103,6 +109,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     onFieldSubmitted: (v) => _passwordFocus2.requestFocus(),
                   ),
                   TextFormField(
+                    key: const Key('PasswordConfirmation'),
                     autovalidateMode: AutovalidateMode.onUserInteraction,
                     decoration: InputDecoration(
                       hintMaxLines: 3,
@@ -134,6 +141,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     onFieldSubmitted: (v) => _submit(v, _userName.text),
                   ),
                   ElevatedButton(
+                    key: const Key('SubmitButton'),
                     onPressed: () =>
                         _submit(_passwordText.text, _userName.text),
                     child: const Text('انشاء حساب جديد'),
