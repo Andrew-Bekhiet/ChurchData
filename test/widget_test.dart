@@ -1193,24 +1193,33 @@ class FakeFlutterSecureStorage extends Fake implements FlutterSecureStorage {
   static Map<String, String> data = {};
 
   @override
-  Future<Map<String, String>> readAll({aOptions, iOptions, lOptions}) async =>
+  Future<Map<String, String>> readAll({
+    aOptions,
+    iOptions,
+    lOptions,
+    mOptions,
+    wOptions,
+    webOptions,
+  }) async =>
       data;
 
   @override
-  Future<void> write(
-      {required String key,
-      required String? value,
-      iOptions,
-      aOptions,
-      lOptions}) async {
+  Future<void> write({
+    required String key,
+    required String? value,
+    iOptions,
+    aOptions,
+    lOptions,
+    mOptions,
+    wOptions,
+    webOptions,
+  }) async {
     if (value == null)
       data.remove(key);
     else
       data[key] = value;
   }
 }
-
-typedef FormType = FormField<Timestamp?>;
 
 class MyGoogleSignInMock extends Mock implements GoogleSignIn {
   MockGoogleSignInAccount? _currentUser;
