@@ -123,7 +123,7 @@ void main() async {
   //FlutterSecureStorage Mocks
   flutterSecureStorage = FakeFlutterSecureStorage();
 
-//local_auth Mocks
+  //local_auth Mocks
   localAuthentication = MockLocalAuthentication();
 
   final listViewMatcher = find.descendant(
@@ -134,7 +134,7 @@ void main() async {
   setUpAll(() async {
     //dot env
 
-//Plugins mocks
+    //Plugins mocks
     (ConnectivityPlatform.instance as MethodChannelConnectivity)
         .methodChannel
         .setMockMethodCallHandler((call) async {
@@ -149,7 +149,7 @@ void main() async {
       buildNumber: '0',
     );
 
-//RemoteConfig mocks
+    //RemoteConfig mocks
     when(remoteConfig.setDefaults({
       'LatestVersion': (await PackageInfo.fromPlatform()).version,
       'LoadApp': 'false',
@@ -985,7 +985,6 @@ void main() async {
           lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
               DateTime(lastConfession.year, lastConfession.month,
                   lastConfession.day != 27 ? 27 : 28)));
-//
 
           await tester.tap(lastTanawolMatcher);
           await tester.pumpAndSettle();
