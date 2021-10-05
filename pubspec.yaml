@@ -44,7 +44,7 @@ dependencies:
   flutter_local_notifications: ^9.0.0
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^4.2.1
+  flutter_secure_storage: ^5.0.0-beta.5
   google_maps_flutter: ^2.0.11
   google_maps_flutter_web: ^0.3.2
   google_sign_in: ^5.1.1

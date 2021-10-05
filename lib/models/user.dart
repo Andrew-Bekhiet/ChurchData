@@ -14,12 +14,10 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../EncryptionKeys.dart';
 import '../utils/globals.dart';
 import 'person.dart';
 
@@ -99,14 +97,12 @@ class User extends DataObject with PhotoObject {
             Json idTokenClaims;
             try {
               final idToken = await user.getIdTokenResult(true);
-              if (kIsWeb)
-                await Encryption.setUserData(idToken.claims!);
-              else {
-                for (final item in idToken.claims!.entries) {
-                  await flutterSecureStorage.write(
-                      key: item.key, value: item.value?.toString());
-                }
+
+              for (final item in idToken.claims!.entries) {
+                await flutterSecureStorage.write(
+                    key: item.key, value: item.value?.toString());
               }
+
               await firebaseDatabase
                   .reference()
                   .child('Users/${user.uid}/forceRefresh')
@@ -130,10 +126,7 @@ class User extends DataObject with PhotoObject {
               });
               idTokenClaims = idToken.claims!;
             } on Exception {
-              if (kIsWeb)
-                idTokenClaims = await Encryption.getUserData() ?? {};
-              else
-                idTokenClaims = await flutterSecureStorage.readAll();
+              idTokenClaims = await flutterSecureStorage.readAll();
               if (idTokenClaims.isEmpty) rethrow;
             }
 
@@ -147,14 +140,11 @@ class User extends DataObject with PhotoObject {
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
 
-              if (kIsWeb)
-                await Encryption.setUserData(idToken.claims ?? {});
-              else {
-                for (final item in idToken.claims?.entries.toList() ?? []) {
-                  await flutterSecureStorage.write(
-                      key: item.key, value: item.value?.toString());
-                }
+              for (final item in idToken.claims?.entries.toList() ?? []) {
+                await flutterSecureStorage.write(
+                    key: item.key, value: item.value?.toString());
               }
+
               await firebaseDatabase
                   .reference()
                   .child('Users/${user.uid}/forceRefresh')
@@ -177,16 +167,10 @@ class User extends DataObject with PhotoObject {
                     .set('Active');
               }
             });
-            idTokenClaims = idToken?.claims ??
-                (kIsWeb
-                    ? await Encryption.getUserData()
-                    : await flutterSecureStorage.readAll()) ??
-                {};
+            idTokenClaims =
+                idToken?.claims ?? await flutterSecureStorage.readAll();
           } on Exception {
-            if (kIsWeb)
-              idTokenClaims = await Encryption.getUserData() ?? {};
-            else
-              idTokenClaims = await flutterSecureStorage.readAll();
+            idTokenClaims = await flutterSecureStorage.readAll();
             if (idTokenClaims.isEmpty) rethrow;
           }
 
