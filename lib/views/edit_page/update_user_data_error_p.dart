@@ -45,9 +45,6 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 suffixIcon: state.isValid
                     ? const Icon(Icons.done, color: Colors.green)
                     : const Icon(Icons.close, color: Colors.red),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                ),
               ),
               initialValue: person.lastTanawol,
               onTap: (state) async {
@@ -76,9 +73,6 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
                 suffixIcon: state.isValid
                     ? const Icon(Icons.done, color: Colors.green)
                     : const Icon(Icons.close, color: Colors.red),
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                ),
               ),
               initialValue: person.lastConfession,
               onTap: (state) async {
