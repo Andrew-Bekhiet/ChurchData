@@ -126,6 +126,11 @@ void main() async {
 //local_auth Mocks
   localAuthentication = MockLocalAuthentication();
 
+  final listViewMatcher = find.descendant(
+    of: find.byKey(Key('ListView')),
+    matching: find.byType(Scrollable).first,
+  );
+
   setUpAll(() async {
     //dot env
 
@@ -184,6 +189,7 @@ void main() async {
             useErrorDialogs: false))
         .thenAnswer((_) async => true);
   });
+
   group('Widgets structrures', () {
     group('LoadingWidget', () {
       testWidgets('Normal', (tester) async {
@@ -227,12 +233,15 @@ void main() async {
 
           expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
               findsOneWidget);
+
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(find.byKey(Key('ClickForMore')), findsOneWidget);
+
           expect(
               find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
               findsOneWidget);
 
-          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.tap(find.byKey(Key('ClickForMore')));
           await tester.pumpAndSettle();
 
           expect(find.text('{Error message}'), findsOneWidget);
@@ -259,12 +268,15 @@ void main() async {
 
           expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
               findsOneWidget);
+
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(find.byKey(Key('ClickForMore')), findsOneWidget);
+
           expect(
               find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
               findsOneWidget);
 
-          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.tap(find.byKey(Key('ClickForMore')));
           await tester.pumpAndSettle();
 
           expect(find.text('تحديث بيانات التناول والاعتراف'), findsOneWidget);
@@ -277,6 +289,11 @@ void main() async {
         testWidgets('Cannot Load App Error', (tester) async {
           when(remoteConfig.getString('LoadApp')).thenReturn('false');
           when(remoteConfig.getString('LatestVersion')).thenReturn('9.0.0');
+
+          addTearDown(() {
+            when(remoteConfig.getString('LoadApp')).thenReturn('true');
+            when(remoteConfig.getString('LatestVersion')).thenReturn('8.0.0');
+          });
 
           await tester.pumpWidget(
             wrapWithMaterialApp(
@@ -299,18 +316,18 @@ void main() async {
 
           expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
               findsOneWidget);
+
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
+          expect(find.byKey(Key('ClickForMore')), findsOneWidget);
+
           expect(
               find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
               findsOneWidget);
 
-          await tester.tap(find.text('اضغط لمزيد من المعلومات'));
+          await tester.tap(find.byKey(Key('ClickForMore')));
           await tester.pumpAndSettle();
 
           expect(find.text('تحديث'), findsOneWidget);
-
-          when(remoteConfig.getString('LoadApp')).thenReturn('true');
-          when(remoteConfig.getString('LatestVersion')).thenReturn('8.0.0');
         });
       });
     });
@@ -338,8 +355,9 @@ void main() async {
           wrapWithMaterialApp(
             UpdateUserDataErrorPage(
               person: Person(
-                  lastConfession: Timestamp.fromDate(lastConfession),
-                  lastTanawol: Timestamp.fromDate(lastTanawol)),
+                lastConfession: Timestamp.fromDate(lastConfession),
+                lastTanawol: Timestamp.fromDate(lastTanawol),
+              ),
             ),
           ),
         );
@@ -352,6 +370,7 @@ void main() async {
             find.text(DateFormat('yyyy/M/d').format(lastTanawol));
         Finder lastConfessionMatcher =
             find.text(DateFormat('yyyy/M/d').format(lastConfession));
+
         expect(lastConfessionMatcher, findsOneWidget);
         expect(lastTanawolMatcher, findsOneWidget);
 
@@ -378,6 +397,7 @@ void main() async {
         await tester.pumpAndSettle();
 
         expect(find.byType(DatePickerDialog), findsOneWidget);
+
         if (lastConfession.day != 27)
           await tester.tap(find.text('٢٧'));
         else
@@ -389,13 +409,14 @@ void main() async {
         lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
             DateTime(lastConfession.year, lastConfession.month,
                 lastConfession.day != 27 ? 27 : 28)));
+
         expect(lastConfessionMatcher, findsOneWidget);
-//
 
         await tester.tap(lastTanawolMatcher);
         await tester.pumpAndSettle();
 
         expect(find.byType(DatePickerDialog), findsOneWidget);
+
         if (lastTanawol.day != 27)
           await tester.tap(find.text('٢٧'));
         else
@@ -408,93 +429,187 @@ void main() async {
             lastTanawol.year,
             lastTanawol.month,
             lastTanawol.day != 27 ? 27 : 28)));
+
         expect(lastTanawolMatcher, findsNWidgets(2));
       },
     );
 
-    group('UserRegisteration', () {
-      final _originalValue = userClaims['approved'];
-      setUp(() async {
-        await firebaseAuth.signInWithCustomToken('token');
-        await User.instance.initialized;
-      });
-      tearDown(() async {
-        userClaims['approved'] = _originalValue;
-        await User.instance.signOut();
-      });
+    group(
+      'UserRegisteration',
+      () {
+        setUp(() async {
+          if (User.instance.uid != null) await User.instance.signOut();
+          await firebaseAuth.signInWithCustomToken('token');
+          await User.instance.initialized;
+        });
 
-      testWidgets('When user is not approved', (tester) async {
-        userClaims['approved'] = false;
-        await User.instance.forceRefresh();
+        tearDown(() async {
+          userClaims['approved'] = true;
+          await User.instance.signOut();
+        });
 
-        await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
+        testWidgets('When user is not approved', (tester) async {
+          userClaims['approved'] = false;
+          await User.instance.forceRefresh();
 
-        expect(find.text('في انتظار الموافقة'), findsOneWidget);
-        expect(find.widgetWithIcon(IconButton, Icons.logout), findsOneWidget);
-        expect(find.text('لينك الدعوة'), findsOneWidget);
-        expect(find.text('تفعيل الحساب باللينك'), findsOneWidget);
-      });
+          await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
 
-      testWidgets('When user is approved', (tester) async {
-        userClaims['approved'] = true;
-        await User.instance.forceRefresh();
+          expect(find.text('في انتظار الموافقة'), findsOneWidget);
+          expect(find.widgetWithIcon(IconButton, Icons.logout), findsOneWidget);
+          expect(find.text('لينك الدعوة'), findsOneWidget);
+          expect(find.text('تفعيل الحساب باللينك'), findsOneWidget);
+        });
 
-        await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
+        testWidgets(
+          'When user is approved',
+          (tester) async {
+            userClaims['approved'] = true;
+            await User.instance.forceRefresh();
 
-        expect(find.text('تسجيل حساب جديد'), findsOneWidget);
-        expect(find.text('اسم المستخدم'), findsOneWidget);
-        expect(find.text('كلمة السر'), findsOneWidget);
-        expect(find.text('تأكيد كلمة السر'), findsOneWidget);
-        expect(find.text('انشاء حساب جديد'), findsOneWidget);
-      });
-    });
+            await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
 
-    group('AuthScreen', () {
-      testWidgets('With Biometrics', (tester) async {
-        await tester.pumpWidget(
-          wrapWithMaterialApp(
-            AuthScreen(),
-          ),
+            await tester.scrollUntilVisible(
+              find.text('تسجيل حساب جديد'),
+              70,
+              scrollable: listViewMatcher,
+            );
+            expect(find.text('تسجيل حساب جديد'), findsOneWidget);
+
+            await tester.scrollUntilVisible(
+              find.text('اسم المستخدم'),
+              70,
+              scrollable: listViewMatcher,
+            );
+            expect(find.text('اسم المستخدم'), findsOneWidget);
+
+            await tester.scrollUntilVisible(
+              find.text('كلمة السر'),
+              70,
+              scrollable: listViewMatcher,
+            );
+            expect(find.text('كلمة السر'), findsOneWidget);
+
+            await tester.scrollUntilVisible(
+              find.text('تأكيد كلمة السر'),
+              70,
+              scrollable: listViewMatcher,
+            );
+            expect(find.text('تأكيد كلمة السر'), findsOneWidget);
+
+            await tester.scrollUntilVisible(
+              find.text('انشاء حساب جديد'),
+              70,
+              scrollable: listViewMatcher,
+            );
+            expect(find.text('انشاء حساب جديد'), findsOneWidget);
+          },
         );
-        await tester.pump();
+      },
+    );
 
-        expect(find.byType(BackButton), findsNothing);
-        expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
-        expect(find.byType(Image), findsOneWidget);
+    group(
+      'AuthScreen',
+      () {
+        testWidgets('With Biometrics', (tester) async {
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              AuthScreen(),
+            ),
+          );
+          await tester.pump();
 
-        expect(find.text('كلمة السر'), findsOneWidget);
-        expect(find.text('تسجيل الدخول'), findsOneWidget);
-        expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-            findsOneWidget);
-      });
-      testWidgets('Without Biometrics', (tester) async {
-        when(localAuthentication.canCheckBiometrics)
-            .thenAnswer((_) async => false);
-        await tester.pumpWidget(
-          wrapWithMaterialApp(
-            AuthScreen(),
-          ),
-        );
-        await tester.pump();
+          expect(find.byType(BackButton), findsNothing);
+          expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
 
-        expect(find.byType(BackButton), findsNothing);
-        expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
-        expect(find.byType(Image), findsOneWidget);
+          await tester.scrollUntilVisible(
+            find.byType(Image),
+            70,
+            scrollable: listViewMatcher,
+          );
 
-        expect(find.text('كلمة السر'), findsOneWidget);
-        expect(find.text('تسجيل الدخول'), findsOneWidget);
-        expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-            findsNothing);
-      });
-    });
+          expect(find.byType(Image), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.text('كلمة السر'),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.text('كلمة السر'), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.text('تسجيل الدخول'),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.text('تسجيل الدخول'), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+              findsOneWidget);
+        });
+        testWidgets('Without Biometrics', (tester) async {
+          addTearDown(() async {
+            when(localAuthentication.canCheckBiometrics)
+                .thenAnswer((_) async => true);
+          });
+
+          when(localAuthentication.canCheckBiometrics)
+              .thenAnswer((_) async => false);
+
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              AuthScreen(),
+            ),
+          );
+          await tester.pump();
+
+          expect(find.byType(BackButton), findsNothing);
+          expect(find.text('برجاء التحقق للمتابعة'), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.byType(Image),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.byType(Image), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.text('كلمة السر'),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.text('كلمة السر'), findsOneWidget);
+
+          await tester.scrollUntilVisible(
+            find.text('تسجيل الدخول'),
+            70,
+            scrollable: listViewMatcher,
+          );
+
+          expect(find.text('تسجيل الدخول'), findsOneWidget);
+
+          expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+              findsNothing);
+        });
+      },
+    );
   });
   group('Initialization tests', () {
     group('Login', () {
+      setUp(User.instance.signOut);
+
       testWidgets(
         'Displays Login screen when not logged in',
         (tester) async {
-          expect(firebaseAuth.currentUser, null);
-
           await tester.pumpWidget(App());
 
           await tester.pumpAndSettle();
@@ -509,114 +624,168 @@ void main() async {
           await tester.pumpWidget(App());
           await tester.pumpAndSettle();
 
-          expect(firebaseAuth.currentUser, null);
-
           await tester.tap(find.text('Google'));
           await tester.pumpAndSettle();
 
           expect(firebaseAuth.currentUser?.uid, '8t7we9rhuiU%762');
         },
       );
-      tearDownAll(User.instance.signOut);
+      tearDown(User.instance.signOut);
     });
 
-    group('User registeration', () {
-      final _originalApprovedValue = userClaims['approved'];
-      final _originalPasswordValue = userClaims['password'];
-      setUp(() async {
-        userClaims['approved'] = false;
-        userClaims['password'] = null;
-        await firebaseAuth.signInWithCustomToken('token');
-        await User.instance.initialized;
-        await User.instance.forceRefresh();
-      });
-      tearDown(() async {
-        userClaims['approved'] = _originalApprovedValue;
-        userClaims['password'] = _originalPasswordValue;
-        await User.instance.signOut();
-      });
+    group(
+      'User registeration',
+      () {
+        setUp(() async {
+          userClaims['approved'] = false;
+          userClaims['password'] = null;
 
-      testWidgets('Shows UserRegisteration widget', (tester) async {
-        await tester.pumpWidget(App());
-        await tester.pumpAndSettle();
+          if (User.instance.uid != null) await User.instance.signOut();
+          await firebaseAuth.signInWithCustomToken('token');
+          await User.instance.initialized;
+          await User.instance.forceRefresh();
+        });
+        tearDown(() async {
+          userClaims['approved'] = true;
+          userClaims['password'] = 'password';
+          await User.instance.signOut();
+        });
 
-        expect(find.byType(UserRegisteration), findsOneWidget);
-      });
+        testWidgets(
+          'Shows UserRegisteration widget',
+          (tester) async {
+            await tester.pumpWidget(App());
+            await tester.pumpAndSettle();
 
-      testWidgets('Using invitation link', (tester) async {
-        final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
-        when(firebaseFunctions.httpsCallable('registerWithLink'))
-            .thenReturn(mockHttpsCallable);
-        when(mockHttpsCallable
-                .call({'link': 'https://churchdata.page.link/fakeInvitation'}))
-            .thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
-
-        await tester.pumpWidget(App());
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('تفعيل الحساب باللينك'));
-        await tester.pump();
-
-        expect(
-            find.text('برجاء ادخال لينك الدخول لتفعيل حسابك'), findsOneWidget);
-
-        await tester.enterText(
-            find.widgetWithText(TextFormField, 'لينك الدعوة'),
-            'https://churchdata.page.link/fakeInvitation');
-        await tester.pump();
-
-        await tester.tap(find.text('تفعيل الحساب باللينك'));
-        await tester.pump();
-      });
-
-      testWidgets('Submitting account name and password', (tester) async {
-        final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
-        when(firebaseFunctions.httpsCallable('registerAccount'))
-            .thenReturn(mockHttpsCallable);
-        when(mockHttpsCallable.call(argThat(predicate((p) {
-          if (p == null) return false;
-          final Map<String, dynamic> m = p as Map<String, dynamic>;
-          return m['name'] == 'name' &&
-              m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
-              m['fcmToken'] == '{FCMToken}';
-        })))).thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
-
-        await firestore.doc('Persons/user').set(
-          {
-            'LastTanawol': Timestamp.now(),
-            'LastConfession': Timestamp.now(),
+            expect(find.byType(UserRegisteration), findsOneWidget);
           },
+          timeout: Timeout(Duration(seconds: 5)),
         );
 
-        userClaims['approved'] = true;
-        await User.instance.forceRefresh();
+        testWidgets('Using invitation link', (tester) async {
+          final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
 
-        await tester.pumpWidget(App());
-        await tester.pumpAndSettle();
+          addTearDown(() => reset(firebaseFunctions));
 
-        expect(find.byType(UserRegisteration), findsOneWidget);
+          when(firebaseFunctions.httpsCallable('registerWithLink'))
+              .thenReturn(mockHttpsCallable);
 
-        await tester.enterText(
-            find.widgetWithText(TextFormField, 'اسم المستخدم'), 'name');
-        await tester.enterText(
-            find.widgetWithText(TextFormField, 'كلمة السر'), 'Strong*P@ss9');
-        await tester.enterText(
-            find.widgetWithText(TextFormField, 'تأكيد كلمة السر'),
-            'Strong*P@ss9');
-        await tester.pump();
+          when(mockHttpsCallable.call(argThat(predicate((p) {
+            if (p == null) return false;
+            final Map<String, dynamic> m = p as Map<String, dynamic>;
+            return m['link'] == 'https://churchdata.page.link/fakeInvitation';
+          }))))
+              .thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
 
-        await tester.tap(find.text('انشاء حساب جديد'));
-        await tester.pump();
+          await tester.pumpWidget(App());
+          await tester.pumpAndSettle();
 
-        verify(mockHttpsCallable.call(argThat(predicate((p) {
-          if (p == null) return false;
-          final Map<String, dynamic> m = p as Map<String, dynamic>;
-          return m['name'] == 'name' &&
-              m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
-              m['fcmToken'] == '{FCMToken}';
-        }))));
-      });
-    });
+          await tester.tap(find.text('تفعيل الحساب باللينك'));
+          await tester.pump();
+
+          expect(find.text('برجاء ادخال لينك الدخول لتفعيل حسابك'),
+              findsOneWidget);
+
+          await tester.enterText(
+              find.widgetWithText(TextFormField, 'لينك الدعوة'),
+              'https://churchdata.page.link/fakeInvitation');
+          await tester.pump();
+
+          await tester.tap(find.text('تفعيل الحساب باللينك'));
+          await tester.pump();
+
+          verify(mockHttpsCallable.call(argThat(predicate((p) {
+            if (p == null) return false;
+            final Map<String, dynamic> m = p as Map<String, dynamic>;
+            return m['link'] == 'https://churchdata.page.link/fakeInvitation';
+          }))));
+        });
+
+        testWidgets(
+          'Submitting account name and password',
+          (tester) async {
+            final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
+
+            addTearDown(() => reset(firebaseFunctions));
+
+            when(mockHttpsCallable.call(argThat(predicate((p) {
+              if (p == null) return false;
+              final Map<String, dynamic> m = p as Map<String, dynamic>;
+              return m['name'] == 'name' &&
+                  m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
+                  m['fcmToken'] == '{FCMToken}';
+            })))).thenAnswer(
+                (_) async => FakeHttpsCallableResult<String>('dumb'));
+
+            when(firebaseFunctions.httpsCallable('registerAccount'))
+                .thenReturn(mockHttpsCallable);
+
+            await firestore.doc('Persons/user').set(
+              {
+                'LastTanawol': Timestamp.now(),
+                'LastConfession': Timestamp.now(),
+              },
+            );
+
+            userClaims['approved'] = true;
+            await User.instance.forceRefresh();
+
+            await tester.pumpWidget(App());
+            await tester.pumpAndSettle();
+
+            expect(find.byType(UserRegisteration), findsOneWidget);
+
+            await tester.scrollUntilVisible(
+              find.byKey(Key('UsernameField')),
+              70,
+              scrollable: listViewMatcher,
+            );
+
+            await tester.enterText(
+              find.byKey(const Key('UsernameField')),
+              'name',
+            );
+
+            await tester.scrollUntilVisible(
+              find.byKey(Key('Password')),
+              70,
+              scrollable: listViewMatcher,
+            );
+
+            await tester.enterText(find.byKey(Key('Password')), 'Strong*P@ss9');
+
+            await tester.scrollUntilVisible(
+              find.byKey(Key('PasswordConfirmation')),
+              70,
+              scrollable: listViewMatcher,
+            );
+
+            await tester.enterText(
+                find.byKey(Key('PasswordConfirmation')), 'Strong*P@ss9');
+            await tester.pump();
+
+            await tester.scrollUntilVisible(
+              find.byKey(Key('SubmitButton')),
+              70,
+              scrollable: listViewMatcher,
+            );
+
+            await tester.tap(find.byKey(Key('SubmitButton')));
+
+            await tester.pump();
+
+            verify(mockHttpsCallable.call(argThat(predicate((p) {
+              if (p == null) return false;
+              final Map<String, dynamic> m = p as Map<String, dynamic>;
+              return m['name'] == 'name' &&
+                  m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
+                  m['fcmToken'] == '{FCMToken}';
+            }))));
+          },
+          timeout: Timeout(Duration(seconds: 5)),
+        );
+      },
+    );
 
     group('Entering with AuthScreen', () {
       Completer<bool> _authCompleter = Completer();
@@ -635,18 +804,18 @@ void main() async {
         _authCompleter = Completer();
       });
       group('With password', () {
-        final _originalPassword = userClaims['password'];
         const _passwordText = '1%Pass word*)';
 
         setUp(() async {
           userClaims['password'] = Encryption.encryptPassword(_passwordText);
 
+          if (User.instance.uid != null) await User.instance.signOut();
           await firebaseAuth.signInWithCustomToken('token');
           await User.instance.initialized;
         });
         tearDown(() async {
           await User.instance.signOut();
-          userClaims['password'] = _originalPassword;
+          userClaims['password'] = 'password';
         });
 
         testWidgets('Entering password', (tester) async {
@@ -669,10 +838,13 @@ void main() async {
           _authCompleter.complete(false);
 
           await tester.enterText(
-              find.widgetWithText(TextFormField, 'كلمة السر'), _passwordText);
-          await tester.tap(find.text('تسجيل الدخول'));
-          await tester.pump();
+            find.byKey(Key('Password')),
+            _passwordText,
+          );
 
+          await tester.tap(find.byKey(Key('Submit')));
+
+          await tester.pump();
           await tester.pump();
 
           expect(find.text('Test succeeded'), findsOneWidget);
@@ -691,8 +863,10 @@ void main() async {
             await tester.pump();
 
             await tester.enterText(
-                find.widgetWithText(TextFormField, 'كلمة السر'), '');
-            await tester.tap(find.text('تسجيل الدخول'));
+              find.byKey(Key('Password')),
+              '',
+            );
+            await tester.tap(find.byKey(Key('Submit')));
             await tester.pump();
 
             expect(find.text('كلمة سر فارغة!'), findsOneWidget);
@@ -710,7 +884,9 @@ void main() async {
             await tester.pump();
 
             await tester.enterText(
-                find.widgetWithText(TextFormField, 'كلمة السر'), 'Wrong');
+              find.byKey(Key('Password')),
+              'Wrong',
+            );
             await tester.tap(find.text('تسجيل الدخول'));
             await tester.pump();
 
@@ -736,7 +912,7 @@ void main() async {
         _authCompleter.complete(false);
         _authCompleter = Completer();
 
-        await tester.tap(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'));
+        await tester.tap(find.byKey(Key('Biometrics')));
 
         _authCompleter.complete(true);
 
@@ -753,6 +929,7 @@ void main() async {
           DateTime.now().subtract(Duration(days: (2 * 30) + 1));
 
       setUpAll(() async {
+        if (User.instance.uid != null) await User.instance.signOut();
         await firebaseAuth.signInWithCustomToken('token');
         await User.instance.initialized;
 
