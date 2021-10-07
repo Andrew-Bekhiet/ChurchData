@@ -40,6 +40,11 @@ import 'package:firebase_remote_config_platform_interface/src/remote_config_valu
 import 'package:local_auth/auth_strings.dart' as _i25;
 import 'package:local_auth/local_auth.dart' as _i24;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:plugin_platform_interface/plugin_platform_interface.dart'
+    as _i28;
+import 'package:url_launcher_platform_interface/link.dart' as _i27;
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart'
+    as _i26;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: comment_references
@@ -48,10 +53,7 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: prefer_const_constructors
 // ignore_for_file: unnecessary_parenthesis
 
-class _FakeFirebaseApp extends _i1.Fake implements _i2.FirebaseApp {
-  @override
-  String toString() => super.toString();
-}
+class _FakeFirebaseApp extends _i1.Fake implements _i2.FirebaseApp {}
 
 class _FakeNotificationSettings extends _i1.Fake
     implements _i3.NotificationSettings {}
@@ -61,10 +63,7 @@ class _FakeFirebaseFunctionsPlatform extends _i1.Fake
 
 class _FakeHttpsCallable extends _i1.Fake implements _i5.HttpsCallable {}
 
-class _FakeDateTime extends _i1.Fake implements DateTime {
-  @override
-  String toString() => super.toString();
-}
+class _FakeDateTime extends _i1.Fake implements DateTime {}
 
 class _FakeRemoteConfigSettings extends _i1.Fake
     implements _i6.RemoteConfigSettings {}
@@ -72,28 +71,16 @@ class _FakeRemoteConfigSettings extends _i1.Fake
 class _FakeRemoteConfigValue extends _i1.Fake implements _i7.RemoteConfigValue {
 }
 
-class _FakeUserMetadata extends _i1.Fake implements _i8.UserMetadata {
-  @override
-  String toString() => super.toString();
-}
+class _FakeUserMetadata extends _i1.Fake implements _i8.UserMetadata {}
 
-class _FakeIdTokenResult extends _i1.Fake implements _i9.IdTokenResult {
-  @override
-  String toString() => super.toString();
-}
+class _FakeIdTokenResult extends _i1.Fake implements _i9.IdTokenResult {}
 
-class _FakeUserCredential extends _i1.Fake implements _i10.UserCredential {
-  @override
-  String toString() => super.toString();
-}
+class _FakeUserCredential extends _i1.Fake implements _i10.UserCredential {}
 
 class _FakeConfirmationResult extends _i1.Fake
     implements _i10.ConfirmationResult {}
 
-class _FakeUser extends _i1.Fake implements _i10.User {
-  @override
-  String toString() => super.toString();
-}
+class _FakeUser extends _i1.Fake implements _i10.User {}
 
 class _FakeHttpsCallablePlatform extends _i1.Fake
     implements _i11.HttpsCallablePlatform {}
@@ -399,8 +386,6 @@ class MockMockUser extends _i1.Mock implements _i19.MockUser {
       (super.noSuchMethod(Invocation.method(#getIdToken, [forceRefresh]),
           returnValue: Future<String>.value('')) as _i13.Future<String>);
   @override
-  String toString() => super.toString();
-  @override
   _i13.Future<void> delete() => (super.noSuchMethod(
       Invocation.method(#delete, []),
       returnValue: Future<void>.value(),
@@ -588,4 +573,48 @@ class MockHttpsCallable extends _i1.Mock implements _i5.HttpsCallable {
               returnValue: Future<_i5.HttpsCallableResult<T>>.value(
                   _FakeHttpsCallableResult<T>()))
           as _i13.Future<_i5.HttpsCallableResult<T>>);
+}
+
+class MockUrlLauncherPlatform extends _i1.Mock
+    with _i28.MockPlatformInterfaceMixin
+    implements _i26.UrlLauncherPlatform {
+  @override
+  _i13.Future<bool> canLaunch(String url) {
+    return (super.noSuchMethod(Invocation.method(#canLaunch, [url]),
+        returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  }
+
+  @override
+  _i13.Future<void> closeWebView() {
+    return (super.noSuchMethod(Invocation.method(#closeWebView, []),
+        returnValue: Future<void>.value()) as _i13.Future<void>);
+  }
+
+  @override
+  _i13.Future<bool> launch(String url,
+      {bool? useSafariVC,
+      bool? useWebView,
+      bool? enableJavaScript,
+      bool? enableDomStorage,
+      bool? universalLinksOnly,
+      Map<String, String>? headers,
+      String? webOnlyWindowName}) {
+    return (super.noSuchMethod(
+        Invocation.method(#launch, [
+          url
+        ], {
+          #useSafariVC: useSafariVC,
+          #useWebView: useWebView,
+          #enableJavaScript: enableJavaScript,
+          #enableDomStorage: enableDomStorage,
+          #universalLinksOnly: universalLinksOnly,
+          #headers: headers,
+          #webOnlyWindowName: webOnlyWindowName,
+        }),
+        returnValue: Future<bool>.value(false)) as _i13.Future<bool>);
+  }
+
+  @override
+  _i27.LinkDelegate? get linkDelegate =>
+      (super.noSuchMethod(Invocation.getter(#linkDelegate), returnValue: null));
 }
