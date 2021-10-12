@@ -253,6 +253,7 @@ class _RootState extends State<Root>
             controller: _tabController,
             tabs: [
               Tab(
+                key: const Key('_AreasTab'),
                 icon: DescribedFeatureOverlay(
                   backgroundDismissible: false,
                   barrierDismissible: false,
@@ -293,6 +294,7 @@ class _RootState extends State<Root>
                 ),
               ),
               Tab(
+                key: const Key('_StreetsTab'),
                 child: DescribedFeatureOverlay(
                   backgroundDismissible: false,
                   barrierDismissible: false,
@@ -341,6 +343,7 @@ class _RootState extends State<Root>
                 ),
               ),
               Tab(
+                key: const Key('_FamiliesTab'),
                 icon: DescribedFeatureOverlay(
                   backgroundDismissible: false,
                   barrierDismissible: false,
@@ -381,6 +384,7 @@ class _RootState extends State<Root>
                 ),
               ),
               Tab(
+                key: const Key('_PersonsTab'),
                 icon: DescribedFeatureOverlay(
                   backgroundDismissible: false,
                   barrierDismissible: false,
@@ -1404,7 +1408,8 @@ class _RootState extends State<Root>
   }
 
   Future<void> showBatteryOptimizationDialog() async {
-    if (((await DeviceInfoPlugin().androidInfo).version.sdkInt ?? 0) >= 23 &&
+    if (defaultTargetPlatform == TargetPlatform.android &&
+        ((await DeviceInfoPlugin().androidInfo).version.sdkInt ?? 0) >= 23 &&
         (await BatteryOptimization.isIgnoringBatteryOptimizations() != true) &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(

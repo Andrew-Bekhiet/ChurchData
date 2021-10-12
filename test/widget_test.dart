@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:churchdata/EncryptionKeys.dart';
 import 'package:churchdata/main.dart';
+import 'package:churchdata/models/area.dart';
+import 'package:churchdata/models/data_object_widget.dart';
+import 'package:churchdata/models/hive_persistence_provider.dart';
 import 'package:churchdata/models/loading_widget.dart';
+import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
@@ -12,22 +16,28 @@ import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
 import 'package:churchdata/views/form_widgets/password_field.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/login.dart';
+import 'package:churchdata/views/root.dart';
 import 'package:churchdata/views/updates.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:connectivity_plus_platform_interface/method_channel_connectivity.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_auth_mocks/src/mock_confirmation_result.dart';
 import 'package:firebase_auth_mocks/src/mock_user_credential.dart';
 import 'package:firebase_database_mocks/firebase_database_mocks.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -41,7 +51,6 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'widget_test.mocks.dart';
@@ -66,6 +75,8 @@ void main() async {
   await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
   await Hive.openBox<String>('PhotosURLsCache');
+
+  HivePersistenceProvider.instance = MockHivePersistenceProvider();
 
   //Notifications:
   // await AndroidAlarmManager.initialize();
@@ -196,6 +207,27 @@ void main() async {
             biometricOnly: true,
             useErrorDialogs: false))
         .thenAnswer((_) async => true);
+
+    FirebaseDynamicLinks.channel.setMockMethodCallHandler((call) {
+      return null;
+    });
+
+    when(firebaseMessaging.getInitialMessage()).thenAnswer((_) async => null);
+
+    DeviceInfoPlugin.disableDeviceInfoPlatformOverride = true;
+    DeviceInfoPlatform.instance = MockDeviceInfo();
+    when(DeviceInfoPlatform.instance.androidInfo()).thenAnswer(
+      (_) async => AndroidDeviceInfo(
+        supported32BitAbis: [],
+        supported64BitAbis: [],
+        supportedAbis: [],
+        systemFeatures: [],
+        version: MockAndroidBuildVersion(sdkInt: 22),
+      ),
+    );
+
+    MethodChannel('dexterous.com/flutter/local_notifications')
+        .setMockMethodCallHandler((call) => null);
   });
 
   group('Helping widgets', () {
@@ -1323,6 +1355,157 @@ void main() async {
       },
     );
   });
+
+  group('Root widget', () {
+    setUpAll(() async {
+      if (User.instance.uid != null) await User.instance.signOut();
+      await firebaseAuth.signInWithCustomToken('token');
+      await User.instance.initialized;
+
+      await Person(
+        ref: User.instance.personDocRef,
+        areaId: firestore.doc('Areas/fakeArea'),
+        streetId: firestore.doc('Streets/fakeStreet'),
+        familyId: firestore.doc('Families/fakeFamily'),
+        name: 'Mock User Data',
+        lastTanawol: Timestamp.now(),
+        lastConfession: Timestamp.now(),
+      ).set();
+
+      //Populate database with fake data:
+      await Area(
+        null,
+        'Fake Area',
+        'address',
+        false,
+        false,
+        Timestamp.now(),
+        Timestamp.now(),
+        [User.instance.uid!],
+        User.instance.uid,
+        ref: firestore.doc('Areas/fakeArea'),
+      ).set();
+
+      await Street(null, firestore.doc('Areas/fakeArea'), 'Fake Street',
+              Timestamp.now(), User.instance.uid,
+              ref: firestore.doc('Streets/fakeStreet'))
+          .set();
+
+      await Family(
+        null,
+        firestore.doc('Areas/fakeArea'),
+        firestore.doc('Streets/fakeStreet'),
+        'Fake Family',
+        'address',
+        Timestamp.now(),
+        Timestamp.now(),
+        User.instance.uid,
+        ref: firestore.doc('Families/fakeFamily'),
+      ).set();
+
+      await Person(
+        ref: firestore.doc('Persons/fakePerson'),
+        areaId: firestore.doc('Areas/fakeArea'),
+        streetId: firestore.doc('Streets/fakeStreet'),
+        familyId: firestore.doc('Families/fakeFamily'),
+        name: 'Fake Person',
+      ).set();
+    });
+
+    testWidgets('Tabs', (tester) async {
+      await tester.pumpWidget(
+        wrapWithMaterialApp(
+          FeatureDiscovery.withProvider(
+            persistenceProvider: MockHivePersistenceProvider(),
+            child: Root(),
+          ),
+        ),
+      );
+
+      expect(
+        find.ancestor(
+          of: find.byIcon(Icons.pin_drop),
+          matching: find.byType(Tab),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(Key('_AreasTab')), findsOneWidget);
+
+      expect(
+        find.ancestor(
+          of: find.byWidgetPredicate(
+            (widget) =>
+                widget is Image &&
+                widget.image is AssetImage &&
+                (widget.image as AssetImage).assetName == 'assets/streets.png',
+          ),
+          matching: find.byType(Tab),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(Key('_StreetsTab')), findsOneWidget);
+
+      expect(
+        find.ancestor(
+          of: find.byIcon(Icons.group),
+          matching: find.byType(Tab),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(Key('_FamiliesTab')), findsOneWidget);
+
+      expect(
+        find.ancestor(
+          of: find.byIcon(Icons.person),
+          matching: find.byType(Tab),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(Key('_PersonsTab')), findsOneWidget);
+    });
+    testWidgets('Data', (tester) async {
+      tester.binding.window.physicalSizeTestValue = Size(1080 * 3, 2400 * 3);
+
+      await tester.pumpWidget(
+        wrapWithMaterialApp(
+          FeatureDiscovery.withProvider(
+            persistenceProvider: MockHivePersistenceProvider(),
+            child: Root(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(_AreaWidget, 'Fake Area'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(Key('_StreetsTab')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(_StreetWidget, 'Fake Street'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(Key('_FamiliesTab')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(_FamilyWidget, 'Fake Family'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byKey(Key('_PersonsTab')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(_PersonWidget, 'Fake Person'),
+        findsOneWidget,
+      );
+    });
+  });
 }
 
 Widget wrapWithMaterialApp(Widget widget,
@@ -1534,3 +1717,8 @@ class FakeHttpsCallableResult<T> extends Fake
   @override
   T data;
 }
+
+typedef _AreaWidget = DataObjectWidget<Area>;
+typedef _StreetWidget = DataObjectWidget<Street>;
+typedef _FamilyWidget = DataObjectWidget<Family>;
+typedef _PersonWidget = DataObjectWidget<Person>;

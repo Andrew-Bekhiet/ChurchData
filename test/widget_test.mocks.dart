@@ -12,6 +12,7 @@ import 'package:cloud_functions_platform_interface/src/platform_interface/platfo
     as _i4;
 import 'package:cloud_functions_platform_interface/src/platform_interface/platform_interface_https_callable.dart'
     as _i11;
+import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
 import 'package:firebase_auth/firebase_auth.dart' as _i10;
 import 'package:firebase_auth_mocks/src/mock_user.dart' as _i19;
 import 'package:firebase_auth_platform_interface/src/action_code_settings.dart'
@@ -617,4 +618,93 @@ class MockUrlLauncherPlatform extends _i1.Mock
   @override
   _i27.LinkDelegate? get linkDelegate =>
       (super.noSuchMethod(Invocation.getter(#linkDelegate), returnValue: null));
+}
+
+class MockDeviceInfo extends _i1.Mock
+    with _i28.MockPlatformInterfaceMixin
+    implements DeviceInfoPlatform {
+  @override
+  _i13.Future<AndroidDeviceInfo> androidInfo() async {
+    return super.noSuchMethod(
+      Invocation.method(#androidInfo, []),
+      returnValue: AndroidDeviceInfo(
+        supported32BitAbis: [],
+        supported64BitAbis: [],
+        supportedAbis: [],
+        systemFeatures: [],
+        version: MockAndroidBuildVersion(sdkInt: 22),
+      ),
+    );
+  }
+
+  @override
+  _i13.Future<IosDeviceInfo> iosInfo() {
+    throw UnimplementedError();
+  }
+
+  @override
+  _i13.Future<LinuxDeviceInfo> linuxInfo() {
+    throw UnimplementedError();
+  }
+
+  @override
+  _i13.Future<MacOsDeviceInfo> macosInfo() {
+    throw UnimplementedError();
+  }
+
+  @override
+  _i13.Future<WebBrowserInfo> webBrowserInfo() {
+    throw UnimplementedError();
+  }
+
+  @override
+  _i13.Future<WindowsDeviceInfo>? windowsInfo() {
+    throw UnimplementedError();
+  }
+}
+
+class MockAndroidBuildVersion implements AndroidBuildVersion {
+  MockAndroidBuildVersion({
+    this.baseOS,
+    this.codename,
+    this.incremental,
+    this.previewSdkInt,
+    this.release,
+    this.sdkInt,
+    this.securityPatch,
+  });
+
+  @override
+  String? baseOS;
+
+  @override
+  String? codename;
+
+  @override
+  String? incremental;
+
+  @override
+  int? previewSdkInt;
+
+  @override
+  String? release;
+
+  @override
+  int? sdkInt;
+
+  @override
+  String? securityPatch;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'baseOS': baseOS,
+      'codename': codename,
+      'incremental': incremental,
+      'previewSdkInt': previewSdkInt,
+      'release': release,
+      'sdkInt': sdkInt,
+      'securityPatch': securityPatch,
+    };
+  }
 }

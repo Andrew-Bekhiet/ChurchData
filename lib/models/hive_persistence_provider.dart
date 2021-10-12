@@ -2,6 +2,18 @@ import 'package:feature_discovery/feature_discovery.dart';
 import 'package:hive/hive.dart';
 
 class HivePersistenceProvider extends PersistenceProvider {
+  static HivePersistenceProvider _instance = HivePersistenceProvider._();
+
+  static HivePersistenceProvider get instance => _instance;
+
+  static set instance(value) {
+    _instance = value;
+  }
+
+  factory HivePersistenceProvider() => instance;
+
+  HivePersistenceProvider._();
+
   final _box = Hive.box<bool>('FeatureDiscovery');
 
   @override
@@ -36,4 +48,15 @@ class HivePersistenceProvider extends PersistenceProvider {
   Future<bool> hasCompletedStep(String? featureId) async {
     return _box.get(featureId, defaultValue: false)!;
   }
+}
+
+class MockHivePersistenceProvider extends HivePersistenceProvider {
+  MockHivePersistenceProvider() : super._();
+
+  @override
+  Future<bool> hasCompletedStep(String? featureId) async => true;
+
+  @override
+  Future<Set<String?>> completedSteps(Iterable<String?>? featuresIds) async =>
+      featuresIds?.toSet() ?? {};
 }
