@@ -75,11 +75,10 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   String? lastEdit;
 
   Person(
-      {String? id,
-      JsonRef? ref,
-      this.areaId,
-      JsonRef? streetId,
-      JsonRef? familyId,
+      {required JsonRef? ref,
+      required this.areaId,
+      required JsonRef? streetId,
+      required JsonRef? familyId,
       String name = '',
       this.phone = '',
       Json? phones,
@@ -108,8 +107,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       : _familyId = familyId,
         _streetId = streetId,
         phones = phones ?? {},
-        super(ref ?? firestore.collection('Persons').doc(id ?? 'null'), name,
-            color) {
+        super(ref ?? firestore.collection('Persons').doc('null'), name, color) {
     this.hasPhoto = hasPhoto;
     phones ??= {};
     defaultIcon = Icons.person;

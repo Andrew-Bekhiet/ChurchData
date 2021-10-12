@@ -52,18 +52,23 @@ class Family extends DataObject
 
   bool isStore;
 
-  Family(String? id, this.areaId, this._streetId, String name, this.address,
-      this.lastVisit, this.fatherLastVisit, this.lastEdit,
-      {Color color = Colors.transparent,
-      JsonRef? ref,
+  Family(
+      {required this.areaId,
+      required JsonRef? streetId,
+      required String name,
+      this.address,
+      this.lastVisit,
+      this.fatherLastVisit,
+      this.lastEdit,
+      Color color = Colors.transparent,
+      required JsonRef ref,
       this.isStore = false,
       this.locationPoint,
       this.insideFamily,
       this.insideFamily2,
       this.locationConfirmed = false,
       this.notes})
-      : super(ref ?? firestore.collection('Families').doc(id ?? 'null'), name,
-            color) {
+      : super(ref, name, color) {
     hasPhoto = false;
     defaultIcon = Icons.group;
   }
@@ -234,14 +239,10 @@ class Family extends DataObject
 
   static Family empty() {
     return Family(
-      null,
-      null,
-      null,
-      '',
-      '',
-      null,
-      null,
-      User.instance.uid,
+      ref: FirebaseFirestore.instance.collection('Families').doc('null'),
+      name: '',
+      areaId: null,
+      streetId: null,
     );
   }
 

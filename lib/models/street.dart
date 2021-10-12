@@ -32,14 +32,17 @@ class Street extends DataObject
 
   String? lastEdit;
 
-  Street(String? id, this.areaId, String name, this.lastVisit, this.lastEdit,
-      {Color color = Colors.transparent,
-      JsonRef? ref,
-      List<GeoPoint>? locationPoints,
-      this.locationConfirmed = false})
-      : locationPoints = locationPoints ?? [],
-        super(ref ?? firestore.collection('Streets').doc(id ?? 'null'), name,
-            color);
+  Street({
+    required this.areaId,
+    required String name,
+    this.lastVisit,
+    this.lastEdit,
+    Color color = Colors.transparent,
+    required JsonRef ref,
+    List<GeoPoint>? locationPoints,
+    this.locationConfirmed = false,
+  })  : locationPoints = locationPoints ?? [],
+        super(ref, name, color);
 
   Street._createFromData(Json data, JsonRef ref)
       : areaId = data['AreaId'],
@@ -211,11 +214,9 @@ class Street extends DataObject
 
   static Street empty() {
     return Street(
-      null,
-      null,
-      '',
-      null,
-      User.instance.uid,
+      ref: FirebaseFirestore.instance.collection('Streets').doc('null'),
+      name: '',
+      areaId: null,
     );
   }
 

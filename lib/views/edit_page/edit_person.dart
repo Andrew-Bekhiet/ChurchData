@@ -33,10 +33,10 @@ import 'package:rxdart/rxdart.dart';
 import '../mini_model_list.dart';
 
 class EditPerson extends StatefulWidget {
-  final Person? person;
+  final Person person;
   final bool userData;
 
-  const EditPerson({Key? key, this.person, this.userData = false})
+  const EditPerson({Key? key, required this.person, this.userData = false})
       : super(key: key);
   @override
   _EditPersonState createState() => _EditPersonState();
@@ -1062,7 +1062,7 @@ class _EditPersonState extends State<EditPerson> {
   @override
   void initState() {
     super.initState();
-    person = (widget.person ?? Person()).copyWith();
+    person = widget.person.copyWith();
     person.setStreetIdFromFamily();
   }
 
@@ -1223,23 +1223,24 @@ class _EditPersonState extends State<EditPerson> {
           if (widget.userData)
             await person.ref.set(
                 person.getMap()
-                  ..removeWhere((key, value) =>
-                      (widget.person?.getMap() ?? {})[key] == value),
+                  ..removeWhere(
+                      (key, value) => widget.person.getMap()[key] == value),
                 SetOptions(merge: true));
           else
-            await person.update(old: widget.person?.getMap() ?? {});
+            await person.update(old: widget.person.getMap());
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           if (widget.userData)
             // ignore: unawaited_futures
             person.ref.set(
-                person.getMap()
-                  ..removeWhere((key, value) =>
-                      (widget.person?.getMap() ?? {})[key] == value),
-                SetOptions(merge: true));
+              person.getMap()
+                ..removeWhere(
+                    (key, value) => widget.person.getMap()[key] == value),
+              SetOptions(merge: true),
+            );
           else
             // ignore: unawaited_futures
-            person.update(old: widget.person?.getMap() ?? {});
+            person.update(old: widget.person.getMap());
         } else if (await Connectivity().checkConnectivity() !=
             ConnectivityResult.none) {
           await person.set();

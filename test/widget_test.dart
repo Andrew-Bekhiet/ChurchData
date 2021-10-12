@@ -488,8 +488,14 @@ void main() async {
                 message: 'Exception: Error Update User Data',
               ),
               routes: {
-                'UpdateUserDataError': (context) =>
-                    UpdateUserDataErrorPage(person: Person()),
+                'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
+                      person: Person(
+                        ref: null,
+                        areaId: null,
+                        streetId: null,
+                        familyId: null,
+                      ),
+                    ),
               },
             ),
           );
@@ -531,8 +537,14 @@ void main() async {
                 message: 'Exception: يجب التحديث لأخر إصدار لتشغيل البرنامج',
               ),
               routes: {
-                'UpdateUserDataError': (context) =>
-                    UpdateUserDataErrorPage(person: Person()),
+                'UpdateUserDataError': (context) => UpdateUserDataErrorPage(
+                      person: Person(
+                        ref: null,
+                        areaId: null,
+                        streetId: null,
+                        familyId: null,
+                      ),
+                    ),
               },
             ),
           );
@@ -586,6 +598,10 @@ void main() async {
               person: Person(
                 lastConfession: Timestamp.fromDate(lastConfession),
                 lastTanawol: Timestamp.fromDate(lastTanawol),
+                ref: null,
+                areaId: null,
+                streetId: null,
+                familyId: null,
               ),
             ),
           ),
@@ -1374,33 +1390,24 @@ void main() async {
 
       //Populate database with fake data:
       await Area(
-        null,
-        'Fake Area',
-        'address',
-        false,
-        false,
-        Timestamp.now(),
-        Timestamp.now(),
-        [User.instance.uid!],
-        User.instance.uid,
+        name: 'Fake Area',
+        address: 'address',
+        allowedUsers: [User.instance.uid!],
         ref: firestore.doc('Areas/fakeArea'),
       ).set();
 
-      await Street(null, firestore.doc('Areas/fakeArea'), 'Fake Street',
-              Timestamp.now(), User.instance.uid,
-              ref: firestore.doc('Streets/fakeStreet'))
-          .set();
+      await Street(
+        ref: firestore.doc('Streets/fakeStreet'),
+        areaId: firestore.doc('Areas/fakeArea'),
+        name: 'Fake Street',
+      ).set();
 
       await Family(
-        null,
-        firestore.doc('Areas/fakeArea'),
-        firestore.doc('Streets/fakeStreet'),
-        'Fake Family',
-        'address',
-        Timestamp.now(),
-        Timestamp.now(),
-        User.instance.uid,
         ref: firestore.doc('Families/fakeFamily'),
+        areaId: firestore.doc('Areas/fakeArea'),
+        streetId: firestore.doc('Streets/fakeStreet'),
+        name: 'Fake Family',
+        address: 'address',
       ).set();
 
       await Person(

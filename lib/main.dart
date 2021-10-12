@@ -315,9 +315,13 @@ class AppState extends State<App> {
                         person: ModalRoute.of(context)!.settings.arguments!
                             as Person);
                   else {
-                    final Person person = Person()
-                      ..familyId = ModalRoute.of(context)!.settings.arguments
-                          as JsonRef?;
+                    final Person person = Person(
+                      ref: null,
+                      areaId: null,
+                      streetId: null,
+                      familyId: ModalRoute.of(context)!.settings.arguments
+                          as JsonRef?,
+                    );
                     return EditPerson(person: person);
                   }
                 },
@@ -351,9 +355,15 @@ class AppState extends State<App> {
                         ModalRoute.of(context)!.settings.arguments as Family? ??
                             Family.empty()),
                 'PersonInfo': (context) => PersonInfo(
-                    person:
-                        ModalRoute.of(context)!.settings.arguments as Person? ??
-                            Person()),
+                      person: ModalRoute.of(context)!.settings.arguments
+                              as Person? ??
+                          Person(
+                            ref: null,
+                            areaId: null,
+                            streetId: null,
+                            familyId: null,
+                          ),
+                    ),
                 'UserInfo': (context) => UserInfo(
                     user: ModalRoute.of(context)!.settings.arguments! as User),
                 'InvitationInfo': (context) => InvitationInfo(
@@ -397,6 +407,9 @@ class AppState extends State<App> {
                               as Person? ??
                           Person(
                             ref: User.instance.personDocRef,
+                            areaId: null,
+                            streetId: null,
+                            familyId: null,
                             name: User.instance.name,
                           ),
                     ),
@@ -415,7 +428,13 @@ class AppState extends State<App> {
                           );
                         return EditPerson(
                             person: data.data ??
-                                Person(ref: User.instance.personDocRef),
+                                Person(
+                                  ref: User.instance.personDocRef,
+                                  areaId: null,
+                                  streetId: null,
+                                  familyId: null,
+                                  name: '',
+                                ),
                             userData: true);
                       },
                     ),

@@ -32,22 +32,20 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
   List<String> allowedUsers;
   String? lastEdit;
 
-  Area(
-    String? id,
-    String name,
+  Area({
+    required String name,
     this.address,
-    bool hasPhoto,
-    this.locationConfirmed,
+    bool hasPhoto = false,
+    this.locationConfirmed = false,
     this.lastVisit,
     this.fatherLastVisit,
-    this.allowedUsers,
-    this.lastEdit, {
-    JsonRef? ref,
+    required this.allowedUsers,
+    this.lastEdit,
+    required JsonRef ref,
     Color color = Colors.transparent,
     List<GeoPoint>? locationPoints,
   })  : locationPoints = locationPoints ?? [],
-        super(ref ?? firestore.collection('Areas').doc(id ?? 'null'), name,
-            color) {
+        super(ref, name, color) {
     this.hasPhoto = hasPhoto;
     defaultIcon = Icons.pin_drop;
   }
@@ -230,15 +228,9 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
 
   static Area empty() {
     return Area(
-      null,
-      '',
-      '',
-      false,
-      false,
-      null,
-      null,
-      [User.instance.uid!],
-      User.instance.uid,
+      name: '',
+      allowedUsers: [User.instance.uid!],
+      ref: FirebaseFirestore.instance.collection('Areas').doc('null'),
     );
   }
 
