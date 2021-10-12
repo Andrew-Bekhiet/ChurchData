@@ -15,6 +15,7 @@ import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -427,27 +428,32 @@ class User extends DataObject with PhotoObject {
             builder: (context, setState) => FutureBuilder<String>(
               future: _photoUrlCache.fetch(
                 () async {
-                  final String? cache = Hive.box<String>('PhotosURLsCache')
+                  final String? cache = Hive.box<String?>('PhotosURLsCache')
                       .get(photoRef.fullPath);
 
                   if (cache == null) {
                     final String url = await photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
-                    await Hive.box<String>('PhotosURLsCache')
+                    await Hive.box<String?>('PhotosURLsCache')
                         .put(photoRef.fullPath, url);
 
                     return url;
                   }
 
                   void _updateCache(String cache) async {
-                    final String url = await photoRef
-                        .getDownloadURL()
-                        .catchError((onError) => '');
+                    String? url;
+                    try {
+                      url = await photoRef.getDownloadURL();
+                    } catch (e) {
+                      url = null;
+                    }
                     if (cache != url) {
-                      await Hive.box<String>('PhotosURLsCache')
+                      await Hive.box<String?>('PhotosURLsCache')
                           .put(photoRef.fullPath, url);
+                      await DefaultCacheManager().removeFile(cache);
                       _photoUrlCache.invalidate();
+
                       setState(() {});
                     }
                   }

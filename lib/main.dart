@@ -137,7 +137,7 @@ Future<void> initConfigs() async {
   await Hive.openBox('Settings');
   await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String>('PhotosURLsCache');
+  await Hive.openBox<String?>('PhotosURLsCache');
 
   //Notifications:
   if (!kIsWeb) await AndroidAlarmManager.initialize();

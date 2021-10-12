@@ -74,7 +74,7 @@ void main() async {
   await Hive.openBox('Settings');
   await Hive.openBox<bool>('FeatureDiscovery');
   await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String>('PhotosURLsCache');
+  await Hive.openBox<String?>('PhotosURLsCache');
 
   HivePersistenceProvider.instance = MockHivePersistenceProvider();
 
