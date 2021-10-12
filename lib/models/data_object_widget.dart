@@ -111,19 +111,23 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
           ? subtitle ??
               FutureBuilder<String?>(
                 future: _memoizer.runOnce(current.getSecondLine),
-                builder: (cont, subT) {
-                  if (subT.hasData) {
-                    return Text(subT.data ?? '',
+                builder: (context, subtitleData) {
+                  if (subtitleData.connectionState == ConnectionState.done &&
+                      subtitleData.data == null) {
+                    return const SizedBox();
+                  } else if (subtitleData.connectionState ==
+                      ConnectionState.done) {
+                    return Text(subtitleData.data!,
                         maxLines: 1, overflow: TextOverflow.ellipsis);
                   } else {
                     return LinearProgressIndicator(
-                        backgroundColor: current.color != Colors.transparent
-                            ? current.color
-                            : null,
-                        valueColor: AlwaysStoppedAnimation(
-                            current.color != Colors.transparent
-                                ? current.color
-                                : Theme.of(context).primaryColor));
+                      backgroundColor: current.color.tint(56),
+                      valueColor: current.color != Colors.transparent
+                          ? AlwaysStoppedAnimation(
+                              current.color,
+                            )
+                          : null,
+                    );
                   }
                 },
               )
