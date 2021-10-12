@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:async/async.dart';
@@ -105,7 +106,7 @@ final bool kUseFirebaseEmulators =
     dotenv.env['kUseFirebaseEmulators']?.toString() == 'true';
 
 @visibleForTesting
-Future<void> initConfigs() async {
+Future<void> initConfigs([bool retryOnHiveError = true]) async {
   //dot env
   await dotenv.load(fileName: '.env');
 
@@ -132,12 +133,38 @@ Future<void> initConfigs() async {
   if (firebaseAuth.currentUser?.uid != null) await User.instance.initialized;
 
   //Hive initialization:
-  await Hive.initFlutter();
+  try {
+    await Hive.initFlutter();
 
-  await Hive.openBox('Settings');
-  await Hive.openBox<bool>('FeatureDiscovery');
-  await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String?>('PhotosURLsCache');
+    final containsEncryptionKey =
+        await flutterSecureStorage.containsKey(key: 'key');
+    if (!containsEncryptionKey)
+      await flutterSecureStorage.write(
+          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+    final encryptionKey =
+        base64Url.decode((await flutterSecureStorage.read(key: 'key'))!);
+
+    await Hive.openBox(
+      'User',
+      encryptionCipher: HiveAesCipher(encryptionKey),
+    );
+
+    await Hive.openBox('Settings');
+    await Hive.openBox<bool>('FeatureDiscovery');
+    await Hive.openBox<Map>('NotificationsSettings');
+    await Hive.openBox<String?>('PhotosURLsCache');
+  } catch (e) {
+    await Hive.close();
+    await Hive.deleteBoxFromDisk('User');
+    await Hive.deleteBoxFromDisk('Settings');
+    await Hive.deleteBoxFromDisk('FeatureDiscovery');
+    await Hive.deleteBoxFromDisk('NotificationsSettings');
+    await Hive.deleteBoxFromDisk('PhotosURLsCache');
+
+    if (retryOnHiveError) return initConfigs(false);
+    rethrow;
+  }
 
   //Notifications:
   if (!kIsWeb) await AndroidAlarmManager.initialize();

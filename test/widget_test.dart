@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:churchdata/EncryptionKeys.dart';
 import 'package:churchdata/main.dart';
@@ -68,13 +69,10 @@ void main() async {
   TestWidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
-  //Hive initialization:
-  await Hive.initFlutter();
+  //FlutterSecureStorage Mocks
+  flutterSecureStorage = FakeFlutterSecureStorage();
 
-  await Hive.openBox('Settings');
-  await Hive.openBox<bool>('FeatureDiscovery');
-  await Hive.openBox<Map>('NotificationsSettings');
-  await Hive.openBox<String?>('PhotosURLsCache');
+  await initHive();
 
   HivePersistenceProvider.instance = MockHivePersistenceProvider();
 
@@ -136,9 +134,6 @@ void main() async {
       sound: AppleNotificationSetting.enabled,
     ),
   );
-
-  //FlutterSecureStorage Mocks
-  flutterSecureStorage = FakeFlutterSecureStorage();
 
   //local_auth Mocks
   localAuthentication = MockLocalAuthentication();
@@ -695,7 +690,8 @@ void main() async {
 
         testWidgets('When user is not approved', (tester) async {
           userClaims['approved'] = false;
-          await User.instance.forceRefresh();
+
+          await tester.runAsync(User.instance.forceRefresh);
 
           await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
 
@@ -709,7 +705,7 @@ void main() async {
           'When user is approved',
           (tester) async {
             userClaims['approved'] = true;
-            await User.instance.forceRefresh();
+            await tester.runAsync(User.instance.forceRefresh);
 
             await tester.pumpWidget(wrapWithMaterialApp(UserRegisteration()));
 
@@ -1060,7 +1056,7 @@ void main() async {
             );
 
             userClaims['approved'] = true;
-            await User.instance.forceRefresh();
+            await tester.runAsync(User.instance.forceRefresh);
 
             await tester.pumpWidget(App());
             await tester.pumpAndSettle();
@@ -1515,6 +1511,42 @@ void main() async {
   });
 }
 
+Future<void> initHive([bool retryOnHiveError = false]) async {
+  //Hive initialization:
+  try {
+    await Hive.initFlutter();
+
+    final containsEncryptionKey =
+        await flutterSecureStorage.containsKey(key: 'key');
+    if (!containsEncryptionKey)
+      await flutterSecureStorage.write(
+          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+
+    final encryptionKey =
+        base64Url.decode((await flutterSecureStorage.read(key: 'key'))!);
+
+    await Hive.openBox(
+      'User',
+      encryptionCipher: HiveAesCipher(encryptionKey),
+    );
+
+    await Hive.openBox('Settings');
+    await Hive.openBox<bool>('FeatureDiscovery');
+    await Hive.openBox<Map>('NotificationsSettings');
+    await Hive.openBox<String?>('PhotosURLsCache');
+  } catch (e) {
+    await Hive.close();
+    await Hive.deleteBoxFromDisk('User');
+    await Hive.deleteBoxFromDisk('Settings');
+    await Hive.deleteBoxFromDisk('FeatureDiscovery');
+    await Hive.deleteBoxFromDisk('NotificationsSettings');
+    await Hive.deleteBoxFromDisk('PhotosURLsCache');
+
+    if (retryOnHiveError) return initHive(false);
+    rethrow;
+  }
+}
+
 Widget wrapWithMaterialApp(Widget widget,
     {Map<String, Widget Function(BuildContext)>? routes}) {
   return MaterialApp(
@@ -1663,6 +1695,18 @@ class FakeFlutterSecureStorage extends Fake implements FlutterSecureStorage {
   static Map<String, String> data = {};
 
   @override
+  Future<String?> read({
+    required String key,
+    aOptions,
+    iOptions,
+    lOptions,
+    mOptions,
+    wOptions,
+    webOptions,
+  }) async =>
+      data[key];
+
+  @override
   Future<Map<String, String>> readAll({
     aOptions,
     iOptions,
@@ -1689,6 +1733,18 @@ class FakeFlutterSecureStorage extends Fake implements FlutterSecureStorage {
     else
       data[key] = value;
   }
+
+  @override
+  Future<bool> containsKey({
+    required String key,
+    AndroidOptions? aOptions,
+    IOSOptions? iOptions,
+    LinuxOptions? lOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+    WebOptions? webOptions,
+  }) async =>
+      data.containsKey(key);
 }
 
 class MyGoogleSignInMock extends Mock implements GoogleSignIn {

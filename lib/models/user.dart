@@ -85,6 +85,18 @@ class User extends DataObject with PhotoObject {
   }
 
   void _initListeners() {
+    if (Hive.box('User').toMap().isNotEmpty &&
+        Hive.box('User').get('name') != null &&
+        Hive.box('User').get('email') != null &&
+        Hive.box('User').get('sub') != null) {
+      _refreshFromIdToken(
+        Hive.box('User').toMap(),
+        name: Hive.box('User').get('name'),
+        email: Hive.box('User').get('email'),
+        uid: Hive.box('User').get('sub'),
+      );
+    }
+
     authListener = firebaseAuth.userChanges().listen(
       (user) async {
         if (user != null) {
@@ -95,14 +107,13 @@ class User extends DataObject with PhotoObject {
               .listen((e) async {
             if (e.snapshot.value != true) return;
 
-            Json idTokenClaims;
+            Map idTokenClaims;
             try {
               final idToken = await user.getIdTokenResult(true);
 
-              for (final item in idToken.claims!.entries) {
-                await flutterSecureStorage.write(
-                    key: item.key, value: item.value?.toString());
-              }
+              await Hive.box('User').putAll(
+                (idToken.claims ?? {}).cast<String, dynamic>(),
+              );
 
               await firebaseDatabase
                   .reference()
@@ -125,26 +136,25 @@ class User extends DataObject with PhotoObject {
                       .set('Active');
                 }
               });
-              idTokenClaims = idToken.claims!;
+              idTokenClaims = idToken.claims ?? {};
             } on Exception {
-              idTokenClaims = await flutterSecureStorage.readAll();
+              idTokenClaims = Hive.box('User').toMap();
               if (idTokenClaims.isEmpty) rethrow;
             }
 
-            _refreshFromIdToken(user, idTokenClaims);
+            _refreshFromIdToken(idTokenClaims, user: user);
           });
 
-          Json idTokenClaims;
+          Map idTokenClaims;
           try {
-            auth.IdTokenResult? idToken;
+            late auth.IdTokenResult idToken;
             if ((await Connectivity().checkConnectivity()) !=
                 ConnectivityResult.none) {
               idToken = await user.getIdTokenResult();
 
-              for (final item in idToken.claims?.entries.toList() ?? []) {
-                await flutterSecureStorage.write(
-                    key: item.key, value: item.value?.toString());
-              }
+              await Hive.box('User').putAll(
+                (idToken.claims ?? {}).cast<String, dynamic>(),
+              );
 
               await firebaseDatabase
                   .reference()
@@ -168,14 +178,13 @@ class User extends DataObject with PhotoObject {
                     .set('Active');
               }
             });
-            idTokenClaims =
-                idToken?.claims ?? await flutterSecureStorage.readAll();
+            idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
           } on Exception {
-            idTokenClaims = await flutterSecureStorage.readAll();
+            idTokenClaims = Hive.box('User').toMap();
             if (idTokenClaims.isEmpty) rethrow;
           }
 
-          _refreshFromIdToken(user, idTokenClaims);
+          _refreshFromIdToken(idTokenClaims, user: user);
         } else if (uid != null) {
           if (!_initialized.isCompleted) _initialized.complete(false);
           _initialized = Completer<bool>();
@@ -188,27 +197,29 @@ class User extends DataObject with PhotoObject {
   }
 
   Future<void> forceRefresh() async {
-    Json? idTokenClaims;
+    late Map idTokenClaims;
     try {
       final auth.IdTokenResult idToken =
           await firebaseAuth.currentUser!.getIdTokenResult(true);
 
-      for (final item in idToken.claims!.entries) {
-        await flutterSecureStorage.write(
-            key: item.key, value: item.value?.toString());
-      }
+      await Hive.box('User').putAll(
+        (idToken.claims ?? {}).cast<String, dynamic>(),
+      );
 
-      idTokenClaims = idToken.claims;
+      idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
     } on Exception {
-      idTokenClaims = await flutterSecureStorage.readAll();
+      idTokenClaims = Hive.box('User').toMap();
       if (idTokenClaims.isEmpty) rethrow;
     }
-    _refreshFromIdToken(firebaseAuth.currentUser!, idTokenClaims!);
+    _refreshFromIdToken(idTokenClaims, user: firebaseAuth.currentUser);
   }
 
-  void _refreshFromIdToken(auth.User user, Json idTokenClaims) {
-    uid = user.uid;
-    name = user.displayName ?? '';
+  void _refreshFromIdToken(Map<dynamic, dynamic> idTokenClaims,
+      {auth.User? user, String? name, String? uid, String? email}) {
+    assert(user != null || (name != null && uid != null && email != null));
+    this.uid = user?.uid ?? uid!;
+    this.name = user?.displayName ?? name ?? '';
+
     password = idTokenClaims['password'];
     manageUsers = idTokenClaims['manageUsers'].toString() == 'true';
     manageAllowedUsers =
@@ -223,7 +234,7 @@ class User extends DataObject with PhotoObject {
     approveLocations = idTokenClaims['approveLocations'].toString() == 'true';
     approved = idTokenClaims['approved'].toString() == 'true';
     personRef = idTokenClaims['personRef'];
-    email = user.email!;
+    this.email = user?.email ?? email!;
 
     notifyListeners();
   }
