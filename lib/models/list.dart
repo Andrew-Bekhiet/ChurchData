@@ -139,10 +139,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                         .selected.value.values
                         .cast<Person>()
                         .toList()
-                      ..removeWhere((p) =>
-                          p.phone == '' ||
-                          p.phone == 'null' ||
-                          p.phone == null);
+                        .where((p) => p.phone != null && p.phone!.isNotEmpty)
+                        .toList();
                     if (people.isNotEmpty)
                       launch(
                         'sms:' +
