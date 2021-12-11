@@ -52,19 +52,18 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                           return AlertDialog(
                             content: Column(
                               mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 TextField(
                                   decoration:
-                                      InputDecoration(labelText: 'الاسم'),
+                                      const InputDecoration(labelText: 'الاسم'),
                                   controller: name,
                                 ),
                               ],
                             ),
                             actions: <Widget>[
                               TextButton.icon(
-                                icon: Icon(Icons.save),
+                                icon: const Icon(Icons.save),
                                 onPressed: () async {
                                   await collection.add(
                                     {
@@ -73,7 +72,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                                   );
                                   navigator.currentState!.pop();
                                 },
-                                label: Text('حفظ'),
+                                label: const Text('حفظ'),
                               ),
                             ],
                           );
@@ -81,7 +80,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                       ),
                     );
                   },
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             )
           : null,
     );
@@ -95,7 +94,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
         actions: <Widget>[
           if (User.instance.write)
             TextButton.icon(
-              icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
+              icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
               onPressed: () async {
                 if (editMode) {
                   await item.ref.update({'Name': name.text});
@@ -108,7 +107,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
             ),
           if (editMode)
             TextButton.icon(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               style: TextButton.styleFrom(primary: Colors.red),
               onPressed: () async {
                 await showDialog(
@@ -118,9 +117,9 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                     content: Text('هل أنت متأكد من حذف ${item.name}؟'),
                     actions: <Widget>[
                       TextButton.icon(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         style: TextButton.styleFrom(primary: Colors.red),
-                        label: Text('نعم'),
+                        label: const Text('نعم'),
                         onPressed: () async {
                           await item.ref.delete();
                           navigator.currentState!.pop();
@@ -131,18 +130,17 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                         onPressed: () {
                           navigator.currentState!.pop();
                         },
-                        child: Text('تراجع'),
+                        child: const Text('تراجع'),
                       ),
                     ],
                   ),
                 );
               },
-              label: Text('حذف'),
+              label: const Text('حذف'),
             ),
         ],
         content: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               if (editMode)
@@ -151,7 +149,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                 )
               else
                 Padding(
-                  padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+                  padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                   child: DefaultTextStyle(
                     style: Theme.of(context).dialogTheme.titleTextStyle ??
                         Theme.of(context).textTheme.headline6!,

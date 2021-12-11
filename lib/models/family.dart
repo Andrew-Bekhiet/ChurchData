@@ -5,14 +5,12 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'map_view.dart';
 import 'person.dart';
@@ -103,7 +101,7 @@ class Family extends DataObject
   Reference get photoRef => throw UnimplementedError();
 
   Future<String?> getAreaName() async {
-    return (await areaId?.get(dataSource))?.data()?['Name'];
+    return (await areaId?.get())?.data()?['Name'];
   }
 
   @override
@@ -115,7 +113,7 @@ class Family extends DataObject
                   .where('AreaId', isEqualTo: areaId)
                   .where('FamilyId', isEqualTo: ref)
                   .limit(5)
-                  .get(dataSource))
+                  .get())
               .docs)
           .cast<Person>();
     }
@@ -123,7 +121,7 @@ class Family extends DataObject
                 .collection('Persons')
                 .where('AreaId', isEqualTo: areaId)
                 .where('FamilyId', isEqualTo: ref)
-                .get(dataSource))
+                .get())
             .docs)
         .cast<Person>();
   }
@@ -140,11 +138,11 @@ class Family extends DataObject
       };
 
   Future<String?> getInsideFamilyName() async {
-    return (await insideFamily?.get(dataSource))?.data()?['Name'];
+    return (await insideFamily?.get())?.data()?['Name'];
   }
 
   Future<String?> getInsideFamily2Name() async {
-    return (await insideFamily2?.get(dataSource))?.data()?['Name'];
+    return (await insideFamily2?.get())?.data()?['Name'];
   }
 
   @override
@@ -175,7 +173,7 @@ class Family extends DataObject
               future: Location.instance.getLocation(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData)
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 return MapView(
@@ -189,13 +187,13 @@ class Family extends DataObject
           }
           return MapView(
               childrenDepth: 3,
-              initialLocation: LatLng(34, 50),
+              initialLocation: const LatLng(34, 50),
               editMode: editMode,
               family: this);
         },
       );
     else if (locationPoint == null)
-      return Text(
+      return const Text(
         'لم يتم تحديد موقع للعائلة',
         style: TextStyle(
           fontSize: 22,
@@ -223,18 +221,17 @@ class Family extends DataObject
     } else if (key == 'StreetId') {
       return getStreetName();
     } else if (key == 'LastEdit') {
-      return (await firestore.doc('Users/$lastEdit').get(dataSource))
-          .data()?['Name'];
+      return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
 
   Future<String?> getStreetName() async {
-    return (await streetId?.get(dataSource))?.data()?['Name'];
+    return (await streetId?.get())?.data()?['Name'];
   }
 
   Future<void> setAreaIdFromStreet() async {
-    areaId = (await streetId?.get(dataSource))?.data()?['AreaId'];
+    areaId = (await streetId?.get())?.data()?['AreaId'];
   }
 
   static Family empty() {
@@ -282,7 +279,7 @@ class Family extends DataObject
               : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
-                      .get(dataSource))
+                      .get())
                   .docs
                   .map((e) => e.reference)
                   .toList(),
@@ -328,7 +325,7 @@ class Family extends DataObject
               : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
-                      .get(dataSource))
+                      .get())
                   .docs
                   .map((e) => e.reference)
                   .toList(),

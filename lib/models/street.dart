@@ -4,14 +4,12 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'area.dart';
 import 'family.dart';
@@ -76,7 +74,7 @@ class Street extends DataObject
   Reference get photoRef => throw UnimplementedError();
 
   Future<String?> getAreaName() async {
-    return (await areaId?.get(dataSource))?.data()?['Name'];
+    return (await areaId?.get())?.data()?['Name'];
   }
 
   @override
@@ -89,7 +87,7 @@ class Street extends DataObject
               .where('StreetId', isEqualTo: ref)
               .orderBy(orderBy)
               .limit(5)
-              .get(dataSource))
+              .get())
           .docs
           .map(Family.fromQueryDoc)
           .toList();
@@ -99,7 +97,7 @@ class Street extends DataObject
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
             .orderBy(orderBy)
-            .get(dataSource))
+            .get())
         .docs
         .map(Family.fromQueryDoc)
         .toList();
@@ -134,7 +132,7 @@ class Street extends DataObject
               future: Location.instance.getLocation(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData)
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 return MapView(
@@ -148,13 +146,13 @@ class Street extends DataObject
           }
           return MapView(
               childrenDepth: 3,
-              initialLocation: LatLng(34, 50),
+              initialLocation: const LatLng(34, 50),
               editMode: editMode,
               street: this);
         },
       );
     else if (locationPoints.isEmpty)
-      return Text(
+      return const Text(
         'لم يتم تحديد موقع للشارع',
         style: TextStyle(
           fontSize: 22,
@@ -183,7 +181,7 @@ class Street extends DataObject
               .where('AreaId', isEqualTo: areaId)
               .where('StreetId', isEqualTo: ref)
               .limit(5)
-              .get(dataSource))
+              .get())
           .docs
           .map(Person.fromQueryDoc)
           .toList();
@@ -192,7 +190,7 @@ class Street extends DataObject
             .collection('Persons')
             .where('AreaId', isEqualTo: areaId)
             .where('StreetId', isEqualTo: ref)
-            .get(dataSource))
+            .get())
         .docs
         .map(Person.fromQueryDoc)
         .toList();
@@ -206,8 +204,7 @@ class Street extends DataObject
     } else if (key == 'AreaId') {
       return getAreaName();
     } else if (key == 'LastEdit') {
-      return (await firestore.doc('Users/$lastEdit').get(dataSource))
-          .data()?['Name'];
+      return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
@@ -244,7 +241,7 @@ class Street extends DataObject
               : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
-                      .get(dataSource))
+                      .get())
                   .docs
                   .map((e) => e.reference)
                   .toList(),

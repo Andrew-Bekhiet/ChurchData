@@ -35,7 +35,7 @@ class _StreetInfoState extends State<StreetInfo> {
   bool showWarning = true;
 
   final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+      BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
   late final DataObjectListController<Family> _listOptions;
 
   @override
@@ -49,7 +49,7 @@ class _StreetInfoState extends State<StreetInfo> {
           showWarning = false;
           showDialog(
             context: context,
-            builder: (context) => DataDialog(
+            builder: (context) => const DataDialog(
               content: Text('لم يتم تأكيد موقع الشارع الموجود على الخريطة'),
               title: Text('تحذير'),
             ),
@@ -83,7 +83,7 @@ class _StreetInfoState extends State<StreetInfo> {
         stream: widget.street.ref.snapshots().map(Street.fromDoc),
         builder: (context, snapshot) {
           if (!snapshot.hasData)
-            return Scaffold(
+            return const Scaffold(
               body: Center(
                 child: Text('تم حذف الشارع'),
               ),
@@ -100,7 +100,7 @@ class _StreetInfoState extends State<StreetInfo> {
                   ? <Widget>[
                       if (permission)
                         IconButton(
-                          icon: Icon(Icons.restore),
+                          icon: const Icon(Icons.restore),
                           tooltip: 'استعادة',
                           onPressed: () {
                             recoverDoc(context, street.ref.path);
@@ -110,7 +110,7 @@ class _StreetInfoState extends State<StreetInfo> {
                   : <Widget>[
                       if (permission)
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           onPressed: () async {
                             final dynamic result = await navigator.currentState!
                                 .pushNamed('Data/EditStreet',
@@ -121,14 +121,14 @@ class _StreetInfoState extends State<StreetInfo> {
                                 .hideCurrentSnackBar();
                             if (result is JsonRef) {
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
                             } else if (result == 'deleted') {
                               navigator.currentState!.pop();
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم الحذف بنجاح'),
                                 ),
                               );
@@ -137,7 +137,7 @@ class _StreetInfoState extends State<StreetInfo> {
                           tooltip: 'تعديل',
                         ),
                       IconButton(
-                        icon: Icon(Icons.share),
+                        icon: const Icon(Icons.share),
                         onPressed: () async {
                           await Share.share(
                             await shareStreet(street),
@@ -149,7 +149,7 @@ class _StreetInfoState extends State<StreetInfo> {
                         onSelected: (_) => sendNotification(context, street),
                         itemBuilder: (context) {
                           return [
-                            PopupMenuItem(
+                            const PopupMenuItem(
                               value: '',
                               child: Text('ارسال إشعار للمستخدمين عن الشارع'),
                             ),
@@ -180,11 +180,11 @@ class _StreetInfoState extends State<StreetInfo> {
                           ),
                           if (street.locationPoints.isNotEmpty)
                             ElevatedButton.icon(
-                              icon: Icon(Icons.map),
+                              icon: const Icon(Icons.map),
                               onPressed: () => showMap(context, street),
-                              label: Text('إظهار على الخريطة'),
+                              label: const Text('إظهار على الخريطة'),
                             ),
-                          Divider(thickness: 1),
+                          const Divider(thickness: 1),
                           HistoryProperty('تاريخ أخر زيارة:', street.lastVisit,
                               street.ref.collection('VisitHistory')),
                           HistoryProperty(
@@ -195,16 +195,16 @@ class _StreetInfoState extends State<StreetInfo> {
                               'أخر تحديث للبيانات:',
                               street.lastEdit,
                               street.ref.collection('EditHistory')),
-                          Divider(thickness: 1),
+                          const Divider(thickness: 1),
                           ListTile(
-                            title: Text('داخل منطقة:'),
+                            title: const Text('داخل منطقة:'),
                             subtitle: street.areaId != null &&
                                     street.areaId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Area>(
                                     street.areaId!, Area.fromDoc)
-                                : Text('غير موجودة'),
+                                : const Text('غير موجودة'),
                           ),
-                          Divider(
+                          const Divider(
                             thickness: 1,
                           ),
                           Text('العائلات بالشارع:',
@@ -221,7 +221,7 @@ class _StreetInfoState extends State<StreetInfo> {
               },
               body: SafeArea(
                 child: street.ref.path.startsWith('Deleted')
-                    ? Text('يجب استعادة الشارع لرؤية العائلات بداخله')
+                    ? const Text('يجب استعادة الشارع لرؤية العائلات بداخله')
                     : DataObjectList<Family>(
                         options: _listOptions,
                         autoDisposeController: false,
@@ -251,24 +251,24 @@ class _StreetInfoState extends State<StreetInfo> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(right: 32),
+                        padding: const EdgeInsets.only(right: 32),
                         child: FloatingActionButton(
                           tooltip: 'تسجيل أخر زيارة اليوم',
                           heroTag: 'lastVisit',
                           onPressed: () => recordLastVisit(context, street),
-                          child: Icon(Icons.update),
+                          child: const Icon(Icons.update),
                         ),
                       ),
                       PopupMenuButton<bool>(
                         itemBuilder: (_) => [
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: true,
                             child: ListTile(
                               leading: Icon(Icons.add_business),
                               title: Text('اضافة محل'),
                             ),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: false,
                             child: ListTile(
                               leading: Icon(Icons.group_add),
@@ -291,13 +291,13 @@ class _StreetInfoState extends State<StreetInfo> {
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           if (result is JsonRef) {
                             scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('تم الحفظ بنجاح'),
                               ),
                             );
                           }
                         },
-                        child: FloatingActionButton(
+                        child: const FloatingActionButton(
                           onPressed: null,
                           child: Icon(Icons.add),
                         ),
@@ -319,11 +319,11 @@ class _StreetInfoState extends State<StreetInfo> {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('تسجيل أخر زيارة'),
+                child: const Text('تسجيل أخر زيارة'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('رجوع'),
+                child: const Text('رجوع'),
               ),
             ],
           ),
@@ -333,7 +333,7 @@ class _StreetInfoState extends State<StreetInfo> {
       'LastVisit': Timestamp.now(),
       'LastEdit': firebaseAuth.currentUser!.uid
     });
-    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
       content: Text('تم بنجاح'),
     ));
   }
@@ -359,7 +359,8 @@ class _StreetInfoState extends State<StreetInfo> {
                     onSelected: (item) async {
                       if (item == true && approve) {
                         try {
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!
+                              .showSnackBar(const SnackBar(
                             content: LinearProgressIndicator(),
                           ));
                           await street.ref.update({
@@ -368,7 +369,7 @@ class _StreetInfoState extends State<StreetInfo> {
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('تم الحفظ بنجاح'),
                             ),
                           );

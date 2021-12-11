@@ -2,7 +2,6 @@ import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
@@ -60,7 +59,7 @@ class HistoryProperty extends StatelessWidget {
                       future: history.data![i].byUser != null
                           ? firestore
                               .doc('Users/' + history.data![i].byUser!)
-                              .get(dataSource)
+                              .get()
                           : null,
                       builder: (context, user) {
                         return ListTile(
@@ -157,10 +156,7 @@ class EditHistoryProperty extends StatelessWidget {
           isThreeLine: true,
           title: Text(name),
           subtitle: FutureBuilder<JsonQuery>(
-            future: historyRef
-                .orderBy('Time', descending: true)
-                .limit(1)
-                .get(dataSource),
+            future: historyRef.orderBy('Time', descending: true).limit(1).get(),
             builder: (context, future) {
               return future.hasData
                   ? ListTile(

@@ -24,13 +24,13 @@ class CopiableProperty extends StatelessWidget {
               children: [
                 if (value != null && value!.isNotEmpty)
                   IconButton(
-                    icon: Icon(Icons.copy),
+                    icon: const Icon(Icons.copy),
                     tooltip: 'نسخ',
                     onPressed: () =>
                         Clipboard.setData(ClipboardData(text: value)),
                   )
                 else if (showError)
-                  IconButton(
+                  const IconButton(
                     icon: Icon(Icons.warning),
                     tooltip: 'بيانات غير كاملة',
                     onPressed: null,
@@ -41,13 +41,13 @@ class CopiableProperty extends StatelessWidget {
             )
           : value != null && value!.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.copy),
+                  icon: const Icon(Icons.copy),
                   tooltip: 'نسخ',
                   onPressed: () =>
                       Clipboard.setData(ClipboardData(text: value)),
                 )
               : showError
-                  ? IconButton(
+                  ? const IconButton(
                       icon: Icon(Icons.warning),
                       tooltip: 'بيانات غير كاملة',
                       onPressed: null,
@@ -79,12 +79,12 @@ class PhoneNumberProperty extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.phone),
+                  icon: const Icon(Icons.phone),
                   tooltip: 'اجراء مكالمة',
                   onPressed: () => phoneCall(value!),
                 ),
                 IconButton(
-                  icon: Icon(Icons.person_add_alt),
+                  icon: const Icon(Icons.person_add_alt),
                   tooltip: 'اضافة الى جهات الاتصال',
                   onPressed: () => contactAdd(value!),
                 ),
@@ -98,19 +98,19 @@ class PhoneNumberProperty extends StatelessWidget {
                       launch('whatsapp://send?phone=+' + getPhone(value!)),
                 ),
                 IconButton(
-                  icon: Icon(Icons.message),
+                  icon: const Icon(Icons.message),
                   tooltip: 'ارسال رسالة',
                   onPressed: () => launch('sms://' + getPhone(value!, false)),
                 ),
                 IconButton(
-                  icon: Icon(Icons.copy),
+                  icon: const Icon(Icons.copy),
                   tooltip: 'نسخ',
                   onPressed: () =>
                       Clipboard.setData(ClipboardData(text: value)),
                 ),
               ],
             )
-          : IconButton(
+          : const IconButton(
               icon: Icon(Icons.warning),
               tooltip: 'بيانات غير كاملة',
               onPressed: null,

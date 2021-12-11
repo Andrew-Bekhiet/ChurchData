@@ -2,7 +2,6 @@ import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hive/hive.dart';
@@ -81,7 +80,7 @@ abstract class PhotoObject {
   late bool hasPhoto;
 
   final AsyncCache<String> _photoUrlCache =
-      AsyncCache<String>(Duration(days: 1));
+      AsyncCache<String>(const Duration(days: 1));
 
   Reference get photoRef;
 

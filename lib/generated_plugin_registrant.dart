@@ -15,6 +15,7 @@ import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase_core_web/firebase_core_web.dart';
 import 'package:firebase_database_web/firebase_database_web.dart';
 import 'package:firebase_messaging_web/firebase_messaging_web.dart';
+import 'package:firebase_remote_config_web/firebase_remote_config_web.dart';
 import 'package:firebase_storage_web/firebase_storage_web.dart';
 import 'package:flutter_secure_storage_web/flutter_secure_storage_web.dart';
 import 'package:google_maps_flutter_web/google_maps_flutter_web.dart';
@@ -40,6 +41,7 @@ void registerPlugins(Registrar registrar) {
   FirebaseCoreWeb.registerWith(registrar);
   FirebaseDatabaseWeb.registerWith(registrar);
   FirebaseMessagingWeb.registerWith(registrar);
+  FirebaseRemoteConfigWeb.registerWith(registrar);
   FirebaseStorageWeb.registerWith(registrar);
   FlutterSecureStorageWeb.registerWith(registrar);
   GoogleMapsPlugin.registerWith(registrar);

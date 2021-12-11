@@ -53,11 +53,11 @@ class CartesianChart extends StatelessWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.grey[400],
-                    borderRadius: BorderRadius.all(Radius.circular(6.0)),
+                    borderRadius: const BorderRadius.all(Radius.circular(6.0)),
                   ),
                   height: 120,
                   width: 90,
-                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -79,7 +79,7 @@ class CartesianChart extends StatelessWidget {
             series: [
               StackedAreaSeries<MapEntry<Timestamp, List<HistoryRecord>>,
                   DateTime>(
-                markerSettings: MarkerSettings(isVisible: true),
+                markerSettings: const MarkerSettings(isVisible: true),
                 borderGradient: LinearGradient(
                   colors: [
                     Colors.cyan[300]!.withOpacity(0.5),
@@ -133,7 +133,7 @@ class PieChart extends StatelessWidget {
         series: [
           PieSeries<Tuple2<int, String?>, String>(
             enableTooltip: true,
-            dataLabelSettings: DataLabelSettings(),
+            dataLabelSettings: const DataLabelSettings(),
             dataLabelMapper: (entry, _) =>
                 (entry.item2 ?? 'غير معروف') +
                 ': ' +

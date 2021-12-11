@@ -56,7 +56,7 @@ class Invitation extends DataObject {
       'Title': title,
       'UsedBy': usedBy,
       'GeneratedBy': generatedBy,
-      'Permissions': permissions?.map((k, v) => MapEntry(k, v)) ?? {},
+      'Permissions': permissions?.map(MapEntry.new) ?? {},
       'GeneratedOn': generatedOn,
       'ExpiryDate': expiryDate,
     };
@@ -76,7 +76,7 @@ class Invitation extends DataObject {
 
   Invitation.empty()
       : expiryDate = Timestamp.fromDate(
-            DateTime.now().add(Duration(days: 1, minutes: 10))),
+            DateTime.now().add(const Duration(days: 1, minutes: 10))),
         link = '',
         generatedBy = User.instance.uid!,
         super(firestore.collection('Invitations').doc(''), '', null) {

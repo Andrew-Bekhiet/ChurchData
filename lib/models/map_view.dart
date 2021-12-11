@@ -2,7 +2,6 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:tuple/tuple.dart';
@@ -56,9 +55,9 @@ class MapView extends StatelessWidget {
                 editMode: editMode,
                 initialLocation: initialLocation);
           }
-          return Center(child: Text('خطأ غير معروف'));
+          return const Center(child: Text('خطأ غير معروف'));
         }
-        return Center(child: const CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }
@@ -80,7 +79,7 @@ class _StreetMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
+    LatLng center = const LatLng(30.0444, 31.2357); //Cairo Location
     if (street.locationPoints.isNotEmpty) {
       center = LatLng(
           (street.locationPoints.first.latitude +
@@ -94,7 +93,7 @@ class _StreetMap extends StatelessWidget {
       future: () async {
         return Tuple2<Area?, List<Family>>(
           street.areaId != null
-              ? Area.fromDoc(await street.areaId!.get(dataSource))
+              ? Area.fromDoc(await street.areaId!.get())
               : null,
           childrenDepth >= 1 && street.id != ''
               ? await street.getChildren('Location')
@@ -110,10 +109,7 @@ class _StreetMap extends StatelessWidget {
         final Area? area = data.data!.item1;
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
-            compassEnabled: true,
-            mapToolbarEnabled: true,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
             onTap: editMode
                 ? (point) {
                     setState(() {
@@ -207,15 +203,15 @@ class _FamilyMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
+    const LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
     return FutureBuilder<Tuple2<Area?, Street?>>(
       future: () async {
         return Tuple2<Area?, Street?>(
             family.areaId != null
-                ? Area.fromDoc(await family.areaId!.get(dataSource))
+                ? Area.fromDoc(await family.areaId!.get())
                 : null,
             family.streetId != null
-                ? Street.fromDoc(await family.streetId!.get(dataSource))
+                ? Street.fromDoc(await family.streetId!.get())
                 : null);
       }(),
       builder: (context, data) {
@@ -228,10 +224,7 @@ class _FamilyMap extends StatelessWidget {
         final Street? street = data.data!.item2;
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
-            compassEnabled: true,
-            mapToolbarEnabled: true,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
             onTap: editMode
                 ? (point) {
                     setState(() {
@@ -330,7 +323,7 @@ class _AreaMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
+    LatLng center = const LatLng(30.0444, 31.2357); //Cairo Location
     if (area.locationPoints.isNotEmpty) {
       double x1 = 0;
       double x2 = 0;
@@ -370,10 +363,7 @@ class _AreaMap extends StatelessWidget {
 
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
-            compassEnabled: true,
-            mapToolbarEnabled: true,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
             onTap: editMode
                 ? (point) {
                     setState(() {

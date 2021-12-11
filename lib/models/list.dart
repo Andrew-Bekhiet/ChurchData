@@ -103,7 +103,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                   }
                   return current is Person
                       ? current.getLeftWidget()
-                      : SizedBox(width: 1, height: 1);
+                      : const SizedBox(width: 1, height: 1);
                 },
               ),
             );
@@ -129,10 +129,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              content: Text('اختر أمرًا:'),
+              content: const Text('اختر أمرًا:'),
               actions: <Widget>[
                 TextButton.icon(
-                  icon: Icon(Icons.sms),
+                  icon: const Icon(Icons.sms),
                   onPressed: () {
                     navigator.currentState!.pop();
                     final List<Person> people = _listOptions
@@ -153,10 +153,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                                 .join(','),
                       );
                   },
-                  label: Text('ارسال رسالة جماعية'),
+                  label: const Text('ارسال رسالة جماعية'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.share),
+                  icon: const Icon(Icons.share),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     await Share.share(
@@ -168,10 +168,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                           .join('\n'),
                     );
                   },
-                  label: Text('مشاركة القائمة'),
+                  label: const Text('مشاركة القائمة'),
                 ),
                 TextButton.icon(
-                  icon: ImageIcon(AssetImage('assets/whatsapp.png')),
+                  icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     final con = TextEditingController();
@@ -180,8 +180,8 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       builder: (context) => AlertDialog(
                         actions: [
                           TextButton.icon(
-                            icon: Icon(Icons.send),
-                            label: Text('ارسال'),
+                            icon: const Icon(Icons.send),
+                            label: const Text('ارسال'),
                             onPressed: () {
                               navigator.currentState!.pop(con.text);
                             },
@@ -190,7 +190,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                         content: TextFormField(
                           controller: con,
                           maxLines: null,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'اكتب رسالة',
                           ),
                         ),
@@ -208,10 +208,10 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       }
                     }
                   },
-                  label: Text('ارسال رسالة واتساب للكل'),
+                  label: const Text('ارسال رسالة واتساب للكل'),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.person_add),
+                  icon: const Icon(Icons.person_add),
                   onPressed: () async {
                     navigator.currentState!.pop();
                     if ((await Permission.contacts.request()).isGranted) {
@@ -239,7 +239,7 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
                       }
                     }
                   },
-                  label: Text('اضافة إلى جهات الاتصال بالهاتف'),
+                  label: const Text('اضافة إلى جهات الاتصال بالهاتف'),
                 ),
               ],
             ),

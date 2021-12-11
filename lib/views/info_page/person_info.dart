@@ -33,7 +33,7 @@ class PersonInfo extends StatelessWidget {
           stream: person.ref.snapshots().map(Person.fromDoc),
           builder: (context, snapshot) {
             if (!snapshot.hasData)
-              return Scaffold(
+              return const Scaffold(
                 body: Center(
                   child: Text('تم حذف الشخص'),
                 ),
@@ -52,7 +52,7 @@ class PersonInfo extends StatelessWidget {
                         ? <Widget>[
                             if (permission)
                               IconButton(
-                                icon: Icon(Icons.restore),
+                                icon: const Icon(Icons.restore),
                                 tooltip: 'استعادة',
                                 onPressed: () {
                                   recoverDoc(context, person.ref.path);
@@ -66,7 +66,7 @@ class PersonInfo extends StatelessWidget {
                                   builder: (context) {
                                     return Stack(
                                       children: <Widget>[
-                                        Positioned(
+                                        const Positioned(
                                           left: 1.0,
                                           top: 2.0,
                                           child: Icon(Icons.edit,
@@ -90,7 +90,7 @@ class PersonInfo extends StatelessWidget {
                                   if (result is JsonRef) {
                                     scaffoldMessenger.currentState!
                                         .showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                         content: Text('تم الحفظ بنجاح'),
                                       ),
                                     );
@@ -98,7 +98,7 @@ class PersonInfo extends StatelessWidget {
                                     navigator.currentState!.pop();
                                     scaffoldMessenger.currentState!
                                         .showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                         content: Text('تم الحذف بنجاح'),
                                       ),
                                     );
@@ -111,7 +111,7 @@ class PersonInfo extends StatelessWidget {
                                 builder: (context) {
                                   return Stack(
                                     children: <Widget>[
-                                      Positioned(
+                                      const Positioned(
                                         left: 1.0,
                                         top: 2.0,
                                         child: Icon(Icons.share,
@@ -136,7 +136,7 @@ class PersonInfo extends StatelessWidget {
                               },
                               itemBuilder: (BuildContext context) {
                                 return [
-                                  PopupMenuItem(
+                                  const PopupMenuItem(
                                     value: '',
                                     child:
                                         Text('ارسال اشعار للمستخدمين عن الشخص'),
@@ -146,12 +146,11 @@ class PersonInfo extends StatelessWidget {
                             ),
                           ],
                     expandedHeight: 250.0,
-                    floating: false,
                     pinned: true,
                     flexibleSpace: LayoutBuilder(
                       builder: (context, constraints) => FlexibleSpaceBar(
                         title: AnimatedOpacity(
-                          duration: Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 300),
                           opacity:
                               constraints.biggest.height > kToolbarHeight * 1.7
                                   ? 0
@@ -168,7 +167,6 @@ class PersonInfo extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: SingleChildScrollView(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       ListTile(
@@ -198,7 +196,7 @@ class PersonInfo extends StatelessWidget {
                               ))
                           .toList(),
                       ListTile(
-                        title: Text('السن:'),
+                        title: const Text('السن:'),
                         subtitle: Row(
                           children: <Widget>[
                             Expanded(
@@ -217,7 +215,7 @@ class PersonInfo extends StatelessWidget {
                       ),
                       if (!person.isStudent)
                         ListTile(
-                          title: Text('الوظيفة:'),
+                          title: const Text('الوظيفة:'),
                           subtitle: FutureBuilder<String?>(
                             future: person.getJobName(),
                             builder: (context, data) {
@@ -225,24 +223,24 @@ class PersonInfo extends StatelessWidget {
                                 return Text(data.data!);
                               else if (data.connectionState ==
                                   ConnectionState.waiting)
-                                return LinearProgressIndicator();
-                              return Text('');
+                                return const LinearProgressIndicator();
+                              return const Text('');
                             },
                           ),
                         ),
                       if (!person.isStudent)
                         ListTile(
-                          title: Text('تفاصيل الوظيفة:'),
+                          title: const Text('تفاصيل الوظيفة:'),
                           subtitle: Text(person.jobDescription ?? ''),
                         ),
                       if (!person.isStudent)
                         ListTile(
-                          title: Text('المؤهل:'),
+                          title: const Text('المؤهل:'),
                           subtitle: Text(person.qualification ?? ''),
                         ),
                       if (person.isStudent)
                         ListTile(
-                          title: Text('السنة الدراسية:'),
+                          title: const Text('السنة الدراسية:'),
                           subtitle: FutureBuilder<String?>(
                             future: person.getStudyYearName(),
                             builder: (context, data) {
@@ -250,8 +248,8 @@ class PersonInfo extends StatelessWidget {
                                 return Text(data.data!);
                               else if (data.connectionState ==
                                   ConnectionState.waiting)
-                                return LinearProgressIndicator();
-                              return Text('');
+                                return const LinearProgressIndicator();
+                              return const Text('');
                             },
                           ),
                         ),
@@ -259,8 +257,7 @@ class PersonInfo extends StatelessWidget {
                         FutureBuilder<List>(
                           future: Future.wait(
                             [
-                              (person.studyYear?.get(dataSource) ??
-                                  Future(() => null)),
+                              (person.studyYear?.get() ?? Future(() => null)),
                               person.getCollegeName()
                             ],
                           ),
@@ -270,14 +267,14 @@ class PersonInfo extends StatelessWidget {
                                 (data.data?[0]?.data()?['IsCollegeYear'] ??
                                     false))
                               return ListTile(
-                                  title: Text('الكلية'),
+                                  title: const Text('الكلية'),
                                   subtitle: Text(data.data?[1] ?? ''));
                             else if (data.hasData) return Container();
-                            return LinearProgressIndicator();
+                            return const LinearProgressIndicator();
                           },
                         ),
                       ListTile(
-                        title: Text('نوع الفرد:'),
+                        title: const Text('نوع الفرد:'),
                         subtitle: FutureBuilder<String?>(
                           future: person.getStringType(),
                           builder: (context, data) {
@@ -285,13 +282,13 @@ class PersonInfo extends StatelessWidget {
                               return Text(data.data!);
                             else if (data.connectionState ==
                                 ConnectionState.waiting)
-                              return LinearProgressIndicator();
-                            return Text('');
+                              return const LinearProgressIndicator();
+                            return const Text('');
                           },
                         ),
                       ),
                       ListTile(
-                        title: Text('الكنيسة:'),
+                        title: const Text('الكنيسة:'),
                         subtitle: FutureBuilder<String?>(
                           future: person.getChurchName(),
                           builder: (context, data) {
@@ -299,17 +296,17 @@ class PersonInfo extends StatelessWidget {
                               return Text(data.data!);
                             else if (data.connectionState ==
                                 ConnectionState.waiting)
-                              return LinearProgressIndicator();
-                            return Text('');
+                              return const LinearProgressIndicator();
+                            return const Text('');
                           },
                         ),
                       ),
                       ListTile(
-                        title: Text('الاجتماع المشارك به:'),
+                        title: const Text('الاجتماع المشارك به:'),
                         subtitle: Text(person.meeting ?? ''),
                       ),
                       ListTile(
-                        title: Text('اب الاعتراف:'),
+                        title: const Text('اب الاعتراف:'),
                         subtitle: FutureBuilder<String?>(
                           future: person.getCFatherName(),
                           builder: (context, data) {
@@ -317,8 +314,8 @@ class PersonInfo extends StatelessWidget {
                               return Text(data.data!);
                             else if (data.connectionState ==
                                 ConnectionState.waiting)
-                              return LinearProgressIndicator();
-                            return Text('');
+                              return const LinearProgressIndicator();
+                            return const Text('');
                           },
                         ),
                       ),
@@ -333,10 +330,9 @@ class PersonInfo extends StatelessWidget {
                         person.ref.collection('TanawolHistory'),
                       ),
                       ListTile(
-                        title: Text('الحالة:'),
+                        title: const Text('الحالة:'),
                         subtitle: FutureBuilder<JsonDoc?>(
-                          future: person.state?.get(dataSource) ??
-                              Future(() => null),
+                          future: person.state?.get() ?? Future(() => null),
                           builder: (context, data) {
                             if (data.hasData)
                               return Row(
@@ -364,7 +360,7 @@ class PersonInfo extends StatelessWidget {
                       if ((person.notes ?? '') != '')
                         CopiableProperty('ملاحظات:', person.notes),
                       ListTile(
-                          title: Text('خادم؟:'),
+                          title: const Text('خادم؟:'),
                           subtitle: Text(person.isServant ? 'نعم' : 'لا')),
                       if (person.isServant)
                         Selector<User, bool>(
@@ -375,19 +371,19 @@ class PersonInfo extends StatelessWidget {
                             builder: (context, data) {
                               if (data.hasData && permission)
                                 return ListTile(
-                                  title: Text('منطقة الخدمة'),
+                                  title: const Text('منطقة الخدمة'),
                                   subtitle: Text(data.data!),
                                 );
                               else if (data.connectionState ==
                                   ConnectionState.waiting)
-                                return LinearProgressIndicator();
-                              return Text('');
+                                return const LinearProgressIndicator();
+                              return const Text('');
                             },
                           ),
                         ),
                       if (person.isServant)
                         ListTile(
-                          title: Text('نوع الخدمة:'),
+                          title: const Text('نوع الخدمة:'),
                           subtitle: FutureBuilder<String?>(
                             future: person.getServingTypeName(),
                             builder: (context, data) {
@@ -395,34 +391,34 @@ class PersonInfo extends StatelessWidget {
                                 return Text(data.data!);
                               else if (data.connectionState ==
                                   ConnectionState.waiting)
-                                return LinearProgressIndicator();
-                              return Text('');
+                                return const LinearProgressIndicator();
+                              return const Text('');
                             },
                           ),
                         ),
-                      Divider(
+                      const Divider(
                         thickness: 1,
                       ),
                       ListTile(
-                        title: Text('داخل منطقة:'),
+                        title: const Text('داخل منطقة:'),
                         subtitle: person.areaId != null &&
                                 person.areaId!.parent.id != 'null'
                             ? AsyncDataObjectWidget<Area>(
                                 person.areaId!, Area.fromDoc)
-                            : Text('غير موجودة'),
+                            : const Text('غير موجودة'),
                       ),
                       ListTile(
-                        title: Text('داخل شارع:'),
+                        title: const Text('داخل شارع:'),
                         subtitle: person.streetId != null &&
                                 person.streetId!.parent.id != 'null'
                             ? AsyncDataObjectWidget<Street>(
                                 person.streetId!, Street.fromDoc)
-                            : Text('غير موجود'),
+                            : const Text('غير موجود'),
                       ),
                       if (person.familyId != null &&
                           person.familyId!.parent.id != 'null')
                         ListTile(
-                          title: Text('داخل عائلة:'),
+                          title: const Text('داخل عائلة:'),
                           subtitle: AsyncDataObjectWidget<Family>(
                               person.familyId!, Family.fromDoc),
                         ),
@@ -445,16 +441,16 @@ class PersonInfo extends StatelessWidget {
     final result = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        content: Text('هل تريد اجراء مكالمة الأن'),
+        content: const Text('هل تريد اجراء مكالمة الأن'),
         actions: [
           OutlinedButton.icon(
-            icon: Icon(Icons.call),
-            label: Text('اجراء مكالمة الأن'),
+            icon: const Icon(Icons.call),
+            label: const Text('اجراء مكالمة الأن'),
             onPressed: () => navigator.currentState!.pop(true),
           ),
           TextButton.icon(
-            icon: Icon(Icons.dialpad),
-            label: Text('نسخ في لوحة الاتصال فقط'),
+            icon: const Icon(Icons.dialpad),
+            label: const Text('نسخ في لوحة الاتصال فقط'),
             onPressed: () => navigator.currentState!.pop(false),
           ),
         ],
@@ -466,15 +462,15 @@ class PersonInfo extends StatelessWidget {
       final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
+          content: const Text('هل تريد تسجيل تاريخ هذه المكالمة؟'),
           actions: [
             TextButton(
               onPressed: () => navigator.currentState!.pop(true),
-              child: Text('نعم'),
+              child: const Text('نعم'),
             ),
             TextButton(
               onPressed: () => navigator.currentState!.pop(false),
-              child: Text('لا'),
+              child: const Text('لا'),
             ),
           ],
         ),
@@ -483,7 +479,7 @@ class PersonInfo extends StatelessWidget {
         await person.ref.update(
             {'LastEdit': User.instance.uid, 'LastCall': Timestamp.now()});
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم بنجاح'),
           ),
         );
@@ -500,7 +496,7 @@ class PersonInfo extends StatelessWidget {
       if (await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('ادخل اسم جهة الاتصال:'),
+              title: const Text('ادخل اسم جهة الاتصال:'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -513,7 +509,7 @@ class PersonInfo extends StatelessWidget {
               actions: [
                 TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
-                    child: Text('حفظ جهة الاتصال'))
+                    child: const Text('حفظ جهة الاتصال'))
               ],
             ),
           ) ==

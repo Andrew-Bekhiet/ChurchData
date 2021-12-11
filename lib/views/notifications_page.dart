@@ -22,13 +22,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الإشعارات'),
+        title: const Text('الإشعارات'),
       ),
       body: FutureBuilder(
           future: Hive.openBox<Map>('Notifications'),
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done)
-              return Center(child: const CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             return ListView.builder(
               itemCount: Hive.box<Map>('Notifications').length,
               itemBuilder: (context, i) {
@@ -44,10 +44,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               TextButton(
                                 onPressed: () =>
                                     navigator.currentState!.pop(true),
-                                child: Text('نعم'),
+                                child: const Text('نعم'),
                               )
                             ],
-                            content: Text('هل تريد حذف هذا الاشعار؟'),
+                            content: const Text('هل تريد حذف هذا الاشعار؟'),
                           ),
                         ) ==
                         true) {

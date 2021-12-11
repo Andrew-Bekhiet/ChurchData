@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -56,16 +55,10 @@ final AndroidParameters androidParameters = AndroidParameters(
       Uri.parse('https://github.com/Andrew-Bekhiet/ChurchData/releases/latest'),
 );
 
-GetOptions dataSource = GetOptions(source: Source.serverAndCache);
+FlutterSecureStorage flutterSecureStorage = const FlutterSecureStorage();
 
-final DynamicLinkParametersOptions dynamicLinkParametersOptions =
-    DynamicLinkParametersOptions(
-        shortDynamicLinkPathLength: ShortDynamicLinkPathLength.unguessable);
-
-FlutterSecureStorage flutterSecureStorage = FlutterSecureStorage();
-
-final IosParameters iosParameters =
-    IosParameters(bundleId: 'com.AndroidQuartz.churchdata');
+const IOSParameters iosParameters =
+    IOSParameters(bundleId: 'com.AndroidQuartz.churchdata');
 
 final GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessenger =

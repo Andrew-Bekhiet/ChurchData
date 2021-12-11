@@ -32,7 +32,7 @@ class AreaInfo extends StatefulWidget {
 
 class _AreaInfoState extends State<AreaInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+      BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
   bool showWarning = true;
 
@@ -49,7 +49,7 @@ class _AreaInfoState extends State<AreaInfo> {
           showWarning = false;
           await showDialog(
             context: context,
-            builder: (context) => DataDialog(
+            builder: (context) => const DataDialog(
               content: Text('لم يتم تأكيد موقع المنطقة الموجود على الخريطة'),
               title: Text('تحذير'),
             ),
@@ -89,7 +89,7 @@ class _AreaInfoState extends State<AreaInfo> {
       stream: widget.area.ref.snapshots().map(Area.fromDoc),
       builder: (context, snapshot) {
         if (!snapshot.hasData)
-          return Scaffold(
+          return const Scaffold(
             body: Center(
               child: Text('تم حذف المنطقة'),
             ),
@@ -107,7 +107,7 @@ class _AreaInfoState extends State<AreaInfo> {
                     ? <Widget>[
                         if (User.instance.write)
                           IconButton(
-                            icon: Icon(Icons.restore),
+                            icon: const Icon(Icons.restore),
                             tooltip: 'استعادة',
                             onPressed: () {
                               recoverDoc(context, area.ref.path);
@@ -118,7 +118,6 @@ class _AreaInfoState extends State<AreaInfo> {
                         if (User.instance.write)
                           IconButton(
                             icon: DescribedFeatureOverlay(
-                              backgroundDismissible: false,
                               barrierDismissible: false,
                               contentLocation: ContentLocation.below,
                               featureId: 'Edit',
@@ -126,12 +125,12 @@ class _AreaInfoState extends State<AreaInfo> {
                                 Icons.edit,
                                 color: IconTheme.of(context).color,
                               ),
-                              title: Text('تعديل'),
+                              title: const Text('تعديل'),
                               description: Column(
                                 children: <Widget>[
-                                  Text('يمكنك تعديل البيانات من هنا'),
+                                  const Text('يمكنك تعديل البيانات من هنا'),
                                   OutlinedButton.icon(
-                                    icon: Icon(Icons.forward),
+                                    icon: const Icon(Icons.forward),
                                     label: Text(
                                       'التالي',
                                       style: TextStyle(
@@ -171,7 +170,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                 builder: (context) {
                                   return Stack(
                                     children: <Widget>[
-                                      Positioned(
+                                      const Positioned(
                                         left: 1.0,
                                         top: 2.0,
                                         child: Icon(Icons.edit,
@@ -194,14 +193,14 @@ class _AreaInfoState extends State<AreaInfo> {
                                   .hideCurrentSnackBar();
                               if (result is JsonRef) {
                                 scaffoldMessenger.currentState!.showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                     content: Text('تم الحفظ بنجاح'),
                                   ),
                                 );
                               } else if (result == 'deleted') {
                                 navigator.currentState!.pop();
                                 scaffoldMessenger.currentState!.showSnackBar(
-                                  SnackBar(
+                                  const SnackBar(
                                     content: Text('تم الحذف بنجاح'),
                                   ),
                                 );
@@ -211,20 +210,19 @@ class _AreaInfoState extends State<AreaInfo> {
                           ),
                         IconButton(
                           icon: DescribedFeatureOverlay(
-                            backgroundDismissible: false,
                             barrierDismissible: false,
                             contentLocation: ContentLocation.below,
                             featureId: 'Share',
-                            tapTarget: Icon(
+                            tapTarget: const Icon(
                               Icons.share,
                             ),
-                            title: Text('مشاركة البيانات'),
+                            title: const Text('مشاركة البيانات'),
                             description: Column(
                               children: <Widget>[
-                                Text(
+                                const Text(
                                     'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
                                 OutlinedButton.icon(
-                                  icon: Icon(Icons.forward),
+                                  icon: const Icon(Icons.forward),
                                   label: Text(
                                     'التالي',
                                     style: TextStyle(
@@ -264,7 +262,7 @@ class _AreaInfoState extends State<AreaInfo> {
                               builder: (context) {
                                 return Stack(
                                   children: <Widget>[
-                                    Positioned(
+                                    const Positioned(
                                       left: 1.0,
                                       top: 2.0,
                                       child: Icon(Icons.share,
@@ -285,20 +283,19 @@ class _AreaInfoState extends State<AreaInfo> {
                           tooltip: 'مشاركة برابط',
                         ),
                         DescribedFeatureOverlay(
-                          backgroundDismissible: false,
                           barrierDismissible: false,
                           contentLocation: ContentLocation.below,
                           featureId: 'MoreOptions',
-                          tapTarget: Icon(
+                          tapTarget: const Icon(
                             Icons.more_vert,
                           ),
-                          title: Text('المزيد من الخيارات'),
+                          title: const Text('المزيد من الخيارات'),
                           description: Column(
                             children: <Widget>[
-                              Text(
+                              const Text(
                                   'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة'),
                               OutlinedButton.icon(
-                                icon: Icon(Icons.forward),
+                                icon: const Icon(Icons.forward),
                                 label: Text(
                                   'التالي',
                                   style: TextStyle(
@@ -338,7 +335,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             onSelected: (_) => sendNotification(context, area),
                             itemBuilder: (context) {
                               return [
-                                PopupMenuItem(
+                                const PopupMenuItem(
                                   value: '',
                                   child:
                                       Text('ارسال إشعار للمستخدمين عن المنطقة'),
@@ -354,7 +351,7 @@ class _AreaInfoState extends State<AreaInfo> {
                 flexibleSpace: LayoutBuilder(
                   builder: (context, constraints) => FlexibleSpaceBar(
                     title: AnimatedOpacity(
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
@@ -385,11 +382,11 @@ class _AreaInfoState extends State<AreaInfo> {
                         CopiableProperty('العنوان:', area.address),
                       if (area.locationPoints.isNotEmpty)
                         ElevatedButton.icon(
-                          icon: Icon(Icons.map),
+                          icon: const Icon(Icons.map),
                           onPressed: () => showMap(context, area),
-                          label: Text('إظهار على الخريطة'),
+                          label: const Text('إظهار على الخريطة'),
                         ),
-                      Divider(thickness: 1),
+                      const Divider(thickness: 1),
                       HistoryProperty('تاريخ أخر زيارة:', area.lastVisit,
                           area.ref.collection('VisitHistory')),
                       HistoryProperty(
@@ -405,24 +402,24 @@ class _AreaInfoState extends State<AreaInfo> {
                       if (User.instance.manageUsers ||
                           User.instance.manageAllowedUsers)
                         ElevatedButton.icon(
-                          icon: Icon(Icons.analytics_outlined),
+                          icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
                             context,
                             'ActivityAnalysis',
                             arguments: [area],
                           ),
-                          label: Text('تحليل بيانات الخدمة'),
+                          label: const Text('تحليل بيانات الخدمة'),
                         ),
                       ElevatedButton.icon(
-                        icon: Icon(Icons.analytics_outlined),
+                        icon: const Icon(Icons.analytics_outlined),
                         onPressed: () => Navigator.pushNamed(
                           context,
                           'SpiritualAnalysis',
                           arguments: [area],
                         ),
-                        label: Text('تحليل الحياة الروحية للمخدومين'),
+                        label: const Text('تحليل الحياة الروحية للمخدومين'),
                       ),
-                      Divider(thickness: 1),
+                      const Divider(thickness: 1),
                       Text('الشوارع بالمنطقة:',
                           style: Theme.of(context).textTheme.bodyText1),
                       SearchFilters(
@@ -438,7 +435,7 @@ class _AreaInfoState extends State<AreaInfo> {
             ],
             body: SafeArea(
               child: area.ref.path.startsWith('Deleted')
-                  ? Text('يجب استعادة المنطقة لرؤية الشوراع بداخلها')
+                  ? const Text('يجب استعادة المنطقة لرؤية الشوراع بداخلها')
                   : DataObjectList<Street>(
                       options: _listOptions,
                       autoDisposeController: false,
@@ -467,24 +464,23 @@ class _AreaInfoState extends State<AreaInfo> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Padding(
-                      padding: EdgeInsets.only(right: 32),
+                      padding: const EdgeInsets.only(right: 32),
                       child: FloatingActionButton(
                         tooltip: 'تسجيل أخر زيارة اليوم',
                         heroTag: 'lastVisit',
                         onPressed: () => recordLastVisit(context, area),
                         child: DescribedFeatureOverlay(
-                          backgroundDismissible: false,
                           barrierDismissible: false,
                           contentLocation: ContentLocation.above,
                           featureId: 'LastVisit',
-                          tapTarget: Icon(Icons.update),
-                          title: Text('تسجيل تاريخ أخر زيارة'),
+                          tapTarget: const Icon(Icons.update),
+                          title: const Text('تسجيل تاريخ أخر زيارة'),
                           description: Column(
                             children: <Widget>[
-                              Text(
+                              const Text(
                                   'يمكنك تسجيل تاريخ أخر زيارة من هنا بشكل مباشر'),
                               OutlinedButton.icon(
-                                icon: Icon(Icons.forward),
+                                icon: const Icon(Icons.forward),
                                 label: Text(
                                   'التالي',
                                   style: TextStyle(
@@ -520,7 +516,7 @@ class _AreaInfoState extends State<AreaInfo> {
                               .primaryTextTheme
                               .bodyText1!
                               .color!,
-                          child: Icon(Icons.update),
+                          child: const Icon(Icons.update),
                         ),
                       ),
                     ),
@@ -534,7 +530,7 @@ class _AreaInfoState extends State<AreaInfo> {
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();
                         if (result is JsonRef) {
                           scaffoldMessenger.currentState!.showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('تم الحفظ بنجاح'),
                             ),
                           );
@@ -552,11 +548,11 @@ class _AreaInfoState extends State<AreaInfo> {
                         backgroundDismissible: true,
                         contentLocation: ContentLocation.above,
                         featureId: 'Add',
-                        tapTarget: Icon(Icons.add_road),
-                        title: Text('اضافة شارع'),
+                        tapTarget: const Icon(Icons.add_road),
+                        title: const Text('اضافة شارع'),
                         description: Column(
                           children: [
-                            Text(
+                            const Text(
                                 'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا'),
                             OutlinedButton(
                               onPressed: () =>
@@ -580,7 +576,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             .primaryTextTheme
                             .bodyText1!
                             .color!,
-                        child: Icon(Icons.add_road),
+                        child: const Icon(Icons.add_road),
                       ),
                     ),
                   ],
@@ -599,11 +595,11 @@ class _AreaInfoState extends State<AreaInfo> {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('تسجيل أخر زيارة'),
+                child: const Text('تسجيل أخر زيارة'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('رجوع'),
+                child: const Text('رجوع'),
               ),
             ],
           ),
@@ -613,7 +609,7 @@ class _AreaInfoState extends State<AreaInfo> {
       'LastVisit': Timestamp.now(),
       'LastEdit': firebaseAuth.currentUser!.uid
     });
-    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
       content: Text('تم بنجاح'),
     ));
   }
@@ -639,7 +635,8 @@ class _AreaInfoState extends State<AreaInfo> {
                     onSelected: (item) async {
                       if (item == true && approve) {
                         try {
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!
+                              .showSnackBar(const SnackBar(
                             content: LinearProgressIndicator(),
                           ));
                           await area.ref.update({
@@ -648,7 +645,7 @@ class _AreaInfoState extends State<AreaInfo> {
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('تم الحفظ بنجاح'),
                             ),
                           );

@@ -17,7 +17,7 @@ class DataMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('خريطة الافتقاد'),
+        title: const Text('خريطة الافتقاد'),
       ),
       body: FutureBuilder<PermissionStatus>(
         future: Location.instance.requestPermission(),
@@ -30,12 +30,12 @@ class DataMap extends StatelessWidget {
                       initialLocation: LatLng(
                           snapshot.data!.latitude!, snapshot.data!.longitude!),
                     )
-                  : Center(
+                  : const Center(
                       child: CircularProgressIndicator(),
                     ),
             );
-          else if (data.hasData) return MegaMap();
-          return Center(
+          else if (data.hasData) return const MegaMap();
+          return const Center(
             child: CircularProgressIndicator(),
           );
         },
@@ -72,10 +72,7 @@ class MegaMap extends StatelessWidget {
 
         return StatefulBuilder(
           builder: (context, setState) => GoogleMap(
-            compassEnabled: true,
-            mapToolbarEnabled: true,
             myLocationEnabled: true,
-            myLocationButtonEnabled: true,
             polygons: !kIsWeb
                 ? {
                     for (final area in areas)

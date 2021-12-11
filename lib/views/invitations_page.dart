@@ -25,7 +25,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('لينكات الدعوة')),
+      appBar: AppBar(title: const Text('لينكات الدعوة')),
       body: DataObjectList<Invitation>(
         autoDisposeController: false,
         options: options,
@@ -47,7 +47,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'اضافة دعوة',
         onPressed: () => navigator.currentState!.pushNamed('EditInvitation'),
-        child: Icon(Icons.add_link),
+        child: const Icon(Icons.add_link),
       ),
     );
   }

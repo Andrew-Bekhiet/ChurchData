@@ -1,9 +1,7 @@
 import 'dart:async';
 
 import 'package:churchdata/utils/globals.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../EncryptionKeys.dart';
@@ -60,7 +58,7 @@ class _AuthScreenState extends State<AuthScreen> {
             title: const Text('برجاء التحقق للمتابعة'),
           ),
           body: ListView(
-            key: Key('ListView'),
+            key: const Key('ListView'),
             padding: const EdgeInsets.all(8.0),
             children: <Widget>[
               Image.asset(
@@ -69,7 +67,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
               const Divider(),
               TextFormField(
-                key: Key('Password'),
+                key: const Key('Password'),
                 decoration: InputDecoration(
                   suffix: IconButton(
                     icon: Icon(obscurePassword
@@ -97,13 +95,13 @@ class _AuthScreenState extends State<AuthScreen> {
                 onFieldSubmitted: _submit,
               ),
               ElevatedButton(
-                key: Key('Submit'),
+                key: const Key('Submit'),
                 onPressed: () => _submit(_passwordText.text),
                 child: const Text('تسجيل الدخول'),
               ),
               if (canCheckBio!)
                 OutlinedButton.icon(
-                  key: Key('Biometrics'),
+                  key: const Key('Biometrics'),
                   icon: const Icon(Icons.fingerprint),
                   label: const Text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
                   onPressed: _authenticate,

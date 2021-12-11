@@ -36,7 +36,7 @@ class FamilyInfo extends StatefulWidget {
 
 class _FamilyInfoState extends State<FamilyInfo> {
   final BehaviorSubject<OrderOptions> _orderOptions =
-      BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+      BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
   late final DataObjectListController _listOptions;
 
@@ -64,7 +64,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
               content: Text('لم يتم تأكيد موقع ال' +
                   (widget.family.isStore ? 'محل' : 'عائلة') +
                   ' الموجود على الخريطة'),
-              title: Text('تحذير'),
+              title: const Text('تحذير'),
             ),
           );
         },
@@ -97,7 +97,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
         stream: widget.family.ref.snapshots().map(Family.fromDoc),
         builder: (context, snapshot) {
           if (!snapshot.hasData)
-            return Scaffold(
+            return const Scaffold(
               body: Center(
                 child: Text('تم حذف العائلة'),
               ),
@@ -114,7 +114,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                   ? <Widget>[
                       if (permission)
                         IconButton(
-                          icon: Icon(Icons.restore),
+                          icon: const Icon(Icons.restore),
                           tooltip: 'استعادة',
                           onPressed: () {
                             recoverDoc(context, family.ref.path);
@@ -124,7 +124,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                   : <Widget>[
                       if (permission)
                         IconButton(
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit),
                           onPressed: () async {
                             final dynamic result = await navigator.currentState!
                                 .pushNamed('Data/EditFamily',
@@ -135,14 +135,14 @@ class _FamilyInfoState extends State<FamilyInfo> {
                                 .hideCurrentSnackBar();
                             if (result is JsonRef) {
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم الحفظ بنجاح'),
                                 ),
                               );
                             } else if (result == 'deleted') {
                               navigator.currentState!.pop();
                               scaffoldMessenger.currentState!.showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   content: Text('تم الحذف بنجاح'),
                                 ),
                               );
@@ -151,7 +151,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           tooltip: 'تعديل',
                         ),
                       IconButton(
-                        icon: Icon(Icons.share),
+                        icon: const Icon(Icons.share),
                         onPressed: () async {
                           await Share.share(
                             await shareFamily(family),
@@ -196,10 +196,10 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           ),
                           if (family.address?.isNotEmpty ?? true)
                             ListTile(
-                              title: Text('العنوان'),
+                              title: const Text('العنوان'),
                               subtitle: Text(family.address!),
                               trailing: IconButton(
-                                icon: Icon(Icons.copy),
+                                icon: const Icon(Icons.copy),
                                 tooltip: 'نسخ',
                                 onPressed: () => Clipboard.setData(
                                     ClipboardData(text: family.address ?? '')),
@@ -207,10 +207,10 @@ class _FamilyInfoState extends State<FamilyInfo> {
                             ),
                           if (family.notes?.isNotEmpty ?? false)
                             ListTile(
-                              title: Text('ملاحظات'),
+                              title: const Text('ملاحظات'),
                               subtitle: Text(family.notes!),
                               trailing: IconButton(
-                                icon: Icon(Icons.copy),
+                                icon: const Icon(Icons.copy),
                                 tooltip: 'نسخ',
                                 onPressed: () => Clipboard.setData(
                                     ClipboardData(text: family.notes ?? '')),
@@ -218,11 +218,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
                             ),
                           if (family.locationPoint != null)
                             ElevatedButton.icon(
-                              icon: Icon(Icons.map),
+                              icon: const Icon(Icons.map),
                               onPressed: () => showMap(context, family),
-                              label: Text('إظهار على الخريطة'),
+                              label: const Text('إظهار على الخريطة'),
                             ),
-                          Divider(thickness: 1),
+                          const Divider(thickness: 1),
                           HistoryProperty('تاريخ أخر زيارة:', family.lastVisit,
                               family.ref.collection('VisitHistory')),
                           HistoryProperty(
@@ -233,22 +233,22 @@ class _FamilyInfoState extends State<FamilyInfo> {
                               'أخر تحديث للبيانات:',
                               family.lastEdit,
                               family.ref.collection('EditHistory')),
-                          Divider(thickness: 1),
+                          const Divider(thickness: 1),
                           ListTile(
-                            title: Text('داخل منطقة'),
+                            title: const Text('داخل منطقة'),
                             subtitle: family.areaId != null &&
                                     family.areaId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Area>(
                                     family.areaId!, Area.fromDoc)
-                                : Text('غير موجودة'),
+                                : const Text('غير موجودة'),
                           ),
                           ListTile(
-                            title: Text('داخل شارع'),
+                            title: const Text('داخل شارع'),
                             subtitle: family.streetId != null &&
                                     family.streetId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Street>(
                                     family.streetId!, Street.fromDoc)
-                                : Text('غير موجود'),
+                                : const Text('غير موجود'),
                           ),
                           if (family.insideFamily != null &&
                               family.insideFamily!.parent.id != 'null')
@@ -264,11 +264,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           if (family.insideFamily2 != null &&
                               family.insideFamily2!.parent.id != 'null')
                             ListTile(
-                              title: Text('داخل عائلة 2'),
+                              title: const Text('داخل عائلة 2'),
                               subtitle: AsyncDataObjectWidget<Family>(
                                   family.insideFamily2!, Family.fromDoc),
                             ),
-                          Divider(thickness: 1),
+                          const Divider(thickness: 1),
                           Text(
                               'الأشخاص بال' +
                                   (family.isStore ? 'محل' : 'عائلة') +
@@ -288,7 +288,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
               },
               body: SafeArea(
                 child: family.ref.path.startsWith('Deleted')
-                    ? Text('يجب استعادة العائلة لرؤية الأشخاص بداخلها')
+                    ? const Text('يجب استعادة العائلة لرؤية الأشخاص بداخلها')
                     : DataObjectList(
                         options: _listOptions,
                         autoDisposeController: false,
@@ -342,31 +342,31 @@ class _FamilyInfoState extends State<FamilyInfo> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(right: 32),
+                        padding: const EdgeInsets.only(right: 32),
                         child: FloatingActionButton(
                           tooltip: 'تسجيل أخر زيارة اليوم',
                           heroTag: 'lastVisit',
                           onPressed: () => recordLastVisit(context, family),
-                          child: Icon(Icons.update),
+                          child: const Icon(Icons.update),
                         ),
                       ),
                       PopupMenuButton<dynamic>(
                         itemBuilder: (_) => [
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: true,
                             child: ListTile(
                               leading: Icon(Icons.add_business),
                               title: Text('اضافة محل'),
                             ),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: false,
                             child: ListTile(
                               leading: Icon(Icons.group_add),
                               title: Text('اضافة عائلة'),
                             ),
                           ),
-                          PopupMenuItem(
+                          const PopupMenuItem(
                             value: 'null',
                             child: ListTile(
                               leading: Icon(Icons.person_add),
@@ -392,13 +392,13 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           if (result is JsonRef) {
                             scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('تم الحفظ بنجاح'),
                               ),
                             );
                           }
                         },
-                        child: FloatingActionButton(
+                        child: const FloatingActionButton(
                           onPressed: null,
                           child: Icon(Icons.add),
                         ),
@@ -422,11 +422,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('تسجيل أخر زيارة'),
+                child: const Text('تسجيل أخر زيارة'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('رجوع'),
+                child: const Text('رجوع'),
               ),
             ],
           ),
@@ -436,7 +436,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
       'LastVisit': Timestamp.now(),
       'LastEdit': firebaseAuth.currentUser!.uid
     });
-    scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
       content: Text('تم بنجاح'),
     ));
   }
@@ -462,7 +462,8 @@ class _FamilyInfoState extends State<FamilyInfo> {
                     onSelected: (item) async {
                       if (item == true && approve) {
                         try {
-                          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+                          scaffoldMessenger.currentState!
+                              .showSnackBar(const SnackBar(
                             content: LinearProgressIndicator(),
                           ));
                           await family.ref.update({
@@ -471,7 +472,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('تم الحفظ بنجاح'),
                             ),
                           );

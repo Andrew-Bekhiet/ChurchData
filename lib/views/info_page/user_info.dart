@@ -35,7 +35,7 @@ class _UserInfoState extends State<UserInfo> {
           SliverAppBar(
             actions: <Widget>[
               IconButton(
-                icon: Icon(Icons.edit),
+                icon: const Icon(Icons.edit),
                 onPressed: () async {
                   final dynamic result = await navigator.currentState!.push(
                     MaterialPageRoute(
@@ -48,7 +48,7 @@ class _UserInfoState extends State<UserInfo> {
                     user = await User.fromID(result);
                     setState(() {});
                     scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('تم الحفظ بنجاح'),
                       ),
                     );
@@ -57,19 +57,19 @@ class _UserInfoState extends State<UserInfo> {
                 tooltip: 'تعديل',
               ),
               IconButton(
-                icon: Icon(Icons.share),
+                icon: const Icon(Icons.share),
                 onPressed: () {
                   shareUser(user);
                 },
                 tooltip: 'مشاركة',
               ),
               IconButton(
-                icon: Icon(Icons.info_outline),
+                icon: const Icon(Icons.info_outline),
                 onPressed: () async {
                   final person = await user.getPerson();
                   if (person == null) {
                     scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('لم يتم إيجاد بيانات للمستخدم'),
                         duration: Duration(seconds: 3),
                       ),
@@ -82,12 +82,11 @@ class _UserInfoState extends State<UserInfo> {
               ),
             ],
             expandedHeight: 250.0,
-            floating: false,
             pinned: true,
             flexibleSpace: LayoutBuilder(
               builder: (context, constraints) => FlexibleSpaceBar(
                 title: AnimatedOpacity(
-                  duration: Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 300),
                   opacity:
                       constraints.biggest.height > kToolbarHeight * 1.7 ? 0 : 1,
                   child: Text(user.name),
@@ -107,25 +106,25 @@ class _UserInfoState extends State<UserInfo> {
               ),
             ),
             ListTile(
-              title: Text('البريد الاكتروني:'),
+              title: const Text('البريد الاكتروني:'),
               subtitle: Text(user.email),
             ),
             ListTile(
-              title: Text('أخر ظهور على البرنامج:'),
-              subtitle: StreamBuilder<Event>(
+              title: const Text('أخر ظهور على البرنامج:'),
+              subtitle: StreamBuilder<DatabaseEvent>(
                 stream: firebaseDatabase
-                    .reference()
+                    .ref()
                     .child('Users/${user.uid}/lastSeen')
                     .onValue,
                 builder: (context, activity) {
                   if (activity.data?.snapshot.value == 'Active') {
-                    return Text('نشط الآن');
+                    return const Text('نشط الآن');
                   } else if (activity.data?.snapshot.value != null) {
                     return Text(toDurationString(
                         Timestamp.fromMillisecondsSinceEpoch(
-                            activity.data!.snapshot.value)));
+                            activity.data!.snapshot.value! as int)));
                   }
-                  return Text('لا يمكن التحديد');
+                  return const Text('لا يمكن التحديد');
                 },
               ),
             ),
@@ -134,71 +133,70 @@ class _UserInfoState extends State<UserInfo> {
                   style: Theme.of(context).textTheme.bodyText1),
             ),
             if (user.manageUsers == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                  IconData(0xef3d, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إدارة المستخدمين'),
               ),
             if (user.manageAllowedUsers == true)
-              ListTile(
-                leading:
-                    Icon(const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+              const ListTile(
+                leading: Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                 title: Text('إدارة مستخدمين محددين'),
               ),
             if (user.superAccess == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                  IconData(0xef56, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('رؤية جميع البيانات'),
               ),
             if (user.manageDeleted == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(Icons.delete_outlined),
                 title: Text('استرجاع المحذوفات'),
               ),
             if (user.write == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(Icons.edit),
                 title: Text('تعديل البيانات'),
               ),
             if (user.exportAreas == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(Icons.cloud_download),
                 title: Text('تصدير منطقة لملف إكسل'),
               ),
             if (user.birthdayNotify == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                  IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار أعياد الميلاد'),
               ),
             if (user.confessionsNotify == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار الاعتراف'),
               ),
             if (user.tanawolNotify == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                  IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار التناول'),
               ),
             if (user.approveLocations == true)
-              ListTile(
+              const ListTile(
                 leading: Icon(
-                  const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
+                  IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('التأكيد على المواقع'),
               ),
             ElevatedButton.icon(
               label: Text('رؤية البيانات كما يراها ' + user.name),
-              icon: Icon(Icons.visibility),
+              icon: const Icon(Icons.visibility),
               onPressed: () => showDialog(
                 context: context,
                 builder: (context) => Dialog(

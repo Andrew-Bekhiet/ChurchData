@@ -16,7 +16,7 @@ class Trash extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('سلة المحذوفات')),
+      appBar: AppBar(title: const Text('سلة المحذوفات')),
       body: DataObjectList<TrashDay>(
         autoDisposeController: true,
         options: DataObjectListController<TrashDay>(
@@ -115,8 +115,8 @@ class _TrashDayScreenState extends State<TrashDayScreen>
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(
-              icon: const Icon(Icons.pin_drop),
+            const Tab(
+              icon: Icon(Icons.pin_drop),
             ),
             Tab(
               child: Image.asset('assets/streets.png',
@@ -124,10 +124,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   height: IconTheme.of(context).size,
                   color: Theme.of(context).primaryTextTheme.bodyText1?.color),
             ),
-            Tab(
+            const Tab(
               icon: Icon(Icons.group),
             ),
-            Tab(
+            const Tab(
               icon: Icon(Icons.person),
             ),
           ],

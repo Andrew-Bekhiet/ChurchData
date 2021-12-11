@@ -4,13 +4,11 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'family.dart';
 import 'super_classes.dart';
@@ -167,24 +165,24 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
   Reference get photoRef => firebaseStorage.ref().child('PersonsPhotos/$id');
 
   Future<String?> getAreaName() async {
-    return (await areaId?.get(dataSource))?.data()?['Name'];
+    return (await areaId?.get())?.data()?['Name'];
   }
 
   Future<String?> getCFatherName() async {
-    return (await cFather?.get(dataSource))?.data()?['Name'];
+    return (await cFather?.get())?.data()?['Name'];
   }
 
   Future<String?> getChurchName() async {
-    return (await church?.get(dataSource))?.data()?['Name'];
+    return (await church?.get())?.data()?['Name'];
   }
 
   Future<String?> getCollegeName() async {
     if (!isStudent) return '';
-    return (await college?.get(dataSource))?.data()?['Name'];
+    return (await college?.get())?.data()?['Name'];
   }
 
   Future<String?> getFamilyName() async {
-    return (await familyId?.get(dataSource))?.data()?['Name'];
+    return (await familyId?.get())?.data()?['Name'];
   }
 
   @override
@@ -210,7 +208,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       };
 
   Future<String?> getJobName() async {
-    return (await job?.get(dataSource))?.data()?['Name'];
+    return (await job?.get())?.data()?['Name'];
   }
 
   Widget getLeftWidget({bool ignoreSetting = false}) {
@@ -220,14 +218,14 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
           if (ignoreSetting ||
               Hive.box('Settings')
                   .get('ShowPersonState', defaultValue: false)) {
-            return (await state?.get(dataSource))?.data();
+            return (await state?.get())?.data();
           }
           return null;
         },
       ),
       builder: (context, color) {
         return color.data == null
-            ? SizedBox(width: 1, height: 1)
+            ? const SizedBox(width: 1, height: 1)
             : Container(
                 height: 50,
                 width: 50,
@@ -246,7 +244,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'AreaId': areaId,
         'Name': name,
         'Phone': phone,
-        'Phones': (phones.map((k, v) => MapEntry(k, v)))
+        'Phones': (phones.map(MapEntry.new))
           ..removeWhere((k, v) => v.toString().isEmpty),
         'HasPhoto': hasPhoto,
         'Color': color.value,
@@ -324,34 +322,33 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     } else if (key == 'CFather') {
       return getCFatherName();
     } else if (key == 'LastEdit') {
-      return (await firestore.doc('Users/$lastEdit').get(dataSource))
-          .data()?['Name'];
+      return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }
 
   Future<String?> getServingAreaName() async {
     if (!isServant) return '';
-    return (await servingAreaId?.get(dataSource))?.data()?['Name'];
+    return (await servingAreaId?.get())?.data()?['Name'];
   }
 
   Future<String?> getServingTypeName() async {
-    return (await servingType?.get(dataSource))?.data()?['Name'];
+    return (await servingType?.get())?.data()?['Name'];
   }
 
   Future<String?> getStreetName() async {
-    return (await streetId?.get(dataSource))?.data()?['Name'];
+    return (await streetId?.get())?.data()?['Name'];
   }
 
   Future<String?> getStringType() async {
     if (type == null || type!.isEmpty) return null;
-    return (await firestore.collection('Types').doc(type).get(dataSource))
+    return (await firestore.collection('Types').doc(type).get())
         .data()?['Name'];
   }
 
   Future<String?> getStudyYearName() async {
     if (!isStudent) return '';
-    return (await studyYear?.get(dataSource))?.data()?['Name'];
+    return (await studyYear?.get())?.data()?['Name'];
   }
 
   Json getUserRegisterationMap() => {
@@ -379,11 +376,11 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
       };
 
   Future<void> setAreaIdFromStreet() async {
-    areaId = (await streetId?.get(dataSource))?.data()?['AreaId'];
+    areaId = (await streetId?.get())?.data()?['AreaId'];
   }
 
   Future<void> setStreetIdFromFamily() async {
-    streetId = (await familyId?.get(dataSource))?.data()?['StreetId'];
+    streetId = (await familyId?.get())?.data()?['StreetId'];
   }
 
   static Person? fromDoc(JsonDoc data) =>
@@ -410,7 +407,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
               : (await firestore
                       .collection('Areas')
                       .where('Allowed', arrayContains: u.uid)
-                      .get(dataSource))
+                      .get())
                   .docs
                   .map((e) => e.reference)
                   .toList(),

@@ -2,12 +2,9 @@ import 'package:async/async.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/typedefs.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:tinycolor2/tinycolor2.dart';
-
-import 'person.dart';
 
 class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
   final JsonRef doc;
@@ -38,18 +35,19 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<T?>(
-      future: doc.get(dataSource).then(transform),
+      future: doc.get().then(transform),
       builder: (context, snapshot) {
         if (snapshot.hasError &&
             !snapshot.error.toString().toLowerCase().contains('denied'))
           return ErrorWidget(snapshot.error!);
-        if (snapshot.hasError) return Text('لا يمكن اظهار العنصر المطلوب');
+        if (snapshot.hasError)
+          return const Text('لا يمكن اظهار العنصر المطلوب');
 
         if (snapshot.connectionState != ConnectionState.done)
           return const LinearProgressIndicator();
 
         if (!snapshot.hasData) {
-          return Text('لا يوجد بيانات');
+          return const Text('لا يوجد بيانات');
         }
         return DataObjectWidget<T>(
           snapshot.data!,

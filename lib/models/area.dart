@@ -5,14 +5,12 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/globals.dart';
 import '../utils/helpers.dart';
 import 'family.dart';
 import 'map_view.dart';
@@ -80,7 +78,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                   .where('AreaId', isEqualTo: ref)
                   .orderBy(orderBy)
                   .limit(5)
-                  .get(dataSource))
+                  .get())
               .docs)
           .cast<Street>();
     }
@@ -88,7 +86,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                 .collection('Streets')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
-                .get(dataSource))
+                .get())
             .docs)
         .cast<Street>();
   }
@@ -101,7 +99,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                   .where('AreaId', isEqualTo: ref)
                   .limit(5)
                   .orderBy(orderBy)
-                  .get(dataSource))
+                  .get())
               .docs)
           .cast<Family>();
     }
@@ -109,7 +107,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                 .collection('Families')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
-                .get(dataSource))
+                .get())
             .docs)
         .cast<Family>();
   }
@@ -190,7 +188,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                   .where('AreaId', isEqualTo: ref)
                   .limit(5)
                   .orderBy(orderBy)
-                  .get(dataSource))
+                  .get())
               .docs)
           .cast<Person>();
     }
@@ -198,7 +196,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
                 .collection('Persons')
                 .where('AreaId', isEqualTo: ref)
                 .orderBy(orderBy)
-                .get(dataSource))
+                .get())
             .docs)
         .cast<Person>();
   }
@@ -213,15 +211,14 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
         allowedUsers
             .take(5)
             .map(
-              (item) => firestore.doc('Users/$item').get(dataSource),
+              (item) => firestore.doc('Users/$item').get(),
             )
             .toList(),
       ))
           .map((e) => e.data()?['Name'])
           .join(',');
     } else if (key == 'LastEdit') {
-      return (await firestore.doc('Users/$lastEdit').get(dataSource))
-          .data()?['Name'];
+      return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
     return getHumanReadableMap()[key];
   }

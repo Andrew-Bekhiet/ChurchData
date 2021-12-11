@@ -25,13 +25,11 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart'
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -45,7 +43,6 @@ import 'package:timeago/timeago.dart';
 import '../main.dart';
 import '../models/list_controllers.dart';
 import '../models/notification.dart' as no;
-import '../models/order_options.dart';
 import '../models/super_classes.dart';
 import '../models/theme_notifier.dart';
 import '../models/user.dart';
@@ -65,14 +62,15 @@ void changeTheme({Brightness? brightness, required BuildContext context}) {
   final riseDay = getRiseDay();
   if (greatFeastTheme &&
       DateTime.now()
-          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
     color = black;
     accent = blackAccent;
     darkTheme = true;
   } else if (greatFeastTheme &&
-      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      DateTime.now()
+          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
     darkTheme = false;
   }
 
@@ -174,7 +172,7 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
     } else if (deepLink.pathSegments[0] == 'viewUser') {
       return await User.fromID(deepLink.queryParameters['UID']!);
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
-      return QueryIcon();
+      return const QueryIcon();
     }
   } catch (err, stkTrace) {
     await FirebaseCrashlytics.instance
@@ -213,7 +211,7 @@ List<RadioListTile> getOrderingOptions(
         RadioListTile(
           value: 'true',
           groupValue: orderOptions.value.asc.toString(),
-          title: Text('تصاعدي'),
+          title: const Text('تصاعدي'),
           onChanged: (value) {
             orderOptions.add(OrderOptions(
                 orderBy: orderOptions.value.orderBy, asc: value == 'true'));
@@ -223,7 +221,7 @@ List<RadioListTile> getOrderingOptions(
         RadioListTile(
           value: 'false',
           groupValue: orderOptions.value.asc.toString(),
-          title: Text('تنازلي'),
+          title: const Text('تنازلي'),
           onChanged: (value) {
             orderOptions.add(OrderOptions(
                 orderBy: orderOptions.value.orderBy, asc: value == 'true'));
@@ -265,7 +263,7 @@ void import(BuildContext context) async {
         decoder.tables.containsKey('Families') &&
         decoder.tables.containsKey('Persons')) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار رفع الملف...'),
           duration: Duration(minutes: 9),
         ),
@@ -276,7 +274,7 @@ void import(BuildContext context) async {
           SettableMetadata(customMetadata: {'createdBy': User.instance.uid!}));
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار استيراد الملف...'),
           duration: Duration(minutes: 9),
         ),
@@ -286,9 +284,8 @@ void import(BuildContext context) async {
           .call({'fileId': filename + '.xlsx'});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('تم الاستيراد بنجاح'),
-          duration: Duration(seconds: 4),
         ),
       );
     } else {
@@ -311,7 +308,7 @@ Future importArea(
 
     scaffoldMessenger.currentState!.hideCurrentSnackBar();
     scaffoldMessenger.currentState!.showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('جار رفع البيانات ...'),
         duration: Duration(minutes: 5),
       ),
@@ -338,7 +335,7 @@ Future importArea(
               content: Text(
                 onError.toString(),
               ),
-              duration: Duration(seconds: 10),
+              duration: const Duration(seconds: 10),
             ),
           );
         });
@@ -394,7 +391,7 @@ Future importArea(
               content: Text(
                 onError.toString(),
               ),
-              duration: Duration(seconds: 10),
+              duration: const Duration(seconds: 10),
             ),
           );
         });
@@ -454,7 +451,7 @@ Future importArea(
               content: Text(
                 onError.toString(),
               ),
-              duration: Duration(seconds: 10),
+              duration: const Duration(seconds: 10),
             ),
           );
         }).then((k) {
@@ -468,7 +465,6 @@ Future importArea(
                     'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas']!.rows.length - 1}'
                     ' شارع و ${decoder.tables['Families']!.rows.length - 1}'
                     ' عائلة و ${decoder.tables['Contacts']!.rows.length - 1} شخص بنجاح'),
-                duration: Duration(seconds: 4),
               ),
             );
           }
@@ -544,7 +540,7 @@ Future importArea(
             content: Text(
               onError.toString(),
             ),
-            duration: Duration(seconds: 10),
+            duration: const Duration(seconds: 10),
           ),
         );
       }).then((k) {
@@ -555,7 +551,6 @@ Future importArea(
                 'تم استيراد بيانات 1 منطقة و ${decoder.tables['Areas']!.rows.length - 1}'
                 ' شارع و ${decoder.tables['Families']!.rows.length - 1}'
                 ' عائلة و ${decoder.tables['Contacts']!.rows.length - 1} شخص بنجاح'),
-            duration: Duration(seconds: 4),
           ),
         );
       });
@@ -570,7 +565,7 @@ Future importArea(
         content: Text(
           err.toString(),
         ),
-        duration: Duration(seconds: 10),
+        duration: const Duration(seconds: 10),
       ),
     );
   }
@@ -806,7 +801,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
           actions: [
             TextButton(
               onPressed: () => navigator.currentState!.pop(true),
-              child: Text('استرجاع'),
+              child: const Text('استرجاع'),
             ),
           ],
           content: StatefulBuilder(builder: (context, setState) {
@@ -819,7 +814,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                       value: nested,
                       onChanged: (v) => setState(() => nested = v!),
                     ),
-                    Text(
+                    const Text(
                       'استرجع ايضا العناصر بداخل هذا العنصر',
                       textScaleFactor: 0.9,
                     ),
@@ -831,7 +826,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
                       value: keepBackup,
                       onChanged: (v) => setState(() => keepBackup = v!),
                     ),
-                    Text('ابقاء البيانات المحذوفة'),
+                    const Text('ابقاء البيانات المحذوفة'),
                   ],
                 ),
               ],
@@ -847,7 +842,7 @@ Future<void> recoverDoc(BuildContext context, String path) async {
         'nested': nested,
       });
       scaffoldMessenger.currentState!
-          .showSnackBar(SnackBar(content: Text('تم الاسترجاع بنجاح')));
+          .showSnackBar(const SnackBar(content: Text('تم الاسترجاع بنجاح')));
     } catch (err, stcTrace) {
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'helpers.recoverDoc');
@@ -870,10 +865,10 @@ Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
         MaterialPageRoute(
           builder: (context) => Scaffold(
             appBar: AppBar(
-              title: Text('اختر المناطق'),
+              title: const Text('اختر المناطق'),
               actions: [
                 IconButton(
-                    icon: Icon(Icons.done),
+                    icon: const Icon(Icons.done),
                     onPressed: () => navigator.currentState!.pop(true),
                     tooltip: 'تم')
               ],
@@ -967,23 +962,23 @@ void sendNotification(BuildContext context, dynamic attachement) async {
               return DataDialog(
                 actions: <Widget>[
                   TextButton.icon(
-                    icon: Icon(Icons.send),
+                    icon: const Icon(Icons.send),
                     onPressed: () => navigator.currentState!.pop(true),
-                    label: Text('ارسال'),
+                    label: const Text('ارسال'),
                   ),
                   TextButton.icon(
-                    icon: Icon(Icons.cancel),
+                    icon: const Icon(Icons.cancel),
                     onPressed: () => navigator.currentState!.pop(false),
-                    label: Text('الغاء الأمر'),
+                    label: const Text('الغاء الأمر'),
                   ),
                 ],
-                title: Text('انشاء رسالة'),
+                title: const Text('انشاء رسالة'),
                 content: Column(
                   children: <Widget>[
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: TextFormField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'عنوان الرسالة',
                         ),
                         controller: title,
@@ -998,9 +993,9 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                     ),
                     Expanded(
                       child: Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: TextFormField(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'محتوى الرسالة',
                           ),
                           textInputAction: TextInputAction.newline,
@@ -1048,13 +1043,15 @@ void sendNotification(BuildContext context, dynamic attachement) async {
 Future<String> shareArea(Area area) async => shareAreaRaw(area.id);
 
 Future<String> shareAreaRaw(String id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://churchdata.com/viewArea?AreaId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://churchdata.com/viewArea?AreaId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1070,13 +1067,15 @@ Future<String> shareDataObject(DataObject obj) async {
 Future<String> shareFamily(Family family) async => shareFamilyRaw(family.id);
 
 Future<String> shareFamilyRaw(String id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://churchdata.com/viewFamily?FamilyId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://churchdata.com/viewFamily?FamilyId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1086,25 +1085,29 @@ Future<String> sharePerson(Person person) async {
 }
 
 Future<String> sharePersonRaw(String id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://churchdata.com/viewPerson?PersonId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://churchdata.com/viewPerson?PersonId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
 
 Future<String> shareQuery(Map<String, String> query) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.https('churchdata.com', 'viewQuery', query),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.https('churchdata.com', 'viewQuery', query),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1112,13 +1115,15 @@ Future<String> shareQuery(Map<String, String> query) async {
 Future<String> shareStreet(Street street) async => shareStreetRaw(street.id);
 
 Future<String> shareStreetRaw(String id) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://churchdata.com/viewStreet?StreetId=$id'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://churchdata.com/viewStreet?StreetId=$id'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1126,13 +1131,15 @@ Future<String> shareStreetRaw(String id) async {
 Future<String> shareUser(User user) async => shareUserRaw(user.uid!);
 
 Future<String> shareUserRaw(String uid) async {
-  return (await DynamicLinkParameters(
-    uriPrefix: uriPrefix,
-    link: Uri.parse('https://churchdata.com/viewUser?UID=$uid'),
-    androidParameters: androidParameters,
-    dynamicLinkParametersOptions: dynamicLinkParametersOptions,
-    iosParameters: iosParameters,
-  ).buildShortLink())
+  return (await FirebaseDynamicLinks.instance.buildShortLink(
+    DynamicLinkParameters(
+      uriPrefix: uriPrefix,
+      link: Uri.parse('https://churchdata.com/viewUser?UID=$uid'),
+      androidParameters: androidParameters,
+      iosParameters: iosParameters,
+    ),
+    shortLinkType: ShortDynamicLinkType.unguessable,
+  ))
       .shortUrl
       .toString();
 }
@@ -1271,7 +1278,7 @@ Future showErrorDialog(BuildContext context, String? message,
           onPressed: () {
             navigator.currentState!.pop();
           },
-          child: Text('حسنًا'),
+          child: const Text('حسنًا'),
         ),
       ],
     ),
@@ -1286,7 +1293,7 @@ Future showErrorUpdateDataDialog(
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        content: Text(
+        content: const Text(
             'العجيب أننا اليوم نقضى كل وقتنا فى الخدمة . أما هؤلاء القديسون'
             ' فكانوا يعيشون أغلب حياتهم فى التوبة والاتحاد بالله ثم ينزلون'
             ' فى خدمة هجومية صاروخية'
@@ -1321,18 +1328,18 @@ Future showErrorUpdateDataDialog(
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => App(),
+                      builder: (context) => const App(),
                     ),
                   );
               }
             },
-            icon: Icon(Icons.update),
-            label: Text('تحديث بيانات التناول والاعتراف'),
+            icon: const Icon(Icons.update),
+            label: const Text('تحديث بيانات التناول والاعتراف'),
           ),
           TextButton.icon(
             onPressed: () => navigator.currentState!.pop(),
-            icon: Icon(Icons.close),
-            label: Text('تم'),
+            icon: const Icon(Icons.close),
+            label: const Text('تم'),
           ),
         ],
       ),
@@ -1365,7 +1372,7 @@ Future<void> showMessage(
   );
   final String scndLine = await attachement.getSecondLine() ?? '';
   final user = notification.from != ''
-      ? await firestore.doc('Users/${notification.from}').get(dataSource)
+      ? await firestore.doc('Users/${notification.from}').get()
       : null;
   await showDialog(
     context: context,
@@ -1376,7 +1383,7 @@ Future<void> showMessage(
         children: <Widget>[
           Text(
             notification.content!,
-            style: TextStyle(fontSize: 18),
+            style: const TextStyle(fontSize: 18),
           ),
           if (user != null)
             Card(
@@ -1548,26 +1555,26 @@ void userTap(User user) async {
               actions: <Widget>[
                 if (user.personRef != null)
                   TextButton.icon(
-                    icon: Icon(Icons.info),
-                    label: Text('اظهار استمارة البيانات'),
+                    icon: const Icon(Icons.info),
+                    label: const Text('اظهار استمارة البيانات'),
                     onPressed: () async => navigator.currentState!.pushNamed(
                       'PersonInfo',
                       arguments: await user.getPerson(),
                     ),
                   ),
                 TextButton.icon(
-                  icon: Icon(Icons.done),
-                  label: Text('نعم'),
+                  icon: const Icon(Icons.done),
+                  label: const Text('نعم'),
                   onPressed: () => navigator.currentState!.pop(true),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.close),
-                  label: Text('لا'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('لا'),
                   onPressed: () => navigator.currentState!.pop(false),
                 ),
                 TextButton.icon(
-                  icon: Icon(Icons.close),
-                  label: Text('حذف المستخدم'),
+                  icon: const Icon(Icons.close),
+                  label: const Text('حذف المستخدم'),
                   onPressed: () => navigator.currentState!.pop('delete'),
                 ),
               ],
@@ -1584,7 +1591,7 @@ void userTap(User user) async {
             ));
     if (rslt == true) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
         ),
@@ -1600,7 +1607,7 @@ void userTap(User user) async {
         userTap(user);
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
           ),
@@ -1612,7 +1619,7 @@ void userTap(User user) async {
       }
     } else if (rslt == 'delete') {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: LinearProgressIndicator(),
           duration: Duration(seconds: 15),
         ),
@@ -1623,7 +1630,7 @@ void userTap(User user) async {
             .call({'affectedUser': user.uid});
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم بنجاح'),
             duration: Duration(seconds: 15),
           ),
@@ -1646,7 +1653,7 @@ class MessageIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints.expand(width: 55.2, height: 55.2),
+      constraints: const BoxConstraints.expand(width: 55.2, height: 55.2),
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(

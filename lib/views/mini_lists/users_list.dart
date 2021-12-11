@@ -43,7 +43,7 @@ class _UsersListState extends State<UsersList> {
         mergeSort<User>(_data, compare: (u1, u2) => u1.name.compareTo(u2.name));
 
         return ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           itemCount: _data.length + 1,
           cacheExtent: 500,
           itemBuilder: (context, i) {
@@ -91,7 +91,7 @@ class _UsersListState extends State<UsersList> {
                         },
                       );
                     }
-                    return SizedBox(width: 1, height: 1);
+                    return const SizedBox(width: 1, height: 1);
                   },
                 ),
               ),

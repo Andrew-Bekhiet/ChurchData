@@ -47,14 +47,14 @@ class _EditFamilyState extends State<EditFamily> {
       body: Form(
         key: form,
         child: Padding(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    Text('محل'),
+                    const Text('محل'),
                     Switch(
                       value: family.isStore,
                       onChanged: (v) {
@@ -65,7 +65,7 @@ class _EditFamilyState extends State<EditFamily> {
                   ],
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
                     decoration: InputDecoration(
                       labelText: 'اسم ال' + (family.isStore ? 'محل' : 'عائلة'),
@@ -83,10 +83,10 @@ class _EditFamilyState extends State<EditFamily> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
                     maxLines: null,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'العنوان',
                     ),
                     textInputAction: TextInputAction.next,
@@ -99,10 +99,10 @@ class _EditFamilyState extends State<EditFamily> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
                     maxLines: null,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'ملاحظات',
                     ),
                     textInputAction: TextInputAction.next,
@@ -115,8 +115,8 @@ class _EditFamilyState extends State<EditFamily> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  icon: Icon(
-                    const IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                  icon: const Icon(
+                    IconData(0xe568, fontFamily: 'MaterialIconsR'),
                   ),
                   label: Text('تعديل مكان ال' +
                       (family.isStore ? 'محل' : 'عائلة') +
@@ -132,13 +132,13 @@ class _EditFamilyState extends State<EditFamily> {
                           appBar: AppBar(
                             actions: <Widget>[
                               IconButton(
-                                icon: Icon(Icons.done),
+                                icon: const Icon(Icons.done),
                                 onPressed: () =>
                                     navigator.currentState!.pop(true),
                                 tooltip: 'حفظ',
                               ),
                               IconButton(
-                                icon: Icon(Icons.delete),
+                                icon: const Icon(Icons.delete),
                                 onPressed: () =>
                                     navigator.currentState!.pop(false),
                                 tooltip: 'حذف التحديد',
@@ -160,11 +160,11 @@ class _EditFamilyState extends State<EditFamily> {
                   },
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: selectStreet,
                     child: InputDecorator(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'داخل شارع',
                       ),
                       isEmpty: family.streetId == null,
@@ -176,9 +176,9 @@ class _EditFamilyState extends State<EditFamily> {
                                   return Text(data.data!);
                                 } else if (data.connectionState ==
                                     ConnectionState.waiting) {
-                                  return LinearProgressIndicator();
+                                  return const LinearProgressIndicator();
                                 } else {
-                                  return Text('لا يوجد');
+                                  return const Text('لا يوجد');
                                 }
                               },
                             )
@@ -187,11 +187,8 @@ class _EditFamilyState extends State<EditFamily> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
                         flex: 3,
@@ -211,9 +208,9 @@ class _EditFamilyState extends State<EditFamily> {
                                         return Text(data.data!);
                                       } else if (data.connectionState ==
                                           ConnectionState.waiting) {
-                                        return LinearProgressIndicator();
+                                        return const LinearProgressIndicator();
                                       } else {
-                                        return Text('لا يوجد');
+                                        return const Text('لا يوجد');
                                       }
                                     },
                                   )
@@ -224,29 +221,26 @@ class _EditFamilyState extends State<EditFamily> {
                       Flexible(
                         flex: 2,
                         child: TextButton.icon(
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                           onPressed: () => setState(() {
                             family.insideFamily = null;
                           }),
-                          label: Text('حذف العائلة'),
+                          label: const Text('حذف العائلة'),
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Flexible(
                         flex: 3,
                         child: InkWell(
                           onTap: selectFamily2,
                           child: InputDecorator(
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'داخل عائلة 2',
                             ),
                             isEmpty: family.insideFamily2 == null,
@@ -258,9 +252,9 @@ class _EditFamilyState extends State<EditFamily> {
                                         return Text(data.data!);
                                       } else if (data.connectionState ==
                                           ConnectionState.waiting) {
-                                        return LinearProgressIndicator();
+                                        return const LinearProgressIndicator();
                                       } else {
-                                        return Text('لا يوجد');
+                                        return const Text('لا يوجد');
                                       }
                                     },
                                   )
@@ -271,23 +265,23 @@ class _EditFamilyState extends State<EditFamily> {
                       Flexible(
                         flex: 2,
                         child: TextButton.icon(
-                          icon: Icon(Icons.close),
+                          icon: const Icon(Icons.close),
                           onPressed: () => setState(() {
                             family.insideFamily2 = null;
                           }),
-                          label: Text('حذف العائلة'),
+                          label: const Text('حذف العائلة'),
                         ),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
                       isEmpty: family.lastVisit == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر زيارة',
                       ),
                       child: family.lastVisit != null
@@ -301,12 +295,12 @@ class _EditFamilyState extends State<EditFamily> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: () => _selectDate2(context),
                     child: InputDecorator(
                       isEmpty: family.fatherLastVisit == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
                       child: family.fatherLastVisit != null
@@ -322,10 +316,10 @@ class _EditFamilyState extends State<EditFamily> {
                       ? ElevatedButton.styleFrom(primary: family.color)
                       : null,
                   onPressed: selectColor,
-                  icon: Icon(Icons.color_lens),
-                  label: Text('اللون'),
+                  icon: const Icon(Icons.color_lens),
+                  label: const Text('اللون'),
                 ),
-                SizedBox(height: 100),
+                const SizedBox(height: 100),
               ].map((w) => Focus(child: w)).toList(),
             ),
           ),
@@ -333,7 +327,6 @@ class _EditFamilyState extends State<EditFamily> {
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           if (family.id != 'null')
             FloatingActionButton(
@@ -341,13 +334,13 @@ class _EditFamilyState extends State<EditFamily> {
               tooltip: 'حذف',
               heroTag: null,
               onPressed: delete,
-              child: Icon(Icons.delete),
+              child: const Icon(Icons.delete),
             ),
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: null,
             onPressed: save,
-            child: Icon(Icons.save),
+            child: const Icon(Icons.save),
           ),
         ],
       ),
@@ -370,13 +363,13 @@ class _EditFamilyState extends State<EditFamily> {
                 onPressed: () {
                   navigator.currentState!.pop(true);
                 },
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
                 },
-                child: Text('تراجع'),
+                child: const Text('تراجع'),
               ),
             ],
           ),
@@ -387,7 +380,7 @@ class _EditFamilyState extends State<EditFamily> {
           content: Text('جار حذف ال' +
               (family.isStore ? 'محل' : 'عائلة') +
               ' وما بداخلها من بيانات...'),
-          duration: Duration(minutes: 20),
+          duration: const Duration(minutes: 20),
         ),
       );
       if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
@@ -419,7 +412,7 @@ class _EditFamilyState extends State<EditFamily> {
     try {
       if (form.currentState!.validate() && family.streetId != null) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
@@ -434,16 +427,16 @@ class _EditFamilyState extends State<EditFamily> {
                 title: Text('هل أنت متأكد من موقع ال' +
                     (family.isStore ? 'محل' : 'عائلة') +
                     ' على الخريطة؟'),
-                content: Text(
+                content: const Text(
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
-                    child: Text('نعم'),
+                    child: const Text('نعم'),
                   ),
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(false),
-                    child: Text('لا'),
+                    child: const Text('لا'),
                   )
                 ],
               ),
@@ -483,7 +476,7 @@ class _EditFamilyState extends State<EditFamily> {
       } else {
         await showDialog(
           context: context,
-          builder: (context) => DataDialog(
+          builder: (context) => const DataDialog(
             title: Text('بيانات غير كاملة'),
             content: Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالشارع'),
           ),
@@ -500,7 +493,7 @@ class _EditFamilyState extends State<EditFamily> {
           content: Text(
             err.toString(),
           ),
-          duration: Duration(seconds: 7),
+          duration: const Duration(seconds: 7),
         ),
       );
     }
@@ -518,7 +511,7 @@ class _EditFamilyState extends State<EditFamily> {
                 family.color = Colors.transparent;
               });
             },
-            child: Text('بلا لون'),
+            child: const Text('بلا لون'),
           ),
         ],
         content: ColorsList(
@@ -537,7 +530,7 @@ class _EditFamilyState extends State<EditFamily> {
 
   Future<void> selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Family>(
       tap: (value) {
@@ -566,7 +559,7 @@ class _EditFamilyState extends State<EditFamily> {
                 setState(() {});
               },
               tooltip: 'إضافة عائلة جديدة',
-              child: Icon(Icons.group_add),
+              child: const Icon(Icons.group_add),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -577,7 +570,7 @@ class _EditFamilyState extends State<EditFamily> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -599,7 +592,7 @@ class _EditFamilyState extends State<EditFamily> {
 
   void selectFamily2() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Family>(
       tap: (value) {
@@ -628,7 +621,7 @@ class _EditFamilyState extends State<EditFamily> {
                 setState(() {});
               },
               tooltip: 'إضافة عائلة جديدة',
-              child: Icon(Icons.group_add),
+              child: const Icon(Icons.group_add),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -639,7 +632,7 @@ class _EditFamilyState extends State<EditFamily> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -661,7 +654,7 @@ class _EditFamilyState extends State<EditFamily> {
 
   void selectStreet() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Street>(
       tap: (value) {
@@ -691,7 +684,7 @@ class _EditFamilyState extends State<EditFamily> {
                 setState(() {});
               },
               tooltip: 'إضافة شارع جديد جديدة',
-              child: Icon(Icons.add_road),
+              child: const Icon(Icons.add_road),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -702,7 +695,7 @@ class _EditFamilyState extends State<EditFamily> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),

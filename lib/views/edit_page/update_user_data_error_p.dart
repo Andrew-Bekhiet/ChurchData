@@ -30,7 +30,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('تحديث بيانات المستخدم'),
+        title: const Text('تحديث بيانات المستخدم'),
       ),
       body: Form(
         key: _form,
@@ -100,7 +100,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
       floatingActionButton: FloatingActionButton(
         onPressed: save,
         tooltip: 'حفظ',
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }

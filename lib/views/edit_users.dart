@@ -27,7 +27,7 @@ class UsersPage extends StatelessWidget {
             builder: (context, showSearch) {
               return !showSearch.data!
                   ? IconButton(
-                      icon: Icon(Icons.search),
+                      icon: const Icon(Icons.search),
                       onPressed: () {
                         searchFocus.requestFocus();
                         _showSearch.add(true);
@@ -37,7 +37,7 @@ class UsersPage extends StatelessWidget {
             },
           ),
           IconButton(
-              icon: Icon(Icons.link),
+              icon: const Icon(Icons.link),
               tooltip: 'لينكات الدعوة',
               onPressed: () =>
                   navigator.currentState!.pushNamed('Invitations')),
@@ -64,7 +64,7 @@ class UsersPage extends StatelessWidget {
                         hintText: 'بحث ...'),
                     onChanged: _listOptions.searchQuery.add,
                   )
-                : Text('المستخدمون');
+                : const Text('المستخدمون');
           },
         ),
       ),

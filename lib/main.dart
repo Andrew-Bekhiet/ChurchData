@@ -22,7 +22,6 @@ import 'package:churchdata/views/trash.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
@@ -43,8 +42,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -98,7 +95,7 @@ void main() async {
 
   await initConfigs();
 
-  runApp(App());
+  runApp(const App());
 }
 
 final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
@@ -108,7 +105,7 @@ final bool kUseFirebaseEmulators =
 @visibleForTesting
 Future<void> initConfigs([bool retryOnHiveError = true]) async {
   //dot env
-  await dotenv.load(fileName: '.env');
+  await dotenv.load();
 
   //Firebase initialization
   if (kDebugMode && kUseFirebaseEmulators) {
@@ -123,10 +120,9 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
-        .useFirestoreEmulator(kEmulatorsHost, 8080, sslEnabled: false);
+        .useFirestoreEmulator(kEmulatorsHost, 8080);
     FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
-    firebaseDatabase =
-        FirebaseDatabase(databaseURL: 'http://' + kEmulatorsHost + ':9000');
+    FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
   } else
     await Firebase.initializeApp();
 
@@ -188,14 +184,15 @@ ThemeData initTheme() {
   final riseDay = getRiseDay();
   if (greatFeastTheme &&
       DateTime.now()
-          .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
     color = black;
     accent = blackAccent;
     darkTheme = true;
   } else if (greatFeastTheme &&
-      DateTime.now().isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+      DateTime.now()
+          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
     darkTheme = false;
   }
 
@@ -260,7 +257,6 @@ class App extends StatefulWidget {
 
 class AppState extends State<App> {
   final AsyncMemoizer<void> _loader = AsyncMemoizer();
-  StreamSubscription<ConnectivityResult>? connection;
   StreamSubscription? userTokenListener;
 
   bool showFormOnce = false;
@@ -268,7 +264,6 @@ class AppState extends State<App> {
 
   @override
   void dispose() {
-    connection?.cancel();
     userTokenListener?.cancel();
     super.dispose();
   }
@@ -298,7 +293,7 @@ class AppState extends State<App> {
               initialRoute: '/',
               routes: {
                 '/': buildLoadAppWidget,
-                'Login': (context) => LoginScreen(),
+                'Login': (context) => const LoginScreen(),
                 'Data/EditArea': (context) => EditArea(
                     area: ModalRoute.of(context)?.settings.arguments as Area? ??
                         Area.empty()),
@@ -356,7 +351,7 @@ class AppState extends State<App> {
                     invitation: ModalRoute.of(context)!.settings.arguments
                             as Invitation? ??
                         Invitation.empty()),
-                'MyAccount': (context) => MyAccount(),
+                'MyAccount': (context) => const MyAccount(),
                 'ActivityAnalysis': (context) => ActivityAnalysis(
                       areas: ModalRoute.of(context)!.settings.arguments
                           as List<Area>?,
@@ -365,11 +360,11 @@ class AppState extends State<App> {
                       areas: ModalRoute.of(context)!.settings.arguments
                           as List<Area>?,
                     ),
-                'Notifications': (context) => NotificationsPage(),
-                'Update': (context) => Update(),
-                'Search': (context) => SearchQuery(),
-                'Trash': (context) => Trash(),
-                'DataMap': (context) => DataMap(),
+                'Notifications': (context) => const NotificationsPage(),
+                'Update': (context) => const Update(),
+                'Search': (context) => const SearchQuery(),
+                'Trash': (context) => const Trash(),
+                'DataMap': (context) => const DataMap(),
                 'AreaInfo': (context) => AreaInfo(
                     area: ModalRoute.of(context)!.settings.arguments as Area? ??
                         Area.empty()),
@@ -396,9 +391,9 @@ class AppState extends State<App> {
                 'InvitationInfo': (context) => InvitationInfo(
                     invitation: ModalRoute.of(context)!.settings.arguments!
                         as Invitation),
-                'Settings': (context) => settingsui.Settings(),
-                'Settings/Churches': (context) => ChurchesPage(),
-                'Settings/Fathers': (context) => FathersPage(),
+                'Settings': (context) => const settingsui.Settings(),
+                'Settings/Churches': (context) => const ChurchesPage(),
+                'Settings/Fathers': (context) => const FathersPage(),
                 'Settings/Jobs': (context) => MiniModelList(
                       collection: firestore.FirebaseFirestore.instance
                           .collection('Jobs'),
@@ -440,14 +435,14 @@ class AppState extends State<App> {
                             name: User.instance.name,
                           ),
                     ),
-                'Invitations': (context) => InvitationsPage(),
+                'Invitations': (context) => const InvitationsPage(),
                 'EditUserData': (context) => FutureBuilder<Person?>(
                       future: User.getCurrentPerson(),
                       builder: (context, data) {
                         if (data.hasError)
                           return Center(child: ErrorWidget(data.error!));
                         if (data.connectionState == ConnectionState.waiting)
-                          return Scaffold(
+                          return const Scaffold(
                             resizeToAvoidBottomInset: !kIsWeb,
                             body: Center(
                               child: CircularProgressIndicator(),
@@ -460,7 +455,6 @@ class AppState extends State<App> {
                                   areaId: null,
                                   streetId: null,
                                   familyId: null,
-                                  name: '',
                                 ),
                             userData: true);
                       },
@@ -477,7 +471,7 @@ class AppState extends State<App> {
               themeMode: theme.data!.brightness == Brightness.dark
                   ? ThemeMode.dark
                   : ThemeMode.light,
-              locale: Locale('ar', 'EG'),
+              locale: const Locale('ar', 'EG'),
               theme: theme.data,
               darkTheme: theme.data,
             );
@@ -493,7 +487,7 @@ class AppState extends State<App> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         if (snapshot.connectionState != ConnectionState.done &&
             !snapshot.hasError)
-          return Loading(
+          return const Loading(
             showVersionInfo: true,
           );
 
@@ -537,7 +531,7 @@ class AppState extends State<App> {
                       await navigator.currentState!.pushNamed('EditUserData')
                           is JsonRef) {
                     scaffoldMessenger.currentState!.showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('تم الحفظ بنجاح'),
                       ),
                     );
@@ -596,29 +590,6 @@ class AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-
-    connection = Connectivity()
-        .onConnectivityChanged
-        .listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.mobile ||
-          result == ConnectivityResult.wifi) {
-        dataSource =
-            firestore.GetOptions(source: firestore.Source.serverAndCache);
-        if (!kIsWeb && (mainScfld.currentState?.mounted ?? false))
-          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-            backgroundColor: Colors.greenAccent,
-            content: Text('تم استرجاع الاتصال بالانترنت'),
-          ));
-      } else {
-        dataSource = firestore.GetOptions(source: firestore.Source.cache);
-
-        if (!kIsWeb && (mainScfld.currentState?.mounted ?? false))
-          scaffoldMessenger.currentState!.showSnackBar(SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text('لا يوجد اتصال بالانترنت!'),
-          ));
-      }
-    });
 
     setLocaleMessages(
       'ar',

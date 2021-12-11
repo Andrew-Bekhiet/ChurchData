@@ -8,7 +8,6 @@ import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/mini_models.dart';
-import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
@@ -21,7 +20,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -76,7 +74,7 @@ class _EditPersonState extends State<EditPerson> {
                   builder: (context) {
                     return Stack(
                       children: <Widget>[
-                        Positioned(
+                        const Positioned(
                           left: 1.0,
                           top: 2.0,
                           child:
@@ -94,20 +92,20 @@ class _EditPersonState extends State<EditPerson> {
                       children: <Widget>[
                         TextButton.icon(
                           onPressed: () => navigator.currentState!.pop(true),
-                          icon: Icon(Icons.camera),
-                          label: Text('التقاط صورة من الكاميرا'),
+                          icon: const Icon(Icons.camera),
+                          label: const Text('التقاط صورة من الكاميرا'),
                         ),
                         TextButton.icon(
                           onPressed: () => navigator.currentState!.pop(false),
-                          icon: Icon(Icons.photo_library),
-                          label: Text('اختيار من المعرض'),
+                          icon: const Icon(Icons.photo_library),
+                          label: const Text('اختيار من المعرض'),
                         ),
                         if (changedImage != null || person.hasPhoto)
                           TextButton.icon(
                             onPressed: () =>
                                 navigator.currentState!.pop('delete'),
-                            icon: Icon(Icons.delete),
-                            label: Text('حذف الصورة'),
+                            icon: const Icon(Icons.delete),
+                            label: const Text('حذف الصورة'),
                           ),
                       ],
                     ),
@@ -146,18 +144,17 @@ class _EditPersonState extends State<EditPerson> {
               backgroundColor:
                   person.color != Colors.transparent ? person.color : null,
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
                     child: Text(
                       person.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16.0,
                       ),
                     ),
@@ -175,15 +172,15 @@ class _EditPersonState extends State<EditPerson> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'الاسم',
                       ),
                       textInputAction: TextInputAction.next,
@@ -200,9 +197,9 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'رقم الهاتف',
                       ),
                       keyboardType: TextInputType.phone,
@@ -219,13 +216,13 @@ class _EditPersonState extends State<EditPerson> {
                   if (person.phones.isNotEmpty)
                     ...person.phones.entries.map(
                       (e) => Container(
-                        padding: EdgeInsets.symmetric(vertical: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         child: TextFormField(
                           decoration: InputDecoration(
                             labelText: e.key,
                             hintText: 'مثال: 012345',
                             suffixIcon: IconButton(
-                              icon: Icon(Icons.edit),
+                              icon: const Icon(Icons.edit),
                               tooltip: 'تعديل اسم الهاتف',
                               onPressed: () async {
                                 final TextEditingController name =
@@ -237,19 +234,19 @@ class _EditPersonState extends State<EditPerson> {
                                       TextButton(
                                         onPressed: () => navigator.currentState!
                                             .pop(name.text),
-                                        child: Text('حفظ'),
+                                        child: const Text('حفظ'),
                                       ),
                                       TextButton(
                                         onPressed: () => navigator.currentState!
                                             .pop('delete'),
-                                        child: Text('حذف'),
+                                        child: const Text('حذف'),
                                       ),
                                     ],
-                                    title: Text('اسم الهاتف'),
+                                    title: const Text('اسم الهاتف'),
                                     content: TextField(
                                       autofocus: true,
                                       controller: name,
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                         hintText: 'مثال: تليفون الأب',
                                       ),
                                     ),
@@ -277,8 +274,8 @@ class _EditPersonState extends State<EditPerson> {
                       ),
                     ),
                   ElevatedButton.icon(
-                    icon: Icon(Icons.add),
-                    label: Text('اضافة رقم هاتف أخر'),
+                    icon: const Icon(Icons.add),
+                    label: const Text('اضافة رقم هاتف أخر'),
                     onPressed: () async {
                       final TextEditingController name =
                           TextEditingController(text: '');
@@ -289,14 +286,14 @@ class _EditPersonState extends State<EditPerson> {
                                 TextButton(
                                   onPressed: () =>
                                       navigator.currentState!.pop(name.text),
-                                  child: Text('حفظ'),
+                                  child: const Text('حفظ'),
                                 ),
                               ],
-                              title: Text('اسم الهاتف'),
+                              title: const Text('اسم الهاتف'),
                               content: TextField(
                                 autofocus: true,
                                 controller: name,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   hintText: 'مثال: تليفون الأب',
                                 ),
                               ),
@@ -318,7 +315,7 @@ class _EditPersonState extends State<EditPerson> {
                       labelText: 'تاريخ الميلاد',
                       suffixIcon: person.birthDate != null
                           ? IconButton(
-                              icon: Icon(Icons.delete),
+                              icon: const Icon(Icons.delete),
                               onPressed: () =>
                                   state.didChange(person.birthDate = null),
                             )
@@ -333,7 +330,7 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   Row(
                     children: <Widget>[
-                      Text('طالب؟'),
+                      const Text('طالب؟'),
                       Switch(
                         value: person.isStudent,
                         onChanged: _isStudentChanged,
@@ -345,17 +342,17 @@ class _EditPersonState extends State<EditPerson> {
                       children: [
                         Expanded(
                           child: FutureBuilder<JsonQuery>(
-                            key: ValueKey('StudyYear'),
+                            key: const ValueKey('StudyYear'),
                             future: cache['StudyYears']!
                                     .fetch(StudyYear.getAllForUser)
                                 as Future<JsonQuery>,
                             builder: (context, data) {
                               if (data.hasData) {
                                 return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
                                   child: DropdownButtonFormField<String>(
-                                    key: ValueKey('StudyYearDropDown'),
-                                    isDense: true,
+                                    key: const ValueKey('StudyYearDropDown'),
                                     value: person.studyYear?.path,
                                     items: data.data!.docs
                                         .map(
@@ -367,7 +364,7 @@ class _EditPersonState extends State<EditPerson> {
                                         .toList()
                                       ..insert(
                                         0,
-                                        DropdownMenuItem(
+                                        const DropdownMenuItem(
                                           value: null,
                                           child: Text(''),
                                         ),
@@ -380,7 +377,7 @@ class _EditPersonState extends State<EditPerson> {
                                           : null;
                                       FocusScope.of(context).nextFocus();
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                       labelText: 'السنة الدراسية',
                                     ),
                                   ),
@@ -391,8 +388,8 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                         ),
                         TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
                           onPressed: () async {
                             await navigator.currentState!
                                 .pushNamed('Settings/StudyYears');
@@ -404,9 +401,9 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (person.isStudent)
                     FutureBuilder<JsonDoc?>(
-                      key: ValueKey('College'),
-                      future: cache['College']!.fetch(() async =>
-                              await person.studyYear?.get(dataSource))
+                      key: const ValueKey('College'),
+                      future: cache['College']!
+                              .fetch(() async => await person.studyYear?.get())
                           as Future<JsonDoc?>,
                       builder: (context, data) {
                         if (data.hasData &&
@@ -421,11 +418,11 @@ class _EditPersonState extends State<EditPerson> {
                                   builder: (context, data) {
                                     if (data.hasData) {
                                       return Container(
-                                        padding:
-                                            EdgeInsets.symmetric(vertical: 4.0),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 4.0),
                                         child: DropdownButtonFormField<String>(
-                                          key: ValueKey('StudyYearDropDown'),
-                                          isDense: true,
+                                          key: const ValueKey(
+                                              'StudyYearDropDown'),
                                           value: person.college?.path,
                                           items: data.data!.docs
                                               .map(
@@ -439,7 +436,7 @@ class _EditPersonState extends State<EditPerson> {
                                               .toList()
                                             ..insert(
                                               0,
-                                              DropdownMenuItem(
+                                              const DropdownMenuItem(
                                                 value: null,
                                                 child: Text(''),
                                               ),
@@ -450,7 +447,7 @@ class _EditPersonState extends State<EditPerson> {
                                                 : null;
                                             FocusScope.of(context).nextFocus();
                                           },
-                                          decoration: InputDecoration(
+                                          decoration: const InputDecoration(
                                             labelText: 'الكلية',
                                           ),
                                         ),
@@ -461,8 +458,8 @@ class _EditPersonState extends State<EditPerson> {
                                 ),
                               ),
                               TextButton.icon(
-                                icon: Icon(Icons.add),
-                                label: Text('اضافة'),
+                                icon: const Icon(Icons.add),
+                                label: const Text('اضافة'),
                                 onPressed: () async {
                                   await navigator.currentState!
                                       .pushNamed('Settings/Colleges');
@@ -480,16 +477,16 @@ class _EditPersonState extends State<EditPerson> {
                       children: [
                         Expanded(
                           child: FutureBuilder<JsonQuery>(
-                            key: ValueKey('Job'),
+                            key: const ValueKey('Job'),
                             future: cache['Jobs']!.fetch(Job.getAllForUser)
                                 as Future<JsonQuery>,
                             builder: (context, data) {
                               if (data.hasData) {
                                 return Container(
-                                  padding: EdgeInsets.symmetric(vertical: 10),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
                                   child: DropdownButtonFormField<String>(
-                                    key: ValueKey('JobDropDown'),
-                                    isDense: true,
+                                    key: const ValueKey('JobDropDown'),
                                     value: person.job?.path,
                                     items: data.data!.docs
                                         .map(
@@ -501,7 +498,7 @@ class _EditPersonState extends State<EditPerson> {
                                         .toList()
                                       ..insert(
                                         0,
-                                        DropdownMenuItem(
+                                        const DropdownMenuItem(
                                           value: null,
                                           child: Text(''),
                                         ),
@@ -512,7 +509,7 @@ class _EditPersonState extends State<EditPerson> {
                                           : null;
                                       FocusScope.of(context).nextFocus();
                                     },
-                                    decoration: InputDecoration(
+                                    decoration: const InputDecoration(
                                       labelText: 'الوظيفة',
                                     ),
                                   ),
@@ -523,8 +520,8 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                         ),
                         TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
                           onPressed: () async {
                             await navigator.currentState!
                                 .pushNamed('Settings/Jobs');
@@ -536,9 +533,9 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!person.isStudent)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'تفاصيل الوظيفة',
                         ),
                         textInputAction: TextInputAction.next,
@@ -553,9 +550,9 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!person.isStudent)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'المؤهل',
                         ),
                         textInputAction: TextInputAction.next,
@@ -572,13 +569,13 @@ class _EditPersonState extends State<EditPerson> {
                     children: [
                       Expanded(
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: InkWell(
                             onTap: _selectType,
                             child: InputDecorator(
                               isEmpty:
                                   person.type == null || person.type!.isEmpty,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 labelText: 'نوع الفرد',
                               ),
                               child:
@@ -594,9 +591,9 @@ class _EditPersonState extends State<EditPerson> {
                                               return Text(ty.data!);
                                             } else if (ty.connectionState ==
                                                 ConnectionState.done)
-                                              return Text('');
+                                              return const Text('');
                                             else {
-                                              return LinearProgressIndicator();
+                                              return const LinearProgressIndicator();
                                             }
                                           },
                                         )
@@ -606,8 +603,8 @@ class _EditPersonState extends State<EditPerson> {
                         ),
                       ),
                       TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('اضافة'),
                         onPressed: () async {
                           await navigator.currentState!
                               .pushNamed('Settings/PersonTypes');
@@ -626,9 +623,9 @@ class _EditPersonState extends State<EditPerson> {
                           builder: (context, data) {
                             if (data.hasData) {
                               return Container(
-                                padding: EdgeInsets.symmetric(vertical: 10),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
                                 child: DropdownButtonFormField<String>(
-                                  isDense: true,
                                   value: person.church?.path,
                                   items: data.data!.docs
                                       .map(
@@ -640,7 +637,7 @@ class _EditPersonState extends State<EditPerson> {
                                       .toList()
                                     ..insert(
                                       0,
-                                      DropdownMenuItem(
+                                      const DropdownMenuItem(
                                         value: null,
                                         child: Text(''),
                                       ),
@@ -651,7 +648,7 @@ class _EditPersonState extends State<EditPerson> {
                                         : null;
                                     FocusScope.of(context).nextFocus();
                                   },
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     labelText: 'الكنيسة',
                                   ),
                                 ),
@@ -662,8 +659,8 @@ class _EditPersonState extends State<EditPerson> {
                         ),
                       ),
                       TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('اضافة'),
                         onPressed: () async {
                           await navigator.currentState!
                               .pushNamed('Settings/Churches');
@@ -674,9 +671,9 @@ class _EditPersonState extends State<EditPerson> {
                     ],
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'الاجتماع المشارك به',
                       ),
                       textInputAction: TextInputAction.next,
@@ -698,7 +695,6 @@ class _EditPersonState extends State<EditPerson> {
                           builder: (context, data) {
                             if (data.hasData) {
                               return DropdownButtonFormField<String>(
-                                isDense: true,
                                 value: person.cFather?.path,
                                 items: data.data!.docs
                                     .map(
@@ -710,7 +706,7 @@ class _EditPersonState extends State<EditPerson> {
                                     .toList()
                                   ..insert(
                                     0,
-                                    DropdownMenuItem(
+                                    const DropdownMenuItem(
                                       value: null,
                                       child: Text(''),
                                     ),
@@ -721,7 +717,7 @@ class _EditPersonState extends State<EditPerson> {
                                       : null;
                                   FocusScope.of(context).nextFocus();
                                 },
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'أب الاعتراف',
                                 ),
                               );
@@ -731,8 +727,8 @@ class _EditPersonState extends State<EditPerson> {
                         ),
                       ),
                       TextButton.icon(
-                        icon: Icon(Icons.add),
-                        label: Text('اضافة'),
+                        icon: const Icon(Icons.add),
+                        label: const Text('اضافة'),
                         onPressed: () async {
                           await navigator.currentState!
                               .pushNamed('Settings/Fathers');
@@ -755,7 +751,7 @@ class _EditPersonState extends State<EditPerson> {
                       labelText: 'تاريخ أخر تناول',
                       suffixIcon: person.lastTanawol != null
                           ? IconButton(
-                              icon: Icon(Icons.delete),
+                              icon: const Icon(Icons.delete),
                               onPressed: () =>
                                   state.didChange(person.lastTanawol = null),
                             )
@@ -781,7 +777,7 @@ class _EditPersonState extends State<EditPerson> {
                       labelText: 'تاريخ أخر اعتراف',
                       suffixIcon: person.lastConfession != null
                           ? IconButton(
-                              icon: Icon(Icons.delete),
+                              icon: const Icon(Icons.delete),
                               onPressed: () =>
                                   state.didChange(person.lastConfession = null),
                             )
@@ -796,12 +792,12 @@ class _EditPersonState extends State<EditPerson> {
                   ),
                   if (!widget.userData)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: InkWell(
                         onTap: _selectFamily,
                         child: InputDecorator(
                           isEmpty: person.familyId == null,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'داخل عائلة',
                           ),
                           child: FutureBuilder<String?>(
@@ -812,9 +808,9 @@ class _EditPersonState extends State<EditPerson> {
                                 return Text(data.data!);
                               } else if (data.connectionState ==
                                   ConnectionState.waiting) {
-                                return LinearProgressIndicator();
+                                return const LinearProgressIndicator();
                               } else {
-                                return Text('');
+                                return const Text('');
                               }
                             },
                           ),
@@ -830,7 +826,6 @@ class _EditPersonState extends State<EditPerson> {
                       builder: (context, data) {
                         if (data.hasData) {
                           return DropdownButtonFormField<String>(
-                            isDense: true,
                             value: person.state?.path,
                             items: data.data!.docs
                                 .map(
@@ -856,7 +851,7 @@ class _EditPersonState extends State<EditPerson> {
                                 .toList()
                               ..insert(
                                 0,
-                                DropdownMenuItem(
+                                const DropdownMenuItem(
                                   value: null,
                                   child: Text(''),
                                 ),
@@ -866,7 +861,7 @@ class _EditPersonState extends State<EditPerson> {
                                   value != null ? firestore.doc(value) : null;
                               FocusScope.of(context).nextFocus();
                             },
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                               labelText: 'الحالة',
                             ),
                           );
@@ -888,7 +883,7 @@ class _EditPersonState extends State<EditPerson> {
                         labelText: 'تاريخ أخر مكالمة',
                         suffixIcon: person.lastCall != null
                             ? IconButton(
-                                icon: Icon(Icons.delete),
+                                icon: const Icon(Icons.delete),
                                 onPressed: () =>
                                     state.didChange(person.lastCall = null),
                               )
@@ -903,9 +898,9 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   if (!widget.userData)
                     Container(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: TextFormField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'ملاحظات',
                         ),
                         maxLines: null,
@@ -922,7 +917,7 @@ class _EditPersonState extends State<EditPerson> {
                   if (!widget.userData)
                     Row(
                       children: <Widget>[
-                        Text('خادم؟'),
+                        const Text('خادم؟'),
                         Switch(
                           value: person.isServant,
                           onChanged: _isServantChanged,
@@ -940,7 +935,6 @@ class _EditPersonState extends State<EditPerson> {
                             builder: (conext, data) {
                               if (data.hasData) {
                                 return DropdownButtonFormField<JsonRef?>(
-                                  isDense: true,
                                   value: person.servingType,
                                   items: data.data!.docs
                                       .map(
@@ -952,7 +946,7 @@ class _EditPersonState extends State<EditPerson> {
                                       .toList()
                                     ..insert(
                                       0,
-                                      DropdownMenuItem(
+                                      const DropdownMenuItem(
                                         value: null,
                                         child: Text(''),
                                       ),
@@ -961,7 +955,7 @@ class _EditPersonState extends State<EditPerson> {
                                     person.servingType = value;
                                     FocusScope.of(context).nextFocus();
                                   },
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     labelText: 'نوع الخدمة',
                                   ),
                                 );
@@ -971,8 +965,8 @@ class _EditPersonState extends State<EditPerson> {
                           ),
                         ),
                         TextButton.icon(
-                          icon: Icon(Icons.add),
-                          label: Text('اضافة'),
+                          icon: const Icon(Icons.add),
+                          label: const Text('اضافة'),
                           onPressed: () async {
                             await navigator.currentState!
                                 .pushNamed('Settings/ServingTypes');
@@ -988,13 +982,13 @@ class _EditPersonState extends State<EditPerson> {
                       builder: (context, permission, _) {
                         if (permission) {
                           return Container(
-                            padding: EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                             child: InkWell(
                               onTap: _selectArea,
                               child: InputDecorator(
                                 isEmpty: person.servingAreaId == null ||
                                     !person.isServant,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'منطقة الخدمة',
                                 ),
                                 child: person.servingAreaId != null &&
@@ -1008,9 +1002,9 @@ class _EditPersonState extends State<EditPerson> {
                                             return Text(dataServ.data!);
                                           } else if (dataServ.connectionState ==
                                               ConnectionState.waiting) {
-                                            return LinearProgressIndicator();
+                                            return const LinearProgressIndicator();
                                           }
-                                          return Text('');
+                                          return const Text('');
                                         },
                                       )
                                     : null,
@@ -1026,10 +1020,10 @@ class _EditPersonState extends State<EditPerson> {
                         ? ElevatedButton.styleFrom(primary: person.color)
                         : null,
                     onPressed: selectColor,
-                    icon: Icon(Icons.color_lens),
-                    label: Text('اللون'),
+                    icon: const Icon(Icons.color_lens),
+                    label: const Text('اللون'),
                   ),
-                  SizedBox(height: 100),
+                  const SizedBox(height: 100),
                 ].map((w) => Focus(child: w)).toList(),
               ),
             ),
@@ -1038,7 +1032,6 @@ class _EditPersonState extends State<EditPerson> {
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           if (person.id != 'null' && !widget.userData)
             FloatingActionButton(
@@ -1046,13 +1039,13 @@ class _EditPersonState extends State<EditPerson> {
               tooltip: 'حذف',
               heroTag: null,
               onPressed: _delete,
-              child: Icon(Icons.delete),
+              child: const Icon(Icons.delete),
             ),
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: null,
             onPressed: _save,
-            child: Icon(Icons.save),
+            child: const Icon(Icons.save),
           ),
         ],
       ),
@@ -1079,7 +1072,7 @@ class _EditPersonState extends State<EditPerson> {
               });
               FocusScope.of(context).nextFocus();
             },
-            child: Text('بلا لون'),
+            child: const Text('بلا لون'),
           ),
         ],
         content: ColorsList(
@@ -1106,13 +1099,13 @@ class _EditPersonState extends State<EditPerson> {
                 onPressed: () async {
                   navigator.currentState!.pop(true);
                 },
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
                 },
-                child: Text('تراجع'),
+                child: const Text('تراجع'),
               ),
             ],
           ),
@@ -1173,7 +1166,7 @@ class _EditPersonState extends State<EditPerson> {
           person.type != null &&
           person.type!.isNotEmpty) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 1),
           ),
@@ -1188,7 +1181,7 @@ class _EditPersonState extends State<EditPerson> {
                       DateTime.now().millisecondsSinceEpoch)) {
             await showDialog(
               context: context,
-              builder: (context) => DataDialog(
+              builder: (context) => const DataDialog(
                 title: Text('بيانات غير كاملة'),
                 content: Text(
                     'يرجى التأكد من ملئ هذه الحقول:\nتاريخ أخر تناول\nتاريخ أخر اعتراف\nوأن يكون أخر اعتراف منذ اقل من شهرين ,اخر تناول منذ أقل من شهر'),
@@ -1254,7 +1247,7 @@ class _EditPersonState extends State<EditPerson> {
       } else {
         await showDialog(
             context: context,
-            builder: (context) => DataDialog(
+            builder: (context) => const DataDialog(
                   title: Text('بيانات غير كاملة'),
                   content: Text(
                       'يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالعائلة\nنوع الفرد'),
@@ -1271,7 +1264,7 @@ class _EditPersonState extends State<EditPerson> {
           content: Text(
             err.toString(),
           ),
-          duration: Duration(seconds: 7),
+          duration: const Duration(seconds: 7),
         ),
       );
     }
@@ -1317,7 +1310,7 @@ class _EditPersonState extends State<EditPerson> {
 
   void _selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Area>(
       tap: (value) {
@@ -1348,7 +1341,7 @@ class _EditPersonState extends State<EditPerson> {
                 setState(() {});
               },
               tooltip: 'إضافة منطقة جديدة',
-              child: Icon(Icons.add_location),
+              child: const Icon(Icons.add_location),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -1359,7 +1352,7 @@ class _EditPersonState extends State<EditPerson> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -1382,7 +1375,7 @@ class _EditPersonState extends State<EditPerson> {
   Future<Timestamp?> _selectDate(String helpText, DateTime initialDate) async {
     final DateTime? picked = await showDatePicker(
       helpText: helpText,
-      locale: Locale('ar', 'EG'),
+      locale: const Locale('ar', 'EG'),
       context: context,
       initialDate: initialDate,
       firstDate: DateTime(1500),
@@ -1398,7 +1391,7 @@ class _EditPersonState extends State<EditPerson> {
 
   void _selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Family>(
       tap: (value) {
@@ -1429,7 +1422,7 @@ class _EditPersonState extends State<EditPerson> {
                 setState(() {});
               },
               tooltip: 'إضافة عائلة جديدة',
-              child: Icon(Icons.group_add),
+              child: const Icon(Icons.group_add),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -1440,7 +1433,7 @@ class _EditPersonState extends State<EditPerson> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),

@@ -14,12 +14,12 @@ class Loading extends StatelessWidget {
   String _getAssetImage() {
     final riseDay = getRiseDay();
     if (DateTime.now()
-            .isAfter(riseDay.subtract(Duration(days: 7, seconds: 20))) &&
-        DateTime.now().isBefore(riseDay.subtract(Duration(days: 1)))) {
+            .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
+        DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/holyweek.jpeg';
     } else if (DateTime.now()
-            .isBefore(riseDay.add(Duration(days: 50, seconds: 20))) &&
-        DateTime.now().isAfter(riseDay.subtract(Duration(days: 1)))) {
+            .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
+        DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
       return 'assets/risen.jpg';
     }
     return 'assets/Logo2.png';
@@ -31,7 +31,6 @@ class Loading extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(
               flex: 16,
@@ -41,7 +40,6 @@ class Loading extends StatelessWidget {
               flex: 3,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(error
                       ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
@@ -49,8 +47,8 @@ class Loading extends StatelessWidget {
                   if (error)
                     OutlinedButton.icon(
                       key: const Key('ClickForMore'),
-                      label: Text('اضغط لمزيد من المعلومات'),
-                      icon: Icon(Icons.error),
+                      label: const Text('اضغط لمزيد من المعلومات'),
+                      icon: const Icon(Icons.error),
                       onPressed: () {
                         if (message == 'Exception: Error Update User Data')
                           showErrorUpdateDataDialog(context: context);
@@ -62,7 +60,7 @@ class Loading extends StatelessWidget {
                       },
                     )
                   else
-                    CircularProgressIndicator(),
+                    const CircularProgressIndicator(),
                 ],
               ),
             ),
@@ -74,7 +72,7 @@ class Loading extends StatelessWidget {
                   builder: (context, data) => data.hasData
                       ? Text('اصدار: ' + data.data!.version,
                           style: Theme.of(context).textTheme.caption)
-                      : Text(''),
+                      : const Text(''),
                 ),
               ),
           ],

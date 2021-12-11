@@ -4,7 +4,6 @@ import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
-import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
@@ -15,7 +14,6 @@ import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -49,16 +47,15 @@ class _UserPState extends State<UserP> {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               actions: [
                 IconButton(
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                   tooltip: 'إلغاء تنشيط الحساب',
                   onPressed: unApproveUser,
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete_forever),
+                  icon: const Icon(Icons.delete_forever),
                   tooltip: 'حذف الحساب',
                   onPressed: deleteUser,
                 ),
@@ -66,13 +63,13 @@ class _UserPState extends State<UserP> {
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
                     child: Text(
                       widget.user.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16.0,
                       ),
                     ),
@@ -86,15 +83,15 @@ class _UserPState extends State<UserP> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'الاسم',
                       ),
                       focusNode: focuses[0],
@@ -117,9 +114,9 @@ class _UserPState extends State<UserP> {
                         onChanged: (v) => setState(
                             () => widget.user.manageUsers = v ?? false),
                       ),
-                      leading: Icon(
-                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                      title: Text('إدارة المستخدمين'),
+                      leading: const Icon(
+                          IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      title: const Text('إدارة المستخدمين'),
                       onTap: () => setState(() =>
                           widget.user.manageUsers = !widget.user.manageUsers),
                     ),
@@ -129,9 +126,9 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.manageAllowedUsers = v ?? false),
                     ),
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة مستخدمين محددين'),
+                    leading: const Icon(
+                        IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: const Text('إدارة مستخدمين محددين'),
                     onTap: () => setState(() => widget.user.manageAllowedUsers =
                         !widget.user.manageAllowedUsers),
                   ),
@@ -141,10 +138,10 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) =>
                           setState(() => widget.user.superAccess = v ?? false),
                     ),
-                    leading: Icon(
-                      const IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xef56, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('رؤية جميع البيانات'),
+                    title: const Text('رؤية جميع البيانات'),
                     onTap: () => setState(() =>
                         widget.user.superAccess = !widget.user.superAccess),
                   ),
@@ -154,8 +151,8 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.manageDeleted = v ?? false),
                     ),
-                    leading: Icon(Icons.delete_outlined),
-                    title: Text('استرجاع المحذوفات'),
+                    leading: const Icon(Icons.delete_outlined),
+                    title: const Text('استرجاع المحذوفات'),
                     onTap: () => setState(() =>
                         widget.user.manageDeleted = !widget.user.manageDeleted),
                   ),
@@ -165,8 +162,8 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) =>
                           setState(() => widget.user.write = v ?? false),
                     ),
-                    leading: Icon(Icons.edit),
-                    title: Text('تعديل البيانات'),
+                    leading: const Icon(Icons.edit),
+                    title: const Text('تعديل البيانات'),
                     onTap: () =>
                         setState(() => widget.user.write = !widget.user.write),
                   ),
@@ -176,8 +173,8 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) =>
                           setState(() => widget.user.exportAreas = v ?? false),
                     ),
-                    leading: Icon(Icons.cloud_download),
-                    title: Text('تصدير منطقة لملف إكسل'),
+                    leading: const Icon(Icons.cloud_download),
+                    title: const Text('تصدير منطقة لملف إكسل'),
                     onTap: () => setState(() =>
                         widget.user.exportAreas = !widget.user.exportAreas),
                   ),
@@ -187,10 +184,10 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.birthdayNotify = v ?? false),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار أعياد الميلاد'),
+                    title: const Text('إشعار أعياد الميلاد'),
                     onTap: () => setState(() => widget.user.birthdayNotify =
                         !widget.user.birthdayNotify),
                   ),
@@ -200,10 +197,10 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.confessionsNotify = v ?? false),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار الاعتراف'),
+                    title: const Text('إشعار الاعتراف'),
                     onTap: () => setState(
                       () => widget.user.confessionsNotify =
                           !widget.user.confessionsNotify,
@@ -215,10 +212,10 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.tanawolNotify = v ?? false),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار التناول'),
+                    title: const Text('إشعار التناول'),
                     onTap: () => setState(
                       () => widget.user.tanawolNotify =
                           !widget.user.tanawolNotify,
@@ -230,21 +227,21 @@ class _UserPState extends State<UserP> {
                       onChanged: (v) => setState(
                           () => widget.user.approveLocations = v ?? false),
                     ),
-                    title: Text('التأكيد على المواقع'),
+                    title: const Text('التأكيد على المواقع'),
                     onTap: () => setState(() => widget.user.approveLocations =
                         !widget.user.approveLocations),
-                    leading: Icon(
-                      const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Focus(
                       focusNode: focuses[1],
                       child: InkWell(
                         onTap: _selectPerson,
                         child: InputDecorator(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'ربط بشخص',
                           ),
                           child: widget.user.personRef != null
@@ -254,7 +251,7 @@ class _UserPState extends State<UserP> {
                                     if (dataServ.hasData) {
                                       return Text(dataServ.data!.name);
                                     } else {
-                                      return LinearProgressIndicator();
+                                      return const LinearProgressIndicator();
                                     }
                                   },
                                 )
@@ -265,7 +262,7 @@ class _UserPState extends State<UserP> {
                   ),
                   ElevatedButton.icon(
                     onPressed: editChildrenUsers,
-                    icon: Icon(Icons.shield),
+                    icon: const Icon(Icons.shield),
                     label: Text(
                       'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
@@ -275,8 +272,8 @@ class _UserPState extends State<UserP> {
                   ),
                   ElevatedButton.icon(
                     onPressed: resetPassword,
-                    icon: Icon(Icons.lock_open),
-                    label: Text('إعادة تعيين كلمة السر'),
+                    icon: const Icon(Icons.lock_open),
+                    label: const Text('إعادة تعيين كلمة السر'),
                   ),
                 ],
               ),
@@ -286,13 +283,12 @@ class _UserPState extends State<UserP> {
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: null,
             onPressed: save,
-            child: Icon(Icons.save),
+            child: const Icon(Icons.save),
           ),
         ],
       ),
@@ -304,13 +300,13 @@ class _UserPState extends State<UserP> {
       context: context,
       builder: (context) => DataDialog(
         title: Text('إلغاء تنشيط حساب ${widget.user.name}'),
-        content: Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
+        content: const Text('إلغاء تنشيط الحساب لن يقوم بالضرورة بحذف الحساب '),
         actions: <Widget>[
           TextButton(
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
@@ -322,7 +318,7 @@ class _UserPState extends State<UserP> {
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('unapproved');
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
                   ),
@@ -337,18 +333,18 @@ class _UserPState extends State<UserP> {
                     content: Text(
                       err.toString(),
                     ),
-                    duration: Duration(seconds: 7),
+                    duration: const Duration(seconds: 7),
                   ),
                 );
               }
             },
-            child: Text('متابعة'),
+            child: const Text('متابعة'),
           ),
           TextButton(
             onPressed: () {
               navigator.currentState!.pop();
             },
-            child: Text('تراجع'),
+            child: const Text('تراجع'),
           ),
         ],
       ),
@@ -370,7 +366,7 @@ class _UserPState extends State<UserP> {
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
@@ -382,7 +378,7 @@ class _UserPState extends State<UserP> {
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
                   ),
@@ -397,18 +393,18 @@ class _UserPState extends State<UserP> {
                     content: Text(
                       err.toString(),
                     ),
-                    duration: Duration(seconds: 7),
+                    duration: const Duration(seconds: 7),
                   ),
                 );
               }
             },
-            child: Text('حذف'),
+            child: const Text('حذف'),
           ),
           TextButton(
             onPressed: () {
               navigator.currentState!.pop();
             },
-            child: Text('تراجع'),
+            child: const Text('تراجع'),
           ),
         ],
       ),
@@ -435,18 +431,18 @@ class _UserPState extends State<UserP> {
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () => navigator.currentState!.pop(false),
-                child: Text('لا'),
+                child: const Text('لا'),
               ),
             ],
           ),
         ) !=
         true) return;
     scaffoldMessenger.currentState!.showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: LinearProgressIndicator(),
         duration: Duration(seconds: 15),
       ),
@@ -462,7 +458,7 @@ class _UserPState extends State<UserP> {
       //     .call({'affectedUser': widget.user.uid});
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('تم إعادة تعيين كلمة السر بنجاح'),
         ),
       );
@@ -484,7 +480,7 @@ class _UserPState extends State<UserP> {
     try {
       if (form.currentState!.validate()) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(seconds: 15),
           ),
@@ -539,7 +535,7 @@ class _UserPState extends State<UserP> {
           content: Text(
             err.toString(),
           ),
-          duration: Duration(seconds: 7),
+          duration: const Duration(seconds: 7),
         ),
       );
     }
@@ -547,7 +543,7 @@ class _UserPState extends State<UserP> {
 
   Future _selectPerson() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     await showDialog(
       context: context,
@@ -577,7 +573,7 @@ class _UserPState extends State<UserP> {
                 setState(() {});
               },
               tooltip: 'إضافة شخص جديد',
-              child: Icon(Icons.person_add),
+              child: const Icon(Icons.person_add),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -588,7 +584,7 @@ class _UserPState extends State<UserP> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),

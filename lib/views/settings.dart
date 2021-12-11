@@ -45,7 +45,7 @@ class SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('الاعدادات'),
+        title: const Text('الاعدادات'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -61,11 +61,11 @@ class SettingsState extends State<Settings> {
                     iconColor: Theme.of(context).iconTheme.color,
                     bodyAlignment: ExpandablePanelBodyAlignment.right,
                   ),
-                  header: Text(
+                  header: const Text(
                     'المظهر',
                     style: TextStyle(fontSize: 24),
                   ),
-                  collapsed: Text('المظهر العام للبرنامج'),
+                  collapsed: const Text('المظهر العام للبرنامج'),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -73,18 +73,18 @@ class SettingsState extends State<Settings> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
                           ChoiceChip(
-                            label: Text('المظهر الداكن'),
+                            label: const Text('المظهر الداكن'),
                             selected: darkTheme ?? false,
                             onSelected: (v) => setState(() => darkTheme = true),
                           ),
                           ChoiceChip(
-                            label: Text('المظهر الفاتح'),
+                            label: const Text('المظهر الفاتح'),
                             selected: darkTheme == false,
                             onSelected: (v) =>
                                 setState(() => darkTheme = false),
                           ),
                           ChoiceChip(
-                            label: Text('حسب النظام'),
+                            label: const Text('حسب النظام'),
                             selected: darkTheme == null,
                             onSelected: (v) => setState(() => darkTheme = null),
                           ),
@@ -93,7 +93,7 @@ class SettingsState extends State<Settings> {
                       SwitchListTile(
                         value: greatFeastTheme,
                         onChanged: (v) => setState(() => greatFeastTheme = v),
-                        title: Text(
+                        title: const Text(
                             'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
                       ),
                       ElevatedButton.icon(
@@ -105,8 +105,8 @@ class SettingsState extends State<Settings> {
 
                           changeTheme(context: context);
                         },
-                        icon: Icon(Icons.done),
-                        label: Text('تغيير'),
+                        icon: const Icon(Icons.done),
+                        label: const Text('تغيير'),
                       ),
                     ],
                   ),
@@ -117,11 +117,11 @@ class SettingsState extends State<Settings> {
                     iconColor: Theme.of(context).iconTheme.color,
                     bodyAlignment: ExpandablePanelBodyAlignment.right,
                   ),
-                  header: Text(
+                  header: const Text(
                     'بيانات إضافية',
                     style: TextStyle(fontSize: 24),
                   ),
-                  collapsed: Text(
+                  collapsed: const Text(
                       'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع الأشخاص',
                       overflow: TextOverflow.ellipsis),
                   expanded: Column(
@@ -130,37 +130,37 @@ class SettingsState extends State<Settings> {
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/Churches'),
-                        child: Text('الكنائس'),
+                        child: const Text('الكنائس'),
                       ),
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/Fathers'),
-                        child: Text('الأباء الكهنة'),
+                        child: const Text('الأباء الكهنة'),
                       ),
                       ElevatedButton(
                         onPressed: () =>
                             navigator.currentState!.pushNamed('Settings/Jobs'),
-                        child: Text('الوظائف'),
+                        child: const Text('الوظائف'),
                       ),
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/StudyYears'),
-                        child: Text('السنوات الدراسية'),
+                        child: const Text('السنوات الدراسية'),
                       ),
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/Colleges'),
-                        child: Text('الكليات'),
+                        child: const Text('الكليات'),
                       ),
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/ServingTypes'),
-                        child: Text('أنواع الخدمات'),
+                        child: const Text('أنواع الخدمات'),
                       ),
                       ElevatedButton(
                         onPressed: () => navigator.currentState!
                             .pushNamed('Settings/PersonTypes'),
-                        child: Text('أنواع الأشخاص'),
+                        child: const Text('أنواع الأشخاص'),
                       ),
                     ],
                   ),
@@ -171,18 +171,18 @@ class SettingsState extends State<Settings> {
                     iconColor: Theme.of(context).iconTheme.color,
                     bodyAlignment: ExpandablePanelBodyAlignment.right,
                   ),
-                  header: Text(
+                  header: const Text(
                     'مظهر البيانات',
                     style: TextStyle(fontSize: 24),
                   ),
-                  collapsed: Text(
+                  collapsed: const Text(
                       'السطر الثاني للمنطقة، السطر الثاني للشارع، السطر الثاني للعائلة، السطر الثاني للشخص',
                       overflow: TextOverflow.ellipsis),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
                           onChanged: (_) {},
                           value: settings.get('AreaSecondLine'),
@@ -197,7 +197,7 @@ class SettingsState extends State<Settings> {
                               .toList()
                             ..removeWhere((element) => element.value == 'Color')
                             ..add(
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: 'Members',
                                 child: Text('الشوارع بالمنطقة'),
                               ),
@@ -205,13 +205,13 @@ class SettingsState extends State<Settings> {
                           onSaved: (value) async {
                             await settings.put('AreaSecondLine', value);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'السطر الثاني للمنطقة:',
                           ),
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
                           onChanged: (_) {},
                           value: settings.get('StreetSecondLine'),
@@ -226,7 +226,7 @@ class SettingsState extends State<Settings> {
                               .toList()
                             ..removeWhere((element) => element.value == 'Color')
                             ..add(
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: 'Members',
                                 child: Text('العائلات بالشارع'),
                               ),
@@ -234,13 +234,13 @@ class SettingsState extends State<Settings> {
                           onSaved: (value) async {
                             await settings.put('StreetSecondLine', value);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'السطر الثاني للشارع:',
                           ),
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
                           onChanged: (_) {},
                           value: settings.get('FamilySecondLine'),
@@ -255,7 +255,7 @@ class SettingsState extends State<Settings> {
                               .toList()
                             ..removeWhere((element) => element.value == 'Color')
                             ..add(
-                              DropdownMenuItem(
+                              const DropdownMenuItem(
                                 value: 'Members',
                                 child: Text('الأشخاص بالعائلة'),
                               ),
@@ -263,13 +263,13 @@ class SettingsState extends State<Settings> {
                           onSaved: (value) async {
                             await settings.put('FamilySecondLine', value);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'السطر الثاني للعائلة:',
                           ),
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 4.0),
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: DropdownButtonFormField(
                           onChanged: (_) {},
                           value: settings.get('PersonSecondLine'),
@@ -287,14 +287,14 @@ class SettingsState extends State<Settings> {
                           onSaved: (value) async {
                             await settings.put('PersonSecondLine', value);
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'السطر الثاني للشخص:',
                           ),
                         ),
                       ),
                       Row(
                         children: <Widget>[
-                          Text('إظهار الحالة بجانب كل شخص'),
+                          const Text('إظهار الحالة بجانب كل شخص'),
                           FormField(
                             builder: (context) => Switch(
                               value: state ?? false,
@@ -320,11 +320,11 @@ class SettingsState extends State<Settings> {
                               iconColor: Theme.of(context).iconTheme.color,
                               bodyAlignment:
                                   ExpandablePanelBodyAlignment.right),
-                          header: Text(
+                          header: const Text(
                             'الاشعارات',
                             style: TextStyle(fontSize: 24),
                           ),
-                          collapsed: Text('اعدادات الاشعارات'),
+                          collapsed: const Text('اعدادات الاشعارات'),
                           expanded: _getNotificationsContent(permission),
                         );
                       }
@@ -335,15 +335,15 @@ class SettingsState extends State<Settings> {
                       useInkWell: true,
                       iconColor: Theme.of(context).iconTheme.color,
                       bodyAlignment: ExpandablePanelBodyAlignment.right),
-                  header: Text(
+                  header: const Text(
                     'أخرى',
                     style: TextStyle(fontSize: 24),
                   ),
-                  collapsed: Text('إعدادات أخرى'),
+                  collapsed: const Text('إعدادات أخرى'),
                   expanded: Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
                       ),
                       keyboardType: TextInputType.number,
@@ -376,13 +376,13 @@ class SettingsState extends State<Settings> {
         onPressed: () {
           formKey.currentState!.save();
           scaffoldMessenger.currentState!.showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('تم الحفظ'),
             ),
           );
         },
         tooltip: 'حفظ',
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }
@@ -405,7 +405,7 @@ class SettingsState extends State<Settings> {
         if (notifications['birthdayNotify'] ?? false)
           Row(
             children: <Widget>[
-              Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
+              const Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
                 child: TapableFormField<DateTime>(
                   initialValue: DateTime(
@@ -459,7 +459,7 @@ class SettingsState extends State<Settings> {
                         'Minutes': value.minute
                       },
                     );
-                    await AndroidAlarmManager.periodic(Duration(days: 1),
+                    await AndroidAlarmManager.periodic(const Duration(days: 1),
                         'BirthDay'.hashCode, showBirthDayNotification,
                         exact: true,
                         startAt: DateTime(
@@ -476,7 +476,7 @@ class SettingsState extends State<Settings> {
             ],
           ),
         if (notifications['confessionsNotify'] ?? false)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),
@@ -488,7 +488,7 @@ class SettingsState extends State<Settings> {
             notificationCallback: showConfessionNotification,
           ),
         if (notifications['tanawolNotify'] ?? false)
-          Divider(
+          const Divider(
             thickness: 2,
             height: 30,
           ),

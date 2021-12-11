@@ -1,10 +1,8 @@
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'analytics_indicators.dart';
@@ -20,8 +18,9 @@ class ActivityAnalysis extends StatefulWidget {
 class _ActivityAnalysisState extends State<ActivityAnalysis> {
   List<Area>? areas;
   DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(Duration(days: 30)), end: DateTime.now());
-  DateTime minAvaliable = DateTime.now().subtract(Duration(days: 30));
+      start: DateTime.now().subtract(const Duration(days: 30)),
+      end: DateTime.now());
+  DateTime minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   final _screenKey = GlobalKey();
   bool minAvaliableSet = false;
 
@@ -32,7 +31,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                   .collectionGroup('EditHistory')
                   .orderBy('Time')
                   .limit(1)
-                  .get(dataSource))
+                  .get())
               .docs[0]
               .data()['Time'] as Timestamp)
           .toDate();
@@ -42,7 +41,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                   .where('AreaId', whereIn: await Area.getAllAreasForUser())
                   .orderBy('Time')
                   .limit(1)
-                  .get(dataSource))
+                  .get())
               .docs[0]
               .data()['Time'] as Timestamp)
           .toDate();
@@ -55,10 +54,10 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
       key: _screenKey,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('الاحصائيات'),
+          title: const Text('الاحصائيات'),
           actions: [
             IconButton(
-              icon: Icon(Icons.mobile_screen_share),
+              icon: const Icon(Icons.mobile_screen_share),
               onPressed: () => takeScreenshot(_screenKey),
               tooltip: 'حفظ كصورة',
             ),
@@ -93,7 +92,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                       .format(range.end),
                               style: Theme.of(context).textTheme.bodyText1),
                           trailing: IconButton(
-                            icon: Icon(Icons.date_range),
+                            icon: const Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
                             onPressed: () async {
                               final rslt = await showDateRangePicker(
@@ -101,25 +100,24 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                                   data: Theme.of(context).copyWith(
                                     textTheme:
                                         Theme.of(context).textTheme.copyWith(
-                                              overline: TextStyle(
+                                              overline: const TextStyle(
                                                 fontSize: 0,
                                               ),
                                             ),
                                   ),
                                   child: dialog!,
                                 ),
-                                helpText: null,
                                 context: context,
                                 confirmText: 'حفظ',
                                 saveText: 'حفظ',
-                                initialDateRange:
-                                    range.start.millisecondsSinceEpoch <=
-                                            minAvaliable.millisecondsSinceEpoch
-                                        ? range
-                                        : DateTimeRange(
-                                            start: DateTime.now()
-                                                .subtract(Duration(days: 1)),
-                                            end: range.end),
+                                initialDateRange: range
+                                            .start.millisecondsSinceEpoch <=
+                                        minAvaliable.millisecondsSinceEpoch
+                                    ? range
+                                    : DateTimeRange(
+                                        start: DateTime.now()
+                                            .subtract(const Duration(days: 1)),
+                                        end: range.end),
                                 firstDate: minAvaliable,
                                 lastDate: DateTime.now(),
                               );
@@ -131,14 +129,14 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                           ),
                         ),
                         ListTile(
-                          title: Text('لمناطق: '),
+                          title: const Text('لمناطق: '),
                           subtitle: Text(
                             areas!.map((c) => c.name).toList().join(', '),
                             maxLines: 4,
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: IconButton(
-                            icon: Icon(Icons.list_alt),
+                            icon: const Icon(Icons.list_alt),
                             tooltip: 'اختيار المناطق',
                             onPressed: () async {
                               final rslt = await selectAreas(context, areas!);
@@ -147,7 +145,7 @@ class _ActivityAnalysisState extends State<ActivityAnalysis> {
                               else if (rslt != null)
                                 await showDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
+                                  builder: (context) => const AlertDialog(
                                     content: Text(
                                         'برجاء اختيار منطقة واحدة على الأقل'),
                                   ),

@@ -4,7 +4,6 @@ import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/main.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide FirebaseAuth, User;
-import 'package:firebase_auth_platform_interface/firebase_auth_platform_interface.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
 import 'package:flutter/foundation.dart';
@@ -29,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('تسجيل الدخول'),
+        title: const Text('تسجيل الدخول'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -46,14 +45,14 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
             Container(height: MediaQuery.of(context).size.height / 38),
-            Text('قم بتسجيل الدخول أو انشاء حساب'),
+            const Text('قم بتسجيل الدخول أو انشاء حساب'),
             Container(height: 30),
             Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: <Widget>[
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     primary: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -113,17 +112,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       Container(
-                        padding: EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
+                        padding:
+                            const EdgeInsets.fromLTRB(16.0, 16.0, 32.0, 16.0),
                         child: Image.asset(
                           'assets/google_logo.png',
                           width: 30,
                           height: 30,
                         ),
                       ),
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Google',
                           style: TextStyle(color: Colors.black),
@@ -139,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           email: 'admin@churchdata.org',
                           password: 'admin@churchdata.org');
                     },
-                    child: Text('{debug only} Email and password'),
+                    child: const Text('{debug only} Email and password'),
                   ),
                 Container(height: MediaQuery.of(context).size.height / 38),
                 RichText(
@@ -240,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   await notificationsSettings.put('ConfessionTime',
                       <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
                 }
-                await AndroidAlarmManager.periodic(Duration(days: 7),
+                await AndroidAlarmManager.periodic(const Duration(days: 7),
                     'Confessions'.hashCode, showConfessionNotification,
                     exact: true,
                     startAt: DateTime(DateTime.now().year, DateTime.now().month,
@@ -253,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   await notificationsSettings.put('TanawolTime',
                       <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
                 }
-                await AndroidAlarmManager.periodic(Duration(days: 7),
+                await AndroidAlarmManager.periodic(const Duration(days: 7),
                     'Tanawol'.hashCode, showTanawolNotification,
                     exact: true,
                     startAt: DateTime(DateTime.now().year, DateTime.now().month,
@@ -266,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   await notificationsSettings.put(
                       'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
                 }
-                await AndroidAlarmManager.periodic(Duration(days: 1),
+                await AndroidAlarmManager.periodic(const Duration(days: 1),
                     'BirthDay'.hashCode, showBirthDayNotification,
                     exact: true,
                     startAt: DateTime(DateTime.now().year, DateTime.now().month,

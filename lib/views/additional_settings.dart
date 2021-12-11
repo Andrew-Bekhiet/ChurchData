@@ -45,7 +45,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
       actions: <Widget>[
         if (context.watch<User>().write)
           TextButton.icon(
-            icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
+            icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
             onPressed: () async {
               if (editMode) {
                 await firestore.collection('Churches').doc(church.id).set(
@@ -59,7 +59,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
           ),
         if (editMode)
           TextButton.icon(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             style: TextButton.styleFrom(primary: Colors.red),
             onPressed: () async {
               await showDialog(
@@ -69,9 +69,9 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
                   content: Text('هل أنت متأكد من حذف ${church.name}؟'),
                   actions: <Widget>[
                     TextButton.icon(
-                      icon: Icon(Icons.delete),
+                      icon: const Icon(Icons.delete),
                       style: TextButton.styleFrom(primary: Colors.red),
-                      label: Text('نعم'),
+                      label: const Text('نعم'),
                       onPressed: () async {
                         await firestore
                             .collection('Churches')
@@ -85,20 +85,19 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
                       onPressed: () {
                         navigator.currentState!.pop();
                       },
-                      child: Text('تراجع'),
+                      child: const Text('تراجع'),
                     ),
                   ],
                 ),
               );
             },
-            label: Text('حذف'),
+            label: const Text('حذف'),
           ),
       ],
       content: SizedBox(
         width: 400,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (editMode)
@@ -108,7 +107,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
               )
             else
               Padding(
-                padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+                padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                 child: Text(church.name,
                     style: Theme.of(context).textTheme.headline6),
               ),
@@ -166,7 +165,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
       actions: <Widget>[
         if (context.watch<User>().write)
           TextButton.icon(
-            icon: editMode ? Icon(Icons.save) : Icon(Icons.edit),
+            icon: editMode ? const Icon(Icons.save) : const Icon(Icons.edit),
             onPressed: () async {
               if (editMode) {
                 await firestore.collection('Fathers').doc(father.id).set(
@@ -181,7 +180,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
           ),
         if (editMode)
           TextButton.icon(
-            icon: Icon(Icons.delete),
+            icon: const Icon(Icons.delete),
             style: TextButton.styleFrom(primary: Colors.red),
             onPressed: () async {
               await showDialog(
@@ -191,9 +190,9 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                   content: Text('هل أنت متأكد من حذف ${father.name}؟'),
                   actions: <Widget>[
                     TextButton.icon(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         style: TextButton.styleFrom(primary: Colors.red),
-                        label: Text('نعم'),
+                        label: const Text('نعم'),
                         onPressed: () async {
                           await firestore
                               .collection('Fathers')
@@ -206,19 +205,18 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                       onPressed: () {
                         navigator.currentState!.pop();
                       },
-                      child: Text('تراجع'),
+                      child: const Text('تراجع'),
                     ),
                   ],
                 ),
               );
             },
-            label: Text('حذف'),
+            label: const Text('حذف'),
           ),
       ],
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (editMode)
@@ -228,7 +226,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
               )
             else
               Padding(
-                padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+                padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                 child: Text(
                   father.name,
                   style: Theme.of(context).textTheme.headline6,
@@ -244,7 +242,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                 builder: (context, data) {
                   if (data.hasData) {
                     return Container(
-                      padding: EdgeInsets.symmetric(vertical: 4.0),
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
                       child: DropdownButtonFormField<JsonRef?>(
                         value: father.churchId,
                         items: data.data!.docs
@@ -257,7 +255,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                             .toList()
                           ..insert(
                             0,
-                            DropdownMenuItem(
+                            const DropdownMenuItem(
                               value: null,
                               child: Text(''),
                             ),
@@ -265,13 +263,13 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                         onChanged: (value) {
                           father.churchId = value;
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: 'الكنيسة',
                         ),
                       ),
                     );
                   } else
-                    return LinearProgressIndicator();
+                    return const LinearProgressIndicator();
                 },
               )
             else
@@ -292,8 +290,8 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                       ),
                     );
                   else if (name.connectionState == ConnectionState.waiting)
-                    return LinearProgressIndicator();
-                  return Text('');
+                    return const LinearProgressIndicator();
+                  return const Text('');
                 },
               ),
           ],

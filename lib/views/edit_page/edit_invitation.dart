@@ -34,11 +34,10 @@ class _EditInvitationState extends State<EditInvitation> {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
-              floating: false,
               pinned: true,
               actions: [
                 IconButton(
-                  icon: Icon(Icons.delete_forever),
+                  icon: const Icon(Icons.delete_forever),
                   tooltip: 'حذف الدعوة',
                   onPressed: deleteInvitation,
                 ),
@@ -46,16 +45,16 @@ class _EditInvitationState extends State<EditInvitation> {
               flexibleSpace: LayoutBuilder(
                 builder: (context, constraints) => FlexibleSpaceBar(
                   title: AnimatedOpacity(
-                    duration: Duration(milliseconds: 300),
+                    duration: const Duration(milliseconds: 300),
                     opacity: constraints.biggest.height > kToolbarHeight * 1.7
                         ? 0
                         : 1,
                     child: Text(widget.invitation.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16.0,
                         )),
                   ),
-                  background: Icon(Icons.link),
+                  background: const Icon(Icons.link),
                 ),
               ),
             ),
@@ -64,15 +63,15 @@ class _EditInvitationState extends State<EditInvitation> {
         body: Form(
           key: form,
           child: Padding(
-            padding: EdgeInsets.all(8),
+            padding: const EdgeInsets.all(8),
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: TextFormField(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'عنوان الدعوة',
                       ),
                       textInputAction: TextInputAction.next,
@@ -89,7 +88,7 @@ class _EditInvitationState extends State<EditInvitation> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Focus(
                       child: GestureDetector(
                         onTap: () async => widget.invitation.expiryDate =
@@ -98,7 +97,7 @@ class _EditInvitationState extends State<EditInvitation> {
                           widget.invitation.expiryDate.toDate(),
                         ),
                         child: InputDecorator(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'تاريخ انتهاء الدعوة',
                           ),
                           child: Text(DateFormat('h:m a yyyy/M/d', 'ar-EG')
@@ -115,9 +114,9 @@ class _EditInvitationState extends State<EditInvitation> {
                         onChanged: (v) => setState(() =>
                             widget.invitation.permissions?['manageUsers'] = v),
                       ),
-                      leading: Icon(
-                          const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                      title: Text('إدارة المستخدمين'),
+                      leading: const Icon(
+                          IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      title: const Text('إدارة المستخدمين'),
                       onTap: () => setState(() =>
                           widget.invitation.permissions?['manageUsers'] =
                               !(widget.invitation.permissions?['manageUsers'] ??
@@ -131,9 +130,9 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() => widget
                           .invitation.permissions?['manageAllowedUsers'] = v),
                     ),
-                    leading: Icon(
-                        const IconData(0xef3d, fontFamily: 'MaterialIconsR')),
-                    title: Text('إدارة مستخدمين محددين'),
+                    leading: const Icon(
+                        IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                    title: const Text('إدارة مستخدمين محددين'),
                     onTap: () => setState(() => widget.invitation
                         .permissions?['manageAllowedUsers'] = !(widget
                             .invitation.permissions?['manageAllowedUsers'] ??
@@ -146,10 +145,10 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions?['superAccess'] = v),
                     ),
-                    leading: Icon(
-                      const IconData(0xef56, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xef56, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('رؤية جميع البيانات'),
+                    title: const Text('رؤية جميع البيانات'),
                     onTap: () => setState(() =>
                         widget.invitation.permissions?['superAccess'] =
                             !(widget.invitation.permissions?['superAccess'] ??
@@ -162,8 +161,8 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions?['manageDeleted'] = v),
                     ),
-                    leading: Icon(Icons.delete_outline),
-                    title: Text('استرجاع المحذوفات'),
+                    leading: const Icon(Icons.delete_outline),
+                    title: const Text('استرجاع المحذوفات'),
                     onTap: () => setState(() =>
                         widget.invitation.permissions?['manageDeleted'] =
                             !(widget.invitation.permissions?['manageDeleted'] ??
@@ -175,8 +174,8 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(
                           () => widget.invitation.permissions?['write'] = v),
                     ),
-                    leading: Icon(Icons.edit),
-                    title: Text('تعديل البيانات'),
+                    leading: const Icon(Icons.edit),
+                    title: const Text('تعديل البيانات'),
                     onTap: () => setState(() => widget
                             .invitation.permissions?['write'] =
                         !(widget.invitation.permissions?['write'] ?? false)),
@@ -188,8 +187,8 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions?['exportAreas'] = v),
                     ),
-                    leading: Icon(Icons.cloud_download),
-                    title: Text('تصدير منطقة لملف إكسل'),
+                    leading: const Icon(Icons.cloud_download),
+                    title: const Text('تصدير منطقة لملف إكسل'),
                     onTap: () => setState(() =>
                         widget.invitation.permissions?['exportAreas'] =
                             !(widget.invitation.permissions?['exportAreas'] ??
@@ -202,10 +201,10 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions?['birthdayNotify'] = v),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار أعياد الميلاد'),
+                    title: const Text('إشعار أعياد الميلاد'),
                     onTap: () => setState(() => widget
                             .invitation.permissions?['birthdayNotify'] =
                         !(widget.invitation.permissions?['birthdayNotify'] ??
@@ -219,10 +218,10 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() => widget
                           .invitation.permissions?['confessionsNotify'] = v),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار الاعتراف'),
+                    title: const Text('إشعار الاعتراف'),
                     onTap: () => setState(
                       () => widget.invitation
                           .permissions?['confessionsNotify'] = !(widget
@@ -237,10 +236,10 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() =>
                           widget.invitation.permissions?['tanawolNotify'] = v),
                     ),
-                    leading: Icon(
-                      const IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
-                    title: Text('إشعار التناول'),
+                    title: const Text('إشعار التناول'),
                     onTap: () => setState(
                       () => widget.invitation.permissions?['tanawolNotify'] =
                           !(widget.invitation.permissions?['tanawolNotify'] ??
@@ -255,13 +254,13 @@ class _EditInvitationState extends State<EditInvitation> {
                       onChanged: (v) => setState(() => widget
                           .invitation.permissions?['approveLocations'] = v),
                     ),
-                    title: Text('التأكيد على المواقع'),
+                    title: const Text('التأكيد على المواقع'),
                     onTap: () => setState(() => widget
                             .invitation.permissions?['approveLocations'] =
                         !(widget.invitation.permissions?['approveLocations'] ??
                             false)),
-                    leading: Icon(
-                      const IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
+                    leading: const Icon(
+                      IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
                     ),
                   ),
                 ],
@@ -274,7 +273,7 @@ class _EditInvitationState extends State<EditInvitation> {
         tooltip: 'حفظ',
         heroTag: 'Save',
         onPressed: save,
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }
@@ -283,7 +282,7 @@ class _EditInvitationState extends State<EditInvitation> {
     showDialog(
       context: context,
       builder: (innerContext) => AlertDialog(
-        content: Text('هل تريد حذف هذه الدعوة؟'),
+        content: const Text('هل تريد حذف هذه الدعوة؟'),
         actions: <Widget>[
           TextButton(
             style: Theme.of(innerContext).textButtonTheme.style?.copyWith(
@@ -292,7 +291,7 @@ class _EditInvitationState extends State<EditInvitation> {
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: LinearProgressIndicator(),
                     duration: Duration(seconds: 15),
                   ),
@@ -302,7 +301,7 @@ class _EditInvitationState extends State<EditInvitation> {
                 scaffoldMessenger.currentState!.hideCurrentSnackBar();
                 navigator.currentState!.pop('deleted');
                 scaffoldMessenger.currentState!.showSnackBar(
-                  SnackBar(
+                  const SnackBar(
                     content: Text('تم بنجاح'),
                     duration: Duration(seconds: 15),
                   ),
@@ -317,18 +316,18 @@ class _EditInvitationState extends State<EditInvitation> {
                     content: Text(
                       err.toString(),
                     ),
-                    duration: Duration(seconds: 7),
+                    duration: const Duration(seconds: 7),
                   ),
                 );
               }
             },
-            child: Text('حذف'),
+            child: const Text('حذف'),
           ),
           TextButton(
             onPressed: () {
               navigator.currentState!.pop();
             },
-            child: Text('تراجع'),
+            child: const Text('تراجع'),
           ),
         ],
       ),
@@ -350,14 +349,14 @@ class _EditInvitationState extends State<EditInvitation> {
       await showDialog(
           context: context,
           builder: (context) =>
-              AlertDialog(content: Text('لا يوجد اتصال انترنت')));
+              const AlertDialog(content: Text('لا يوجد اتصال انترنت')));
       return;
     }
     try {
       if (form.currentState!.validate() &&
           widget.invitation.expiryDate.toDate().difference(DateTime.now()) >=
-              Duration(hours: 24)) {
-        scaffoldMessenger.currentState!.showSnackBar(SnackBar(
+              const Duration(hours: 24)) {
+        scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
           content: Text('جار الحفظ...'),
           duration: Duration(seconds: 15),
         ));
@@ -378,7 +377,7 @@ class _EditInvitationState extends State<EditInvitation> {
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         navigator.currentState!.pop(widget.invitation.ref);
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('تم الحفظ بنجاح'),
             duration: Duration(seconds: 1),
           ),
@@ -386,7 +385,7 @@ class _EditInvitationState extends State<EditInvitation> {
       } else {
         await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (context) => const AlertDialog(
             content: Text(
                 'يرجى ملء تاريخ انتهاء الدعوة على أن يكون على الأقل بعد 24 ساعة'),
           ),
@@ -399,7 +398,7 @@ class _EditInvitationState extends State<EditInvitation> {
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(SnackBar(
         content: Text(err.toString()),
-        duration: Duration(seconds: 7),
+        duration: const Duration(seconds: 7),
       ));
     }
   }
@@ -408,11 +407,11 @@ class _EditInvitationState extends State<EditInvitation> {
       String helpText, DateTime initialDate) async {
     var picked = await showDatePicker(
         helpText: helpText,
-        locale: Locale('ar', 'EG'),
+        locale: const Locale('ar', 'EG'),
         context: context,
         initialDate: initialDate,
         firstDate: DateTime.now(),
-        lastDate: DateTime.now().add(Duration(days: 14)));
+        lastDate: DateTime.now().add(const Duration(days: 14)));
     if (picked != null && picked != initialDate) {
       final time = await showTimePicker(
           context: context, initialTime: TimeOfDay.fromDateTime(initialDate));

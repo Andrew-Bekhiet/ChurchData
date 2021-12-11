@@ -24,7 +24,7 @@ class DataDialog extends StatelessWidget {
         children: [
           if (title != null)
             Padding(
-              padding: EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
+              padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
               child: DefaultTextStyle(
                 style: Theme.of(context).dialogTheme.titleTextStyle ??
                     Theme.of(context).textTheme.headline6!,
@@ -33,7 +33,8 @@ class DataDialog extends StatelessWidget {
             ),
           Flexible(
             child: Padding(
-                padding: contentPadding ?? EdgeInsets.symmetric(horizontal: 7),
+                padding:
+                    contentPadding ?? const EdgeInsets.symmetric(horizontal: 7),
                 child: content),
           ),
           if (actions != null && actions!.isNotEmpty)

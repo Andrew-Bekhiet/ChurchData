@@ -11,7 +11,6 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_model_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
@@ -44,19 +43,19 @@ class _SearchQueryState extends State<SearchQuery> {
   String orderBy = 'Name';
 
   List<DropdownMenuItem> operatorItems = <DropdownMenuItem>[
-    DropdownMenuItem(
+    const DropdownMenuItem(
       value: 0,
       child: Text('='),
     ),
-    DropdownMenuItem(
+    const DropdownMenuItem(
       value: 1,
       child: Text('قائمة تحتوي على'),
     ),
-    DropdownMenuItem(
+    const DropdownMenuItem(
       value: 2,
       child: Text('أكبر من'),
     ),
-    DropdownMenuItem(
+    const DropdownMenuItem(
       value: 3,
       child: Text('أصغر من'),
     ),
@@ -64,32 +63,32 @@ class _SearchQueryState extends State<SearchQuery> {
 
   List<List<DropdownMenuItem>> childItems = <List<DropdownMenuItem>>[
     <DropdownMenuItem>[
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(1, 'Name'),
         child: Text('اسم المنطقة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Address',
         ),
         child: Text('عنوان المنطقة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'LastVisit',
         ),
         child: Text('تاريخ أخر زيارة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'FatherLastVisit',
         ),
         child: Text('تاريخ أخر زيارة للأب الكاهن'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           14,
           'Color',
@@ -98,29 +97,29 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
     ],
     <DropdownMenuItem>[
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(1, 'Name'),
         child: Text('اسم الشارع'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(0, 'LastVisit'),
         child: Text('تاريخ أخر زيارة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'FatherLastVisit',
         ),
         child: Text('تاريخ أخر زيارة للأب الكاهن'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           2,
           'AreaId',
         ),
         child: Text('داخل منطقة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           14,
           'Color',
@@ -129,49 +128,49 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
     ],
     <DropdownMenuItem>[
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Name',
         ),
         child: Text('اسم العائلة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Address',
         ),
         child: Text('عنوان العائلة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'LastVisit',
         ),
         child: Text('تاريخ أخر زيارة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'FatherLastVisit',
         ),
         child: Text('تاريخ أخر زيارة للأب الكاهن'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           3,
           'StreetId',
         ),
         child: Text('داخل شارع'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           2,
           'AreaId',
         ),
         child: Text('داخل منطقة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           14,
           'Color',
@@ -180,168 +179,168 @@ class _SearchQueryState extends State<SearchQuery> {
       ),
     ],
     <DropdownMenuItem>[
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Name',
         ),
         child: Text('اسم الشخص'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Phone',
         ),
         child: Text('رقم الهاتف'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           11,
           'BirthDate',
         ),
         child: Text('تاريخ الميلاد'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           5,
           'IsStudent',
         ),
         child: Text('طالب؟'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           7,
           'Job',
         ),
         child: Text('الوظيفة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'JobDescription',
         ),
         child: Text('تفاصيل الوظيفة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Qualification',
         ),
         child: Text('المؤهل'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           10,
           'StudyYear',
         ),
         child: Text('السنة الدراسية'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           15,
           'College',
         ),
         child: Text('الكلية'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           6,
           'Type',
         ),
         child: Text('نوع الفرد'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           8,
           'Church',
         ),
         child: Text('الكنيسة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Meeting',
         ),
         child: Text('الاجتماع المشارك به'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           9,
           'CFather',
         ),
         child: Text('اب الاعتراف'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           12,
           'State',
         ),
         child: Text('الحالة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'LastTanawol',
         ),
         child: Text('أخر تناول'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           0,
           'LastConfession',
         ),
         child: Text('أخر اعتراف'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           1,
           'Notes',
         ),
         child: Text('ملاحظات'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           5,
           'IsServant',
         ),
         child: Text('خادم؟'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           2,
           'ServingAreaId',
         ),
         child: Text('منطقة الخدمة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           13,
           'ServingType',
         ),
         child: Text('نوع الخدمة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           4,
           'FamilyId',
         ),
         child: Text('داخل عائلة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           3,
           'StreetId',
         ),
         child: Text('داخل شارع'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           2,
           'AreaId',
         ),
         child: Text('داخل منطقة'),
       ),
-      DropdownMenuItem(
+      const DropdownMenuItem(
         value: MapEntry(
           14,
           'Color',
@@ -379,7 +378,7 @@ class _SearchQueryState extends State<SearchQuery> {
         InkWell(
           onTap: _selectDate,
           child: InputDecorator(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'اختيار تاريخ',
             ),
             child: Text(DateFormat('yyyy/M/d').format(
@@ -390,13 +389,13 @@ class _SearchQueryState extends State<SearchQuery> {
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(vertical: 4.0),
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: TextFormField(
-            autofocus: false,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'قيمة',
             ),
             textInputAction: TextInputAction.done,
+            // ignore: unnecessary_type_check
             initialValue: queryText is String ? queryText : '',
             onChanged: queryTextChange,
             onFieldSubmitted: (_) => execute(),
@@ -408,9 +407,9 @@ class _SearchQueryState extends State<SearchQuery> {
         InkWell(
           onTap: _selectArea,
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'اختيار منطقة',
               ),
               child: Text(queryValue != null && queryValue is JsonRef
@@ -422,9 +421,9 @@ class _SearchQueryState extends State<SearchQuery> {
         InkWell(
           onTap: _selectStreet,
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'اختيار شارع',
               ),
               child: Text(queryValue != null && queryValue is JsonRef
@@ -436,9 +435,9 @@ class _SearchQueryState extends State<SearchQuery> {
         InkWell(
           onTap: _selectFamily,
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'اختيار عائلة',
               ),
               child: Text(queryValue != null && queryValue is JsonRef
@@ -459,9 +458,9 @@ class _SearchQueryState extends State<SearchQuery> {
         InkWell(
           onTap: _selectType,
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
             child: InputDecorator(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'اختيار نوع الفرد',
               ),
               child: Text(queryValue != null && queryValue is String
@@ -491,20 +490,19 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'الوظيفة'),
+                  decoration: const InputDecoration(labelText: 'الوظيفة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<JsonQuery>(
             //8
@@ -527,20 +525,19 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'الكنيسة'),
+                  decoration: const InputDecoration(labelText: 'الكنيسة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<JsonQuery>(
             //9
@@ -563,20 +560,19 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'اب الاعتراف'),
+                  decoration: const InputDecoration(labelText: 'اب الاعتراف'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         FutureBuilder<JsonQuery>(
             //10
@@ -599,20 +595,19 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'سنة الدراسة'),
+                  decoration: const InputDecoration(labelText: 'سنة الدراسة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         Column(
           children: <Widget>[
@@ -620,7 +615,7 @@ class _SearchQueryState extends State<SearchQuery> {
               //11
               onTap: _selectDate,
               child: InputDecorator(
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'اختيار تاريخ',
                 ),
                 child: Text(DateFormat('yyyy/M/d').format(
@@ -632,7 +627,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             Row(
               children: <Widget>[
-                Text('بحث باليوم والشهر فقط'),
+                const Text('بحث باليوم والشهر فقط'),
                 Switch(
                   value: !(birthDate == true),
                   onChanged: (v) => setState(() {
@@ -643,7 +638,7 @@ class _SearchQueryState extends State<SearchQuery> {
             ),
             Row(
               children: <Widget>[
-                Text('(تاريخ فارغ)'),
+                const Text('(تاريخ فارغ)'),
                 Switch(
                   value: queryValue == null,
                   onChanged: (v) => setState(() {
@@ -697,17 +692,15 @@ class _SearchQueryState extends State<SearchQuery> {
                     .toList()
                   ..insert(
                     0,
-                    DropdownMenuItem<JsonRef?>(
-                      value: null,
+                    const DropdownMenuItem<JsonRef?>(
                       child: Text(''),
                     ),
                   ),
                 onChanged: (value) async {
                   queryValue = value;
-                  queryText =
-                      (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                  queryText = (await value?.get())?.data()?['Name'] ?? '';
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'الحالة',
                 ),
               );
@@ -739,28 +732,27 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'نوع الخدمة'),
+                  decoration: const InputDecoration(labelText: 'نوع الخدمة'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
         ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               primary: Color(
                   queryValue is int ? queryValue : Colors.transparent.value),
             ),
-            icon: Icon(Icons.color_lens),
-            label: Text('اختيار لون'),
+            icon: const Icon(Icons.color_lens),
+            label: const Text('اختيار لون'),
             onPressed: () {
               showDialog(
                 context: context,
@@ -801,26 +793,25 @@ class _SearchQueryState extends State<SearchQuery> {
                       .toList()
                     ..insert(
                       0,
-                      DropdownMenuItem(
+                      const DropdownMenuItem(
                         value: null,
                         child: Text(''),
                       ),
                     ),
                   onChanged: (value) async {
                     queryValue = value;
-                    queryText =
-                        (await value?.get(dataSource))?.data()?['Name'] ?? '';
+                    queryText = (await value?.get())?.data()?['Name'] ?? '';
                   },
-                  decoration: InputDecoration(labelText: 'الكلية'),
+                  decoration: const InputDecoration(labelText: 'الكلية'),
                 );
               }
-              return LinearProgressIndicator();
+              return const LinearProgressIndicator();
             }),
       ],
     );
     return Scaffold(
       appBar: AppBar(
-        title: Text('بحث مفصل'),
+        title: const Text('بحث مفصل'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -829,10 +820,8 @@ class _SearchQueryState extends State<SearchQuery> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text('عرض كل: '),
+                const Text('عرض كل: '),
                 DropdownButton(
                   items: const <DropdownMenuItem>[
                     DropdownMenuItem(
@@ -858,10 +847,8 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                Text('حيث أن: '),
+                const Text('حيث أن: '),
                 Expanded(
                   child: DropdownButton(
                       isExpanded: true,
@@ -882,7 +869,7 @@ class _SearchQueryState extends State<SearchQuery> {
             equal,
             Row(
               children: <Widget>[
-                Text('ترتيب حسب:'),
+                const Text('ترتيب حسب:'),
                 Expanded(
                   child: DropdownButton<String>(
                     isExpanded: true,
@@ -919,9 +906,9 @@ class _SearchQueryState extends State<SearchQuery> {
               ],
             ),
             ElevatedButton.icon(
-              icon: Icon(Icons.done),
+              icon: const Icon(Icons.done),
               onPressed: execute,
-              label: Text('تنفيذ'),
+              label: const Text('تنفيذ'),
             )
           ],
         ),
@@ -1293,7 +1280,7 @@ class _SearchQueryState extends State<SearchQuery> {
             appBar: AppBar(
               actions: <Widget>[
                 IconButton(
-                  icon: Icon(Icons.share),
+                  icon: const Icon(Icons.share),
                   onPressed: () async {
                     await Share.share(
                       await shareQuery({
@@ -1457,7 +1444,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void _selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     final listOptions = DataObjectListController<Area>(
       tap: (areaSelected) {
@@ -1485,7 +1472,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -1521,7 +1508,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   void _selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
     final listOptions = DataObjectListController<Family>(
       tap: (familySelected) {
         navigator.currentState!.pop();
@@ -1550,7 +1537,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -1572,7 +1559,7 @@ class _SearchQueryState extends State<SearchQuery> {
 
   Future<void> _selectStreet() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     await showDialog(
       context: context,
@@ -1602,7 +1589,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),

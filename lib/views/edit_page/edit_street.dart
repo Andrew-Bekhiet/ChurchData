@@ -4,7 +4,6 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
-import 'package:churchdata/models/order_options.dart';
 import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/models/user.dart';
@@ -50,9 +49,9 @@ class _EditStreetState extends State<EditStreet> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: TextFormField(
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'اسم الشارع',
                     ),
                     textInputAction: TextInputAction.next,
@@ -68,11 +67,11 @@ class _EditStreetState extends State<EditStreet> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: selectArea,
                     child: InputDecorator(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'داخل منطقة',
                       ),
                       isEmpty: street.areaId == null,
@@ -84,9 +83,9 @@ class _EditStreetState extends State<EditStreet> {
                                   return Text(data.data!);
                                 } else if (data.connectionState ==
                                     ConnectionState.waiting) {
-                                  return LinearProgressIndicator();
+                                  return const LinearProgressIndicator();
                                 } else {
-                                  return Text('لا يوجد');
+                                  return const Text('لا يوجد');
                                 }
                               },
                             )
@@ -95,10 +94,10 @@ class _EditStreetState extends State<EditStreet> {
                   ),
                 ),
                 ElevatedButton.icon(
-                    icon: Icon(
-                      const IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                    icon: const Icon(
+                      IconData(0xe568, fontFamily: 'MaterialIconsR'),
                     ),
-                    label: Text('تعديل مكان الشارع على الخريطة'),
+                    label: const Text('تعديل مكان الشارع على الخريطة'),
                     onPressed: () async {
                       final List<GeoPoint> oldPoints =
                           street.locationPoints.sublist(0);
@@ -108,13 +107,13 @@ class _EditStreetState extends State<EditStreet> {
                             appBar: AppBar(
                               actions: <Widget>[
                                 IconButton(
-                                  icon: Icon(Icons.done),
+                                  icon: const Icon(Icons.done),
                                   onPressed: () =>
                                       navigator.currentState!.pop(true),
                                   tooltip: 'حفظ',
                                 ),
                                 IconButton(
-                                  icon: Icon(Icons.delete),
+                                  icon: const Icon(Icons.delete),
                                   onPressed: () =>
                                       navigator.currentState!.pop(false),
                                   tooltip: 'حذف التحديد',
@@ -135,12 +134,12 @@ class _EditStreetState extends State<EditStreet> {
                       }
                     }),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: () => _selectDate(context),
                     child: InputDecorator(
                       isEmpty: street.lastVisit == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر زيارة',
                       ),
                       child: street.lastVisit != null
@@ -152,12 +151,12 @@ class _EditStreetState extends State<EditStreet> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
                     onTap: () => _selectDate2(context),
                     child: InputDecorator(
                       isEmpty: street.fatherLastVisit == null,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
                       child: street.fatherLastVisit != null
@@ -173,8 +172,8 @@ class _EditStreetState extends State<EditStreet> {
                       ? ElevatedButton.styleFrom(primary: street.color)
                       : null,
                   onPressed: selectColor,
-                  icon: Icon(Icons.color_lens),
-                  label: Text('اللون'),
+                  icon: const Icon(Icons.color_lens),
+                  label: const Text('اللون'),
                 ),
               ].map((w) => Focus(child: w)).toList(),
             ),
@@ -183,7 +182,6 @@ class _EditStreetState extends State<EditStreet> {
       ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           if (street.id != 'null')
             FloatingActionButton(
@@ -191,13 +189,13 @@ class _EditStreetState extends State<EditStreet> {
               tooltip: 'حذف',
               heroTag: null,
               onPressed: delete,
-              child: Icon(Icons.delete),
+              child: const Icon(Icons.delete),
             ),
           FloatingActionButton(
             tooltip: 'حفظ',
             heroTag: null,
             onPressed: save,
-            child: Icon(Icons.save),
+            child: const Icon(Icons.save),
           ),
         ],
       ),
@@ -220,20 +218,20 @@ class _EditStreetState extends State<EditStreet> {
                 onPressed: () {
                   navigator.currentState!.pop(true);
                 },
-                child: Text('نعم'),
+                child: const Text('نعم'),
               ),
               TextButton(
                 onPressed: () {
                   navigator.currentState!.pop();
                 },
-                child: Text('تراجع'),
+                child: const Text('تراجع'),
               ),
             ],
           ),
         ) ==
         true) {
       scaffoldMessenger.currentState!.showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('جار حذف الشارع وما بداخله من بيانات...'),
           duration: Duration(minutes: 20),
         ),
@@ -262,7 +260,7 @@ class _EditStreetState extends State<EditStreet> {
     try {
       if (form.currentState!.validate() && street.areaId != null) {
         scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('جار الحفظ...'),
             duration: Duration(minutes: 20),
           ),
@@ -275,17 +273,17 @@ class _EditStreetState extends State<EditStreet> {
               context: context,
               barrierDismissible: false,
               builder: (context) => DataDialog(
-                title: Text('هل أنت متأكد من موقع الشارع على الخريطة؟'),
-                content: Text(
+                title: const Text('هل أنت متأكد من موقع الشارع على الخريطة؟'),
+                content: const Text(
                     'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
-                    child: Text('نعم'),
+                    child: const Text('نعم'),
                   ),
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(false),
-                    child: Text('لا'),
+                    child: const Text('لا'),
                   )
                 ],
               ),
@@ -323,7 +321,7 @@ class _EditStreetState extends State<EditStreet> {
       } else {
         await showDialog(
             context: context,
-            builder: (context) => DataDialog(
+            builder: (context) => const DataDialog(
                   title: Text('بيانات غير كاملة'),
                   content:
                       Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالمنطقة'),
@@ -340,7 +338,7 @@ class _EditStreetState extends State<EditStreet> {
           content: Text(
             err.toString(),
           ),
-          duration: Duration(seconds: 7),
+          duration: const Duration(seconds: 7),
         ),
       );
     }
@@ -348,7 +346,7 @@ class _EditStreetState extends State<EditStreet> {
 
   void selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
-        BehaviorSubject<OrderOptions>.seeded(OrderOptions());
+        BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
     await showDialog(
       context: context,
@@ -378,7 +376,7 @@ class _EditStreetState extends State<EditStreet> {
                 setState(() {});
               },
               tooltip: 'إضافة منطقة جديدة',
-              child: Icon(Icons.add_location),
+              child: const Icon(Icons.add_location),
             ),
             body: SizedBox(
               width: MediaQuery.of(context).size.width - 55,
@@ -389,7 +387,7 @@ class _EditStreetState extends State<EditStreet> {
                     1,
                     options: listOptions,
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
-                      OrderOptions(),
+                      const OrderOptions(),
                     ),
                     textStyle: Theme.of(context).textTheme.bodyText2,
                   ),
@@ -421,7 +419,7 @@ class _EditStreetState extends State<EditStreet> {
                 street.color = Colors.transparent;
               });
             },
-            child: Text('بلا لون'),
+            child: const Text('بلا لون'),
           ),
         ],
         content: ColorsList(

@@ -54,9 +54,11 @@ class HistoryRecord {
       DateTimeRange? range,
       List<Area>? areas}) {
     return Rx.combineLatest2<User, List<Area>, Tuple2<User, List<Area>>>(
-        User.instance.stream,
-        Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
-        (a, b) => Tuple2<User, List<Area>>(a, b)).switchMap((value) {
+            User.instance.stream,
+            Area.getAllForUser()
+                .map((s) => s.docs.map(Area.fromQueryDoc).toList()),
+            Tuple2<User, List<Area>>.new)
+        .switchMap((value) {
       if (range != null && areas != null) {
         return Rx.combineLatestList<JsonQuery>(areas
                 .map((a) => firestore
@@ -64,12 +66,12 @@ class HistoryRecord {
                     .where('AreaId', isEqualTo: a.ref)
                     .where(
                       'Time',
-                      isLessThanOrEqualTo:
-                          Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                      isLessThanOrEqualTo: Timestamp.fromDate(
+                          range.end.add(const Duration(days: 1))),
                     )
                     .where('Time',
                         isGreaterThanOrEqualTo: Timestamp.fromDate(
-                            range.start.subtract(Duration(days: 1))))
+                            range.start.subtract(const Duration(days: 1))))
                     .orderBy('Time', descending: true)
                     .snapshots())
                 .toList())
@@ -81,11 +83,11 @@ class HistoryRecord {
               .where(
                 'Time',
                 isLessThanOrEqualTo:
-                    Timestamp.fromDate(range.end.add(Duration(days: 1))),
+                    Timestamp.fromDate(range.end.add(const Duration(days: 1))),
               )
               .where('Time',
                   isGreaterThanOrEqualTo: Timestamp.fromDate(
-                      range.start.subtract(Duration(days: 1))))
+                      range.start.subtract(const Duration(days: 1))))
               .orderBy('Time', descending: true)
               .snapshots()
               .map((s) => s.docs);
@@ -97,11 +99,11 @@ class HistoryRecord {
                       .where(
                         'Time',
                         isLessThanOrEqualTo: Timestamp.fromDate(
-                            range.end.add(Duration(days: 1))),
+                            range.end.add(const Duration(days: 1))),
                       )
                       .where('Time',
                           isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              range.start.subtract(Duration(days: 1))))
+                              range.start.subtract(const Duration(days: 1))))
                       .orderBy('Time', descending: true)
                       .snapshots())
                   .toList())

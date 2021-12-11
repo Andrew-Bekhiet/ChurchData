@@ -1,15 +1,14 @@
 // ignore_for_file:
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart'
     if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
@@ -19,7 +18,6 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hive/hive.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../utils/globals.dart';
 import 'person.dart';
 
 class User extends DataObject with PhotoObject {
@@ -28,8 +26,8 @@ class User extends DataObject with PhotoObject {
   Completer<bool> _initialized = Completer<bool>();
   Future<bool> get initialized => _initialized.future;
 
-  Stream<User> get stream => _streamSubject.stream;
-  final _streamSubject = BehaviorSubject<User>();
+  Stream<User> get stream => _stream.stream;
+  final _stream = BehaviorSubject<User>();
 
   @override
   bool get hasPhoto => uid != null;
@@ -73,7 +71,7 @@ class User extends DataObject with PhotoObject {
   StreamSubscription<auth.User?>? authListener;
 
   final AsyncCache<String> _photoUrlCache =
-      AsyncCache<String>(Duration(days: 1));
+      AsyncCache<String>(const Duration(days: 1));
 
   Future<void> dispose() async {
     await recordLastSeen();
@@ -81,7 +79,7 @@ class User extends DataObject with PhotoObject {
     await userTokenListener?.cancel();
     await connectionListener?.cancel();
     await authListener?.cancel();
-    await _streamSubject.close();
+    await _stream.close();
   }
 
   void _initListeners() {
@@ -101,7 +99,7 @@ class User extends DataObject with PhotoObject {
       (user) async {
         if (user != null) {
           userTokenListener = firebaseDatabase
-              .reference()
+              .ref()
               .child('Users/${user.uid}/forceRefresh')
               .onValue
               .listen((e) async {
@@ -116,26 +114,10 @@ class User extends DataObject with PhotoObject {
               );
 
               await firebaseDatabase
-                  .reference()
+                  .ref()
                   .child('Users/${user.uid}/forceRefresh')
                   .set(false);
-              connectionListener ??= firebaseDatabase
-                  .reference()
-                  .child('.info/connected')
-                  .onValue
-                  .listen((snapshot) {
-                if (snapshot.snapshot.value == true) {
-                  firebaseDatabase
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .onDisconnect()
-                      .set(ServerValue.timestamp);
-                  firebaseDatabase
-                      .reference()
-                      .child('Users/${user.uid}/lastSeen')
-                      .set('Active');
-                }
-              });
+
               idTokenClaims = idToken.claims ?? {};
             } on Exception {
               idTokenClaims = Hive.box('User').toMap();
@@ -148,36 +130,17 @@ class User extends DataObject with PhotoObject {
           Map idTokenClaims;
           try {
             late auth.IdTokenResult idToken;
-            if ((await Connectivity().checkConnectivity()) !=
-                ConnectivityResult.none) {
-              idToken = await user.getIdTokenResult();
+            idToken = await user.getIdTokenResult();
 
-              await Hive.box('User').putAll(
-                (idToken.claims ?? {}).cast<String, dynamic>(),
-              );
+            await Hive.box('User').putAll(
+              (idToken.claims ?? {}).cast<String, dynamic>(),
+            );
 
-              await firebaseDatabase
-                  .reference()
-                  .child('Users/${user.uid}/forceRefresh')
-                  .set(false);
-            }
-            connectionListener ??= firebaseDatabase
-                .reference()
-                .child('.info/connected')
-                .onValue
-                .listen((snapshot) {
-              if (snapshot.snapshot.value == true) {
-                firebaseDatabase
-                    .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .onDisconnect()
-                    .set(ServerValue.timestamp);
-                firebaseDatabase
-                    .reference()
-                    .child('Users/${user.uid}/lastSeen')
-                    .set('Active');
-              }
-            });
+            await firebaseDatabase
+                .ref()
+                .child('Users/${user.uid}/forceRefresh')
+                .set(false);
+
             idTokenClaims = idToken.claims ?? Hive.box('User').toMap();
           } on Exception {
             idTokenClaims = Hive.box('User').toMap();
@@ -235,6 +198,47 @@ class User extends DataObject with PhotoObject {
     approved = idTokenClaims['approved'].toString() == 'true';
     personRef = idTokenClaims['personRef'];
     this.email = user?.email ?? email!;
+
+    connectionListener ??= firebaseDatabase
+        .ref()
+        .child('.info/connected')
+        .onValue
+        .listen((snapshot) {
+      if (snapshot.snapshot.value == true &&
+          (mainScfld.currentState?.mounted ?? false)) {
+        FirebaseDatabase.instance
+            .ref()
+            .child('Users/${this.uid}/lastSeen')
+            .onDisconnect()
+            .set(ServerValue.timestamp);
+
+        FirebaseFirestore.instance.enableNetwork();
+
+        FirebaseDatabase.instance
+            .ref()
+            .child('Users/${this.uid}/lastSeen')
+            .set('Active');
+
+        if (scaffoldMessenger.currentState?.mounted ?? false)
+          scaffoldMessenger.currentState!.showSnackBar(
+            const SnackBar(
+              backgroundColor: Colors.greenAccent,
+              content: Text('تم استرجاع الاتصال بالانترنت'),
+            ),
+          );
+      } else if (mainScfld.currentState?.mounted ?? false) {
+        if (!_stream.hasValue) _stream.add(this);
+
+        FirebaseFirestore.instance.disableNetwork();
+
+        scaffoldMessenger.currentState!.showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text('لا يوجد اتصال بالانترنت!'),
+          ),
+        );
+      }
+    });
 
     notifyListeners();
   }
@@ -409,9 +413,8 @@ class User extends DataObject with PhotoObject {
   Widget getPhoto([bool showCircle = true, bool showActiveStatus = true]) {
     return AspectRatio(
       aspectRatio: 1,
-      child: StreamBuilder<Event>(
-        stream:
-            firebaseDatabase.reference().child('Users/$uid/lastSeen').onValue,
+      child: StreamBuilder<DatabaseEvent>(
+        stream: firebaseDatabase.ref().child('Users/$uid/lastSeen').onValue,
         builder: (context, activity) {
           if (!hasPhoto)
             return Stack(
@@ -540,8 +543,8 @@ class User extends DataObject with PhotoObject {
   }
 
   static Future<List<User?>> getAllUsers(List<String> users) async {
-    return (await Future.wait(users
-            .map((s) => firestore.collection('Users').doc(s).get(dataSource))))
+    return (await Future.wait(
+            users.map((s) => firestore.collection('Users').doc(s).get())))
         .map(User.fromDoc)
         .toList();
   }
@@ -553,9 +556,9 @@ class User extends DataObject with PhotoObject {
           .collection('Users')
           .orderBy('Name')
           .where('ApproveLocations', isEqualTo: true)
-          .get(dataSource);
+          .get();
     }
-    return firestore.collection('Users').orderBy('Name').get(dataSource);
+    return firestore.collection('Users').orderBy('Name').get();
   }
 
   static Future<List<User>> getUsersForEdit() async {
@@ -592,7 +595,7 @@ class User extends DataObject with PhotoObject {
 
   Future<Person?> getPerson() async {
     if (personRef == null) return null;
-    return Person.fromDoc(await personDocRef!.get(dataSource));
+    return Person.fromDoc(await personDocRef!.get());
   }
 
   static Future<Person?> getCurrentPerson() async {
@@ -601,16 +604,13 @@ class User extends DataObject with PhotoObject {
 
   Future<void> recordActive() async {
     if (uid == null) return;
-    await firebaseDatabase
-        .reference()
-        .child('Users/$uid/lastSeen')
-        .set('Active');
+    await firebaseDatabase.ref().child('Users/$uid/lastSeen').set('Active');
   }
 
   Future<void> recordLastSeen() async {
     if (uid == null) return;
     await firebaseDatabase
-        .reference()
+        .ref()
         .child('Users/$uid/lastSeen')
         .set(Timestamp.now().millisecondsSinceEpoch);
   }
@@ -653,12 +653,11 @@ class User extends DataObject with PhotoObject {
   }
 
   static Future<String?> onlyName(String id) async {
-    return (await firestore.collection('Users').doc(id).get(dataSource))
-        .data()?['Name'];
+    return (await firestore.collection('Users').doc(id).get()).data()?['Name'];
   }
 
   void notifyListeners() {
-    _streamSubject.add(this);
+    _stream.add(this);
   }
 
   @override
