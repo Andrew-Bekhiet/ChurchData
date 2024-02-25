@@ -1,8 +1,8 @@
 import { runWith } from "firebase-functions";
 import { HttpsError } from "firebase-functions/lib/providers/https";
 
-import { auth, firestore, storage } from "firebase-admin";
 import { Timestamp } from "@google-cloud/firestore";
+import { auth, firestore, storage } from "firebase-admin";
 
 import * as xlsx from "xlsx";
 // import * as download from "download";
@@ -58,12 +58,13 @@ export const exportToExcel = runWith({
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
 
   const studyYears = (
     await firestore().collection("StudyYears").get()
-  ).docs.reduce((map, obj) => {
+  ).docs.reduce((map, obj, {}) => {
     map[obj.id] = obj.data().Name ?? "(غير معروف)";
     return map;
   });
@@ -71,41 +72,47 @@ export const exportToExcel = runWith({
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const jobs = (await firestore().collection("Jobs").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const types = (await firestore().collection("Types").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const churches = (await firestore().collection("Churches").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const cfathers = (await firestore().collection("Fathers").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const states = (await firestore().collection("States").get()).docs.reduce(
     (map, obj) => {
       map[obj.id] = obj.data().Name ?? "(غير معروف)";
       return map;
-    }
+    },
+    {}
   );
   const servingTypes = (
     await firestore().collection("ServingTypes").get()
-  ).docs.reduce((map, obj) => {
+  ).docs.reduce((map, obj, {}) => {
     map[obj.id] = obj.data().Name ?? "(غير معروف)";
     return map;
   });
@@ -129,13 +136,14 @@ export const exportToExcel = runWith({
         ?.reduce((arr, o) => arr + "," + o) ?? "";
     areas[area.id] = rslt;
   } else {
-    areas = (currentUser.customClaims.superAccess
-      ? await firestore().collection("Areas").orderBy("Name").get()
-      : await firestore()
-          .collection("Areas")
-          .where("Allowed", "array-contains", currentUser.uid)
-          .orderBy("Name")
-          .get()
+    areas = (
+      currentUser.customClaims.superAccess
+        ? await firestore().collection("Areas").orderBy("Name").get()
+        : await firestore()
+            .collection("Areas")
+            .where("Allowed", "array-contains", currentUser.uid)
+            .orderBy("Name")
+            .get()
     ).docs.reduce<Map<String, Map<String, any>>>((map, a) => {
       const rslt = {};
       //'Name', 'Address', 'LastVisit','FatherLastVisit','LastEdit','Allowed'
@@ -154,23 +162,26 @@ export const exportToExcel = runWith({
     }, new Map<String, Map<String, any>>());
   }
 
-  const streets = (data?.onlyArea
-    ? await firestore()
-        .collection("Streets")
-        .where("AreaId", "==", area.ref)
-        .orderBy("Name")
-        .get()
-    : currentUser.customClaims.superAccess
-    ? await firestore().collection("Streets").orderBy("Name").get()
-    : await firestore()
-        .collection("Streets")
-        .where(
-          "AreaId",
-          "in",
-          Object.keys(areas).map((a) => firestore().collection("Areas").doc(a))
-        )
-        .orderBy("Name")
-        .get()
+  const streets = (
+    data?.onlyArea
+      ? await firestore()
+          .collection("Streets")
+          .where("AreaId", "==", area.ref)
+          .orderBy("Name")
+          .get()
+      : currentUser.customClaims.superAccess
+      ? await firestore().collection("Streets").orderBy("Name").get()
+      : await firestore()
+          .collection("Streets")
+          .where(
+            "AreaId",
+            "in",
+            Object.keys(areas).map((a) =>
+              firestore().collection("Areas").doc(a)
+            )
+          )
+          .orderBy("Name")
+          .get()
   ).docs.reduce<Map<String, Map<String, any>>>((map, s) => {
     const rslt = {};
     rslt["Inside Area"] =
@@ -185,39 +196,45 @@ export const exportToExcel = runWith({
     return map;
   }, new Map<String, Map<String, any>>());
 
-  const familiesMap = (currentUser.customClaims.superAccess
-    ? await firestore().collection("Families").orderBy("Name").get()
-    : await firestore()
-        .collection("Families")
-        .where(
-          "AreaId",
-          "in",
-          Object.keys(areas).map((a) => firestore().collection("Areas").doc(a))
-        )
-        .orderBy("Name")
-        .get()
+  const familiesMap = (
+    currentUser.customClaims.superAccess
+      ? await firestore().collection("Families").orderBy("Name").get()
+      : await firestore()
+          .collection("Families")
+          .where(
+            "AreaId",
+            "in",
+            Object.keys(areas).map((a) =>
+              firestore().collection("Areas").doc(a)
+            )
+          )
+          .orderBy("Name")
+          .get()
   ).docs.reduce<Map<String, Map<String, any>>>((map, f) => {
     map[f.id] = f.data();
     return map;
   }, new Map<String, Map<String, any>>());
 
-  const families = (data?.onlyArea
-    ? await firestore()
-        .collection("Families")
-        .where("AreaId", "==", area.ref)
-        .orderBy("Name")
-        .get()
-    : currentUser.customClaims.superAccess
-    ? await firestore().collection("Families").orderBy("Name").get()
-    : await firestore()
-        .collection("Families")
-        .where(
-          "AreaId",
-          "in",
-          Object.keys(areas).map((a) => firestore().collection("Areas").doc(a))
-        )
-        .orderBy("Name")
-        .get()
+  const families = (
+    data?.onlyArea
+      ? await firestore()
+          .collection("Families")
+          .where("AreaId", "==", area.ref)
+          .orderBy("Name")
+          .get()
+      : currentUser.customClaims.superAccess
+      ? await firestore().collection("Families").orderBy("Name").get()
+      : await firestore()
+          .collection("Families")
+          .where(
+            "AreaId",
+            "in",
+            Object.keys(areas).map((a) =>
+              firestore().collection("Areas").doc(a)
+            )
+          )
+          .orderBy("Name")
+          .get()
   ).docs.reduce<Map<String, Map<String, any>>>((map, f) => {
     const rslt = {};
     rslt["Inside Area"] =
@@ -246,23 +263,26 @@ export const exportToExcel = runWith({
     return map;
   }, new Map<String, Map<String, any>>());
 
-  const persons = (data?.onlyArea
-    ? await firestore()
-        .collection("Persons")
-        .where("AreaId", "==", area.ref)
-        .orderBy("Name")
-        .get()
-    : currentUser.customClaims.superAccess
-    ? await firestore().collection("Persons").orderBy("Name").get()
-    : await firestore()
-        .collection("Persons")
-        .where(
-          "AreaId",
-          "in",
-          Object.keys(areas).map((a) => firestore().collection("Areas").doc(a))
-        )
-        .orderBy("Name")
-        .get()
+  const persons = (
+    data?.onlyArea
+      ? await firestore()
+          .collection("Persons")
+          .where("AreaId", "==", area.ref)
+          .orderBy("Name")
+          .get()
+      : currentUser.customClaims.superAccess
+      ? await firestore().collection("Persons").orderBy("Name").get()
+      : await firestore()
+          .collection("Persons")
+          .where(
+            "AreaId",
+            "in",
+            Object.keys(areas).map((a) =>
+              firestore().collection("Areas").doc(a)
+            )
+          )
+          .orderBy("Name")
+          .get()
   ).docs.reduce<Map<String, Map<String, any>>>((map, p) => {
     const rslt = {};
     rslt["Inside Area"] =
