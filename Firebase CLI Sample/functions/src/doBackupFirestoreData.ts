@@ -1,6 +1,5 @@
-import * as functions from "firebase-functions";
-import * as tools from "firebase-tools";
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 
 export const doBackupFirestoreData = functions.pubsub
   .schedule("0 0 * * 0")
@@ -19,7 +18,36 @@ export const doBackupFirestoreData = functions.pubsub
       .exportDocuments({
         name: databaseName,
         outputUriPrefix: `gs://${projectId}-firestore-backup/${timestamp}`,
-        collectionIds: [],
+        collectionIds: [
+          "Areas",
+          "Streets",
+          "Families",
+          "Persons",
+
+          "Invitations",
+          "Users",
+
+          "Churches",
+          "Classes",
+          "Colleges",
+          "Fathers",
+          "Jobs",
+          "Schools",
+          "ServingTypes",
+          "States",
+          "StudyYears",
+          "Types",
+
+          "Kodas",
+          "Meeting",
+          "Confession",
+          "ConfessionHistory",
+          "Tanawol",
+          "TanawolHistory",
+          "VisitHistory",
+          "CallHistory",
+          "FatherVisitHistory",
+        ],
       })
       .then(async (responses: any[]) => {
         const response = responses[0];
@@ -27,17 +55,20 @@ export const doBackupFirestoreData = functions.pubsub
         if (new Date().getDate() <= 7) {
           await admin
             .storage()
-            .bucket()
-            .deleteFiles({ prefix: "Exports/{export}" });
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Exports/" });
           await admin
             .storage()
-            .bucket()
-            .deleteFiles({ prefix: "Imports/{import}" });
-          return await tools.firestore.delete("Deleted", {
-            project: process.env.GCLOUD_PROJECT,
-            recursive: true,
-            yes: true,
-          });
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Imports/" });
+          await admin
+            .storage()
+            .bucket("gs://" + projectId + ".appspot.com")
+            .deleteFiles({ prefix: "Deleted/" });
+
+          return await admin
+            .firestore()
+            .recursiveDelete(admin.firestore().collection("Deleted"));
         }
         return responses;
       })
