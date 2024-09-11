@@ -4,9 +4,10 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -33,10 +34,10 @@ class Street extends DataObject
   Street({
     required this.areaId,
     required String name,
+    required JsonRef ref,
     this.lastVisit,
     this.lastEdit,
     Color color = Colors.transparent,
-    required JsonRef ref,
     List<GeoPoint>? locationPoints,
     this.locationConfirmed = false,
   })  : locationPoints = locationPoints ?? [],
@@ -78,8 +79,10 @@ class Street extends DataObject
   }
 
   @override
-  Future<List<Family>> getChildren(
-      [String orderBy = 'Name', bool tranucate = false]) async {
+  Future<List<Family>> getChildren([
+    String orderBy = 'Name',
+    bool tranucate = false,
+  ]) async {
     if (tranucate) {
       return (await firestore
               .collection('Families')
@@ -136,19 +139,23 @@ class Street extends DataObject
                     child: CircularProgressIndicator(),
                   );
                 return MapView(
-                    childrenDepth: 3,
-                    initialLocation: LatLng(
-                        snapshot.data!.latitude!, snapshot.data!.longitude!),
-                    editMode: editMode,
-                    street: this);
+                  childrenDepth: 3,
+                  initialLocation: LatLng(
+                    snapshot.data!.latitude!,
+                    snapshot.data!.longitude!,
+                  ),
+                  editMode: editMode,
+                  street: this,
+                );
               },
             );
           }
           return MapView(
-              childrenDepth: 3,
-              initialLocation: const LatLng(34, 50),
-              editMode: editMode,
-              street: this);
+            childrenDepth: 3,
+            initialLocation: const LatLng(34, 50),
+            editMode: editMode,
+            street: this,
+          );
         },
       );
     else if (locationPoints.isEmpty)
@@ -166,8 +173,10 @@ class Street extends DataObject
     );
   }
 
-  Stream<JsonQuery> getMembersLive(
-      {String orderBy = 'Name', bool descending = false}) {
+  Stream<JsonQuery> getMembersLive({
+    String orderBy = 'Name',
+    bool descending = false,
+  }) {
     return Street.getStreetMembersLive(areaId!, id, orderBy, descending);
   }
 
@@ -199,6 +208,7 @@ class Street extends DataObject
   @override
   Future<String?> getSecondLine() async {
     final String key = Hive.box('Settings').get('StreetSecondLine');
+
     if (key == 'Members') {
       return getMembersString();
     } else if (key == 'AreaId') {
@@ -206,7 +216,8 @@ class Street extends DataObject
     } else if (key == 'LastEdit') {
       return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
-    return getHumanReadableMap()[key];
+
+    return SynchronousFuture(getHumanReadableMap()[key]);
   }
 
   static Street empty() {
@@ -284,7 +295,7 @@ class Street extends DataObject
         'LocationConfirmed': 'locationConfirmed',
         'LastVisit': 'lastVisit',
         'FatherLastVisit': 'fatherLastVisit',
-        'LastEdit': 'lastEdit'
+        'LastEdit': 'lastEdit',
       };
 
   static Json getHumanReadableMap2() => {
@@ -292,14 +303,18 @@ class Street extends DataObject
         'Color': 'اللون',
         'LastVisit': 'أخر زيارة',
         'FatherLastVisit': 'أخر زيارة (الأب الكاهن)',
-        'LastEdit': 'أخر شخص قام بالتعديل'
+        'LastEdit': 'أخر شخص قام بالتعديل',
       };
 
   // @override
   // fireWeb.Reference get webPhotoRef => throw UnimplementedError();
 
-  static Stream<JsonQuery> getStreetMembersLive(JsonRef areaId, String id,
-      [String orderBy = 'Name', bool descending = false]) {
+  static Stream<JsonQuery> getStreetMembersLive(
+    JsonRef areaId,
+    String id, [
+    String orderBy = 'Name',
+    bool descending = false,
+  ]) {
     return firestore
         .collection('Families')
         .where('AreaId', isEqualTo: areaId)

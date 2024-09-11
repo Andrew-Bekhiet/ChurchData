@@ -10,15 +10,17 @@ import 'package:version/version.dart';
 import '../utils/globals.dart';
 
 class Update extends StatefulWidget {
-  const Update({Key? key}) : super(key: key);
+  const Update({super.key});
 
   @override
   _UpdateState createState() => _UpdateState();
 }
 
 class Updates {
-  static Future showUpdateDialog(BuildContext context,
-      {bool canCancel = true}) async {
+  static Future showUpdateDialog(
+    BuildContext context, {
+    bool canCancel = true,
+  }) async {
     final Version latest =
         Version.parse(remoteConfig.getString('LatestVersion'));
     if (latest > Version.parse((await PackageInfo.fromPlatform()).version)) {
@@ -27,27 +29,37 @@ class Updates {
         context: context,
         builder: (context) {
           return AlertDialog(
-            content: Text(canCancel
-                ? 'هل تريد التحديث إلى إصدار $latest؟'
-                : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج'),
+            content: Text(
+              canCancel
+                  ? 'هل تريد التحديث إلى إصدار $latest؟'
+                  : 'للأسف فإصدار البرنامج الحالي غير مدعوم\nيرجى تحديث البرنامج',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () async {
                   navigator.currentState!.pop();
-                  if (await canLaunch(remoteConfig
-                      .getString('DownloadLink')
-                      .replaceFirst('https://', 'https:'))) {
-                    await launch(remoteConfig
+                  if (await canLaunch(
+                    remoteConfig
                         .getString('DownloadLink')
-                        .replaceFirst('https://', 'https:'));
+                        .replaceFirst('https://', 'https:'),
+                  )) {
+                    await launch(
+                      remoteConfig
+                          .getString('DownloadLink')
+                          .replaceFirst('https://', 'https:'),
+                    );
                   } else {
                     navigator.currentState!.pop();
-                    await Clipboard.setData(ClipboardData(
-                        text: remoteConfig.getString('DownloadLink')));
+                    await Clipboard.setData(
+                      ClipboardData(
+                        text: remoteConfig.getString('DownloadLink'),
+                      ),
+                    );
                     scaffoldMessenger.currentState!.showSnackBar(
                       const SnackBar(
                         content: Text(
-                            'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة'),
+                          'حدث خطأ أثناء فتح رابط التحديث وتم نقله الى الحافظة',
+                        ),
                       ),
                     );
                   }

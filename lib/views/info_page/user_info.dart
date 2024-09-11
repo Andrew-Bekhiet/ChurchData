@@ -17,7 +17,7 @@ import '../edit_page/edit_user.dart';
 class UserInfo extends StatefulWidget {
   final User user;
 
-  const UserInfo({Key? key, required this.user}) : super(key: key);
+  const UserInfo({required this.user, super.key});
 
   @override
   _UserInfoState createState() => _UserInfoState();
@@ -119,74 +119,80 @@ class _UserInfoState extends State<UserInfo> {
                   if (activity.data?.snapshot.value == 'Active') {
                     return const Text('نشط الآن');
                   } else if (activity.data?.snapshot.value != null) {
-                    return Text(toDurationString(
+                    return Text(
+                      toDurationString(
                         Timestamp.fromMillisecondsSinceEpoch(
-                            activity.data!.snapshot.value! as int)));
+                          activity.data!.snapshot.value! as int,
+                        ),
+                      ),
+                    );
                   }
                   return const Text('لا يمكن التحديد');
                 },
               ),
             ),
             ListTile(
-              title: Text('الصلاحيات:',
-                  style: Theme.of(context).textTheme.bodyLarge),
+              title: Text(
+                'الصلاحيات:',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
             ),
-            if (user.manageUsers == true)
+            if (user.manageUsers)
               const ListTile(
                 leading: Icon(
                   IconData(0xef3d, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إدارة المستخدمين'),
               ),
-            if (user.manageAllowedUsers == true)
+            if (user.manageAllowedUsers)
               const ListTile(
                 leading: Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                 title: Text('إدارة مستخدمين محددين'),
               ),
-            if (user.superAccess == true)
+            if (user.superAccess)
               const ListTile(
                 leading: Icon(
                   IconData(0xef56, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('رؤية جميع البيانات'),
               ),
-            if (user.manageDeleted == true)
+            if (user.manageDeleted)
               const ListTile(
                 leading: Icon(Icons.delete_outlined),
                 title: Text('استرجاع المحذوفات'),
               ),
-            if (user.write == true)
+            if (user.write)
               const ListTile(
                 leading: Icon(Icons.edit),
                 title: Text('تعديل البيانات'),
               ),
-            if (user.exportAreas == true)
+            if (user.exportAreas)
               const ListTile(
                 leading: Icon(Icons.cloud_download),
                 title: Text('تصدير منطقة لملف إكسل'),
               ),
-            if (user.birthdayNotify == true)
+            if (user.birthdayNotify)
               const ListTile(
                 leading: Icon(
                   IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار أعياد الميلاد'),
               ),
-            if (user.confessionsNotify == true)
+            if (user.confessionsNotify)
               const ListTile(
                 leading: Icon(
                   IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار الاعتراف'),
               ),
-            if (user.tanawolNotify == true)
+            if (user.tanawolNotify)
               const ListTile(
                 leading: Icon(
                   IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                 ),
                 title: Text('إشعار التناول'),
               ),
-            if (user.approveLocations == true)
+            if (user.approveLocations)
               const ListTile(
                 leading: Icon(
                   IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
@@ -213,20 +219,24 @@ class _UserInfoState extends State<UserInfo> {
                           options: DataObjectListController(
                             tap: areaTap,
                             itemsStream: Area.getAllForUser(
-                                    uid: user.superAccess ? null : user.uid)
-                                .map((s) =>
-                                    s.docs.map(Area.fromQueryDoc).toList()),
+                              uid: user.superAccess ? null : user.uid,
+                            ).map(
+                              (s) => s.docs.map(Area.fromQueryDoc).toList(),
+                            ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
             ElevatedButton.icon(
-              label: Text('المستخدمين المسؤول عنهم ' + user.name,
-                  textScaleFactor: 0.95, overflow: TextOverflow.fade),
+              label: Text(
+                'المستخدمين المسؤول عنهم ' + user.name,
+                textScaler: const TextScaler.linear(0.95),
+                overflow: TextOverflow.fade,
+              ),
               icon: const Icon(Icons.shield),
               onPressed: () => navigator.currentState!.push(
                 MaterialPageRoute(
@@ -257,8 +267,9 @@ class _UserInfoState extends State<UserInfo> {
                         ),
                       ),
                       body: UsersList(
-                          autoDisposeController: true,
-                          listOptions: listOptions),
+                        autoDisposeController: true,
+                        listOptions: listOptions,
+                      ),
                       bottomNavigationBar: BottomAppBar(
                         child: StreamBuilder<List>(
                           stream: listOptions.objectsData,
@@ -268,7 +279,8 @@ class _UserInfoState extends State<UserInfo> {
                                   ' مستخدم',
                               textAlign: TextAlign.center,
                               strutStyle: StrutStyle(
-                                  height: IconTheme.of(context).size! / 7.5),
+                                height: IconTheme.of(context).size! / 7.5,
+                              ),
                               style:
                                   Theme.of(context).primaryTextTheme.bodyLarge,
                             );

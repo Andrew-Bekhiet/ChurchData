@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 class DataDialog extends StatelessWidget {
-  const DataDialog(
-      {Key? key,
-      this.actions,
-      this.title,
-      required this.content,
-      this.contentPadding})
-      : assert(content != null),
-        super(key: key);
+  const DataDialog({
+    required this.content,
+    super.key,
+    this.actions,
+    this.title,
+    this.contentPadding,
+  });
 
   final List<Widget>? actions;
   final Widget? title;
-  final Widget? content;
+  final Widget content;
   final EdgeInsets? contentPadding;
 
   @override
@@ -33,14 +32,15 @@ class DataDialog extends StatelessWidget {
             ),
           Flexible(
             child: Padding(
-                padding:
-                    contentPadding ?? const EdgeInsets.symmetric(horizontal: 7),
-                child: content),
+              padding:
+                  contentPadding ?? const EdgeInsets.symmetric(horizontal: 7),
+              child: content,
+            ),
           ),
           if (actions != null && actions!.isNotEmpty)
-            ButtonBar(
+            OverflowBar(
               children: actions!,
-            )
+            ),
         ],
       ),
     );

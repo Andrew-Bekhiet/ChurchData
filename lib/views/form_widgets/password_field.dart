@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class PasswordFormField extends StatefulWidget {
   const PasswordFormField({
-    Key? key,
+    super.key,
     this.padding,
     this.labelText,
     this.initialValue,
@@ -14,7 +14,7 @@ class PasswordFormField extends StatefulWidget {
     this.textInputAction,
     this.autoFillHints = const [AutofillHints.password],
     this.focusNode,
-  }) : super(key: key);
+  });
 
   final EdgeInsetsGeometry? padding;
   final String? labelText;
@@ -55,9 +55,9 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
         textInputAction: widget.textInputAction ?? TextInputAction.done,
         initialValue: widget.initialValue,
         onChanged: widget.onChanged,
-        onFieldSubmitted: (_) {
+        onFieldSubmitted: (value) {
           FocusScope.of(context).nextFocus();
-          widget.onFieldSubmitted?.call(_);
+          widget.onFieldSubmitted?.call(value);
         },
         onSaved: widget.onSaved,
         validator: widget.validator ??

@@ -8,14 +8,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             'تسجيل الدخول بجوجل',
                             style: TextStyle(fontSize: 20, color: Colors.black),
                           ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -147,25 +147,15 @@ class _LoginScreenState extends State<LoginScreen> {
               await googleUser.authentication;
           if (googleAuth.accessToken != null) {
             final AuthCredential credential = GoogleAuthProvider.credential(
-                idToken: googleAuth.idToken,
-                accessToken: googleAuth.accessToken);
+              idToken: googleAuth.idToken,
+              accessToken: googleAuth.accessToken,
+            );
             signInFuture = firebaseAuth.signInWithCredential(credential);
           }
         }
       }
       if (signInFuture != null) {
-        await signInFuture.catchError((er) {
-          if (er.toString().contains(
-              'An account already exists with the same email address'))
-            showDialog(
-              context: context,
-              builder: (context) => const AlertDialog(
-                content: Text('هذا الحساب مسجل من قبل بنفس البريد الاكتروني'
-                    '\n'
-                    'جرب تسجيل الدخول بفيسبوك'),
-              ),
-            );
-        });
+        await signInFuture;
         await User.instance.initialized;
         await setupSettings();
       }
@@ -207,42 +197,69 @@ class _LoginScreenState extends State<LoginScreen> {
                   Hive.box<Map>('NotificationsSettings');
               if (user.confessionsNotify) {
                 if (notificationsSettings.get('ConfessionTime') == null) {
-                  await notificationsSettings.put('ConfessionTime',
-                      <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+                  await notificationsSettings.put(
+                    'ConfessionTime',
+                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0},
+                  );
                 }
-                await AndroidAlarmManager.periodic(const Duration(days: 7),
-                    'Confessions'.hashCode, showConfessionNotification,
-                    exact: true,
-                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                        DateTime.now().day, 11),
-                    rescheduleOnReboot: true);
+                await AndroidAlarmManager.periodic(
+                  const Duration(days: 7),
+                  'Confessions'.hashCode,
+                  showConfessionNotification,
+                  exact: true,
+                  startAt: DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                    11,
+                  ),
+                  rescheduleOnReboot: true,
+                );
               }
 
               if (user.tanawolNotify) {
                 if (notificationsSettings.get('TanawolTime') == null) {
-                  await notificationsSettings.put('TanawolTime',
-                      <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0});
+                  await notificationsSettings.put(
+                    'TanawolTime',
+                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0},
+                  );
                 }
-                await AndroidAlarmManager.periodic(const Duration(days: 7),
-                    'Tanawol'.hashCode, showTanawolNotification,
-                    exact: true,
-                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                        DateTime.now().day, 11),
-                    rescheduleOnReboot: true);
+                await AndroidAlarmManager.periodic(
+                  const Duration(days: 7),
+                  'Tanawol'.hashCode,
+                  showTanawolNotification,
+                  exact: true,
+                  startAt: DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                    11,
+                  ),
+                  rescheduleOnReboot: true,
+                );
               }
 
               if (user.birthdayNotify) {
                 if (notificationsSettings.get('BirthDayTime') == null) {
                   await notificationsSettings.put(
-                      'BirthDayTime', <String, int>{'Hours': 11, 'Minutes': 0});
+                    'BirthDayTime',
+                    <String, int>{'Hours': 11, 'Minutes': 0},
+                  );
                 }
-                await AndroidAlarmManager.periodic(const Duration(days: 1),
-                    'BirthDay'.hashCode, showBirthDayNotification,
-                    exact: true,
-                    startAt: DateTime(DateTime.now().year, DateTime.now().month,
-                        DateTime.now().day, 11),
-                    wakeup: true,
-                    rescheduleOnReboot: true);
+                await AndroidAlarmManager.periodic(
+                  const Duration(days: 1),
+                  'BirthDay'.hashCode,
+                  showBirthDayNotification,
+                  exact: true,
+                  startAt: DateTime(
+                    DateTime.now().year,
+                    DateTime.now().month,
+                    DateTime.now().day,
+                    11,
+                  ),
+                  wakeup: true,
+                  rescheduleOnReboot: true,
+                );
               }
             }
           },

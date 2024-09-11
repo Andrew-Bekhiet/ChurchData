@@ -20,11 +20,13 @@ final Map<String, dynamic> userClaims = {
   'tanawolNotify': false,
   'approveLocations': false,
   'approved': true,
-  'personRef': 'Persons/user'
+  'personRef': 'Persons/user',
 };
 
-Widget wrapWithMaterialApp(Widget widget,
-    {Map<String, Widget Function(BuildContext)>? routes}) {
+Widget wrapWithMaterialApp(
+  Widget widget, {
+  Map<String, Widget Function(BuildContext)>? routes,
+}) {
   return MaterialApp(
     navigatorKey: navigator,
     scaffoldMessengerKey: scaffoldMessenger,

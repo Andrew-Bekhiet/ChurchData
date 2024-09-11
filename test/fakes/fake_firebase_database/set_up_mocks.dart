@@ -22,14 +22,16 @@ class FakeFirebaseCoreHostApi extends FirebaseCoreHostApi {
             projectId: '123',
           ),
           pluginConstants: {},
-        )
+        ),
       ],
     );
   }
 
   @override
   Future<PigeonInitializeResponse> initializeApp(
-      String argAppname, PigeonFirebaseOptions argInitializeapprequest) {
+    String argAppname,
+    PigeonFirebaseOptions argInitializeapprequest,
+  ) {
     return Future.value(
       PigeonInitializeResponse(
         name: argAppname,

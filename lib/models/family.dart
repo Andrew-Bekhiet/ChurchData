@@ -5,9 +5,10 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:location/location.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -50,23 +51,24 @@ class Family extends DataObject
 
   bool isStore;
 
-  Family(
-      {required this.areaId,
-      required JsonRef? streetId,
-      required String name,
-      this.address,
-      this.lastVisit,
-      this.fatherLastVisit,
-      this.lastEdit,
-      Color color = Colors.transparent,
-      required JsonRef ref,
-      this.isStore = false,
-      this.locationPoint,
-      this.insideFamily,
-      this.insideFamily2,
-      this.locationConfirmed = false,
-      this.notes})
-      : super(ref, name, color) {
+  Family({
+    required this.areaId,
+    required JsonRef? streetId,
+    required String name,
+    required JsonRef ref,
+    this.address,
+    this.lastVisit,
+    this.fatherLastVisit,
+    this.lastEdit,
+    Color color = Colors.transparent,
+    this.isStore = false,
+    this.locationPoint,
+    this.insideFamily,
+    this.insideFamily2,
+    this.locationConfirmed = false,
+    this.notes,
+  })  : _streetId = streetId,
+        super(ref, name, color) {
     hasPhoto = false;
     defaultIcon = Icons.group;
   }
@@ -105,25 +107,29 @@ class Family extends DataObject
   }
 
   @override
-  Future<List<Person>> getChildren(
-      [String orderBy = 'Name', bool tranucate = false]) async {
+  Future<List<Person>> getChildren([
+    String orderBy = 'Name',
+    bool tranucate = false,
+  ]) async {
     if (tranucate) {
-      return Person.getAll((await firestore
-                  .collection('Persons')
-                  .where('AreaId', isEqualTo: areaId)
-                  .where('FamilyId', isEqualTo: ref)
-                  .limit(5)
-                  .get())
-              .docs)
-          .cast<Person>();
-    }
-    return Person.getAll((await firestore
+      return Person.getAll(
+        (await firestore
                 .collection('Persons')
                 .where('AreaId', isEqualTo: areaId)
                 .where('FamilyId', isEqualTo: ref)
+                .limit(5)
                 .get())
-            .docs)
-        .cast<Person>();
+            .docs,
+      ).cast<Person>();
+    }
+    return Person.getAll(
+      (await firestore
+              .collection('Persons')
+              .where('AreaId', isEqualTo: areaId)
+              .where('FamilyId', isEqualTo: ref)
+              .get())
+          .docs,
+    ).cast<Person>();
   }
 
   @override
@@ -134,7 +140,7 @@ class Family extends DataObject
         'LastVisit': toDurationString(lastVisit),
         'FatherLastVisit': toDurationString(fatherLastVisit),
         'LastEdit': lastEdit,
-        'IsStore': isStore ? 'محل' : 'عائلة'
+        'IsStore': isStore ? 'محل' : 'عائلة',
       };
 
   Future<String?> getInsideFamilyName() async {
@@ -160,7 +166,7 @@ class Family extends DataObject
         'LastEdit': lastEdit,
         'InsideFamily': insideFamily,
         'InsideFamily2': insideFamily2,
-        'IsStore': isStore
+        'IsStore': isStore,
       };
 
   Widget getMapView({bool useGPSIfNull = false, bool editMode = false}) {
@@ -177,19 +183,23 @@ class Family extends DataObject
                     child: CircularProgressIndicator(),
                   );
                 return MapView(
-                    childrenDepth: 3,
-                    initialLocation: LatLng(
-                        snapshot.data!.latitude!, snapshot.data!.longitude!),
-                    editMode: editMode,
-                    family: this);
+                  childrenDepth: 3,
+                  initialLocation: LatLng(
+                    snapshot.data!.latitude!,
+                    snapshot.data!.longitude!,
+                  ),
+                  editMode: editMode,
+                  family: this,
+                );
               },
             );
           }
           return MapView(
-              childrenDepth: 3,
-              initialLocation: const LatLng(34, 50),
-              editMode: editMode,
-              family: this);
+            childrenDepth: 3,
+            initialLocation: const LatLng(34, 50),
+            editMode: editMode,
+            family: this,
+          );
         },
       );
     else if (locationPoint == null)
@@ -203,8 +213,10 @@ class Family extends DataObject
     return MapView(editMode: editMode, family: this, childrenDepth: 3);
   }
 
-  Stream<List<JsonQuery>> getMembersLive(
-      {String orderBy = 'Name', bool descending = false}) {
+  Stream<List<JsonQuery>> getMembersLive({
+    String orderBy = 'Name',
+    bool descending = false,
+  }) {
     return Family.getFamilyMembersLive(areaId!, id, orderBy, descending);
   }
 
@@ -223,7 +235,8 @@ class Family extends DataObject
     } else if (key == 'LastEdit') {
       return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
-    return getHumanReadableMap()[key];
+
+    return SynchronousFuture(getHumanReadableMap()[key]);
   }
 
   Future<String?> getStreetName() async {
@@ -313,11 +326,15 @@ class Family extends DataObject
         'LastVisit': 'lastVisit',
         'FatherLastVisit': 'fatherLastVisit',
         'LastEdit': 'lastEdit',
-        'IsStore': 'isStore'
+        'IsStore': 'isStore',
       };
 
-  static Stream<List<JsonQuery>> getFamilyMembersLive(JsonRef areaId, String id,
-      [String orderBy = 'Name', bool descending = false]) {
+  static Stream<List<JsonQuery>> getFamilyMembersLive(
+    JsonRef areaId,
+    String id, [
+    String orderBy = 'Name',
+    bool descending = false,
+  ]) {
     return User.instance.stream
         .asyncMap(
           (u) async => u.superAccess
@@ -333,7 +350,7 @@ class Family extends DataObject
         .switchMap(
           (a) => a == null
               ? Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
-                      List<JsonQuery>>(
+                  List<JsonQuery>>(
                   firestore
                       .collection('Persons')
                       .where('AreaId', isEqualTo: areaId)
@@ -359,7 +376,8 @@ class Family extends DataObject
                       )
                       .orderBy('Name')
                       .snapshots(),
-                  (a, b, c) => <JsonQuery>[a, b, c])
+                  (a, b, c) => <JsonQuery>[a, b, c],
+                )
               : Rx.combineLatest3<JsonQuery, JsonQuery, JsonQuery,
                   List<JsonQuery>>(
                   firestore
@@ -402,7 +420,7 @@ class Family extends DataObject
         'LastVisit': 'أخر زيارة',
         'FatherLastVisit': 'أخر زيارة (الأب الكاهن)',
         'LastEdit': 'أخر شخص قام بالتعديل',
-        'IsStore': 'محل؟'
+        'IsStore': 'محل؟',
       };
 
   @override

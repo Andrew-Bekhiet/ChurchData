@@ -30,7 +30,8 @@ class FakeFirebaseAuth implements auth.FirebaseAuth {
 
   @override
   Future<auth.UserCredential> signInWithCredential(
-      auth.AuthCredential? credential) {
+    auth.AuthCredential? credential,
+  ) {
     return _fakeSignIn();
   }
 
@@ -48,8 +49,10 @@ class FakeFirebaseAuth implements auth.FirebaseAuth {
   }
 
   @override
-  Future<auth.ConfirmationResult> signInWithPhoneNumber(String phoneNumber,
-      [auth.RecaptchaVerifier? verifier]) async {
+  Future<auth.ConfirmationResult> signInWithPhoneNumber(
+    String phoneNumber, [
+    auth.RecaptchaVerifier? verifier,
+  ]) async {
     return MockConfirmationResult(onConfirm: _fakeSignIn);
   }
 
@@ -97,25 +100,16 @@ class _FakeIdTokenResult extends Fake implements auth.IdTokenResult {}
 
 class MyMockUser extends MockUser with Mock {
   MyMockUser({
-    bool isAnonymous = false,
-    bool isEmailVerified = true,
-    String uid = 'some_random_id',
-    String? email,
-    String? displayName,
-    String? phoneNumber,
-    String? photoURL,
-    String? refreshToken,
-    auth.UserMetadata? metadata,
-  }) : super(
-            isAnonymous: isAnonymous,
-            isEmailVerified: isEmailVerified,
-            uid: uid,
-            email: email,
-            displayName: displayName,
-            phoneNumber: phoneNumber,
-            photoURL: photoURL,
-            refreshToken: refreshToken,
-            metadata: metadata);
+    super.isAnonymous,
+    super.isEmailVerified,
+    String super.uid = 'some_random_id',
+    super.email,
+    super.displayName,
+    super.phoneNumber,
+    super.photoURL,
+    super.refreshToken,
+    super.metadata,
+  });
 
   @override
   Future<String> getIdToken([bool forceRefresh = false]) async {
@@ -125,9 +119,9 @@ class MyMockUser extends MockUser with Mock {
   @override
   Future<auth.IdTokenResult> getIdTokenResult([bool forceRefresh = false]) {
     return super.noSuchMethod(
-            Invocation.method(#getIdTokenResult, [forceRefresh]),
-            returnValue: Future<auth.IdTokenResult>.value(_FakeIdTokenResult()))
-        as Future<auth.IdTokenResult>;
+      Invocation.method(#getIdTokenResult, [forceRefresh]),
+      returnValue: Future<auth.IdTokenResult>.value(_FakeIdTokenResult()),
+    ) as Future<auth.IdTokenResult>;
   }
 }
 

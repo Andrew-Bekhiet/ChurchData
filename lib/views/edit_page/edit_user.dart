@@ -20,7 +20,7 @@ import 'package:rxdart/rxdart.dart';
 class UserP extends StatefulWidget {
   final User user;
 
-  const UserP({Key? key, required this.user}) : super(key: key);
+  const UserP({required this.user, super.key});
   @override
   _UserPState createState() => _UserPState();
 }
@@ -31,7 +31,7 @@ class _UserPState extends State<UserP> {
     FocusNode(),
     FocusNode(),
     FocusNode(),
-    FocusNode()
+    FocusNode(),
   ];
   late Json old;
   GlobalKey<FormState> form = GlobalKey<FormState>();
@@ -42,7 +42,7 @@ class _UserPState extends State<UserP> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               expandedHeight: 250.0,
@@ -111,25 +111,33 @@ class _UserPState extends State<UserP> {
                       trailing: Checkbox(
                         value: widget.user.manageUsers,
                         onChanged: (v) => setState(
-                            () => widget.user.manageUsers = v ?? false),
+                          () => widget.user.manageUsers = v ?? false,
+                        ),
                       ),
                       leading: const Icon(
-                          IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                        IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                      ),
                       title: const Text('إدارة المستخدمين'),
-                      onTap: () => setState(() =>
-                          widget.user.manageUsers = !widget.user.manageUsers),
+                      onTap: () => setState(
+                        () =>
+                            widget.user.manageUsers = !widget.user.manageUsers,
+                      ),
                     ),
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.manageAllowedUsers,
                       onChanged: (v) => setState(
-                          () => widget.user.manageAllowedUsers = v ?? false),
+                        () => widget.user.manageAllowedUsers = v ?? false,
+                      ),
                     ),
                     leading: const Icon(
-                        IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                      IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                    ),
                     title: const Text('إدارة مستخدمين محددين'),
-                    onTap: () => setState(() => widget.user.manageAllowedUsers =
-                        !widget.user.manageAllowedUsers),
+                    onTap: () => setState(
+                      () => widget.user.manageAllowedUsers =
+                          !widget.user.manageAllowedUsers,
+                    ),
                   ),
                   ListTile(
                     trailing: Checkbox(
@@ -141,19 +149,23 @@ class _UserPState extends State<UserP> {
                       IconData(0xef56, fontFamily: 'MaterialIconsR'),
                     ),
                     title: const Text('رؤية جميع البيانات'),
-                    onTap: () => setState(() =>
-                        widget.user.superAccess = !widget.user.superAccess),
+                    onTap: () => setState(
+                      () => widget.user.superAccess = !widget.user.superAccess,
+                    ),
                   ),
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.manageDeleted,
                       onChanged: (v) => setState(
-                          () => widget.user.manageDeleted = v ?? false),
+                        () => widget.user.manageDeleted = v ?? false,
+                      ),
                     ),
                     leading: const Icon(Icons.delete_outlined),
                     title: const Text('استرجاع المحذوفات'),
-                    onTap: () => setState(() =>
-                        widget.user.manageDeleted = !widget.user.manageDeleted),
+                    onTap: () => setState(
+                      () => widget.user.manageDeleted =
+                          !widget.user.manageDeleted,
+                    ),
                   ),
                   ListTile(
                     trailing: Checkbox(
@@ -174,27 +186,32 @@ class _UserPState extends State<UserP> {
                     ),
                     leading: const Icon(Icons.cloud_download),
                     title: const Text('تصدير منطقة لملف إكسل'),
-                    onTap: () => setState(() =>
-                        widget.user.exportAreas = !widget.user.exportAreas),
+                    onTap: () => setState(
+                      () => widget.user.exportAreas = !widget.user.exportAreas,
+                    ),
                   ),
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.birthdayNotify,
                       onChanged: (v) => setState(
-                          () => widget.user.birthdayNotify = v ?? false),
+                        () => widget.user.birthdayNotify = v ?? false,
+                      ),
                     ),
                     leading: const Icon(
                       IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                     ),
                     title: const Text('إشعار أعياد الميلاد'),
-                    onTap: () => setState(() => widget.user.birthdayNotify =
-                        !widget.user.birthdayNotify),
+                    onTap: () => setState(
+                      () => widget.user.birthdayNotify =
+                          !widget.user.birthdayNotify,
+                    ),
                   ),
                   ListTile(
                     trailing: Checkbox(
                       value: widget.user.confessionsNotify,
                       onChanged: (v) => setState(
-                          () => widget.user.confessionsNotify = v ?? false),
+                        () => widget.user.confessionsNotify = v ?? false,
+                      ),
                     ),
                     leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
@@ -209,7 +226,8 @@ class _UserPState extends State<UserP> {
                     trailing: Checkbox(
                       value: widget.user.tanawolNotify,
                       onChanged: (v) => setState(
-                          () => widget.user.tanawolNotify = v ?? false),
+                        () => widget.user.tanawolNotify = v ?? false,
+                      ),
                     ),
                     leading: const Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
@@ -224,11 +242,14 @@ class _UserPState extends State<UserP> {
                     trailing: Checkbox(
                       value: widget.user.approveLocations,
                       onChanged: (v) => setState(
-                          () => widget.user.approveLocations = v ?? false),
+                        () => widget.user.approveLocations = v ?? false,
+                      ),
                     ),
                     title: const Text('التأكيد على المواقع'),
-                    onTap: () => setState(() => widget.user.approveLocations =
-                        !widget.user.approveLocations),
+                    onTap: () => setState(
+                      () => widget.user.approveLocations =
+                          !widget.user.approveLocations,
+                    ),
                     leading: const Icon(
                       IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
                     ),
@@ -265,7 +286,7 @@ class _UserPState extends State<UserP> {
                     label: Text(
                       'تعديل المستخدمين المسؤول عنهم ' + widget.user.name,
                       softWrap: false,
-                      textScaleFactor: 0.95,
+                      textScaler: const TextScaler.linear(0.95),
                       overflow: TextOverflow.fade,
                     ),
                   ),
@@ -360,8 +381,9 @@ class _UserPState extends State<UserP> {
         actions: <Widget>[
           TextButton(
             style: Theme.of(context).textButtonTheme.style?.copyWith(
-                foregroundColor:
-                    MaterialStateProperty.resolveWith((state) => Colors.red)),
+                  foregroundColor:
+                      WidgetStateProperty.resolveWith((state) => Colors.red),
+                ),
             onPressed: () async {
               try {
                 scaffoldMessenger.currentState!.showSnackBar(
@@ -424,9 +446,11 @@ class _UserPState extends State<UserP> {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('هل أنت متأكد من إعادة تعيين كلمة السر ل' +
-                widget.user.name +
-                '؟'),
+            title: Text(
+              'هل أنت متأكد من إعادة تعيين كلمة السر ل' +
+                  widget.user.name +
+                  '؟',
+            ),
             actions: [
               TextButton(
                 onPressed: () => navigator.currentState!.pop(true),
@@ -487,7 +511,8 @@ class _UserPState extends State<UserP> {
         final update = widget.user.getUpdateMap();
         if (old['name'] != widget.user.name)
           await firebaseFunctions.httpsCallable('changeUserName').call(
-              {'affectedUser': widget.user.uid, 'newName': widget.user.name});
+            {'affectedUser': widget.user.uid, 'newName': widget.user.name},
+          );
         update
           ..remove('name')
           ..remove('allowedUsers');
@@ -507,14 +532,14 @@ class _UserPState extends State<UserP> {
           for (final item in oldChildren) {
             if (!childrenUsers!.contains(item)) {
               batch.update(item.ref, {
-                'allowedUsers': FieldValue.arrayRemove([widget.user.uid])
+                'allowedUsers': FieldValue.arrayRemove([widget.user.uid]),
               });
             }
           }
           for (final item in childrenUsers!) {
             if (!oldChildren.contains(item)) {
               batch.update(item.ref, {
-                'allowedUsers': FieldValue.arrayUnion([widget.user.uid])
+                'allowedUsers': FieldValue.arrayUnion([widget.user.uid]),
               });
             }
           }
@@ -556,8 +581,12 @@ class _UserPState extends State<UserP> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .switchMap((value) => Person.getAllForUser(
-                  orderBy: value.orderBy, descending: !value.asc))
+              .switchMap(
+                (value) => Person.getAllForUser(
+                  orderBy: value.orderBy,
+                  descending: !value.asc,
+                ),
+              )
               .map((s) => s.docs.map(Person.fromQueryDoc).toList()),
         );
         return Dialog(
@@ -603,7 +632,7 @@ class _UserPState extends State<UserP> {
     await _orderOptions.close();
   }
 
-  void editChildrenUsers() async {
+  Future<void> editChildrenUsers() async {
     childrenUsers = await navigator.currentState!.push(
       MaterialPageRoute(
         builder: (context) {
@@ -621,7 +650,7 @@ class _UserPState extends State<UserP> {
                           selectionMode: true,
                           itemsStream: User.getAllForUser(),
                           selected: {
-                            for (final item in users.data!) item.id: item
+                            for (final item in users.data!) item.id: item,
                           },
                           itemBuilder:
                               (item, onLongPress, onTap, trailing, subtitle) =>
@@ -634,28 +663,31 @@ class _UserPState extends State<UserP> {
                           ),
                         ),
                         dispose: (context, c) => c.dispose(),
-                      )
+                      ),
                     ],
                     builder: (context, child) => Scaffold(
                       persistentFooterButtons: [
                         TextButton(
                           onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<DataObjectListController<User>>()
-                                .selectedLatest
-                                ?.values
-                                .toList());
+                            navigator.currentState!.pop(
+                              context
+                                  .read<DataObjectListController<User>>()
+                                  .selectedLatest
+                                  ?.values
+                                  .toList(),
+                            );
                           },
                           child: const Text('تم'),
-                        )
+                        ),
                       ],
                       appBar: AppBar(
                         title: SearchField(
-                            showSuffix: false,
-                            searchStream: context
-                                .read<DataObjectListController<User>>()
-                                .searchQuery,
-                            textStyle: Theme.of(context).textTheme.bodyMedium),
+                          showSuffix: false,
+                          searchStream: context
+                              .read<DataObjectListController<User>>()
+                              .searchQuery,
+                          textStyle: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
                       body: const UsersList(
                         autoDisposeController: false,

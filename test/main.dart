@@ -41,8 +41,8 @@ bool _initialized = false;
   MockUser,
   LocalAuthentication,
   HttpsCallable,
-  DeviceInfoPlatform,
-  UrlLauncherPlatform
+  // DeviceInfoPlatform,
+  UrlLauncherPlatform,
 ])
 Future<void> initTests() async {
   if (_initialized) return;
@@ -113,10 +113,12 @@ Future<void> initTests() async {
     //Plugins mocks
     UrlLauncherPlatform.instance = MockUrlLauncherPlatform();
 
-    (ConnectivityPlatform.instance as MethodChannelConnectivity)
-        .methodChannel
-        .setMockMethodCallHandler((call) async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+            (ConnectivityPlatform.instance as MethodChannelConnectivity)
+                .methodChannel, (call) async {
       if (call.method == 'check') return 'wifi';
+      return null;
     });
 
     PackageInfo.setMockInitialValues(
@@ -128,13 +130,15 @@ Future<void> initTests() async {
     );
 
     //RemoteConfig mocks
-    when(remoteConfig.setDefaults({
-      'LatestVersion': (await PackageInfo.fromPlatform()).version,
-      'LoadApp': 'false',
-      'DownloadLink':
-          'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
-              'download/ChurchData.apk',
-    })).thenAnswer(
+    when(
+      remoteConfig.setDefaults({
+        'LatestVersion': (await PackageInfo.fromPlatform()).version,
+        'LoadApp': 'false',
+        'DownloadLink':
+            'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
+                'download/ChurchData.apk',
+      }),
+    ).thenAnswer(
       (_) async {},
     );
     when(
@@ -161,13 +165,15 @@ Future<void> initTests() async {
 
     when(localAuthentication.canCheckBiometrics).thenAnswer((_) async => true);
     when(localAuthentication.isDeviceSupported()).thenAnswer((_) async => true);
-    when(localAuthentication.authenticate(
-      localizedReason: 'برجاء التحقق للمتابعة',
-      options: const AuthenticationOptions(
-        biometricOnly: true,
-        useErrorDialogs: false,
+    when(
+      localAuthentication.authenticate(
+        localizedReason: 'برجاء التحقق للمتابعة',
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          useErrorDialogs: false,
+        ),
       ),
-    )).thenAnswer((_) async => true);
+    ).thenAnswer((_) async => true);
 
     when(firebaseMessaging.getInitialMessage()).thenAnswer((_) async => null);
 
@@ -204,8 +210,11 @@ Future<void> initTests() async {
       }),
     );
 
-    const MethodChannel('dexterous.com/flutter/local_notifications')
-        .setMockMethodCallHandler((call) => null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('dexterous.com/flutter/local_notifications'),
+      (call) => null,
+    );
   });
 
   _initialized = true;
@@ -220,7 +229,9 @@ Future<void> initHive([bool retryOnHiveError = false]) async {
         await flutterSecureStorage.containsKey(key: 'key');
     if (!containsEncryptionKey)
       await flutterSecureStorage.write(
-          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        key: 'key',
+        value: base64Url.encode(Hive.generateSecureKey()),
+      );
 
     final encryptionKey =
         base64Url.decode((await flutterSecureStorage.read(key: 'key'))!);

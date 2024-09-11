@@ -15,7 +15,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +29,7 @@ enum DateType {
 }
 
 class Settings extends StatefulWidget {
-  const Settings({Key? key}) : super(key: key);
+  const Settings({super.key});
   @override
   SettingsState createState() => SettingsState();
 }
@@ -101,7 +101,8 @@ class SettingsState extends State<Settings> {
                         value: greatFeastTheme,
                         onChanged: (v) => setState(() => greatFeastTheme = v),
                         title: const Text(
-                            'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين'),
+                          'تغيير لون البرنامج حسب أسبوع الآلام وفترة الخمسين',
+                        ),
                       ),
                       ElevatedButton.icon(
                         onPressed: () async {
@@ -112,8 +113,8 @@ class SettingsState extends State<Settings> {
 
                           GetIt.I<ThemingService>().switchTheme(
                             darkTheme ??
-                                WidgetsBinding
-                                        .instance.window.platformBrightness ==
+                                PlatformDispatcher
+                                        .instance.platformBrightness ==
                                     Brightness.dark,
                           );
                         },
@@ -134,8 +135,9 @@ class SettingsState extends State<Settings> {
                     style: TextStyle(fontSize: 24),
                   ),
                   collapsed: const Text(
-                      'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع الأشخاص',
-                      overflow: TextOverflow.ellipsis),
+                    'الكنائس، الأباء الكهنة، الوظائف، السنوات الدراسية، أنواع الخدمات، أنواع الأشخاص',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -188,8 +190,9 @@ class SettingsState extends State<Settings> {
                     style: TextStyle(fontSize: 24),
                   ),
                   collapsed: const Text(
-                      'السطر الثاني للمنطقة، السطر الثاني للشارع، السطر الثاني للعائلة، السطر الثاني للشخص',
-                      overflow: TextOverflow.ellipsis),
+                    'السطر الثاني للمنطقة، السطر الثاني للشارع، السطر الثاني للعائلة، السطر الثاني للشخص',
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   expanded: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
@@ -295,7 +298,8 @@ class SettingsState extends State<Settings> {
                               )
                               .toList()
                             ..removeWhere(
-                                (element) => element.value == 'Color'),
+                              (element) => element.value == 'Color',
+                            ),
                           onSaved: (value) async {
                             await settings.put('PersonSecondLine', value);
                           },
@@ -323,30 +327,32 @@ class SettingsState extends State<Settings> {
                   ),
                 ),
                 Selector<User, Map<String, bool>>(
-                    selector: (_, user) => user.getNotificationsPermissions(),
-                    builder: (context, permission, _) {
-                      if (permission.containsValue(true) && !kIsWeb) {
-                        return ExpandablePanel(
-                          theme: ExpandableThemeData(
-                              useInkWell: true,
-                              iconColor: Theme.of(context).iconTheme.color,
-                              bodyAlignment:
-                                  ExpandablePanelBodyAlignment.right),
-                          header: const Text(
-                            'الاشعارات',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          collapsed: const Text('اعدادات الاشعارات'),
-                          expanded: _getNotificationsContent(permission),
-                        );
-                      }
-                      return Container();
-                    }),
+                  selector: (_, user) => user.getNotificationsPermissions(),
+                  builder: (context, permission, _) {
+                    if (permission.containsValue(true) && !kIsWeb) {
+                      return ExpandablePanel(
+                        theme: ExpandableThemeData(
+                          useInkWell: true,
+                          iconColor: Theme.of(context).iconTheme.color,
+                          bodyAlignment: ExpandablePanelBodyAlignment.right,
+                        ),
+                        header: const Text(
+                          'الاشعارات',
+                          style: TextStyle(fontSize: 24),
+                        ),
+                        collapsed: const Text('اعدادات الاشعارات'),
+                        expanded: _getNotificationsContent(permission),
+                      );
+                    }
+                    return Container();
+                  },
+                ),
                 ExpandablePanel(
                   theme: ExpandableThemeData(
-                      useInkWell: true,
-                      iconColor: Theme.of(context).iconTheme.color,
-                      bodyAlignment: ExpandablePanelBodyAlignment.right),
+                    useInkWell: true,
+                    iconColor: Theme.of(context).iconTheme.color,
+                    bodyAlignment: ExpandablePanelBodyAlignment.right,
+                  ),
                   header: const Text(
                     'أخرى',
                     style: TextStyle(fontSize: 24),
@@ -360,15 +366,19 @@ class SettingsState extends State<Settings> {
                       ),
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
-                      initialValue: ((settings.get('cacheSize',
-                                      defaultValue: 300 * 1024 * 1024) /
+                      initialValue: ((settings.get(
+                                    'cacheSize',
+                                    defaultValue: 300 * 1024 * 1024,
+                                  ) /
                                   1024) /
                               1024)
                           .truncate()
                           .toString(),
                       onSaved: (c) async {
                         await settings.put(
-                            'cacheSize', int.parse(c!) * 1024 * 1024);
+                          'cacheSize',
+                          int.parse(c!) * 1024 * 1024,
+                        );
                       },
                       validator: (value) {
                         if (value?.isEmpty ?? true) {

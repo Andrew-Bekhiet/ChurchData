@@ -26,7 +26,7 @@ import 'package:share_plus/share_plus.dart';
 class FamilyInfo extends StatefulWidget {
   final Family family;
 
-  const FamilyInfo({Key? key, required this.family}) : super(key: key);
+  const FamilyInfo({required this.family, super.key});
 
   @override
   _FamilyInfoState createState() => _FamilyInfoState();
@@ -59,9 +59,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
           showDialog(
             context: context,
             builder: (context) => DataDialog(
-              content: Text('لم يتم تأكيد موقع ال' +
-                  (widget.family.isStore ? 'محل' : 'عائلة') +
-                  ' الموجود على الخريطة'),
+              content: Text(
+                'لم يتم تأكيد موقع ال' +
+                    (widget.family.isStore ? 'محل' : 'عائلة') +
+                    ' الموجود على الخريطة',
+              ),
               title: const Text('تحذير'),
             ),
           );
@@ -73,15 +75,21 @@ class _FamilyInfoState extends State<FamilyInfo> {
       itemsStream: _orderOptions.switchMap(
         (o) => widget.family
             .getMembersLive(orderBy: o.orderBy, descending: !o.asc)
-            .map((s) => s
-                .map((s) => s.docs
-                    .map((e) => e.reference.parent.id == 'Persons'
-                        ? Person.fromDoc(e)
-                        : Family.fromDoc(e))
-                    .toList())
-                .expand((e) => e)
-                .toList()
-                .cast<DataObject>()),
+            .map(
+              (s) => s
+                  .map(
+                    (s) => s.docs
+                        .map(
+                          (e) => e.reference.parent.id == 'Persons'
+                              ? Person.fromDoc(e)
+                              : Family.fromDoc(e),
+                        )
+                        .toList(),
+                  )
+                  .expand((e) => e)
+                  .toList()
+                  .cast<DataObject>(),
+            ),
       ),
     );
   }
@@ -117,16 +125,18 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           onPressed: () {
                             recoverDoc(context, family.ref.path);
                           },
-                        )
+                        ),
                     ]
                   : <Widget>[
                       if (permission)
                         IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () async {
-                            final dynamic result = await navigator.currentState!
-                                .pushNamed('Data/EditFamily',
-                                    arguments: family);
+                            final dynamic result =
+                                await navigator.currentState!.pushNamed(
+                              'Data/EditFamily',
+                              arguments: family,
+                            );
                             if (result == null) return;
 
                             scaffoldMessenger.currentState!
@@ -163,9 +173,11 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           return [
                             PopupMenuItem(
                               value: '',
-                              child: Text('ارسال إشعار للمستخدمين عن ال' +
-                                  (family.isStore ? 'محل' : 'عائلة') +
-                                  ''),
+                              child: Text(
+                                'ارسال إشعار للمستخدمين عن ال' +
+                                    (family.isStore ? 'محل' : 'عائلة') +
+                                    '',
+                              ),
                             ),
                           ];
                         },
@@ -200,7 +212,8 @@ class _FamilyInfoState extends State<FamilyInfo> {
                                 icon: const Icon(Icons.copy),
                                 tooltip: 'نسخ',
                                 onPressed: () => Clipboard.setData(
-                                    ClipboardData(text: family.address ?? '')),
+                                  ClipboardData(text: family.address ?? ''),
+                                ),
                               ),
                             ),
                           if (family.notes?.isNotEmpty ?? false)
@@ -211,7 +224,8 @@ class _FamilyInfoState extends State<FamilyInfo> {
                                 icon: const Icon(Icons.copy),
                                 tooltip: 'نسخ',
                                 onPressed: () => Clipboard.setData(
-                                    ClipboardData(text: family.notes ?? '')),
+                                  ClipboardData(text: family.notes ?? ''),
+                                ),
                               ),
                             ),
                           if (family.locationPoint != null)
@@ -221,23 +235,30 @@ class _FamilyInfoState extends State<FamilyInfo> {
                               label: const Text('إظهار على الخريطة'),
                             ),
                           const Divider(thickness: 1),
-                          HistoryProperty('تاريخ أخر زيارة:', family.lastVisit,
-                              family.ref.collection('VisitHistory')),
                           HistoryProperty(
-                              'تاريخ أخر زيارة (لللأب الكاهن):',
-                              family.fatherLastVisit,
-                              family.ref.collection('FatherVisitHistory')),
+                            'تاريخ أخر زيارة:',
+                            family.lastVisit,
+                            family.ref.collection('VisitHistory'),
+                          ),
+                          HistoryProperty(
+                            'تاريخ أخر زيارة (لللأب الكاهن):',
+                            family.fatherLastVisit,
+                            family.ref.collection('FatherVisitHistory'),
+                          ),
                           EditHistoryProperty(
-                              'أخر تحديث للبيانات:',
-                              family.lastEdit,
-                              family.ref.collection('EditHistory')),
+                            'أخر تحديث للبيانات:',
+                            family.lastEdit,
+                            family.ref.collection('EditHistory'),
+                          ),
                           const Divider(thickness: 1),
                           ListTile(
                             title: const Text('داخل منطقة'),
                             subtitle: family.areaId != null &&
                                     family.areaId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Area>(
-                                    family.areaId!, Area.fromDoc)
+                                    family.areaId!,
+                                    Area.fromDoc,
+                                  )
                                 : const Text('غير موجودة'),
                           ),
                           ListTile(
@@ -245,33 +266,42 @@ class _FamilyInfoState extends State<FamilyInfo> {
                             subtitle: family.streetId != null &&
                                     family.streetId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Street>(
-                                    family.streetId!, Street.fromDoc)
+                                    family.streetId!,
+                                    Street.fromDoc,
+                                  )
                                 : const Text('غير موجود'),
                           ),
                           if (family.insideFamily != null &&
                               family.insideFamily!.parent.id != 'null')
                             ListTile(
-                              title: Text(family.isStore
-                                  ? 'ادارة المحل'
-                                  : 'داخل ' +
-                                      (family.isStore ? 'محل' : 'عائلة') +
-                                      ''),
+                              title: Text(
+                                family.isStore
+                                    ? 'ادارة المحل'
+                                    : 'داخل ' +
+                                        (family.isStore ? 'محل' : 'عائلة') +
+                                        '',
+                              ),
                               subtitle: AsyncDataObjectWidget<Family>(
-                                  family.insideFamily!, Family.fromDoc),
+                                family.insideFamily!,
+                                Family.fromDoc,
+                              ),
                             ),
                           if (family.insideFamily2 != null &&
                               family.insideFamily2!.parent.id != 'null')
                             ListTile(
                               title: const Text('داخل عائلة 2'),
                               subtitle: AsyncDataObjectWidget<Family>(
-                                  family.insideFamily2!, Family.fromDoc),
+                                family.insideFamily2!,
+                                Family.fromDoc,
+                              ),
                             ),
                           const Divider(thickness: 1),
                           Text(
-                              'الأشخاص بال' +
-                                  (family.isStore ? 'محل' : 'عائلة') +
-                                  '',
-                              style: Theme.of(context).textTheme.bodyLarge),
+                            'الأشخاص بال' +
+                                (family.isStore ? 'محل' : 'عائلة') +
+                                '',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                           SearchFilters(
                             3,
                             orderOptions: _orderOptions,
@@ -299,9 +329,10 @@ class _FamilyInfoState extends State<FamilyInfo> {
                 stream: _listOptions.objectsData,
                 builder: (context, snapshot) {
                   final StringBuffer text = StringBuffer(
-                      (snapshot.data?.whereType<Person>().length ?? 0)
-                              .toString() +
-                          ' شخص');
+                    (snapshot.data?.whereType<Person>().length ?? 0)
+                            .toString() +
+                        ' شخص',
+                  );
                   final int familiesCount = snapshot.data
                           ?.whereType<Family>()
                           .where((f) => !f.isStore)
@@ -370,18 +401,19 @@ class _FamilyInfoState extends State<FamilyInfo> {
                               leading: Icon(Icons.person_add),
                               title: Text('اضافة شخص'),
                             ),
-                          )
+                          ),
                         ],
                         onSelected: (type) async {
                           final dynamic result = type == 'null'
                               ? await navigator.currentState!.pushNamed(
                                   'Data/EditPerson',
-                                  arguments: family.ref)
+                                  arguments: family.ref,
+                                )
                               : await navigator.currentState!.pushNamed(
                                   'Data/EditFamily',
                                   arguments: {
                                     'Family': family.ref,
-                                    'IsStore': type as bool
+                                    'IsStore': type as bool,
                                   },
                                 );
 
@@ -412,7 +444,7 @@ class _FamilyInfoState extends State<FamilyInfo> {
     );
   }
 
-  void recordLastVisit(BuildContext context, Family family) async {
+  Future<void> recordLastVisit(BuildContext context, Family family) async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -432,11 +464,13 @@ class _FamilyInfoState extends State<FamilyInfo> {
         true) return;
     await family.ref.update({
       'LastVisit': Timestamp.now(),
-      'LastEdit': firebaseAuth.currentUser!.uid
+      'LastEdit': firebaseAuth.currentUser!.uid,
     });
-    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-      content: Text('تم بنجاح'),
-    ));
+    scaffoldMessenger.currentState!.showSnackBar(
+      const SnackBar(
+        content: Text('تم بنجاح'),
+      ),
+    );
   }
 
   void showMap(BuildContext context, Family family) {
@@ -452,21 +486,24 @@ class _FamilyInfoState extends State<FamilyInfo> {
                     itemBuilder: (context) => [
                       PopupMenuItem(
                         value: true,
-                        child: Text(family.locationConfirmed
-                            ? 'عدم تأكيد الموقع'
-                            : 'تأكيد الموقع'),
+                        child: Text(
+                          family.locationConfirmed
+                              ? 'عدم تأكيد الموقع'
+                              : 'تأكيد الموقع',
+                        ),
                       ),
                     ],
                     onSelected: (item) async {
-                      if (item == true && approve) {
+                      if (item && approve) {
                         try {
-                          scaffoldMessenger.currentState!
-                              .showSnackBar(const SnackBar(
-                            content: LinearProgressIndicator(),
-                          ));
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            const SnackBar(
+                              content: LinearProgressIndicator(),
+                            ),
+                          );
                           await family.ref.update({
                             'LocationConfirmed': !family.locationConfirmed,
-                            'LastEdit': User.instance.uid
+                            'LastEdit': User.instance.uid,
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
@@ -476,7 +513,9 @@ class _FamilyInfoState extends State<FamilyInfo> {
                           );
                         } catch (err, stkTrace) {
                           await FirebaseCrashlytics.instance.setCustomKey(
-                              'LastErrorIn', 'FamilyInfo.showMap');
+                            'LastErrorIn',
+                            'FamilyInfo.showMap',
+                          );
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();

@@ -8,10 +8,10 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class UserRegisteration extends StatefulWidget {
-  const UserRegisteration({Key? key}) : super(key: key);
+  const UserRegisteration({super.key});
   @override
   State createState() => _UserRegisterationState();
 }
@@ -80,14 +80,17 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     decoration: InputDecoration(
                       hintMaxLines: 3,
                       suffix: IconButton(
-                        icon: Icon(obscurePassword1
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          obscurePassword1
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         tooltip: obscurePassword1
                             ? 'اظهار كلمة السر'
                             : 'اخفاء كلمة السر',
                         onPressed: () => setState(
-                            () => obscurePassword1 = !obscurePassword1),
+                          () => obscurePassword1 = !obscurePassword1,
+                        ),
                       ),
                       helperText:
                           'يرجى إدخال كلمة سر لحسابك الجديد في البرنامج',
@@ -114,14 +117,17 @@ class _UserRegisterationState extends State<UserRegisteration> {
                     decoration: InputDecoration(
                       hintMaxLines: 3,
                       suffix: IconButton(
-                        icon: Icon(obscurePassword2
-                            ? Icons.visibility
-                            : Icons.visibility_off),
+                        icon: Icon(
+                          obscurePassword2
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
                         tooltip: obscurePassword2
                             ? 'اظهار كلمة السر'
                             : 'اخفاء كلمة السر',
                         onPressed: () => setState(
-                            () => obscurePassword2 = !obscurePassword2),
+                          () => obscurePassword2 = !obscurePassword2,
+                        ),
                       ),
                       labelText: 'تأكيد كلمة السر',
                     ),
@@ -162,7 +168,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                   await Hive.box('Settings').put('FCM_Token_Registered', false);
                   await User.instance.signOut();
                 },
-              )
+              ),
             ],
           ),
           body: Form(
@@ -232,7 +238,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
     );
   }
 
-  void _submit(String password, String _userName) async {
+  Future<void> _submit(String password, String _userName) async {
     if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
     scaffoldMessenger.currentState!.showSnackBar(
@@ -263,7 +269,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
     }
   }
 
-  void _registerUser(String registerationLink) async {
+  Future<void> _registerUser(String registerationLink) async {
     if (_formKey.currentState!.validate())
       // ignore: unawaited_futures
       showDialog(
@@ -277,7 +283,8 @@ class _UserRegisterationState extends State<UserRegisteration> {
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text(
-                    (snapshot.error! as FirebaseFunctionsException).message!);
+                  (snapshot.error! as FirebaseFunctionsException).message!,
+                );
               } else if (snapshot.connectionState == ConnectionState.done) {
                 navigator.currentState!.pop();
               }

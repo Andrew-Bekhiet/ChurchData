@@ -5,6 +5,7 @@ import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class MiniModel extends DataObject {
   final String collectionName;
@@ -13,7 +14,9 @@ abstract class MiniModel extends DataObject {
 
   MiniModel.createFromData(this.collectionName, Json data, String id)
       : super.createFromData(
-            data, firestore.collection(collectionName).doc(id));
+          data,
+          firestore.collection(collectionName).doc(id),
+        );
 
   MiniModel.createNew(this.collectionName)
       : super(firestore.collection(collectionName).doc(), '', null);
@@ -25,7 +28,7 @@ abstract class MiniModel extends DataObject {
 
   @override
   Future<String?> getSecondLine() async {
-    return null;
+    return SynchronousFuture(null);
   }
 
   @override
@@ -36,7 +39,7 @@ abstract class MiniModel extends DataObject {
 
 class Church extends MiniModel with ParentObject<Father> {
   String? address;
-  Church(String id, String name, {this.address}) : super(id, name);
+  Church(String id, String name, {this.address}) : super('Churches', id, name);
   Church._createFromData(Json data, String id)
       : super.createFromData('Churches', data, id) {
     address = data['Address'];
@@ -47,7 +50,7 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is Church && id == other.id;
   }
 
@@ -74,8 +77,10 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   @override
-  Future<List<Father>> getChildren(
-      [String orderBy = 'Name', bool tranucate = false]) async {
+  Future<List<Father>> getChildren([
+    String orderBy = 'Name',
+    bool tranucate = false,
+  ]) async {
     return (await firestore
             .collection('Fathers')
             .where('ChurchId', isEqualTo: ref)
@@ -86,7 +91,7 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class PersonState extends MiniModel {
@@ -100,7 +105,7 @@ class PersonState extends MiniModel {
   PersonState.createNew() : super.createNew('States');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is PersonState && id == other.id;
   }
 
@@ -120,7 +125,7 @@ class PersonState extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class College extends MiniModel {
@@ -131,7 +136,7 @@ class College extends MiniModel {
   College.createNew() : super.createNew('Colleges');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is College && id == other.id;
   }
 
@@ -151,7 +156,7 @@ class College extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class Father extends MiniModel with ChildObject<Church> {
@@ -165,7 +170,7 @@ class Father extends MiniModel with ChildObject<Church> {
   Father.createNew() : super.createNew('Fathers');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is Father && id == other.id;
   }
 
@@ -200,7 +205,7 @@ class Father extends MiniModel with ChildObject<Church> {
   JsonRef? get parentId => churchId;
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class Job extends MiniModel {
@@ -211,7 +216,7 @@ class Job extends MiniModel {
   Job.createNew() : super.createNew('Jobs');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is Job && id == other.id;
   }
 
@@ -231,7 +236,7 @@ class Job extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class PersonType extends MiniModel {
@@ -242,7 +247,7 @@ class PersonType extends MiniModel {
   PersonType.createNew() : super.createNew('Types');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is PersonType && id == other.id;
   }
 
@@ -262,7 +267,7 @@ class PersonType extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class ServingType extends MiniModel {
@@ -273,7 +278,7 @@ class ServingType extends MiniModel {
   ServingType.createNew() : super.createNew('ServingTypes');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is ServingType && id == other.id;
   }
 
@@ -293,7 +298,7 @@ class ServingType extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class StudyYear extends MiniModel {
@@ -309,7 +314,7 @@ class StudyYear extends MiniModel {
         super.createNew('StudyYears');
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(other) {
     return other is StudyYear && id == other.id;
   }
 
@@ -329,7 +334,7 @@ class StudyYear extends MiniModel {
   }
 
   @override
-  int get hashCode => hashValues(id, super.hashCode);
+  int get hashCode => Object.hash(id, super.hashCode);
 }
 
 class History {

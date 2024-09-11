@@ -8,6 +8,7 @@ import 'package:churchdata/models/search_filters.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,7 +25,7 @@ import 'package:provider/provider.dart';
 class EditArea extends StatefulWidget {
   final Area? area;
 
-  const EditArea({Key? key, this.area}) : super(key: key);
+  const EditArea({super.key, this.area});
 
   @override
   _EditAreaState createState() => _EditAreaState();
@@ -46,7 +47,7 @@ class _EditAreaState extends State<EditArea> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
@@ -61,8 +62,10 @@ class _EditAreaState extends State<EditArea> {
                             child:
                                 Icon(Icons.photo_camera, color: Colors.black54),
                           ),
-                          Icon(Icons.photo_camera,
-                              color: IconTheme.of(context).color),
+                          Icon(
+                            Icons.photo_camera,
+                            color: IconTheme.of(context).color,
+                          ),
                         ],
                       );
                     },
@@ -103,8 +106,8 @@ class _EditAreaState extends State<EditArea> {
                     if (source as bool &&
                         !(await Permission.camera.request()).isGranted) return;
                     final selectedImage = await ImagePicker().pickImage(
-                        source:
-                            source ? ImageSource.camera : ImageSource.gallery);
+                      source: source ? ImageSource.camera : ImageSource.gallery,
+                    );
                     if (selectedImage == null) return;
                     changedImage = (await ImageCropper().cropImage(
                       sourcePath: selectedImage.path,
@@ -125,7 +128,7 @@ class _EditAreaState extends State<EditArea> {
                     deletePhoto = false;
                     setState(() {});
                   },
-                )
+                ),
               ],
               backgroundColor:
                   area.color != Colors.transparent ? area.color : null,
@@ -225,13 +228,15 @@ class _EditAreaState extends State<EditArea> {
                                   onPressed: () =>
                                       navigator.currentState!.pop(false),
                                   tooltip: 'حذف التحديد',
-                                )
+                                ),
                               ],
                               title:
                                   Text('تعديل مكان ${area.name} على الخريطة'),
                             ),
                             body: area.getMapView(
-                                editMode: true, useGPSIfNull: true),
+                              editMode: true,
+                              useGPSIfNull: true,
+                            ),
                           ),
                         ),
                       );
@@ -252,9 +257,11 @@ class _EditAreaState extends State<EditArea> {
                           labelText: 'تاريخ أخر زيارة',
                         ),
                         child: area.lastVisit != null
-                            ? Text(DateFormat('yyyy/M/d').format(
-                                area.lastVisit!.toDate(),
-                              ))
+                            ? Text(
+                                DateFormat('yyyy/M/d').format(
+                                  area.lastVisit!.toDate(),
+                                ),
+                              )
                             : null,
                       ),
                     ),
@@ -269,9 +276,11 @@ class _EditAreaState extends State<EditArea> {
                           labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                         ),
                         child: area.fatherLastVisit != null
-                            ? Text(DateFormat('yyyy/M/d').format(
-                                area.fatherLastVisit!.toDate(),
-                              ))
+                            ? Text(
+                                DateFormat('yyyy/M/d').format(
+                                  area.fatherLastVisit!.toDate(),
+                                ),
+                              )
                             : null,
                       ),
                     ),
@@ -290,15 +299,18 @@ class _EditAreaState extends State<EditArea> {
                       if (permission) {
                         return ElevatedButton.icon(
                           style: area.color != Colors.transparent
-                              ? ElevatedButton.styleFrom(backgroundColor: area.color)
+                              ? ElevatedButton.styleFrom(
+                                  backgroundColor: area.color,
+                                )
                               : null,
                           icon: const Icon(Icons.visibility),
                           onPressed: showUsers,
                           label: const Text(
-                              'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
-                              softWrap: false,
-                              textScaleFactor: 0.95,
-                              overflow: TextOverflow.fade),
+                            'المستخدمين المسموح لهم برؤية المنطقة وما بداخلها',
+                            softWrap: false,
+                            textScaler: TextScaler.linear(0.95),
+                            overflow: TextOverflow.fade,
+                          ),
                         );
                       }
                       return Container();
@@ -332,13 +344,14 @@ class _EditAreaState extends State<EditArea> {
     );
   }
 
-  void delete() async {
+  Future<void> delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => DataDialog(
             title: Text(area.name),
             content: Text(
-                'هل أنت متأكد من حذف ${area.name} وكل ما بها من شوارع وعائلات وأشخاص؟'),
+              'هل أنت متأكد من حذف ${area.name} وكل ما بها من شوارع وعائلات وأشخاص؟',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -362,7 +375,7 @@ class _EditAreaState extends State<EditArea> {
           duration: Duration(minutes: 20),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).isConnected) {
         await area.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -392,8 +405,8 @@ class _EditAreaState extends State<EditArea> {
           ),
         );
         if (area.locationPoints.isNotEmpty &&
-            hashList(area.locationPoints) !=
-                hashList(widget.area?.locationPoints)) {
+            Object.hashAll(area.locationPoints) !=
+                Object.hashAll(widget.area?.locationPoints ?? [])) {
           if (User.instance.approveLocations) {
             area.locationConfirmed = await showDialog(
               context: context,
@@ -401,7 +414,8 @@ class _EditAreaState extends State<EditArea> {
               builder: (context) => DataDialog(
                 title: const Text('هل أنت متأكد من موقع المنطقة على الخريطة؟'),
                 content: const Text(
-                    'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
+                  'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه',
+                ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
@@ -410,7 +424,7 @@ class _EditAreaState extends State<EditArea> {
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(false),
                     child: const Text('لا'),
-                  )
+                  ),
                 ],
               ),
             );
@@ -432,16 +446,13 @@ class _EditAreaState extends State<EditArea> {
 
         area.lastEdit = User.instance.uid;
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           await area.update(old: widget.area?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           area.update(old: widget.area?.getMap() ?? {});
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           await area.set();
         } else {
           //Intentionally unawaited because of no internet connection
@@ -469,7 +480,7 @@ class _EditAreaState extends State<EditArea> {
     }
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -498,24 +509,28 @@ class _EditAreaState extends State<EditArea> {
     );
   }
 
-  void showUsers() async {
+  Future<void> showUsers() async {
     area.allowedUsers = await navigator.currentState!.push(
           MaterialPageRoute(
             builder: (context) => FutureBuilder<List<User>>(
-              future: User.getAllForUser().first.then((value) => value
-                  .where((u) => area.allowedUsers.contains(u.uid))
-                  .toList()),
+              future: User.getAllForUser().first.then(
+                    (value) => value
+                        .where((u) => area.allowedUsers.contains(u.uid))
+                        .toList(),
+                  ),
               builder: (c, users) {
                 if (!users.hasData)
                   return const Center(child: CircularProgressIndicator());
 
                 return Provider<DataObjectListController<User>>(
                   create: (_) => DataObjectListController<User>(
-                    itemBuilder: (current,
-                            [void Function(User)? onLongPress,
-                            void Function(User)? onTap,
-                            Widget? trailing,
-                            Widget? subtitle]) =>
+                    itemBuilder: (
+                      current, [
+                      void Function(User)? onLongPress,
+                      void Function(User)? onTap,
+                      trailing,
+                      subtitle,
+                    ]) =>
                         DataObjectWidget(
                       current,
                       onTap: () => onTap!(current),
@@ -530,23 +545,27 @@ class _EditAreaState extends State<EditArea> {
                   builder: (context, _) => Scaffold(
                     appBar: AppBar(
                       leading: IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: navigator.currentState!.pop),
+                        icon: const Icon(Icons.close),
+                        onPressed: navigator.currentState!.pop,
+                      ),
                       title: SearchField(
                         showSuffix: false,
                         searchStream: context
                             .read<DataObjectListController<User>>()
                             .searchQuery,
-                        textStyle: Theme.of(context).primaryTextTheme.titleLarge,
+                        textStyle:
+                            Theme.of(context).primaryTextTheme.titleLarge,
                       ),
                       actions: [
                         IconButton(
                           onPressed: () {
-                            navigator.currentState!.pop(context
-                                .read<DataObjectListController<User>>()
-                                .selectedLatest
-                                ?.keys
-                                .toList());
+                            navigator.currentState!.pop(
+                              context
+                                  .read<DataObjectListController<User>>()
+                                  .selectedLatest
+                                  ?.keys
+                                  .toList(),
+                            );
                           },
                           icon: const Icon(Icons.done),
                           tooltip: 'تم',

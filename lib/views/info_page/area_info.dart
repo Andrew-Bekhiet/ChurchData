@@ -22,7 +22,7 @@ import 'package:share_plus/share_plus.dart';
 class AreaInfo extends StatefulWidget {
   final Area area;
 
-  const AreaInfo({Key? key, required this.area}) : super(key: key);
+  const AreaInfo({required this.area, super.key});
 
   @override
   _AreaInfoState createState() => _AreaInfoState();
@@ -59,7 +59,7 @@ class _AreaInfoState extends State<AreaInfo> {
           'MoreOptions',
           'EditHistory',
           if (User.instance.write) 'LastVisit',
-          if (User.instance.write) 'Add'
+          if (User.instance.write) 'Add',
         ]);
       },
     );
@@ -110,7 +110,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             onPressed: () {
                               recoverDoc(context, area.ref.path);
                             },
-                          )
+                          ),
                       ]
                     : <Widget>[
                         if (User.instance.write)
@@ -140,7 +140,8 @@ class _AreaInfoState extends State<AreaInfo> {
                                     ),
                                     onPressed: () =>
                                         FeatureDiscovery.completeCurrentStep(
-                                            context),
+                                      context,
+                                    ),
                                   ),
                                   OutlinedButton(
                                     onPressed: () =>
@@ -171,11 +172,15 @@ class _AreaInfoState extends State<AreaInfo> {
                                       const Positioned(
                                         left: 1.0,
                                         top: 2.0,
-                                        child: Icon(Icons.edit,
-                                            color: Colors.black54),
+                                        child: Icon(
+                                          Icons.edit,
+                                          color: Colors.black54,
+                                        ),
                                       ),
-                                      Icon(Icons.edit,
-                                          color: IconTheme.of(context).color),
+                                      Icon(
+                                        Icons.edit,
+                                        color: IconTheme.of(context).color,
+                                      ),
                                     ],
                                   );
                                 },
@@ -218,7 +223,8 @@ class _AreaInfoState extends State<AreaInfo> {
                             description: Column(
                               children: <Widget>[
                                 const Text(
-                                    'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج'),
+                                  'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
+                                ),
                                 OutlinedButton.icon(
                                   icon: const Icon(Icons.forward),
                                   label: Text(
@@ -232,7 +238,8 @@ class _AreaInfoState extends State<AreaInfo> {
                                   ),
                                   onPressed: () =>
                                       FeatureDiscovery.completeCurrentStep(
-                                          context),
+                                    context,
+                                  ),
                                 ),
                                 OutlinedButton(
                                   onPressed: () =>
@@ -263,11 +270,15 @@ class _AreaInfoState extends State<AreaInfo> {
                                     const Positioned(
                                       left: 1.0,
                                       top: 2.0,
-                                      child: Icon(Icons.share,
-                                          color: Colors.black54),
+                                      child: Icon(
+                                        Icons.share,
+                                        color: Colors.black54,
+                                      ),
                                     ),
-                                    Icon(Icons.share,
-                                        color: IconTheme.of(context).color),
+                                    Icon(
+                                      Icons.share,
+                                      color: IconTheme.of(context).color,
+                                    ),
                                   ],
                                 );
                               },
@@ -291,7 +302,8 @@ class _AreaInfoState extends State<AreaInfo> {
                           description: Column(
                             children: <Widget>[
                               const Text(
-                                  'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة'),
+                                'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة',
+                              ),
                               OutlinedButton.icon(
                                 icon: const Icon(Icons.forward),
                                 label: Text(
@@ -305,7 +317,8 @@ class _AreaInfoState extends State<AreaInfo> {
                                 ),
                                 onPressed: () =>
                                     FeatureDiscovery.completeCurrentStep(
-                                        context),
+                                  context,
+                                ),
                               ),
                               OutlinedButton(
                                 onPressed: () =>
@@ -385,12 +398,16 @@ class _AreaInfoState extends State<AreaInfo> {
                           label: const Text('إظهار على الخريطة'),
                         ),
                       const Divider(thickness: 1),
-                      HistoryProperty('تاريخ أخر زيارة:', area.lastVisit,
-                          area.ref.collection('VisitHistory')),
                       HistoryProperty(
-                          'تاريخ أخر زيارة (لللأب الكاهن):',
-                          area.fatherLastVisit,
-                          area.ref.collection('FatherVisitHistory')),
+                        'تاريخ أخر زيارة:',
+                        area.lastVisit,
+                        area.ref.collection('VisitHistory'),
+                      ),
+                      HistoryProperty(
+                        'تاريخ أخر زيارة (لللأب الكاهن):',
+                        area.fatherLastVisit,
+                        area.ref.collection('FatherVisitHistory'),
+                      ),
                       EditHistoryProperty(
                         'أخر تحديث للبيانات:',
                         area.lastEdit,
@@ -418,8 +435,10 @@ class _AreaInfoState extends State<AreaInfo> {
                         label: const Text('تحليل الحياة الروحية للمخدومين'),
                       ),
                       const Divider(thickness: 1),
-                      Text('الشوارع بالمنطقة:',
-                          style: Theme.of(context).textTheme.bodyLarge),
+                      Text(
+                        'الشوارع بالمنطقة:',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                       SearchFilters(
                         1,
                         orderOptions: _orderOptions,
@@ -476,7 +495,8 @@ class _AreaInfoState extends State<AreaInfo> {
                           description: Column(
                             children: <Widget>[
                               const Text(
-                                  'يمكنك تسجيل تاريخ أخر زيارة من هنا بشكل مباشر'),
+                                'يمكنك تسجيل تاريخ أخر زيارة من هنا بشكل مباشر',
+                              ),
                               OutlinedButton.icon(
                                 icon: const Icon(Icons.forward),
                                 label: Text(
@@ -490,7 +510,8 @@ class _AreaInfoState extends State<AreaInfo> {
                                 ),
                                 onPressed: () =>
                                     FeatureDiscovery.completeCurrentStep(
-                                        context),
+                                  context,
+                                ),
                               ),
                               OutlinedButton(
                                 onPressed: () =>
@@ -551,7 +572,8 @@ class _AreaInfoState extends State<AreaInfo> {
                         description: Column(
                           children: [
                             const Text(
-                                'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا'),
+                              'يمكنك اضافة شارع داخل المنطقة بسرعة وسهولة من هنا',
+                            ),
                             OutlinedButton(
                               onPressed: () =>
                                   FeatureDiscovery.completeCurrentStep(context),
@@ -585,7 +607,7 @@ class _AreaInfoState extends State<AreaInfo> {
     );
   }
 
-  void recordLastVisit(BuildContext context, Area area) async {
+  Future<void> recordLastVisit(BuildContext context, Area area) async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -605,11 +627,13 @@ class _AreaInfoState extends State<AreaInfo> {
         true) return;
     await area.ref.update({
       'LastVisit': Timestamp.now(),
-      'LastEdit': firebaseAuth.currentUser!.uid
+      'LastEdit': firebaseAuth.currentUser!.uid,
     });
-    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-      content: Text('تم بنجاح'),
-    ));
+    scaffoldMessenger.currentState!.showSnackBar(
+      const SnackBar(
+        content: Text('تم بنجاح'),
+      ),
+    );
   }
 
   void showMap(BuildContext context, Area area) {
@@ -625,21 +649,24 @@ class _AreaInfoState extends State<AreaInfo> {
                     itemBuilder: (context) => [
                       PopupMenuItem(
                         value: true,
-                        child: Text(area.locationConfirmed
-                            ? 'عدم تأكيد الموقع'
-                            : 'تأكيد الموقع'),
+                        child: Text(
+                          area.locationConfirmed
+                              ? 'عدم تأكيد الموقع'
+                              : 'تأكيد الموقع',
+                        ),
                       ),
                     ],
                     onSelected: (item) async {
-                      if (item == true && approve) {
+                      if (item && approve) {
                         try {
-                          scaffoldMessenger.currentState!
-                              .showSnackBar(const SnackBar(
-                            content: LinearProgressIndicator(),
-                          ));
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            const SnackBar(
+                              content: LinearProgressIndicator(),
+                            ),
+                          );
                           await area.ref.update({
                             'LocationConfirmed': !area.locationConfirmed,
-                            'LastEdit': User.instance.uid
+                            'LastEdit': User.instance.uid,
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(

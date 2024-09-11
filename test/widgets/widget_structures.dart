@@ -31,22 +31,28 @@ Future<void> main() async {
         expect(find.text('جار التحميل...'), findsOneWidget);
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
         expect(
-            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
-            findsNothing);
+          find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+          findsNothing,
+        );
       });
 
       testWidgets('With version', (tester) async {
-        await tester.pumpWidget(wrapWithMaterialApp(const Loading(
-          showVersionInfo: true,
-        )));
+        await tester.pumpWidget(
+          wrapWithMaterialApp(
+            const Loading(
+              showVersionInfo: true,
+            ),
+          ),
+        );
         await tester.pump();
 
         expect(find.byType(Image), findsOneWidget);
         expect(find.text('جار التحميل...'), findsOneWidget);
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
         expect(
-            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
-            findsOneWidget);
+          find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+          findsOneWidget,
+        );
       });
 
       group('Errors', () {
@@ -56,10 +62,14 @@ Future<void> main() async {
         });
 
         testWidgets('Other errors', (tester) async {
-          await tester.pumpWidget(wrapWithMaterialApp(const Loading(
-            error: true,
-            message: '{Error message}',
-          )));
+          await tester.pumpWidget(
+            wrapWithMaterialApp(
+              const Loading(
+                error: true,
+                message: '{Error message}',
+              ),
+            ),
+          );
           await tester.pump();
 
           expect(find.byType(Image), findsOneWidget);
@@ -67,15 +77,18 @@ Future<void> main() async {
           expect(find.text('جار التحميل...'), findsNothing);
           expect(find.byType(CircularProgressIndicator), findsNothing);
 
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
 
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
           expect(find.byKey(const Key('ClickForMore')), findsOneWidget);
 
           expect(
-              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
-              findsOneWidget);
+            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+            findsOneWidget,
+          );
 
           await tester.tap(find.byKey(const Key('ClickForMore')));
           await tester.pumpAndSettle();
@@ -108,15 +121,18 @@ Future<void> main() async {
           expect(find.text('جار التحميل...'), findsNothing);
           expect(find.byType(CircularProgressIndicator), findsNothing);
 
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
 
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
           expect(find.byKey(const Key('ClickForMore')), findsOneWidget);
 
           expect(
-              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
-              findsOneWidget);
+            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+            findsOneWidget,
+          );
 
           await tester.tap(find.byKey(const Key('ClickForMore')));
           await tester.pumpAndSettle();
@@ -157,15 +173,18 @@ Future<void> main() async {
           expect(find.text('جار التحميل...'), findsNothing);
           expect(find.byType(CircularProgressIndicator), findsNothing);
 
-          expect(find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
-              findsOneWidget);
+          expect(
+            find.text('لا يمكن تحميل البرنامج في الوقت الحالي'),
+            findsOneWidget,
+          );
 
           expect(find.text('اضغط لمزيد من المعلومات'), findsOneWidget);
           expect(find.byKey(const Key('ClickForMore')), findsOneWidget);
 
           expect(
-              find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
-              findsOneWidget);
+            find.text('اصدار: ' + (await PackageInfo.fromPlatform()).version),
+            findsOneWidget,
+          );
 
           await tester.tap(find.byKey(const Key('ClickForMore')));
           await tester.pumpAndSettle();
@@ -222,23 +241,25 @@ Future<void> main() async {
         expect(lastTanawolMatcher, findsOneWidget);
 
         expect(
-            find.descendant(
-              of: find.ancestor(
-                of: lastConfessionMatcher,
-                matching: find.byType(Container),
-              ),
-              matching: find.byIcon(Icons.close),
+          find.descendant(
+            of: find.ancestor(
+              of: lastConfessionMatcher,
+              matching: find.byType(Container),
             ),
-            findsOneWidget);
+            matching: find.byIcon(Icons.close),
+          ),
+          findsOneWidget,
+        );
         expect(
-            find.descendant(
-              of: find.ancestor(
-                of: lastTanawolMatcher,
-                matching: find.byType(Container),
-              ),
-              matching: find.byIcon(Icons.close),
+          find.descendant(
+            of: find.ancestor(
+              of: lastTanawolMatcher,
+              matching: find.byType(Container),
             ),
-            findsOneWidget);
+            matching: find.byIcon(Icons.close),
+          ),
+          findsOneWidget,
+        );
 
         await tester.tap(lastConfessionMatcher);
         await tester.pumpAndSettle();
@@ -253,9 +274,15 @@ Future<void> main() async {
         await tester.tap(find.text('حسنًا'));
         await tester.pumpAndSettle();
 
-        lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
-            DateTime(lastConfession.year, lastConfession.month,
-                lastConfession.day != 27 ? 27 : 28)));
+        lastConfessionMatcher = find.text(
+          DateFormat('yyyy/M/d').format(
+            DateTime(
+              lastConfession.year,
+              lastConfession.month,
+              lastConfession.day != 27 ? 27 : 28,
+            ),
+          ),
+        );
 
         expect(lastConfessionMatcher, findsOneWidget);
 
@@ -272,10 +299,15 @@ Future<void> main() async {
         await tester.tap(find.text('حسنًا'));
         await tester.pumpAndSettle();
 
-        lastTanawolMatcher = find.text(DateFormat('yyyy/M/d').format(DateTime(
-            lastTanawol.year,
-            lastTanawol.month,
-            lastTanawol.day != 27 ? 27 : 28)));
+        lastTanawolMatcher = find.text(
+          DateFormat('yyyy/M/d').format(
+            DateTime(
+              lastTanawol.year,
+              lastTanawol.month,
+              lastTanawol.day != 27 ? 27 : 28,
+            ),
+          ),
+        );
 
         expect(lastTanawolMatcher, findsNWidgets(2));
       },
@@ -365,8 +397,7 @@ Future<void> main() async {
               .thenAnswer((_) async => true);
         });
         testWidgets('With Biometrics', (tester) async {
-          tester.binding.window.physicalSizeTestValue =
-              const Size(1080 * 3, 2400 * 3);
+          tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
           await tester.pumpWidget(
             wrapWithMaterialApp(
@@ -408,12 +439,13 @@ Future<void> main() async {
             scrollable: listViewMatcher,
           );
 
-          expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-              findsOneWidget);
+          expect(
+            find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+            findsOneWidget,
+          );
         });
         testWidgets('Without Biometrics', (tester) async {
-          tester.binding.window.physicalSizeTestValue =
-              const Size(1080 * 3, 2400 * 3);
+          tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
           when(localAuthentication.canCheckBiometrics)
               .thenAnswer((_) async => false);
@@ -452,8 +484,10 @@ Future<void> main() async {
 
           expect(find.text('تسجيل الدخول'), findsOneWidget);
 
-          expect(find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
-              findsNothing);
+          expect(
+            find.text('إعادة المحاولة عن طريق بصمة الاصبع/الوجه'),
+            findsNothing,
+          );
         });
       },
     );
@@ -468,16 +502,18 @@ Future<void> main() async {
         when(remoteConfig.getString('LatestVersion')).thenReturn('8.5.0');
         when(UrlLauncherPlatform.instance.canLaunch(downloadLink))
             .thenAnswer((_) async => true);
-        when((UrlLauncherPlatform.instance as MockUrlLauncherPlatform).launch(
-          downloadLink,
-          enableDomStorage: anyNamed('enableDomStorage'),
-          enableJavaScript: anyNamed('enableJavaScript'),
-          headers: anyNamed('headers'),
-          universalLinksOnly: anyNamed('universalLinksOnly'),
-          useSafariVC: anyNamed('useSafariVC'),
-          useWebView: anyNamed('useWebView'),
-          webOnlyWindowName: anyNamed('webOnlyWindowName'),
-        )).thenAnswer((_) async => true);
+        when(
+          (UrlLauncherPlatform.instance as MockUrlLauncherPlatform).launch(
+            downloadLink,
+            enableDomStorage: anyNamed('enableDomStorage'),
+            enableJavaScript: anyNamed('enableJavaScript'),
+            headers: anyNamed('headers'),
+            universalLinksOnly: anyNamed('universalLinksOnly'),
+            useSafariVC: anyNamed('useSafariVC'),
+            useWebView: anyNamed('useWebView'),
+            webOnlyWindowName: anyNamed('webOnlyWindowName'),
+          ),
+        ).thenAnswer((_) async => true);
       });
 
       tearDown(() {
@@ -529,16 +565,17 @@ Future<void> main() async {
           await tester.tap(find.text('نعم'));
 
           verify(
-              (UrlLauncherPlatform.instance as MockUrlLauncherPlatform).launch(
-            downloadLink,
-            enableDomStorage: anyNamed('enableDomStorage'),
-            enableJavaScript: anyNamed('enableJavaScript'),
-            headers: anyNamed('headers'),
-            universalLinksOnly: anyNamed('universalLinksOnly'),
-            useSafariVC: anyNamed('useSafariVC'),
-            useWebView: anyNamed('useWebView'),
-            webOnlyWindowName: anyNamed('webOnlyWindowName'),
-          ));
+            (UrlLauncherPlatform.instance as MockUrlLauncherPlatform).launch(
+              downloadLink,
+              enableDomStorage: anyNamed('enableDomStorage'),
+              enableJavaScript: anyNamed('enableJavaScript'),
+              headers: anyNamed('headers'),
+              universalLinksOnly: anyNamed('universalLinksOnly'),
+              useSafariVC: anyNamed('useSafariVC'),
+              useWebView: anyNamed('useWebView'),
+              webOnlyWindowName: anyNamed('webOnlyWindowName'),
+            ),
+          );
         },
       );
     });

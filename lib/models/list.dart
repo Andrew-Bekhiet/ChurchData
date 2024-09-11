@@ -28,9 +28,11 @@ class DataObjectList<T extends DataObject> extends StatefulWidget {
   final DataObjectListController<T>? options;
   final bool autoDisposeController;
 
-  const DataObjectList(
-      {Key? key, this.options, required this.autoDisposeController})
-      : super(key: key);
+  const DataObjectList({
+    required this.autoDisposeController,
+    super.key,
+    this.options,
+  });
 
   @override
   _ListState<T> createState() => _ListState<T>();
@@ -83,7 +85,9 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
             return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
           return _GroupedList<T>(
-              groupedData: _data, listController: _listOptions);
+            groupedData: _data,
+            listController: _listOptions,
+          );
         }
         return const Center(child: Text('لا يمكن عرض البيانات'));
       },
@@ -114,9 +118,11 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
 }
 
 class _UngroupedList<T extends DataObject> extends StatelessWidget {
-  const _UngroupedList(
-      {Key? key, required this.data, required this.listController})
-      : super(key: key);
+  const _UngroupedList({
+    required this.data,
+    required this.listController,
+    super.key,
+  });
 
   final List<T> data;
   final DataObjectListController<T> listController;
@@ -137,7 +143,7 @@ class _UngroupedList<T extends DataObject> extends StatelessWidget {
           current,
           onLongPress: listController.onLongPress ??
               (item) => _defaultLongPress(context, item, listController),
-          onTap: (T current) {
+          onTap: (current) {
             if (!listController.selectionMode.value) {
               listController.tap == null
                   ? dataObjectTap(current)
@@ -177,9 +183,11 @@ class _UngroupedList<T extends DataObject> extends StatelessWidget {
 }
 
 class _GroupedList<O extends DataObject> extends StatelessWidget {
-  const _GroupedList(
-      {Key? key, required this.groupedData, required this.listController})
-      : super(key: key);
+  const _GroupedList({
+    required this.groupedData,
+    required this.listController,
+    super.key,
+  });
 
   final Map<String, List<O>> groupedData;
   final DataObjectListController<O> listController;
@@ -208,7 +216,7 @@ class _GroupedList<O extends DataObject> extends StatelessWidget {
                 ...listController.openedNodes.value,
                 groupedData.keys.elementAt(i): !(listController
                         .openedNodes.value[groupedData.keys.elementAt(i)] ??
-                    false)
+                    false),
               });
             },
             trailing: Row(
@@ -221,7 +229,7 @@ class _GroupedList<O extends DataObject> extends StatelessWidget {
                       groupedData.keys.elementAt(i): !(listController
                               .openedNodes
                               .value[groupedData.keys.elementAt(i)] ??
-                          false)
+                          false),
                     });
                   },
                   icon: Icon(
@@ -238,12 +246,12 @@ class _GroupedList<O extends DataObject> extends StatelessWidget {
         );
       },
       itemBuilder: (context, i) {
-        final O current = groupedData[i.section]![i.index];
+        final O current = groupedData.values.elementAt(i.section)[i.index];
         return listController.buildItem(
           current,
           onLongPress: listController.onLongPress ??
               (item) => _defaultLongPress(context, item, listController),
-          onTap: (O current) {
+          onTap: (current) {
             if (!listController.selectionMode.value) {
               listController.tap == null
                   ? dataObjectTap(current)
@@ -282,8 +290,11 @@ class _GroupedList<O extends DataObject> extends StatelessWidget {
   }
 }
 
-void _defaultLongPress<T extends DataObject>(BuildContext context, T current,
-    DataObjectListController<T> _listController) async {
+Future<void> _defaultLongPress<T extends DataObject>(
+  BuildContext context,
+  T current,
+  DataObjectListController<T> _listController,
+) async {
   _listController.selectionMode.add(!_listController.selectionMode.value);
 
   if (!_listController.selectionMode.value) {
@@ -383,16 +394,17 @@ void _defaultLongPress<T extends DataObject>(BuildContext context, T current,
                         .where((p) => p.phone != null && p.phone!.isNotEmpty)) {
                       try {
                         final c = Contact(
-                            photo: item.hasPhoto
-                                ? await item.photoRef.getData(100 * 1024 * 1024)
-                                : null,
-                            phones: [Phone(item.phone!)])
-                          ..name.first = item.name;
+                          photo: item.hasPhoto
+                              ? await item.photoRef.getData(100 * 1024 * 1024)
+                              : null,
+                          phones: [Phone(item.phone!)],
+                        )..name.first = item.name;
                         await c.insert();
                       } catch (err, stkTrace) {
                         await FirebaseCrashlytics.instance.setCustomKey(
-                            'LastErrorIn',
-                            'InnerPersonListState.build.addToContacts.tap');
+                          'LastErrorIn',
+                          'InnerPersonListState.build.addToContacts.tap',
+                        );
                         await FirebaseCrashlytics.instance
                             .recordError(err, stkTrace);
                       }
@@ -406,9 +418,11 @@ void _defaultLongPress<T extends DataObject>(BuildContext context, T current,
         );
       } else
         await Share.share(
-          (await Future.wait(_listController.selected.value.values
-                  .map((f) async => f.name + ': ' + await shareDataObject(f))
-                  .toList()))
+          (await Future.wait(
+            _listController.selected.value.values
+                .map((f) async => f.name + ': ' + await shareDataObject(f))
+                .toList(),
+          ))
               .join('\n'),
         );
     }

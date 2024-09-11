@@ -11,9 +11,9 @@ class OrderOptions {
   });
 
   @override
-  int get hashCode => hashValues(orderBy, asc);
+  int get hashCode => Object.hash(orderBy, asc);
 
   @override
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is OrderOptions && other.hashCode == hashCode;
 }

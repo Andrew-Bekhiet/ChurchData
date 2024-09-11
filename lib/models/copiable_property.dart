@@ -4,9 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CopiableProperty extends StatelessWidget {
-  const CopiableProperty(this.name, this.value,
-      {Key? key, this.showError = true, this.items})
-      : super(key: key);
+  const CopiableProperty(
+    this.name,
+    this.value, {
+    super.key,
+    this.showError = true,
+    this.items,
+  });
 
   final String name;
   final String? value;
@@ -60,9 +64,12 @@ class CopiableProperty extends StatelessWidget {
 
 class PhoneNumberProperty extends StatelessWidget {
   const PhoneNumberProperty(
-      this.name, this.value, this.phoneCall, this.contactAdd,
-      {Key? key})
-      : super(key: key);
+    this.name,
+    this.value,
+    this.phoneCall,
+    this.contactAdd, {
+    super.key,
+  });
 
   final String name;
   final String? value;
@@ -89,10 +96,12 @@ class PhoneNumberProperty extends StatelessWidget {
                   onPressed: () => contactAdd(value!),
                 ),
                 IconButton(
-                  icon: Image.asset('assets/whatsapp.png',
-                      width: IconTheme.of(context).size,
-                      height: IconTheme.of(context).size,
-                      color: Theme.of(context).iconTheme.color),
+                  icon: Image.asset(
+                    'assets/whatsapp.png',
+                    width: IconTheme.of(context).size,
+                    height: IconTheme.of(context).size,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
                   tooltip: 'ارسال رسالة (واتساب)',
                   onPressed: () =>
                       launch('whatsapp://send?phone=+' + getPhone(value!)),

@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 
 class TapableFormField<T> extends StatelessWidget {
   const TapableFormField({
-    Key? key,
     required this.initialValue,
     required this.onTap,
-    this.labelText,
     required this.builder,
+    super.key,
+    this.labelText,
     this.decoration,
     this.onSaved,
     this.validator,
     this.autovalidateMode,
-  })  : assert(labelText != null || decoration != null),
-        super(key: key);
+  }) : assert(labelText != null || decoration != null);
 
   final T initialValue;
   final void Function(FormFieldState<T>) onTap;

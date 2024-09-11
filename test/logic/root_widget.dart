@@ -114,8 +114,7 @@ Future<void> main() async {
     });
 
     testWidgets('Data', (tester) async {
-      tester.binding.window.physicalSizeTestValue =
-          const Size(1080 * 3, 2400 * 3);
+      tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
       await tester.pumpWidget(
         wrapWithMaterialApp(

@@ -78,7 +78,7 @@ void main() async {
       FirebaseCrashlytics.instance.recordFlutterError(error);
     }
     return Material(
-      child: Container(
+      child: ColoredBox(
         color: Colors.white,
         child: Text(
           'حدث خطأ:' '\n' + error.summary.toString(),
@@ -106,11 +106,12 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
   if (kDebugMode && kUseFirebaseEmulators) {
     await Firebase.initializeApp(
       options: FirebaseOptions(
-          apiKey: dotenv.env['apiKey']!,
-          appId: dotenv.env['appId']!,
-          messagingSenderId: 'messagingSenderId',
-          projectId: dotenv.env['projectId']!,
-          databaseURL: kEmulatorsHost + ':9000'),
+        apiKey: dotenv.env['apiKey']!,
+        appId: dotenv.env['appId']!,
+        messagingSenderId: 'messagingSenderId',
+        projectId: dotenv.env['projectId']!,
+        databaseURL: kEmulatorsHost + ':9000',
+      ),
     );
     await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
@@ -132,7 +133,7 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
               primaryOverride: Colors.cyan,
               secondaryOverride: Colors.cyanAccent,
             ),
-          )
+          ),
     },
   );
 
@@ -144,7 +145,9 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
         await flutterSecureStorage.containsKey(key: 'key');
     if (!containsEncryptionKey)
       await flutterSecureStorage.write(
-          key: 'key', value: base64Url.encode(Hive.generateSecureKey()));
+        key: 'key',
+        value: base64Url.encode(Hive.generateSecureKey()),
+      );
 
     final encryptionKey =
         base64Url.decode((await flutterSecureStorage.read(key: 'key'))!);
@@ -176,14 +179,15 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
   if (!kIsWeb)
     await FlutterLocalNotificationsPlugin().initialize(
       const InitializationSettings(
-          android: AndroidInitializationSettings('warning')),
+        android: AndroidInitializationSettings('warning'),
+      ),
       onDidReceiveBackgroundNotificationResponse: onNotificationClicked,
       onDidReceiveNotificationResponse: onNotificationClicked,
     );
 }
 
 class App extends StatefulWidget {
-  const App({Key? key}) : super(key: key);
+  const App({super.key});
 
   @override
   AppState createState() => AppState();
@@ -207,7 +211,9 @@ class AppState extends State<App> {
     return MultiProvider(
       providers: [
         StreamProvider<User>.value(
-            initialData: User.instance, value: User.instance.stream),
+          initialData: User.instance,
+          value: User.instance.stream,
+        ),
       ],
       builder: (context, _) => FeatureDiscovery.withProvider(
         persistenceProvider: HivePersistenceProvider(),
@@ -225,13 +231,16 @@ class AppState extends State<App> {
                 '/': buildLoadAppWidget,
                 'Login': (context) => const LoginScreen(),
                 'Data/EditArea': (context) => EditArea(
-                    area: ModalRoute.of(context)?.settings.arguments as Area? ??
-                        Area.empty()),
+                      area:
+                          ModalRoute.of(context)?.settings.arguments as Area? ??
+                              Area.empty(),
+                    ),
                 'Data/EditStreet': (context) {
                   if (ModalRoute.of(context)!.settings.arguments is Street)
                     return EditStreet(
-                        street: ModalRoute.of(context)!.settings.arguments!
-                            as Street);
+                      street:
+                          ModalRoute.of(context)!.settings.arguments! as Street,
+                    );
                   else {
                     final Street street = Street.empty()
                       ..areaId = ModalRoute.of(context)!.settings.arguments
@@ -242,8 +251,9 @@ class AppState extends State<App> {
                 'Data/EditFamily': (context) {
                   if (ModalRoute.of(context)!.settings.arguments is Family)
                     return EditFamily(
-                        family: ModalRoute.of(context)!.settings.arguments!
-                            as Family);
+                      family:
+                          ModalRoute.of(context)!.settings.arguments! as Family,
+                    );
                   else if (ModalRoute.of(context)!.settings.arguments is Json) {
                     final Family family = Family.empty()
                       ..streetId = (ModalRoute.of(context)!.settings.arguments
@@ -264,8 +274,9 @@ class AppState extends State<App> {
                 'Data/EditPerson': (context) {
                   if (ModalRoute.of(context)!.settings.arguments is Person)
                     return EditPerson(
-                        person: ModalRoute.of(context)!.settings.arguments!
-                            as Person);
+                      person:
+                          ModalRoute.of(context)!.settings.arguments! as Person,
+                    );
                   else {
                     final Person person = Person(
                       ref: null,
@@ -278,9 +289,10 @@ class AppState extends State<App> {
                   }
                 },
                 'EditInvitation': (context) => EditInvitation(
-                    invitation: ModalRoute.of(context)!.settings.arguments
-                            as Invitation? ??
-                        Invitation.empty()),
+                      invitation: ModalRoute.of(context)!.settings.arguments
+                              as Invitation? ??
+                          Invitation.empty(),
+                    ),
                 'MyAccount': (context) => const MyAccount(),
                 'ActivityAnalysis': (context) => ActivityAnalysis(
                       areas: ModalRoute.of(context)!.settings.arguments
@@ -296,16 +308,20 @@ class AppState extends State<App> {
                 'Trash': (context) => const Trash(),
                 'DataMap': (context) => const DataMap(),
                 'AreaInfo': (context) => AreaInfo(
-                    area: ModalRoute.of(context)!.settings.arguments as Area? ??
-                        Area.empty()),
+                      area:
+                          ModalRoute.of(context)!.settings.arguments as Area? ??
+                              Area.empty(),
+                    ),
                 'StreetInfo': (context) => StreetInfo(
-                    street:
-                        ModalRoute.of(context)!.settings.arguments as Street? ??
-                            Street.empty()),
+                      street: ModalRoute.of(context)!.settings.arguments
+                              as Street? ??
+                          Street.empty(),
+                    ),
                 'FamilyInfo': (context) => FamilyInfo(
-                    family:
-                        ModalRoute.of(context)!.settings.arguments as Family? ??
-                            Family.empty()),
+                      family: ModalRoute.of(context)!.settings.arguments
+                              as Family? ??
+                          Family.empty(),
+                    ),
                 'PersonInfo': (context) => PersonInfo(
                       person: ModalRoute.of(context)!.settings.arguments
                               as Person? ??
@@ -317,10 +333,12 @@ class AppState extends State<App> {
                           ),
                     ),
                 'UserInfo': (context) => UserInfo(
-                    user: ModalRoute.of(context)!.settings.arguments! as User),
+                      user: ModalRoute.of(context)!.settings.arguments! as User,
+                    ),
                 'InvitationInfo': (context) => InvitationInfo(
-                    invitation: ModalRoute.of(context)!.settings.arguments!
-                        as Invitation),
+                      invitation: ModalRoute.of(context)!.settings.arguments!
+                          as Invitation,
+                    ),
                 'Settings': (context) => const settingsui.Settings(),
                 'Settings/Churches': (context) => const ChurchesPage(),
                 'Settings/Fathers': (context) => const FathersPage(),
@@ -379,14 +397,15 @@ class AppState extends State<App> {
                             ),
                           );
                         return EditPerson(
-                            person: data.data ??
-                                Person(
-                                  ref: User.instance.personDocRef,
-                                  areaId: null,
-                                  streetId: null,
-                                  familyId: null,
-                                ),
-                            userData: true);
+                          person: data.data ??
+                              Person(
+                                ref: User.instance.personDocRef,
+                                areaId: null,
+                                streetId: null,
+                                familyId: null,
+                              ),
+                          userData: true,
+                        );
                       },
                     ),
               },
@@ -414,7 +433,7 @@ class AppState extends State<App> {
   Widget buildLoadAppWidget(BuildContext context) {
     return FutureBuilder<void>(
       future: _loader.runOnce(loadApp),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
+      builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done &&
             !snapshot.hasError)
           return const Loading(
@@ -481,8 +500,6 @@ class AppState extends State<App> {
             .get('FCM_Token_Registered', defaultValue: false) &&
         firebaseAuth.currentUser != null) {
       try {
-        if (kIsWeb)
-          await firestore.FirebaseFirestore.instance.enablePersistence();
         firestore.FirebaseFirestore.instance.settings = firestore.Settings(
           persistenceEnabled: true,
           sslEnabled: true,
@@ -536,9 +553,12 @@ class AppState extends State<App> {
           'https://github.com/Andrew-Bekhiet/ChurchData/releases/latest/'
               'download/ChurchData.apk',
     });
-    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    await remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
         fetchTimeout: const Duration(seconds: 30),
-        minimumFetchInterval: const Duration(minutes: 2)));
+        minimumFetchInterval: const Duration(minutes: 2),
+      ),
+    );
     await remoteConfig.fetchAndActivate();
 
     if (remoteConfig.getString('LoadApp') == 'false') {

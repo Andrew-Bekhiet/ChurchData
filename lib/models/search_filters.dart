@@ -11,9 +11,13 @@ class FilterButton extends StatelessWidget {
   final BaseListController? options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
-  const FilterButton(this.index, this.options, this.orderOptions,
-      {Key? key, this.disableOrdering = false})
-      : super(key: key);
+  const FilterButton(
+    this.index,
+    this.options,
+    this.orderOptions, {
+    super.key,
+    this.disableOrdering = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +45,11 @@ class FilterButton extends StatelessWidget {
                 },
               ),
               if (!disableOrdering)
-                const Text('ترتيب حسب:',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              if (!disableOrdering) ...getOrderingOptions(orderOptions!, index)
+                const Text(
+                  'ترتيب حسب:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              if (!disableOrdering) ...getOrderingOptions(orderOptions!, index),
             ],
           ),
         );
@@ -53,12 +59,12 @@ class FilterButton extends StatelessWidget {
 }
 
 class SearchField extends StatelessWidget {
-  SearchField(
-      {Key? key,
-      required this.textStyle,
-      required this.searchStream,
-      this.showSuffix = true})
-      : super(key: key);
+  SearchField({
+    required this.textStyle,
+    required this.searchStream,
+    super.key,
+    this.showSuffix = true,
+  });
   final TextStyle? textStyle;
   final TextEditingController _textController = TextEditingController();
   final BehaviorSubject<String> searchStream;
@@ -95,13 +101,14 @@ class SearchFilters extends StatelessWidget {
   final BaseListController options;
   final BehaviorSubject<OrderOptions>? orderOptions;
   final bool disableOrdering;
-  const SearchFilters(this.index,
-      {Key? key,
-      required this.textStyle,
-      required this.options,
-      this.disableOrdering = false,
-      this.orderOptions})
-      : super(key: key);
+  const SearchFilters(
+    this.index, {
+    required this.textStyle,
+    required this.options,
+    super.key,
+    this.disableOrdering = false,
+    this.orderOptions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +119,9 @@ class SearchFilters extends StatelessWidget {
             searchStream: options.searchQuery,
             textStyle: textStyle ??
                 Theme.of(context).textTheme.titleLarge!.copyWith(
-                    color: Theme.of(context).primaryTextTheme.titleLarge!.color),
+                      color:
+                          Theme.of(context).primaryTextTheme.titleLarge!.color,
+                    ),
           ),
         ),
         FilterButton(

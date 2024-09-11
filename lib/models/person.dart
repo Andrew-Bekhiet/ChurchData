@@ -4,8 +4,9 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -72,37 +73,37 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   String? lastEdit;
 
-  Person(
-      {required JsonRef? ref,
-      required this.areaId,
-      required JsonRef? streetId,
-      required JsonRef? familyId,
-      String name = '',
-      this.phone = '',
-      Json? phones,
-      bool hasPhoto = false,
-      this.birthDate,
-      this.lastTanawol,
-      this.lastCall,
-      this.lastConfession,
-      this.isStudent = false,
-      this.studyYear,
-      this.job,
-      this.college,
-      this.jobDescription = '',
-      this.qualification = '',
-      this.type = '',
-      this.notes = '',
-      this.isServant = false,
-      this.servingAreaId,
-      this.church,
-      this.meeting = '',
-      this.cFather,
-      this.state,
-      this.servingType,
-      this.lastEdit,
-      Color color = Colors.transparent})
-      : _familyId = familyId,
+  Person({
+    required JsonRef? ref,
+    required this.areaId,
+    required JsonRef? streetId,
+    required JsonRef? familyId,
+    String name = '',
+    this.phone = '',
+    Json? phones,
+    bool hasPhoto = false,
+    this.birthDate,
+    this.lastTanawol,
+    this.lastCall,
+    this.lastConfession,
+    this.isStudent = false,
+    this.studyYear,
+    this.job,
+    this.college,
+    this.jobDescription = '',
+    this.qualification = '',
+    this.type = '',
+    this.notes = '',
+    this.isServant = false,
+    this.servingAreaId,
+    this.church,
+    this.meeting = '',
+    this.cFather,
+    this.state,
+    this.servingType,
+    this.lastEdit,
+    Color color = Colors.transparent,
+  })  : _familyId = familyId,
         _streetId = streetId,
         phones = phones ?? {},
         super(ref ?? firestore.collection('Persons').doc('null'), name, color) {
@@ -204,7 +205,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastTanawol': toDurationString(lastTanawol),
         'LastCall': toDurationString(lastCall),
         'LastConfession': toDurationString(lastConfession),
-        'LastEdit': lastEdit
+        'LastEdit': lastEdit,
       };
 
   Future<String?> getJobName() async {
@@ -285,22 +286,25 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
             (type ?? ''))
         .toLowerCase()
         .replaceAll(
-            RegExp(
-              r'[أإآ]',
-            ),
-            'ا')
+          RegExp(
+            r'[أإآ]',
+          ),
+          'ا',
+        )
         .replaceAll(
-            RegExp(
-              r'[ى]',
-            ),
-            'ي');
+          RegExp(
+            r'[ى]',
+          ),
+          'ي',
+        );
   }
 
   @override
   Future<String?> getSecondLine() async {
     final String key = Hive.box('Settings').get('PersonSecondLine');
+
     if (key == 'Members') {
-      return '';
+      return SynchronousFuture('');
     } else if (key == 'AreaId') {
       return getAreaName();
     } else if (key == 'StreetId') {
@@ -324,7 +328,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
     } else if (key == 'LastEdit') {
       return (await firestore.doc('Users/$lastEdit').get()).data()?['Name'];
     }
-    return getHumanReadableMap()[key];
+
+    return SynchronousFuture(getHumanReadableMap()[key]);
   }
 
   Future<String?> getServingAreaName() async {
@@ -372,7 +377,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'CFather': cFather?.path,
         'ServingType': servingType?.path,
         'LastTanawol': lastTanawol?.millisecondsSinceEpoch,
-        'LastConfession': lastConfession?.millisecondsSinceEpoch
+        'LastConfession': lastConfession?.millisecondsSinceEpoch,
       };
 
   Future<void> setAreaIdFromStreet() async {
@@ -458,7 +463,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'ServingType': 'servingType',
         'LastTanawol': 'lastTanawol',
         'LastConfession': 'lastConfession',
-        'LastEdit': 'lastEdit'
+        'LastEdit': 'lastEdit',
       };
 
   static Json getHumanReadableMap2() => {
@@ -477,7 +482,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'LastTanawol': 'تاريخ أخر تناول',
         'LastCall': 'تاريخ أخر مكالمة',
         'LastConfession': 'تاريخ أخر اعتراف',
-        'LastEdit': 'أخر شخص قام بالتعديل'
+        'LastEdit': 'أخر شخص قام بالتعديل',
       };
 
   // @override

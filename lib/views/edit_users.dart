@@ -7,7 +7,7 @@ import 'package:rxdart/rxdart.dart';
 import 'mini_lists/users_list.dart';
 
 class UsersPage extends StatelessWidget {
-  UsersPage({Key? key}) : super(key: key);
+  UsersPage({super.key});
 
   final BehaviorSubject<bool> _showSearch = BehaviorSubject<bool>.seeded(false);
   final FocusNode searchFocus = FocusNode();
@@ -37,10 +37,10 @@ class UsersPage extends StatelessWidget {
             },
           ),
           IconButton(
-              icon: const Icon(Icons.link),
-              tooltip: 'لينكات الدعوة',
-              onPressed: () =>
-                  navigator.currentState!.pushNamed('Invitations')),
+            icon: const Icon(Icons.link),
+            tooltip: 'لينكات الدعوة',
+            onPressed: () => navigator.currentState!.pushNamed('Invitations'),
+          ),
         ],
         title: StreamBuilder<bool>(
           initialData: false,
@@ -50,18 +50,21 @@ class UsersPage extends StatelessWidget {
                 ? TextField(
                     focusNode: searchFocus,
                     decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close,
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleLarge
-                                  ?.color),
-                          onPressed: () {
-                            _listOptions.searchQuery.add('');
-                            _showSearch.add(false);
-                          },
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge
+                              ?.color,
                         ),
-                        hintText: 'بحث ...'),
+                        onPressed: () {
+                          _listOptions.searchQuery.add('');
+                          _showSearch.add(false);
+                        },
+                      ),
+                      hintText: 'بحث ...',
+                    ),
                     onChanged: _listOptions.searchQuery.add,
                   )
                 : const Text('المستخدمون');

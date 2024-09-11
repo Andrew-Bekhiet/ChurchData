@@ -21,15 +21,14 @@ class MapView extends StatelessWidget {
   final Family? family;
 
   const MapView({
-    Key? key,
     required this.editMode,
+    super.key,
     this.initialLocation,
     this.area,
     this.street,
     this.family,
     this.childrenDepth = 0,
-  })  : assert(area != null || street != null || family != null),
-        super(key: key);
+  }) : assert(area != null || street != null || family != null);
 
   @override
   Widget build(BuildContext context) {
@@ -39,21 +38,24 @@ class MapView extends StatelessWidget {
         if (data.hasData) {
           if (area != null) {
             return _AreaMap(
-                area: area!,
-                childrenDepth: childrenDepth,
-                editMode: editMode,
-                initialLocation: initialLocation);
+              area: area!,
+              childrenDepth: childrenDepth,
+              editMode: editMode,
+              initialLocation: initialLocation,
+            );
           } else if (street != null) {
             return _StreetMap(
-                street: street!,
-                childrenDepth: childrenDepth,
-                editMode: editMode,
-                initialLocation: initialLocation);
+              street: street!,
+              childrenDepth: childrenDepth,
+              editMode: editMode,
+              initialLocation: initialLocation,
+            );
           } else if (family != null) {
             return _FamilyMap(
-                family: family!,
-                editMode: editMode,
-                initialLocation: initialLocation);
+              family: family!,
+              editMode: editMode,
+              initialLocation: initialLocation,
+            );
           }
           return const Center(child: Text('خطأ غير معروف'));
         }
@@ -65,12 +67,11 @@ class MapView extends StatelessWidget {
 
 class _StreetMap extends StatelessWidget {
   const _StreetMap({
-    Key? key,
     required this.street,
     required this.childrenDepth,
     required this.editMode,
     this.initialLocation,
-  }) : super(key: key);
+  });
 
   final Street street;
   final int childrenDepth;
@@ -82,12 +83,13 @@ class _StreetMap extends StatelessWidget {
     LatLng center = const LatLng(30.0444, 31.2357); //Cairo Location
     if (street.locationPoints.isNotEmpty) {
       center = LatLng(
-          (street.locationPoints.first.latitude +
-                  street.locationPoints.last.latitude) /
-              2,
-          (street.locationPoints.first.longitude +
-                  street.locationPoints.last.longitude) /
-              2);
+        (street.locationPoints.first.latitude +
+                street.locationPoints.last.latitude) /
+            2,
+        (street.locationPoints.first.longitude +
+                street.locationPoints.last.longitude) /
+            2,
+      );
     }
     return FutureBuilder<Tuple2<Area?, List<Family>>>(
       future: () async {
@@ -131,7 +133,7 @@ class _StreetMap extends StatelessWidget {
                         ..add(
                           fromGeoPoint(area.locationPoints.first),
                         ),
-                    )
+                    ),
                   }
                 : {},
             polylines: street.locationPoints.isNotEmpty && !kIsWeb
@@ -150,7 +152,7 @@ class _StreetMap extends StatelessWidget {
                       endCap: Cap.roundCap,
                       jointType: JointType.round,
                       points: street.locationPoints.map(fromGeoPoint).toList(),
-                    )
+                    ),
                   }
                 : {},
             markers: {
@@ -173,10 +175,11 @@ class _StreetMap extends StatelessWidget {
                     },
                     markerId: MarkerId(f.id),
                     infoWindow: InfoWindow(
-                        title: f.name,
-                        snippet: f.locationConfirmed ? null : 'غير مؤكد'),
+                      title: f.name,
+                      snippet: f.locationConfirmed ? null : 'غير مؤكد',
+                    ),
                     position: fromGeoPoint(f.locationPoint!),
-                  )
+                  ),
             },
             initialCameraPosition: CameraPosition(
               zoom: 16,
@@ -191,11 +194,10 @@ class _StreetMap extends StatelessWidget {
 
 class _FamilyMap extends StatelessWidget {
   const _FamilyMap({
-    Key? key,
     required this.family,
     required this.editMode,
     required this.initialLocation,
-  }) : super(key: key);
+  });
 
   final Family family;
   final bool editMode;
@@ -207,12 +209,13 @@ class _FamilyMap extends StatelessWidget {
     return FutureBuilder<Tuple2<Area?, Street?>>(
       future: () async {
         return Tuple2<Area?, Street?>(
-            family.areaId != null
-                ? Area.fromDoc(await family.areaId!.get())
-                : null,
-            family.streetId != null
-                ? Street.fromDoc(await family.streetId!.get())
-                : null);
+          family.areaId != null
+              ? Area.fromDoc(await family.areaId!.get())
+              : null,
+          family.streetId != null
+              ? Street.fromDoc(await family.streetId!.get())
+              : null,
+        );
       }(),
       builder: (context, data) {
         if (!data.hasData)
@@ -244,7 +247,7 @@ class _FamilyMap extends StatelessWidget {
                         ..add(
                           fromGeoPoint(area.locationPoints.first),
                         ),
-                    )
+                    ),
                   }
                 : {},
             polylines: (street?.locationPoints.length ?? 0) != 0 && !kIsWeb
@@ -279,7 +282,7 @@ class _FamilyMap extends StatelessWidget {
                       endCap: Cap.roundCap,
                       jointType: JointType.round,
                       points: street.locationPoints.map(fromGeoPoint).toList(),
-                    )
+                    ),
                   }
                 : {},
             markers: family.locationPoint != null
@@ -287,11 +290,11 @@ class _FamilyMap extends StatelessWidget {
                     Marker(
                       markerId: MarkerId(family.id),
                       infoWindow: InfoWindow(
-                          title: family.name,
-                          snippet:
-                              (family.locationConfirmed) ? null : 'غير مؤكد'),
+                        title: family.name,
+                        snippet: (family.locationConfirmed) ? null : 'غير مؤكد',
+                      ),
                       position: fromGeoPoint(family.locationPoint!),
-                    )
+                    ),
                   }
                 : {},
             initialCameraPosition: CameraPosition(
@@ -309,12 +312,11 @@ class _FamilyMap extends StatelessWidget {
 
 class _AreaMap extends StatelessWidget {
   const _AreaMap({
-    Key? key,
     required this.area,
     required this.childrenDepth,
     required this.editMode,
     required this.initialLocation,
-  }) : super(key: key);
+  });
 
   final Area area;
   final int childrenDepth;
@@ -382,9 +384,9 @@ class _AreaMap extends StatelessWidget {
                   points: [
                     for (final p in area.locationPoints) fromGeoPoint(p),
                     if (area.locationPoints.isNotEmpty)
-                      fromGeoPoint(area.locationPoints.first)
+                      fromGeoPoint(area.locationPoints.first),
                   ],
-                )
+                ),
             },
             polylines: !kIsWeb
                 ? {
@@ -446,8 +448,9 @@ class _AreaMap extends StatelessWidget {
                     },
                     markerId: MarkerId(f.id),
                     infoWindow: InfoWindow(
-                        title: f.name,
-                        snippet: (f.locationConfirmed) ? null : 'غير مؤكد'),
+                      title: f.name,
+                      snippet: (f.locationConfirmed) ? null : 'غير مؤكد',
+                    ),
                     position: fromGeoPoint(f.locationPoint!),
                   ),
             },

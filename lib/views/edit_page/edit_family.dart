@@ -10,6 +10,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -21,7 +22,7 @@ import 'package:rxdart/rxdart.dart';
 class EditFamily extends StatefulWidget {
   final Family? family;
 
-  const EditFamily({Key? key, this.family}) : super(key: key);
+  const EditFamily({super.key, this.family});
   @override
   _EditFamilyState createState() => _EditFamilyState();
 }
@@ -117,13 +118,17 @@ class _EditFamilyState extends State<EditFamily> {
                   icon: const Icon(
                     IconData(0xe568, fontFamily: 'MaterialIconsR'),
                   ),
-                  label: Text('تعديل مكان ال' +
-                      (family.isStore ? 'محل' : 'عائلة') +
-                      ' على الخريطة'),
+                  label: Text(
+                    'تعديل مكان ال' +
+                        (family.isStore ? 'محل' : 'عائلة') +
+                        ' على الخريطة',
+                  ),
                   onPressed: () async {
                     final oldPoint = family.locationPoint != null
-                        ? GeoPoint(family.locationPoint!.latitude,
-                            family.locationPoint!.longitude)
+                        ? GeoPoint(
+                            family.locationPoint!.latitude,
+                            family.locationPoint!.longitude,
+                          )
                         : null;
                     final rslt = await navigator.currentState!.push(
                       MaterialPageRoute(
@@ -141,13 +146,15 @@ class _EditFamilyState extends State<EditFamily> {
                                 onPressed: () =>
                                     navigator.currentState!.pop(false),
                                 tooltip: 'حذف التحديد',
-                              )
+                              ),
                             ],
                             title:
                                 Text('تعديل مكان ${family.name} على الخريطة'),
                           ),
                           body: family.getMapView(
-                              editMode: true, useGPSIfNull: true),
+                            editMode: true,
+                            useGPSIfNull: true,
+                          ),
                         ),
                       ),
                     );
@@ -303,9 +310,11 @@ class _EditFamilyState extends State<EditFamily> {
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
                       child: family.fatherLastVisit != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              family.fatherLastVisit!.toDate(),
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                family.fatherLastVisit!.toDate(),
+                              ),
+                            )
                           : null,
                     ),
                   ),
@@ -350,7 +359,7 @@ class _EditFamilyState extends State<EditFamily> {
     family.lastVisit = Timestamp.fromDate(value);
   }
 
-  void delete() async {
+  Future<void> delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => DataDialog(
@@ -376,13 +385,15 @@ class _EditFamilyState extends State<EditFamily> {
         true) {
       scaffoldMessenger.currentState!.showSnackBar(
         SnackBar(
-          content: Text('جار حذف ال' +
-              (family.isStore ? 'محل' : 'عائلة') +
-              ' وما بداخلها من بيانات...'),
+          content: Text(
+            'جار حذف ال' +
+                (family.isStore ? 'محل' : 'عائلة') +
+                ' وما بداخلها من بيانات...',
+          ),
           duration: const Duration(minutes: 20),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
+      if ((await Connectivity().checkConnectivity()).isConnected)
         await family.ref.delete();
       else {
         // ignore: unawaited_futures
@@ -423,11 +434,14 @@ class _EditFamilyState extends State<EditFamily> {
               context: context,
               barrierDismissible: false,
               builder: (context) => DataDialog(
-                title: Text('هل أنت متأكد من موقع ال' +
-                    (family.isStore ? 'محل' : 'عائلة') +
-                    ' على الخريطة؟'),
+                title: Text(
+                  'هل أنت متأكد من موقع ال' +
+                      (family.isStore ? 'محل' : 'عائلة') +
+                      ' على الخريطة؟',
+                ),
                 content: const Text(
-                    'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
+                  'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه',
+                ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
@@ -436,7 +450,7 @@ class _EditFamilyState extends State<EditFamily> {
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(false),
                     child: const Text('لا'),
-                  )
+                  ),
                 ],
               ),
             );
@@ -451,9 +465,7 @@ class _EditFamilyState extends State<EditFamily> {
         final bool update = family.id != 'null';
         if (!update) family.ref = firestore.collection('Families').doc();
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           await family.update(old: widget.family?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
@@ -461,8 +473,7 @@ class _EditFamilyState extends State<EditFamily> {
           family.update(
             old: widget.family?.getMap() ?? {},
           );
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           await family.set();
         } else {
           //Intentionally unawaited because of no internet connection
@@ -498,7 +509,7 @@ class _EditFamilyState extends State<EditFamily> {
     }
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -540,8 +551,12 @@ class _EditFamilyState extends State<EditFamily> {
         FocusScope.of(context).nextFocus();
       },
       itemsStream: _orderOptions
-          .switchMap((value) => Family.getAllForUser(
-              orderBy: value.orderBy, descending: !value.asc))
+          .switchMap(
+            (value) => Family.getAllForUser(
+              orderBy: value.orderBy,
+              descending: !value.asc,
+            ),
+          )
           .map((s) => s.docs.map(Family.fromQueryDoc).toList()),
     );
     await showDialog(
@@ -589,7 +604,7 @@ class _EditFamilyState extends State<EditFamily> {
     await _orderOptions.close();
   }
 
-  void selectFamily2() async {
+  Future<void> selectFamily2() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -602,8 +617,12 @@ class _EditFamilyState extends State<EditFamily> {
         FocusScope.of(context).nextFocus();
       },
       itemsStream: _orderOptions
-          .switchMap((value) => Family.getAllForUser(
-              orderBy: value.orderBy, descending: !value.asc))
+          .switchMap(
+            (value) => Family.getAllForUser(
+              orderBy: value.orderBy,
+              descending: !value.asc,
+            ),
+          )
           .map((s) => s.docs.map(Family.fromQueryDoc).toList()),
     );
     await showDialog(
@@ -651,7 +670,7 @@ class _EditFamilyState extends State<EditFamily> {
     await _orderOptions.close();
   }
 
-  void selectStreet() async {
+  Future<void> selectStreet() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -664,8 +683,12 @@ class _EditFamilyState extends State<EditFamily> {
         FocusScope.of(context).nextFocus();
       },
       itemsStream: _orderOptions
-          .switchMap((value) => Street.getAllForUser(
-              orderBy: value.orderBy, descending: !value.asc))
+          .switchMap(
+            (value) => Street.getAllForUser(
+              orderBy: value.orderBy,
+              descending: !value.asc,
+            ),
+          )
           .map((s) => s.docs.map(Street.fromQueryDoc).toList()),
     );
 

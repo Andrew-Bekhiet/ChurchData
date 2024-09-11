@@ -10,9 +10,11 @@ class UsersList extends StatefulWidget {
   final DataObjectListController<User>? listOptions;
   final bool autoDisposeController;
 
-  const UsersList(
-      {Key? key, this.listOptions, required this.autoDisposeController})
-      : super(key: key);
+  const UsersList({
+    required this.autoDisposeController,
+    super.key,
+    this.listOptions,
+  });
 
   @override
   _UsersListState createState() => _UsersListState();
@@ -62,7 +64,7 @@ class _UsersListState extends State<UsersList> {
                       if (_listOptions.selectionMode.value)
                         _listOptions.select(current);
                     },
-                onTap: (User current) {
+                onTap: (current) {
                   if (!_listOptions.selectionMode.value) {
                     _listOptions.tap == null
                         ? dataObjectTap(current)

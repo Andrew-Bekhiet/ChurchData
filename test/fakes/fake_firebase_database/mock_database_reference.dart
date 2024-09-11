@@ -81,7 +81,10 @@ class MockDatabaseReference extends Mock implements DatabaseReference {
         lastNodeInCurrentData = _data;
       } else {
         lastNodeInCurrentData = _getNextNodeData(
-            data: _data, nodesList: nodesList, nodeIndex: nodeIndexReference);
+          data: _data,
+          nodesList: nodesList,
+          nodeIndex: nodeIndexReference,
+        );
       }
       var nodeIndex = nodeIndexReference.value;
       final noNewNodeToAdd = nodesList.length <= nodeIndex;
@@ -98,7 +101,6 @@ class MockDatabaseReference extends Mock implements DatabaseReference {
           );
           lastNodeInCurrentData!.addAll({firstNodeInNewData: tempData});
         } else {
-          if (value is Map) value = value;
           lastNodeInCurrentData!
               .addAll({firstNodeInNewData: BehaviorSubject.seeded(value)});
         }
@@ -116,10 +118,11 @@ class MockDatabaseReference extends Mock implements DatabaseReference {
     if (nodeIndex + 1 < nodesList.length) {
       data[nodesList[nodeIndex]] = {nodesList[nextNodeIndex]: Object()};
       _buildNewNodesTree(
-          data: data[nodesList[nodeIndex]],
-          nodesList: nodesList,
-          nodeIndex: nextNodeIndex,
-          value: value);
+        data: data[nodesList[nodeIndex]],
+        nodesList: nodesList,
+        nodeIndex: nextNodeIndex,
+        value: value,
+      );
     } else
       data[nodesList[nodeIndex]] = BehaviorSubject.seeded(value);
     return data;
@@ -143,8 +146,9 @@ class MockDatabaseReference extends Mock implements DatabaseReference {
   }
 
   @override
-  Future<DatabaseEvent> once(
-      [DatabaseEventType type = DatabaseEventType.value]) {
+  Future<DatabaseEvent> once([
+    DatabaseEventType type = DatabaseEventType.value,
+  ]) {
     var tempData = _data;
     // remove start and end slashes.
     var nodePath = _nodePath.substring(1, _nodePath.length - 1);
@@ -162,7 +166,8 @@ class MockDatabaseReference extends Mock implements DatabaseReference {
       }
     }
     return Future.value(
-        MockEvent._((tempData![nodePath] as BehaviorSubject).valueOrNull));
+      MockEvent._((tempData![nodePath] as BehaviorSubject).valueOrNull),
+    );
   }
 }
 

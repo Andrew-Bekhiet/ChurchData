@@ -12,8 +12,7 @@ import 'package:intl/intl.dart';
 class UpdateUserDataErrorPage extends StatefulWidget {
   final Person person;
 
-  const UpdateUserDataErrorPage({Key? key, required this.person})
-      : super(key: key);
+  const UpdateUserDataErrorPage({required this.person, super.key});
 
   @override
   State<StatefulWidget> createState() => _UpdateUserDataErrorState();
@@ -46,9 +45,13 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               ),
               initialValue: person.lastTanawol,
               onTap: (state) async {
-                state.didChange(await _selectDate(
-                        'تاريخ أخر تناول', state.value ?? Timestamp.now()) ??
-                    person.lastTanawol);
+                state.didChange(
+                  await _selectDate(
+                        'تاريخ أخر تناول',
+                        state.value ?? Timestamp.now(),
+                      ) ??
+                      person.lastTanawol,
+                );
               },
               builder: (context, state) {
                 return state.value != null
@@ -59,7 +62,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               validator: (value) => value == null
                   ? 'برجاء اختيار تاريخ أخر تناول'
                   : value.toDate().isBefore(
-                          DateTime.now().subtract(const Duration(days: 60)))
+                            DateTime.now().subtract(const Duration(days: 60)),
+                          )
                       ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                       : null,
             ),
@@ -74,9 +78,13 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               ),
               initialValue: person.lastConfession,
               onTap: (state) async {
-                state.didChange(await _selectDate(
-                        'تاريخ أخر اعتراف', state.value ?? Timestamp.now()) ??
-                    person.lastConfession);
+                state.didChange(
+                  await _selectDate(
+                        'تاريخ أخر اعتراف',
+                        state.value ?? Timestamp.now(),
+                      ) ??
+                      person.lastConfession,
+                );
               },
               builder: (context, state) {
                 return state.value != null
@@ -87,7 +95,8 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
               validator: (value) => value == null
                   ? 'برجاء اختيار تاريخ أخر اعتراف'
                   : value.toDate().isBefore(
-                          DateTime.now().subtract(const Duration(days: 60)))
+                            DateTime.now().subtract(const Duration(days: 60)),
+                          )
                       ? 'يجب أن يكون التاريخ منذ شهرين على الأكثر'
                       : null,
             ),
@@ -120,7 +129,7 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
           'Name': person.name.isEmpty ? User.instance.name : person.name,
           'LastConfession': person.lastConfession,
           'LastTanawol': person.lastTanawol,
-          'LastEdit': firebaseAuth.currentUser!.uid
+          'LastEdit': firebaseAuth.currentUser!.uid,
         },
         SetOptions(merge: true),
       );
@@ -141,12 +150,13 @@ class _UpdateUserDataErrorState extends State<UpdateUserDataErrorPage> {
 
   Future<Timestamp?> _selectDate(String helpText, Timestamp initialDate) async {
     final picked = await showDatePicker(
-        helpText: helpText,
-        locale: const Locale('ar', 'EG'),
-        context: context,
-        initialDate: initialDate.toDate(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime.now());
+      helpText: helpText,
+      locale: const Locale('ar', 'EG'),
+      context: context,
+      initialDate: initialDate.toDate(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
     if (picked != null && picked != initialDate.toDate()) {
       return Timestamp.fromDate(picked);
     }

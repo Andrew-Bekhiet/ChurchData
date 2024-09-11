@@ -19,18 +19,20 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
   final bool wrapInCard;
   final bool isDense;
   final bool showSubtitle;
-  const AsyncDataObjectWidget(this.doc, this.transform,
-      {this.isDense = false,
-      this.onLongPress,
-      this.onTap,
-      this.trailing,
-      this.subtitle,
-      this.title,
-      this.wrapInCard = true,
-      this.photo,
-      this.showSubtitle = true,
-      Key? key})
-      : super(key: key);
+  const AsyncDataObjectWidget(
+    this.doc,
+    this.transform, {
+    this.isDense = false,
+    this.onLongPress,
+    this.onTap,
+    this.trailing,
+    this.subtitle,
+    this.title,
+    this.wrapInCard = true,
+    this.photo,
+    this.showSubtitle = true,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -81,18 +83,19 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
 
   final _memoizer = AsyncMemoizer<String?>();
 
-  DataObjectWidget(this.current,
-      {Key? key,
-      this.isDense = false,
-      this.onLongPress,
-      this.onTap,
-      this.trailing,
-      this.subtitle,
-      this.title,
-      this.wrapInCard = true,
-      this.photo,
-      this.showSubtitle = true})
-      : super(key: key);
+  DataObjectWidget(
+    this.current, {
+    super.key,
+    this.isDense = false,
+    this.onLongPress,
+    this.onTap,
+    this.trailing,
+    this.subtitle,
+    this.title,
+    this.wrapInCard = true,
+    this.photo,
+    this.showSubtitle = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +116,12 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   if (subtitleData.connectionState == ConnectionState.done &&
                       subtitleData.data == null) {
                     return const SizedBox();
-                  } else if (subtitleData.connectionState ==
-                      ConnectionState.done) {
-                    return Text(subtitleData.data!,
-                        maxLines: 1, overflow: TextOverflow.ellipsis);
+                  } else if (subtitleData.hasData) {
+                    return Text(
+                      subtitleData.data!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
                   } else {
                     return LinearProgressIndicator(
                       backgroundColor: current.color.tint(56),

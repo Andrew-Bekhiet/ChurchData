@@ -5,13 +5,14 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../models/super_classes.dart';
 
 class Trash extends StatelessWidget {
-  const Trash({Key? key}) : super(key: key);
+  const Trash({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +23,10 @@ class Trash extends StatelessWidget {
         options: DataObjectListController<TrashDay>(
           onLongPress: (_) {},
           tap: (day) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => TrashDayScreen(day)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TrashDayScreen(day)),
+            );
           },
           itemsStream: firestore
               .collection('Deleted')
@@ -45,8 +48,11 @@ class Trash extends StatelessWidget {
 class TrashDay extends DataObject {
   final DateTime date;
   TrashDay(this.date, JsonRef ref)
-      : super(ref, date.toUtc().toIso8601String().split('T')[0],
-            Colors.transparent);
+      : super(
+          ref,
+          date.toUtc().toIso8601String().split('T')[0],
+          Colors.transparent,
+        );
 
   @override
   Json getHumanReadableMap() {
@@ -60,7 +66,7 @@ class TrashDay extends DataObject {
 
   @override
   Future<String> getSecondLine() async {
-    return name;
+    return SynchronousFuture(name);
   }
 
   @override
@@ -71,7 +77,7 @@ class TrashDay extends DataObject {
 
 class TrashDayScreen extends StatefulWidget {
   final TrashDay day;
-  const TrashDayScreen(this.day, {Key? key}) : super(key: key);
+  const TrashDayScreen(this.day, {super.key});
 
   @override
   _TrashDayScreenState createState() => _TrashDayScreenState();
@@ -119,10 +125,12 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               icon: Icon(Icons.pin_drop),
             ),
             Tab(
-              child: Image.asset('assets/streets.png',
-                  width: IconTheme.of(context).size,
-                  height: IconTheme.of(context).size,
-                  color: Theme.of(context).primaryTextTheme.bodyLarge?.color),
+              child: Image.asset(
+                'assets/streets.png',
+                width: IconTheme.of(context).size,
+                height: IconTheme.of(context).size,
+                color: Theme.of(context).primaryTextTheme.bodyLarge?.color,
+              ),
             ),
             const Tab(
               icon: Icon(Icons.group),
@@ -140,18 +148,21 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                 ? TextField(
                     focusNode: searchFocus,
                     decoration: InputDecoration(
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.close,
-                              color: Theme.of(context)
-                                  .primaryTextTheme
-                                  .titleLarge
-                                  ?.color),
-                          onPressed: () {
-                            _searchQuery.add('');
-                            _showSearch.add(false);
-                          },
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge
+                              ?.color,
                         ),
-                        hintText: 'بحث ...'),
+                        onPressed: () {
+                          _searchQuery.add('');
+                          _showSearch.add(false);
+                        },
+                      ),
+                      hintText: 'بحث ...',
+                    ),
                     onChanged: _searchQuery.add,
                   )
                 : Text(widget.day.name);
@@ -244,9 +255,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .switchMap(
                     (areas) => widget.day.ref
                         .collection('Streets')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
+                        .where(
+                          'AreaId',
+                          whereIn: areas.docs.map((e) => e.reference).toList(),
+                        )
                         .snapshots(),
                   ))
           .map(
@@ -264,9 +276,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .switchMap(
                     (areas) => widget.day.ref
                         .collection('Families')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
+                        .where(
+                          'AreaId',
+                          whereIn: areas.docs.map((e) => e.reference).toList(),
+                        )
                         .snapshots(),
                   ))
           .map(
@@ -284,9 +297,10 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                   .switchMap(
                     (areas) => widget.day.ref
                         .collection('Persons')
-                        .where('AreaId',
-                            whereIn:
-                                areas.docs.map((e) => e.reference).toList())
+                        .where(
+                          'AreaId',
+                          whereIn: areas.docs.map((e) => e.reference).toList(),
+                        )
                         .snapshots(),
                   ))
           .map(

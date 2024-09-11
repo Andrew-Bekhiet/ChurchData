@@ -14,10 +14,16 @@ class Notification extends StatelessWidget {
   final int? time;
   final void Function()? longPress;
 
-  const Notification(this.type, this.title, this.content, this.attachement,
-      this.time, this.from,
-      {Key? key, this.longPress})
-      : super(key: key);
+  const Notification(
+    this.type,
+    this.title,
+    this.content,
+    this.attachement,
+    this.time,
+    this.from, {
+    super.key,
+    this.longPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +67,12 @@ class Notification extends StatelessWidget {
 
   static Notification fromMessage(Json message, [void Function()? longPress]) =>
       Notification(
-          message['type'],
-          message['title'],
-          message['content'],
-          message['attachement'],
-          int.parse(message['time']),
-          message['sentFrom'],
-          longPress: longPress);
+        message['type'],
+        message['title'],
+        message['content'],
+        message['attachement'],
+        int.parse(message['time']),
+        message['sentFrom'],
+        longPress: longPress,
+      );
 }

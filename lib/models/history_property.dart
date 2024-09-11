@@ -9,9 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class HistoryProperty extends StatelessWidget {
-  const HistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+  const HistoryProperty(
+    this.name,
+    this.value,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+  });
 
   final String name;
   final Timestamp? value;
@@ -28,14 +32,16 @@ class HistoryProperty extends StatelessWidget {
             child: Text(toDurationString(value)),
           ),
           Text(
-              value != null
-                  ? DateFormat(
-                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
-                      .format(
-                      value!.toDate(),
-                    )
-                  : '',
-              style: Theme.of(context).textTheme.labelSmall),
+            value != null
+                ? DateFormat(
+                    showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                    'ar-EG',
+                  ).format(
+                    value!.toDate(),
+                  )
+                : '',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ],
       ),
       trailing: IconButton(
@@ -66,7 +72,8 @@ class HistoryProperty extends StatelessWidget {
                           leading: history.data![i].byUser != null
                               ? IgnorePointer(
                                   child: User.photoFromUID(
-                                      history.data![i].byUser!),
+                                    history.data![i].byUser!,
+                                  ),
                                 )
                               : null,
                           title: history.data![i].byUser != null
@@ -74,10 +81,12 @@ class HistoryProperty extends StatelessWidget {
                                   ? Text(user.data!.data()!['Name'])
                                   : const LinearProgressIndicator()
                               : const Text('غير معروف'),
-                          subtitle: Text(DateFormat(
-                                  showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                  'ar-EG')
-                              .format(history.data![i].time!.toDate())),
+                          subtitle: Text(
+                            DateFormat(
+                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                              'ar-EG',
+                            ).format(history.data![i].time!.toDate()),
+                          ),
                         );
                       },
                     ),
@@ -93,9 +102,14 @@ class HistoryProperty extends StatelessWidget {
 }
 
 class EditHistoryProperty extends StatelessWidget {
-  const EditHistoryProperty(this.name, this.user, this.historyRef,
-      {Key? key, this.showTime = true, this.discoverFeature = false})
-      : super(key: key);
+  const EditHistoryProperty(
+    this.name,
+    this.user,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+    this.discoverFeature = false,
+  });
 
   final String name;
   final String? user;
@@ -135,10 +149,12 @@ class EditHistoryProperty extends StatelessWidget {
                         title: user.hasData
                             ? Text(user.data!)
                             : const LinearProgressIndicator(),
-                        subtitle: Text(DateFormat(
-                                showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
-                                'ar-EG')
-                            .format(history.data![i].time!.toDate())),
+                        subtitle: Text(
+                          DateFormat(
+                            showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                            'ar-EG',
+                          ).format(history.data![i].time!.toDate()),
+                        ),
                       );
                     },
                   ),
@@ -172,11 +188,9 @@ class EditHistoryProperty extends StatelessWidget {
                           : future.data!.docs.isNotEmpty
                               ? Text(
                                   DateFormat(
-                                          showTime
-                                              ? 'yyyy/M/d   h:m a'
-                                              : 'yyyy/M/d',
-                                          'ar-EG')
-                                      .format(
+                                    showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                                    'ar-EG',
+                                  ).format(
                                     future.data!.docs[0]
                                         .data()['Time']
                                         .toDate(),
@@ -187,11 +201,9 @@ class EditHistoryProperty extends StatelessWidget {
                               this.user != null
                           ? Text(
                               DateFormat(
-                                      showTime
-                                          ? 'yyyy/M/d   h:m a'
-                                          : 'yyyy/M/d',
-                                      'ar-EG')
-                                  .format(
+                                showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                                'ar-EG',
+                              ).format(
                                 future.data!.docs[0].data()['Time'].toDate(),
                               ),
                             )
@@ -215,7 +227,8 @@ class EditHistoryProperty extends StatelessWidget {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium!.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium!.color,
                           ),
                         ),
                         onPressed: () =>
@@ -226,7 +239,8 @@ class EditHistoryProperty extends StatelessWidget {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyMedium!.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium!.color,
                           ),
                         ),
                       ),
@@ -246,9 +260,13 @@ class EditHistoryProperty extends StatelessWidget {
 }
 
 class TimeHistoryProperty extends StatelessWidget {
-  const TimeHistoryProperty(this.name, this.value, this.historyRef,
-      {Key? key, this.showTime = true})
-      : super(key: key);
+  const TimeHistoryProperty(
+    this.name,
+    this.value,
+    this.historyRef, {
+    super.key,
+    this.showTime = true,
+  });
 
   final String name;
   final Timestamp? value;
@@ -265,14 +283,16 @@ class TimeHistoryProperty extends StatelessWidget {
             child: Text(toDurationString(value)),
           ),
           Text(
-              value != null
-                  ? DateFormat(
-                          showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d', 'ar-EG')
-                      .format(
-                      value!.toDate(),
-                    )
-                  : '',
-              style: Theme.of(context).textTheme.labelSmall),
+            value != null
+                ? DateFormat(
+                    showTime ? 'yyyy/M/d   h:m a' : 'yyyy/M/d',
+                    'ar-EG',
+                  ).format(
+                    value!.toDate(),
+                  )
+                : '',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ],
       ),
       trailing: IconButton(
@@ -293,9 +313,12 @@ class TimeHistoryProperty extends StatelessWidget {
                   return ListView.builder(
                     itemCount: history.data!.length,
                     itemBuilder: (context, i) => ListTile(
-                      title: Text(DateFormat(
-                              showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d', 'ar-EG')
-                          .format(history.data![i].time!.toDate())),
+                      title: Text(
+                        DateFormat(
+                          showTime ? 'yyyy/M/d h:m a' : 'yyyy/M/d',
+                          'ar-EG',
+                        ).format(history.data![i].time!.toDate()),
+                      ),
                     ),
                   );
                 },

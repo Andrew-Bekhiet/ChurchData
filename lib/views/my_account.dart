@@ -13,7 +13,7 @@ import '../models/user.dart';
 import '../utils/helpers.dart';
 
 class MyAccount extends StatefulWidget {
-  const MyAccount({Key? key}) : super(key: key);
+  const MyAccount({super.key});
 
   @override
   _MyAccountState createState() => _MyAccountState();
@@ -24,7 +24,7 @@ class _MyAccountState extends State<MyAccount> {
   List<TextEditingController> textFields = [
     TextEditingController(),
     TextEditingController(),
-    TextEditingController()
+    TextEditingController(),
   ];
 
   @override
@@ -100,26 +100,28 @@ class _MyAccountState extends State<MyAccount> {
                                     onPressed: () =>
                                         navigator.currentState!.pop(false),
                                     child: const Text('تراجع'),
-                                  )
+                                  ),
                                 ],
                               ),
                             ) ??
                             false) {
-                          scaffoldMessenger.currentState!
-                              .showSnackBar(const SnackBar(
-                            content: Text('جار التحميل'),
-                            duration: Duration(minutes: 2),
-                          ));
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            const SnackBar(
+                              content: Text('جار التحميل'),
+                              duration: Duration(minutes: 2),
+                            ),
+                          );
                           await firebaseFunctions
                               .httpsCallable('deleteImage')
                               .call();
                           user.reloadImage();
                           setState(() {});
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                          scaffoldMessenger.currentState!
-                              .showSnackBar(const SnackBar(
-                            content: Text('تم بنجاح'),
-                          ));
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            const SnackBar(
+                              content: Text('تم بنجاح'),
+                            ),
+                          );
                         }
                         return;
                       }
@@ -127,9 +129,9 @@ class _MyAccountState extends State<MyAccount> {
                           !(await Permission.camera.request()).isGranted)
                         return;
                       final selectedImage = await ImagePicker().pickImage(
-                          source: source
-                              ? ImageSource.camera
-                              : ImageSource.gallery);
+                        source:
+                            source ? ImageSource.camera : ImageSource.gallery,
+                      );
                       if (selectedImage == null) return;
                       final finalImage = await ImageCropper().cropImage(
                         sourcePath: selectedImage.path,
@@ -162,24 +164,26 @@ class _MyAccountState extends State<MyAccount> {
                                   onPressed: () =>
                                       navigator.currentState!.pop(false),
                                   child: const Text('تراجع'),
-                                )
+                                ),
                               ],
                             ),
                           ) ??
                           false) {
-                        scaffoldMessenger.currentState!
-                            .showSnackBar(const SnackBar(
-                          content: Text('جار التحميل'),
-                          duration: Duration(minutes: 2),
-                        ));
+                        scaffoldMessenger.currentState!.showSnackBar(
+                          const SnackBar(
+                            content: Text('جار التحميل'),
+                            duration: Duration(minutes: 2),
+                          ),
+                        );
                         await user.photoRef.putFile(File(finalImage!.path));
                         user.reloadImage();
                         setState(() {});
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();
-                        scaffoldMessenger.currentState!
-                            .showSnackBar(const SnackBar(
-                          content: Text('تم بنجاح'),
-                        ));
+                        scaffoldMessenger.currentState!.showSnackBar(
+                          const SnackBar(
+                            content: Text('تم بنجاح'),
+                          ),
+                        );
                       }
                     },
                     icon: const Icon(Icons.photo_camera),
@@ -213,66 +217,68 @@ class _MyAccountState extends State<MyAccount> {
                   subtitle: Text(user.email),
                 ),
                 ListTile(
-                  title: Text('الصلاحيات:',
-                      style: Theme.of(context).textTheme.bodyLarge),
+                  title: Text(
+                    'الصلاحيات:',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                 ),
-                if (user.manageUsers == true)
+                if (user.manageUsers)
                   const ListTile(
                     leading: Icon(
                       IconData(0xef3d, fontFamily: 'MaterialIconsR'),
                     ),
                     title: Text('إدارة المستخدمين'),
                   ),
-                if (user.manageAllowedUsers == true)
+                if (user.manageAllowedUsers)
                   const ListTile(
                     leading:
                         Icon(IconData(0xef3d, fontFamily: 'MaterialIconsR')),
                     title: Text('إدارة مستخدمين محددين'),
                   ),
-                if (user.superAccess == true)
+                if (user.superAccess)
                   const ListTile(
                     leading: Icon(
                       IconData(0xef56, fontFamily: 'MaterialIconsR'),
                     ),
                     title: Text('رؤية جميع البيانات'),
                   ),
-                if (user.manageDeleted == true)
+                if (user.manageDeleted)
                   const ListTile(
                     leading: Icon(Icons.delete_outlined),
                     title: Text('استرجاع المحذوفات'),
                   ),
-                if (user.write == true)
+                if (user.write)
                   const ListTile(
                     leading: Icon(Icons.edit),
                     title: Text('تعديل البيانات'),
                   ),
-                if (user.exportAreas == true)
+                if (user.exportAreas)
                   const ListTile(
                     leading: Icon(Icons.cloud_download),
                     title: Text('تصدير منطقة لملف إكسل'),
                   ),
-                if (user.birthdayNotify == true)
+                if (user.birthdayNotify)
                   const ListTile(
                     leading: Icon(
                       IconData(0xe7e9, fontFamily: 'MaterialIconsR'),
                     ),
                     title: Text('إشعار أعياد الميلاد'),
                   ),
-                if (user.confessionsNotify == true)
+                if (user.confessionsNotify)
                   const ListTile(
                     leading: Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
                     title: Text('إشعار الاعتراف'),
                   ),
-                if (user.tanawolNotify == true)
+                if (user.tanawolNotify)
                   const ListTile(
                     leading: Icon(
                       IconData(0xe7f7, fontFamily: 'MaterialIconsR'),
                     ),
                     title: Text('إشعار التناول'),
                   ),
-                if (user.approveLocations == true)
+                if (user.approveLocations)
                   const ListTile(
                     leading: Icon(
                       IconData(0xe8e8, fontFamily: 'MaterialIconsR'),
@@ -288,7 +294,7 @@ class _MyAccountState extends State<MyAccount> {
                   onPressed: changePass,
                   icon: const Icon(Icons.security),
                   label: const Text('تغيير كلمة السر'),
-                )
+                ),
               ],
             ),
           );
@@ -297,7 +303,7 @@ class _MyAccountState extends State<MyAccount> {
     );
   }
 
-  void changeName(String oldName, String uid) async {
+  Future<void> changeName(String oldName, String uid) async {
     final name = TextEditingController(text: oldName);
     if (await showDialog(
           context: context,
@@ -347,7 +353,7 @@ class _MyAccountState extends State<MyAccount> {
     }
   }
 
-  void changePass() async {
+  Future<void> changePass() async {
     if (await showDialog(
           context: context,
           builder: (context) {
@@ -393,7 +399,8 @@ class _MyAccountState extends State<MyAccount> {
                     autocorrect: false,
                     focusNode: focuses[2],
                     decoration: const InputDecoration(
-                        labelText: 'اعادة إدخال كلمة السر الجديدة'),
+                      labelText: 'اعادة إدخال كلمة السر الجديدة',
+                    ),
                   ),
                 ],
               ),
@@ -429,7 +436,7 @@ class _MyAccountState extends State<MyAccount> {
         try {
           await firebaseFunctions.httpsCallable('changePassword').call({
             'oldPassword': textFields[0].text,
-            'newPassword': Encryption.encryptPassword(textFields[1].text)
+            'newPassword': Encryption.encryptPassword(textFields[1].text),
           });
         } catch (err, stkTrace) {
           await FirebaseCrashlytics.instance

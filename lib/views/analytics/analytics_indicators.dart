@@ -17,13 +17,13 @@ class CartesianChart extends StatelessWidget {
   final Map<Timestamp, List<HistoryRecord>> data;
   final List<Area> areas;
 
-  const CartesianChart(
-      {Key? key,
-      required this.areas,
-      required this.range,
-      required this.data,
-      required this.title})
-      : super(key: key);
+  const CartesianChart({
+    required this.areas,
+    required this.range,
+    required this.data,
+    required this.title,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +61,10 @@ class CartesianChart extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(intl.DateFormat('d/M/yyy', 'ar-EG')
-                          .format(data.key.toDate())),
+                      Text(
+                        intl.DateFormat('d/M/yyy', 'ar-EG')
+                            .format(data.key.toDate()),
+                      ),
                       Text(
                         data.value.length.toString() + ' تعديل',
                       ),
@@ -83,13 +85,13 @@ class CartesianChart extends StatelessWidget {
                 borderGradient: LinearGradient(
                   colors: [
                     Colors.cyan[300]!.withOpacity(0.5),
-                    Colors.cyan[800]!.withOpacity(0.5)
+                    Colors.cyan[800]!.withOpacity(0.5),
                   ],
                 ),
                 gradient: LinearGradient(
                   colors: [
                     Colors.cyan[300]!.withOpacity(0.5),
-                    Colors.cyan[800]!.withOpacity(0.5)
+                    Colors.cyan[800]!.withOpacity(0.5),
                   ],
                 ),
                 dataSource: data.entries.toList(),
@@ -107,11 +109,11 @@ class CartesianChart extends StatelessWidget {
 
 class PieChart extends StatelessWidget {
   const PieChart({
-    Key? key,
     required this.data,
     required this.pieData,
+    super.key,
     this.pointColorMapper,
-  }) : super(key: key);
+  });
 
   final Color Function(Tuple2<int, String?>, int)? pointColorMapper;
   final List<HistoryRecord> data;
@@ -148,14 +150,14 @@ class PieChart extends StatelessWidget {
 
 class HistoryAnalysisWidget extends StatelessWidget {
   HistoryAnalysisWidget({
-    Key? key,
     required this.range,
     required this.areas,
     required this.areasByRef,
     required this.collectionGroup,
     required this.title,
+    super.key,
     this.showUsers = true,
-  }) : super(key: key);
+  });
 
   final DateTimeRange range;
   final List<Area> areas;
@@ -171,7 +173,10 @@ class HistoryAnalysisWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<List<JsonQueryDoc>>(
       stream: HistoryRecord.getAllForUser(
-          collectionGroup: collectionGroup, range: range, areas: areas),
+        collectionGroup: collectionGroup,
+        range: range,
+        areas: areas,
+      ),
       builder: (context, daysData) {
         if (daysData.hasError) return ErrorWidget(daysData.error!);
         if (!daysData.hasData)
@@ -183,13 +188,17 @@ class HistoryAnalysisWidget extends StatelessWidget {
         final List<HistoryRecord> data =
             daysData.data!.map(HistoryRecord.fromQueryDoc).toList();
 
-        mergeSort<HistoryRecord>(data,
-            compare: (o, n) => o.time.millisecondsSinceEpoch
-                .compareTo(n.time.millisecondsSinceEpoch));
+        mergeSort<HistoryRecord>(
+          data,
+          compare: (o, n) => o.time.millisecondsSinceEpoch
+              .compareTo(n.time.millisecondsSinceEpoch),
+        );
 
         final Map<Timestamp, List<HistoryRecord>> groupedData =
             groupBy<HistoryRecord, Timestamp>(
-                data, (d) => tranucateToDay(time: d.time.toDate()));
+          data,
+          (d) => tranucateToDay(time: d.time.toDate()),
+        );
 
         final list =
             groupBy<HistoryRecord, String?>(data, (s) => s.areaId?.path)
@@ -210,8 +219,12 @@ class HistoryAnalysisWidget extends StatelessWidget {
             PieChart(
               data: data,
               pieData: list
-                  .map((e) => Tuple2<int, String?>(
-                      e.value.length, areasByRef[e.key]?.name))
+                  .map(
+                    (e) => Tuple2<int, String?>(
+                      e.value.length,
+                      areasByRef[e.key]?.name,
+                    ),
+                  )
                   .toList(),
               pointColorMapper: (entry, _) =>
                   areasByRef[entry.item2]?.color ??
@@ -230,7 +243,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
 
                   final usersByID = {
-                    for (final u in usersData.data!.docs) u.id: User.fromDoc(u)
+                    for (final u in usersData.data!.docs) u.id: User.fromDoc(u),
                   };
                   final pieData =
                       groupBy<HistoryRecord, String?>(data, (s) => s.by)
@@ -241,8 +254,12 @@ class HistoryAnalysisWidget extends StatelessWidget {
                         colorsMap[entry] ??= _pickRandomColor(),
                     data: data,
                     pieData: pieData
-                        .map((e) => Tuple2<int, String?>(
-                            e.value.length, usersByID[e.key]?.name))
+                        .map(
+                          (e) => Tuple2<int, String?>(
+                            e.value.length,
+                            usersByID[e.key]?.name,
+                          ),
+                        )
                         .toList(),
                   );
                 },

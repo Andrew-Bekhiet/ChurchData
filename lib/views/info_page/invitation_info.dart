@@ -11,7 +11,7 @@ import 'package:tinycolor2/tinycolor2.dart';
 
 class InvitationInfo extends StatelessWidget {
   final Invitation invitation;
-  const InvitationInfo({Key? key, required this.invitation}) : super(key: key);
+  const InvitationInfo({required this.invitation, super.key});
 
   void addTap(BuildContext context) {
     navigator.currentState!
@@ -39,8 +39,8 @@ class InvitationInfo extends StatelessWidget {
               SliverAppBar(
                 backgroundColor: invitation.color != Colors.transparent
                     ? (Theme.of(context).brightness == Brightness.light
-                        ? TinyColor(invitation.color).lighten().color
-                        : TinyColor(invitation.color).darken().color)
+                        ? TinyColor.fromColor(invitation.color).lighten().color
+                        : TinyColor.fromColor(invitation.color).darken().color)
                     : null,
                 actions: <Widget>[
                   Selector<User, bool>(
@@ -54,20 +54,25 @@ class InvitationInfo extends StatelessWidget {
                                     const Positioned(
                                       left: 1.0,
                                       top: 2.0,
-                                      child: Icon(Icons.edit,
-                                          color: Colors.black54),
+                                      child: Icon(
+                                        Icons.edit,
+                                        color: Colors.black54,
+                                      ),
                                     ),
-                                    Icon(Icons.edit,
-                                        color: IconTheme.of(context).color),
+                                    Icon(
+                                      Icons.edit,
+                                      color: IconTheme.of(context).color,
+                                    ),
                                   ],
                                 );
                               },
                             ),
                             onPressed: () async {
-                              final dynamic result = await navigator
-                                  .currentState!
-                                  .pushNamed('EditInvitation',
-                                      arguments: invitation);
+                              final dynamic result =
+                                  await navigator.currentState!.pushNamed(
+                                'EditInvitation',
+                                arguments: invitation,
+                              );
                               if (result is JsonRef) {
                                 scaffoldMessenger.currentState!.showSnackBar(
                                   const SnackBar(
@@ -91,8 +96,10 @@ class InvitationInfo extends StatelessWidget {
                               top: 2.0,
                               child: Icon(Icons.share, color: Colors.black54),
                             ),
-                            Icon(Icons.share,
-                                color: IconTheme.of(context).color),
+                            Icon(
+                              Icons.share,
+                              color: IconTheme.of(context).color,
+                            ),
                           ],
                         );
                       },
@@ -115,8 +122,10 @@ class InvitationInfo extends StatelessWidget {
                       opacity: constraints.biggest.height > kToolbarHeight * 1.7
                           ? 0
                           : 1,
-                      child: Text(invitation.name,
-                          style: const TextStyle(fontSize: 16.0)),
+                      child: Text(
+                        invitation.name,
+                        style: const TextStyle(fontSize: 16.0),
+                      ),
                     ),
                     background: const Icon(Icons.link),
                   ),
@@ -126,8 +135,10 @@ class InvitationInfo extends StatelessWidget {
                 delegate: SliverChildListDelegate(
                   <Widget>[
                     ListTile(
-                      title: Text(invitation.name,
-                          style: Theme.of(context).textTheme.titleLarge),
+                      title: Text(
+                        invitation.name,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
                     CopiableProperty(
                       'لينك الدعوة',
@@ -159,28 +170,29 @@ class InvitationInfo extends StatelessWidget {
                     ListTile(
                       title: const Text('تم توليد اللينك بواسطة'),
                       subtitle: FutureBuilder<String?>(
-                          future: User.onlyName(invitation.generatedBy),
-                          builder: (context, data) => data.hasData
-                              ? Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text(data.data!),
-                                    ),
-                                    Text(
-                                        invitation.generatedOn != null
-                                            ? DateFormat(
-                                                    'yyyy/M/d   h:m a', 'ar-EG')
-                                                .format(
-                                                invitation.generatedOn!
-                                                    .toDate(),
-                                              )
-                                            : '',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall),
-                                  ],
-                                )
-                              : const LinearProgressIndicator()),
+                        future: User.onlyName(invitation.generatedBy),
+                        builder: (context, data) => data.hasData
+                            ? Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text(data.data!),
+                                  ),
+                                  Text(
+                                    invitation.generatedOn != null
+                                        ? DateFormat(
+                                            'yyyy/M/d   h:m a',
+                                            'ar-EG',
+                                          ).format(
+                                            invitation.generatedOn!.toDate(),
+                                          )
+                                        : '',
+                                    style:
+                                        Theme.of(context).textTheme.labelSmall,
+                                  ),
+                                ],
+                              )
+                            : const LinearProgressIndicator(),
+                      ),
                     ),
                     ListTile(
                       title: const Text('تاريخ الانتهاء'),
@@ -208,21 +220,33 @@ class InvitationInfo extends StatelessWidget {
                         children: [
                           if (invitation.permissions?['manageUsers'] == true)
                             const ListTile(
-                              leading: Icon(IconData(0xef3d,
-                                  fontFamily: 'MaterialIconsR')),
+                              leading: Icon(
+                                IconData(
+                                  0xef3d,
+                                  fontFamily: 'MaterialIconsR',
+                                ),
+                              ),
                               title: Text('إدارة المستخدمين'),
                             ),
                           if (invitation.permissions?['manageAllowedUsers'] ==
                               true)
                             const ListTile(
-                              leading: Icon(IconData(0xef3d,
-                                  fontFamily: 'MaterialIconsR')),
+                              leading: Icon(
+                                IconData(
+                                  0xef3d,
+                                  fontFamily: 'MaterialIconsR',
+                                ),
+                              ),
                               title: Text('إدارة مستخدمين محددين'),
                             ),
                           if (invitation.permissions?['superAccess'] == true)
                             const ListTile(
-                              leading: Icon(IconData(0xef56,
-                                  fontFamily: 'MaterialIconsR')),
+                              leading: Icon(
+                                IconData(
+                                  0xef56,
+                                  fontFamily: 'MaterialIconsR',
+                                ),
+                              ),
                               title: Text('رؤية جميع البيانات'),
                             ),
                           if (invitation.permissions?['manageDeleted'] == true)

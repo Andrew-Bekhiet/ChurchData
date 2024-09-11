@@ -14,8 +14,9 @@ LocalAuthentication localAuthentication = LocalAuthentication();
 class AuthScreen extends StatefulWidget {
   final Widget? nextWidget;
   final String? nextRoute;
-  const AuthScreen({Key? key, this.nextWidget, this.nextRoute})
-      : super(key: key);
+
+  const AuthScreen({super.key, this.nextWidget, this.nextRoute});
+
   @override
   _AuthScreenState createState() => _AuthScreenState();
 }
@@ -70,9 +71,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 key: const Key('Password'),
                 decoration: InputDecoration(
                   suffix: IconButton(
-                    icon: Icon(obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                    icon: Icon(
+                      obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
                     tooltip:
                         obscurePassword ? 'اظهار كلمة السر' : 'اخفاء كلمة السر',
                     onPressed: () =>
@@ -119,7 +120,7 @@ class _AuthScreenState extends State<AuthScreen> {
     _authenticate();
   }
 
-  void _authenticate() async {
+  Future<void> _authenticate() async {
     try {
       if (!await localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
@@ -140,9 +141,11 @@ class _AuthScreenState extends State<AuthScreen> {
         } else {
           // ignore: unawaited_futures
           navigator.currentState!.pushReplacement(
-            MaterialPageRoute(builder: (con) {
-              return widget.nextWidget!;
-            }),
+            MaterialPageRoute(
+              builder: (con) {
+                return widget.nextWidget!;
+              },
+            ),
           );
         }
       }

@@ -1,5 +1,5 @@
 import 'package:feature_discovery/feature_discovery.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class HivePersistenceProvider extends PersistenceProvider {
   static HivePersistenceProvider _instance = HivePersistenceProvider._();
@@ -36,9 +36,10 @@ class HivePersistenceProvider extends PersistenceProvider {
     return _box
         .toMap()
         .entries
-        .where((element) =>
-            element.value == true &&
-            (featuresIds?.contains(element.key) ?? false))
+        .where(
+          (element) =>
+              element.value && (featuresIds?.contains(element.key) ?? false),
+        )
         .map((e) => e.key)
         .toSet()
         .cast<String>();

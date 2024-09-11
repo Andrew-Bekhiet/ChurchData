@@ -12,9 +12,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'person.dart';
@@ -176,8 +177,13 @@ class User extends DataObject with PhotoObject {
     _refreshFromIdToken(idTokenClaims, user: firebaseAuth.currentUser);
   }
 
-  void _refreshFromIdToken(Map<dynamic, dynamic> idTokenClaims,
-      {auth.User? user, String? name, String? uid, String? email}) {
+  void _refreshFromIdToken(
+    Map<dynamic, dynamic> idTokenClaims, {
+    auth.User? user,
+    String? name,
+    String? uid,
+    String? email,
+  }) {
     assert(user != null || (name != null && uid != null && email != null));
     this.uid = user?.uid ?? uid!;
     this.name = user?.displayName ?? name ?? '';
@@ -254,71 +260,75 @@ class User extends DataObject with PhotoObject {
     await connectionListener?.cancel();
   }
 
-  factory User(
-      {JsonRef? ref,
-      String? uid,
-      required String name,
-      String? password,
-      bool manageUsers = false,
-      bool manageDeleted = false,
-      bool manageAllowedUsers = false,
-      bool superAccess = false,
-      bool write = false,
-      bool exportAreas = false,
-      bool birthdayNotify = false,
-      bool confessionsNotify = false,
-      bool tanawolNotify = false,
-      bool approveLocations = false,
-      bool approved = false,
-      String? personRef,
-      List<String>? allowedUsers,
-      required String email}) {
+  factory User({
+    required String name,
+    required String email,
+    String? uid,
+    String? password,
+    bool manageUsers = false,
+    bool manageDeleted = false,
+    bool manageAllowedUsers = false,
+    bool superAccess = false,
+    bool write = false,
+    bool exportAreas = false,
+    bool birthdayNotify = false,
+    bool confessionsNotify = false,
+    bool tanawolNotify = false,
+    bool approveLocations = false,
+    bool approved = false,
+    String? personRef,
+    List<String>? allowedUsers,
+  }) {
     if (uid == null || uid == firebaseAuth.currentUser!.uid) {
       return instance;
     }
     return User._new(
-        uid: uid,
-        name: name,
-        password: password,
-        manageUsers: manageUsers,
-        manageAllowedUsers: manageAllowedUsers,
-        superAccess: superAccess,
-        manageDeleted: manageDeleted,
-        write: write,
-        exportAreas: exportAreas,
-        birthdayNotify: birthdayNotify,
-        confessionsNotify: confessionsNotify,
-        tanawolNotify: tanawolNotify,
-        approveLocations: approveLocations,
-        approved: approved,
-        personRef: personRef,
-        allowedUsers: allowedUsers,
-        email: email);
+      uid: uid,
+      name: name,
+      password: password,
+      manageUsers: manageUsers,
+      manageAllowedUsers: manageAllowedUsers,
+      superAccess: superAccess,
+      manageDeleted: manageDeleted,
+      write: write,
+      exportAreas: exportAreas,
+      birthdayNotify: birthdayNotify,
+      confessionsNotify: confessionsNotify,
+      tanawolNotify: tanawolNotify,
+      approveLocations: approveLocations,
+      approved: approved,
+      personRef: personRef,
+      allowedUsers: allowedUsers,
+      email: email,
+    );
   }
 
-  User._new(
-      {String? uid,
-      String? id,
-      required String name,
-      this.password,
-      required this.manageUsers,
-      required this.manageAllowedUsers,
-      required this.superAccess,
-      required this.manageDeleted,
-      required this.write,
-      required this.exportAreas,
-      required this.birthdayNotify,
-      required this.confessionsNotify,
-      required this.tanawolNotify,
-      required this.approveLocations,
-      required this.approved,
-      this.personRef,
-      List<String>? allowedUsers,
-      required this.email,
-      JsonRef? ref})
-      : _uid = uid,
-        super(ref ?? firestore.collection('Users').doc(id ?? 'null'), name,
-            null) {
+  User._new({
+    required String name,
+    required this.manageUsers,
+    required this.manageAllowedUsers,
+    required this.superAccess,
+    required this.manageDeleted,
+    required this.write,
+    required this.exportAreas,
+    required this.birthdayNotify,
+    required this.confessionsNotify,
+    required this.tanawolNotify,
+    required this.approveLocations,
+    required this.approved,
+    required this.email,
+    String? uid,
+    String? id,
+    this.password,
+    this.personRef,
+    List<String>? allowedUsers,
+    JsonRef? ref,
+  })  : _uid = uid,
+        super(
+          ref ?? firestore.collection('Users').doc(id ?? 'null'),
+          name,
+          null,
+        ) {
     defaultIcon = Icons.account_circle;
     this.allowedUsers = allowedUsers ?? [];
   }
@@ -358,23 +368,24 @@ class User extends DataObject with PhotoObject {
   Color get color => Colors.transparent;
 
   @override
-  int get hashCode => hashValues(
-      uid,
-      name,
-      password,
-      manageUsers,
-      manageAllowedUsers,
-      superAccess,
-      manageDeleted,
-      write,
-      exportAreas,
-      birthdayNotify,
-      confessionsNotify,
-      tanawolNotify,
-      approveLocations,
-      approved,
-      personRef,
-      email);
+  int get hashCode => Object.hash(
+        uid,
+        name,
+        password,
+        manageUsers,
+        manageAllowedUsers,
+        superAccess,
+        manageDeleted,
+        write,
+        exportAreas,
+        birthdayNotify,
+        confessionsNotify,
+        tanawolNotify,
+        approveLocations,
+        approved,
+        personRef,
+        email,
+      );
 
   @override
   bool operator ==(other) {
@@ -419,8 +430,11 @@ class User extends DataObject with PhotoObject {
             return Stack(
               children: [
                 Positioned.fill(
-                    child: Icon(Icons.account_circle,
-                        size: MediaQuery.of(context).size.height / 16.56)),
+                  child: Icon(
+                    Icons.account_circle,
+                    size: MediaQuery.of(context).size.height / 16.56,
+                  ),
+                ),
                 if (showActiveStatus &&
                     activity.data?.snapshot.value == 'Active')
                   Align(
@@ -454,7 +468,7 @@ class User extends DataObject with PhotoObject {
                     return url;
                   }
 
-                  void _updateCache(String cache) async {
+                  Future<void> _updateCache(String cache) async {
                     String? url;
                     try {
                       url = await photoRef.getDownloadURL();
@@ -471,7 +485,7 @@ class User extends DataObject with PhotoObject {
                     }
                   }
 
-                  _updateCache(cache);
+                  unawaited(_updateCache(cache));
                   return cache;
                 },
               ),
@@ -483,7 +497,8 @@ class User extends DataObject with PhotoObject {
                           ? showCircle
                               ? CircleAvatar(
                                   backgroundImage: CachedNetworkImageProvider(
-                                      photoUrl.data!),
+                                    photoUrl.data!,
+                                  ),
                                 )
                               : CachedNetworkImage(imageUrl: photoUrl.data!)
                           : const CircularProgressIndicator(),
@@ -513,7 +528,7 @@ class User extends DataObject with PhotoObject {
   }
 
   @override
-  Future<String> getSecondLine() async => getPermissions();
+  Future<String> getSecondLine() async => SynchronousFuture(getPermissions());
 
   Json getUpdateMap() => {
         'name': name,
@@ -543,13 +558,15 @@ class User extends DataObject with PhotoObject {
 
   static Future<List<User?>> getAllUsers(List<String> users) async {
     return (await Future.wait(
-            users.map((s) => firestore.collection('Users').doc(s).get())))
+      users.map((s) => firestore.collection('Users').doc(s).get()),
+    ))
         .map(User.fromDoc)
         .toList();
   }
 
-  static Future<JsonQuery> getAllUsersLive(
-      {bool onlyCanApproveLocations = false}) {
+  static Future<JsonQuery> getAllUsersLive({
+    bool onlyCanApproveLocations = false,
+  }) {
     if (onlyCanApproveLocations) {
       return firestore
           .collection('Users')
@@ -563,7 +580,7 @@ class User extends DataObject with PhotoObject {
   static Future<List<User>> getUsersForEdit() async {
     final users = {
       for (final u in (await User.getAllUsersLive()).docs)
-        u.id: (u.data()['allowedUsers'] as List?)?.cast<String>()
+        u.id: (u.data()['allowedUsers'] as List?)?.cast<String>(),
     };
     return (await firebaseFunctions.httpsCallable('getUsers').call())
         .data
@@ -647,7 +664,7 @@ class User extends DataObject with PhotoObject {
 
   static Future<List<User>> getAllSemiManagers() async {
     return (await getUsersForEdit())
-        .where((u) => u.manageAllowedUsers == true)
+        .where((u) => u.manageAllowedUsers)
         .toList();
   }
 
@@ -665,9 +682,10 @@ class User extends DataObject with PhotoObject {
   }
 
   static Widget photoFromUID(String uid, {bool removeHero = false}) =>
-      PhotoWidget(firebaseStorage.ref().child('UsersPhotos/$uid'),
-              defaultIcon: Icons.account_circle)
-          .photo(removeHero: removeHero);
+      PhotoWidget(
+        firebaseStorage.ref().child('UsersPhotos/$uid'),
+        defaultIcon: Icons.account_circle,
+      ).photo(removeHero: removeHero);
 
   static Stream<List<User>> getAllForUser() {
     return firestore

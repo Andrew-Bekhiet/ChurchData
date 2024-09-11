@@ -23,7 +23,7 @@ import 'package:share_plus/share_plus.dart';
 class StreetInfo extends StatefulWidget {
   final Street street;
 
-  const StreetInfo({Key? key, required this.street}) : super(key: key);
+  const StreetInfo({required this.street, super.key});
 
   @override
   _StreetInfoState createState() => _StreetInfoState();
@@ -103,16 +103,18 @@ class _StreetInfoState extends State<StreetInfo> {
                           onPressed: () {
                             recoverDoc(context, street.ref.path);
                           },
-                        )
+                        ),
                     ]
                   : <Widget>[
                       if (permission)
                         IconButton(
                           icon: const Icon(Icons.edit),
                           onPressed: () async {
-                            final dynamic result = await navigator.currentState!
-                                .pushNamed('Data/EditStreet',
-                                    arguments: street);
+                            final dynamic result =
+                                await navigator.currentState!.pushNamed(
+                              'Data/EditStreet',
+                              arguments: street,
+                            );
                             if (result == null) return;
 
                             scaffoldMessenger.currentState!
@@ -183,34 +185,45 @@ class _StreetInfoState extends State<StreetInfo> {
                               label: const Text('إظهار على الخريطة'),
                             ),
                           const Divider(thickness: 1),
-                          HistoryProperty('تاريخ أخر زيارة:', street.lastVisit,
-                              street.ref.collection('VisitHistory')),
                           HistoryProperty(
-                              'تاريخ أخر زيارة (لللأب الكاهن):',
-                              street.fatherLastVisit,
-                              street.ref.collection('FatherVisitHistory')),
+                            'تاريخ أخر زيارة:',
+                            street.lastVisit,
+                            street.ref.collection('VisitHistory'),
+                          ),
+                          HistoryProperty(
+                            'تاريخ أخر زيارة (لللأب الكاهن):',
+                            street.fatherLastVisit,
+                            street.ref.collection('FatherVisitHistory'),
+                          ),
                           EditHistoryProperty(
-                              'أخر تحديث للبيانات:',
-                              street.lastEdit,
-                              street.ref.collection('EditHistory')),
+                            'أخر تحديث للبيانات:',
+                            street.lastEdit,
+                            street.ref.collection('EditHistory'),
+                          ),
                           const Divider(thickness: 1),
                           ListTile(
                             title: const Text('داخل منطقة:'),
                             subtitle: street.areaId != null &&
                                     street.areaId!.parent.id != 'null'
                                 ? AsyncDataObjectWidget<Area>(
-                                    street.areaId!, Area.fromDoc)
+                                    street.areaId!,
+                                    Area.fromDoc,
+                                  )
                                 : const Text('غير موجودة'),
                           ),
                           const Divider(
                             thickness: 1,
                           ),
-                          Text('العائلات بالشارع:',
-                              style: Theme.of(context).textTheme.bodyLarge),
-                          SearchFilters(2,
-                              orderOptions: _orderOptions,
-                              options: _listOptions,
-                              textStyle: Theme.of(context).textTheme.bodyMedium),
+                          Text(
+                            'العائلات بالشارع:',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                          SearchFilters(
+                            2,
+                            orderOptions: _orderOptions,
+                            options: _listOptions,
+                            textStyle: Theme.of(context).textTheme.bodyMedium,
+                          ),
                         ],
                       ),
                     ),
@@ -272,7 +285,7 @@ class _StreetInfoState extends State<StreetInfo> {
                               leading: Icon(Icons.group_add),
                               title: Text('اضافة عائلة'),
                             ),
-                          )
+                          ),
                         ],
                         onSelected: (type) async {
                           final dynamic result =
@@ -280,7 +293,7 @@ class _StreetInfoState extends State<StreetInfo> {
                             'Data/EditFamily',
                             arguments: {
                               'IsStore': type,
-                              'StreetId': street.ref
+                              'StreetId': street.ref,
                             },
                           );
 
@@ -309,7 +322,7 @@ class _StreetInfoState extends State<StreetInfo> {
     );
   }
 
-  void recordLastVisit(BuildContext context, Street street) async {
+  Future<void> recordLastVisit(BuildContext context, Street street) async {
     if (await showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -329,11 +342,13 @@ class _StreetInfoState extends State<StreetInfo> {
         true) return;
     await street.ref.update({
       'LastVisit': Timestamp.now(),
-      'LastEdit': firebaseAuth.currentUser!.uid
+      'LastEdit': firebaseAuth.currentUser!.uid,
     });
-    scaffoldMessenger.currentState!.showSnackBar(const SnackBar(
-      content: Text('تم بنجاح'),
-    ));
+    scaffoldMessenger.currentState!.showSnackBar(
+      const SnackBar(
+        content: Text('تم بنجاح'),
+      ),
+    );
   }
 
   void showMap(BuildContext context, Street street) {
@@ -349,21 +364,24 @@ class _StreetInfoState extends State<StreetInfo> {
                     itemBuilder: (context) => [
                       PopupMenuItem(
                         value: true,
-                        child: Text(street.locationConfirmed
-                            ? 'عدم تأكيد الموقع'
-                            : 'تأكيد الموقع'),
+                        child: Text(
+                          street.locationConfirmed
+                              ? 'عدم تأكيد الموقع'
+                              : 'تأكيد الموقع',
+                        ),
                       ),
                     ],
                     onSelected: (item) async {
-                      if (item == true && approve) {
+                      if (item && approve) {
                         try {
-                          scaffoldMessenger.currentState!
-                              .showSnackBar(const SnackBar(
-                            content: LinearProgressIndicator(),
-                          ));
+                          scaffoldMessenger.currentState!.showSnackBar(
+                            const SnackBar(
+                              content: LinearProgressIndicator(),
+                            ),
+                          );
                           await street.ref.update({
                             'LocationConfirmed': !street.locationConfirmed,
-                            'LastEdit': User.instance.uid
+                            'LastEdit': User.instance.uid,
                           });
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();
                           scaffoldMessenger.currentState!.showSnackBar(
@@ -373,7 +391,9 @@ class _StreetInfoState extends State<StreetInfo> {
                           );
                         } catch (err, stkTrace) {
                           await FirebaseCrashlytics.instance.setCustomKey(
-                              'LastErrorIn', 'StreetInfo.showMap');
+                            'LastErrorIn',
+                            'StreetInfo.showMap',
+                          );
                           await FirebaseCrashlytics.instance
                               .recordError(err, stkTrace);
                           scaffoldMessenger.currentState!.hideCurrentSnackBar();

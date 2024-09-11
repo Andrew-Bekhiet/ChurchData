@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io' if (dart.library.html) 'dart:html';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -24,6 +23,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -103,7 +103,9 @@ Future<dynamic> getLinkObject(Uri deepLink) async {
 }
 
 List<RadioListTile> getOrderingOptions(
-    BehaviorSubject<OrderOptions> orderOptions, int? index) {
+  BehaviorSubject<OrderOptions> orderOptions,
+  int? index,
+) {
   final Json source = index == 0
       ? Area.getStaticHumanReadableMap()
       : index == 1
@@ -120,7 +122,8 @@ List<RadioListTile> getOrderingOptions(
           title: Text(e.value),
           onChanged: (value) {
             orderOptions.add(
-                OrderOptions(orderBy: value!, asc: orderOptions.value.asc));
+              OrderOptions(orderBy: value!, asc: orderOptions.value.asc),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -133,8 +136,12 @@ List<RadioListTile> getOrderingOptions(
           groupValue: orderOptions.value.asc.toString(),
           title: const Text('تصاعدي'),
           onChanged: (value) {
-            orderOptions.add(OrderOptions(
-                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            orderOptions.add(
+              OrderOptions(
+                orderBy: orderOptions.value.orderBy,
+                asc: value == 'true',
+              ),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -143,8 +150,12 @@ List<RadioListTile> getOrderingOptions(
           groupValue: orderOptions.value.asc.toString(),
           title: const Text('تنازلي'),
           onChanged: (value) {
-            orderOptions.add(OrderOptions(
-                orderBy: orderOptions.value.orderBy, asc: value == 'true'));
+            orderOptions.add(
+              OrderOptions(
+                orderBy: orderOptions.value.orderBy,
+                asc: value == 'true',
+              ),
+            );
             navigator.currentState!.pop();
           },
         ),
@@ -171,10 +182,13 @@ DateTime getRiseDay([int? year]) {
   return DateTime(year, (d + e + 114) ~/ 31, ((d + e + 114) % 31) + 14);
 }
 
-void import(BuildContext context) async {
+Future<void> import(BuildContext context) async {
   try {
     final picked = await FilePicker.platform.pickFiles(
-        allowedExtensions: ['xlsx'], withData: true, type: FileType.custom);
+      allowedExtensions: ['xlsx'],
+      withData: true,
+      type: FileType.custom,
+    );
     if (picked == null) return;
     final fileData = picked.files[0].bytes;
     final decoder = SpreadsheetDecoder.decodeBytes(fileData!);
@@ -190,8 +204,9 @@ void import(BuildContext context) async {
       );
       final filename = DateTime.now().toIso8601String();
       await firebaseStorage.ref('Imports/' + filename + '.xlsx').putData(
-          fileData,
-          SettableMetadata(customMetadata: {'createdBy': User.instance.uid!}));
+            fileData,
+            SettableMetadata(customMetadata: {'createdBy': User.instance.uid!}),
+          );
       scaffoldMessenger.currentState!.hideCurrentSnackBar();
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
@@ -219,7 +234,10 @@ void import(BuildContext context) async {
 }
 
 Future importArea(
-    SpreadsheetDecoder decoder, Area area, BuildContext context) async {
+  SpreadsheetDecoder decoder,
+  Area area,
+  BuildContext context,
+) async {
   try {
     WriteBatch batchUpdate = firestore.batch();
     int batchCount = 1;
@@ -264,10 +282,11 @@ Future importArea(
       batchUpdate.set(
         firestore.collection('Streets').doc(row[0]),
         Map.fromIterables(
-            keys,
-            List<String?>.from(
-              row..removeAt(0),
-            )).map((key, value) {
+          keys,
+          List<String?>.from(
+            row..removeAt(0),
+          ),
+        ).map((key, value) {
           if (value == null) return MapEntry(key, null);
           if (key == 'Name')
             return MapEntry(
@@ -285,9 +304,11 @@ Future importArea(
           if (key == 'LastEdit') return MapEntry(key, uid);
           return MapEntry(
             key,
-            Timestamp.fromMillisecondsSinceEpoch(int.parse(
-              value,
-            )),
+            Timestamp.fromMillisecondsSinceEpoch(
+              int.parse(
+                value,
+              ),
+            ),
           );
         }),
       );
@@ -320,10 +341,11 @@ Future importArea(
       batchUpdate.set(
         firestore.collection('Families').doc(row[0]),
         Map.fromIterables(
-            keys,
-            List<String?>.from(
-              row..removeAt(0),
-            )).map((key, value) {
+          keys,
+          List<String?>.from(
+            row..removeAt(0),
+          ),
+        ).map((key, value) {
           if (value == null) return MapEntry(key, null);
           if (key == 'AreaId') return MapEntry(key, area.ref);
           if (key == 'StreetId')
@@ -334,17 +356,20 @@ Future importArea(
           if (key == 'LastVisit' || key == 'FatherLastVisit')
             return MapEntry(
               key,
-              Timestamp.fromMillisecondsSinceEpoch(int.parse(
-                value,
-              )),
+              Timestamp.fromMillisecondsSinceEpoch(
+                int.parse(
+                  value,
+                ),
+              ),
             );
           if (key == 'Location')
             return MapEntry(
-                key,
-                GeoPoint(
-                  double.parse(value.split(',')[0]),
-                  double.parse(value.split(',')[1]),
-                ));
+              key,
+              GeoPoint(
+                double.parse(value.split(',')[0]),
+                double.parse(value.split(',')[1]),
+              ),
+            );
           if (key == 'LocationConfirmed') return MapEntry(key, value == 'true');
           if (key == 'Color') return MapEntry(key, int.parse(value));
           if (key == 'LastEdit') return MapEntry(key, uid);
@@ -394,10 +419,11 @@ Future importArea(
       batchUpdate.set(
         firestore.collection('Persons').doc(row[0]),
         Map.fromIterables(
-            keys,
-            List<String?>.from(
-              row..removeAt(0),
-            )).map((key, value) {
+          keys,
+          List<String?>.from(
+            row..removeAt(0),
+          ),
+        ).map((key, value) {
           if (value == null) return MapEntry(key, null);
           if (key == 'FamilyId') {
             return MapEntry(
@@ -417,10 +443,13 @@ Future importArea(
             );
           } else if (key.contains('BirthDa') || key.startsWith('Last')) {
             return MapEntry(
-                key,
-                Timestamp.fromMillisecondsSinceEpoch(int.parse(
+              key,
+              Timestamp.fromMillisecondsSinceEpoch(
+                int.parse(
                   value,
-                )));
+                ),
+              ),
+            );
           } else if (key.startsWith('Is') || key == 'HasPhoto') {
             return MapEntry(key, value == 'true');
           } else if (key == 'StudyYear' || key == 'Job' || key == 'State') {
@@ -498,8 +527,10 @@ Future<void> onBackgroundMessage(messaging_types.RemoteMessage message) async {
   await Hive.close();
 }
 
-void onForegroundMessage(messaging_types.RemoteMessage message,
-    [BuildContext? context]) async {
+Future<void> onForegroundMessage(
+  messaging_types.RemoteMessage message, [
+  BuildContext? context,
+]) async {
   context ??= mainScfld.currentContext;
   final bool opened = Hive.isBoxOpen('Notifications');
   if (!opened) await Hive.openBox<Map>('Notifications');
@@ -518,7 +549,9 @@ void onForegroundMessage(messaging_types.RemoteMessage message,
 Future<void> onNotificationClicked(NotificationResponse response) async {
   if (WidgetsBinding.instance.rootElement != null) {
     await processClickedNotification(
-        mainScfld.currentContext!, response.payload);
+      mainScfld.currentContext!,
+      response.payload,
+    );
   }
 }
 
@@ -526,8 +559,10 @@ void personTap(Person person) {
   navigator.currentState!.pushNamed('PersonInfo', arguments: person);
 }
 
-Future processClickedNotification(BuildContext context,
-    [String? _payload]) async {
+Future processClickedNotification(
+  BuildContext context, [
+  String? _payload,
+]) async {
   final notificationDetails =
       await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
   if (notificationDetails == null) return;
@@ -543,17 +578,19 @@ Future processClickedNotification(BuildContext context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '2',
-                'operatorIndex': '0',
-                'queryText': '',
-                'queryValue': 'T' +
-                    (now - (now % Duration.millisecondsPerDay)).toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'BirthDay'
-              });
+              return SearchQuery(
+                query: {
+                  'parentIndex': '1',
+                  'childIndex': '2',
+                  'operatorIndex': '0',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      (now - (now % Duration.millisecondsPerDay)).toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'BirthDay',
+                },
+              );
             },
           ),
         );
@@ -565,19 +602,21 @@ Future processClickedNotification(BuildContext context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '9',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastConfession'
-              });
+              return SearchQuery(
+                query: {
+                  'parentIndex': '1',
+                  'childIndex': '9',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastConfession',
+                },
+              );
             },
           ),
         );
@@ -589,19 +628,21 @@ Future processClickedNotification(BuildContext context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '8',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastTanawol'
-              });
+              return SearchQuery(
+                query: {
+                  'parentIndex': '1',
+                  'childIndex': '8',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastTanawol',
+                },
+              );
             },
           ),
         );
@@ -613,19 +654,21 @@ Future processClickedNotification(BuildContext context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '10',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastKodas'
-              });
+              return SearchQuery(
+                query: {
+                  'parentIndex': '1',
+                  'childIndex': '10',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastKodas',
+                },
+              );
             },
           ),
         );
@@ -637,19 +680,21 @@ Future processClickedNotification(BuildContext context,
           MaterialPageRoute(
             builder: (context) {
               final now = DateTime.now().millisecondsSinceEpoch;
-              return SearchQuery(query: {
-                'parentIndex': '1',
-                'childIndex': '11',
-                'operatorIndex': '3',
-                'queryText': '',
-                'queryValue': 'T' +
-                    ((now - (now % Duration.millisecondsPerDay)) -
-                            (Duration.millisecondsPerDay * 7))
-                        .toString(),
-                'birthDate': 'false',
-                'descending': 'false',
-                'orderBy': 'LastMeeting'
-              });
+              return SearchQuery(
+                query: {
+                  'parentIndex': '1',
+                  'childIndex': '11',
+                  'operatorIndex': '3',
+                  'queryText': '',
+                  'queryValue': 'T' +
+                      ((now - (now % Duration.millisecondsPerDay)) -
+                              (Duration.millisecondsPerDay * 7))
+                          .toString(),
+                  'birthDate': 'false',
+                  'descending': 'false',
+                  'orderBy': 'LastMeeting',
+                },
+              );
             },
           ),
         );
@@ -661,29 +706,37 @@ Future processClickedNotification(BuildContext context,
 Future processLink(Uri deepLink) async {
   try {
     if (deepLink.pathSegments[0] == 'viewArea') {
-      areaTap(Area.fromDoc(
-        await firestore
-            .doc('Areas/${deepLink.queryParameters['AreaId']}')
-            .get(),
-      )!);
+      areaTap(
+        Area.fromDoc(
+          await firestore
+              .doc('Areas/${deepLink.queryParameters['AreaId']}')
+              .get(),
+        )!,
+      );
     } else if (deepLink.pathSegments[0] == 'viewStreet') {
-      streetTap(Street.fromDoc(
-        await firestore
-            .doc('Streets/${deepLink.queryParameters['StreetId']}')
-            .get(),
-      )!);
+      streetTap(
+        Street.fromDoc(
+          await firestore
+              .doc('Streets/${deepLink.queryParameters['StreetId']}')
+              .get(),
+        )!,
+      );
     } else if (deepLink.pathSegments[0] == 'viewFamily') {
-      familyTap(Family.fromDoc(
-        await firestore
-            .doc('Families/${deepLink.queryParameters['FamilyId']}')
-            .get(),
-      )!);
+      familyTap(
+        Family.fromDoc(
+          await firestore
+              .doc('Families/${deepLink.queryParameters['FamilyId']}')
+              .get(),
+        )!,
+      );
     } else if (deepLink.pathSegments[0] == 'viewPerson') {
-      personTap(Person.fromDoc(
-        await firestore
-            .doc('Persons/${deepLink.queryParameters['PersonId']}')
-            .get(),
-      )!);
+      personTap(
+        Person.fromDoc(
+          await firestore
+              .doc('Persons/${deepLink.queryParameters['PersonId']}')
+              .get(),
+        )!,
+      );
     } else if (deepLink.pathSegments[0] == 'viewQuery') {
       await navigator.currentState!.push(
         MaterialPageRoute(
@@ -694,10 +747,12 @@ Future processLink(Uri deepLink) async {
       );
     } else if (deepLink.pathSegments[0] == 'viewUser') {
       if (User.instance.manageUsers) {
-        userTap(await User.fromID(deepLink.queryParameters['UID']!));
+        unawaited(userTap(await User.fromID(deepLink.queryParameters['UID']!)));
       } else {
-        await showErrorDialog(navigator.currentContext!,
-            'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+        await showErrorDialog(
+          navigator.currentContext!,
+          'ليس لديك الصلاحية لرؤية محتويات الرابط!',
+        );
       }
     } else {
       await showErrorDialog(navigator.currentContext!, 'رابط غير صالح!');
@@ -705,10 +760,14 @@ Future processLink(Uri deepLink) async {
   } catch (err, stcTrace) {
     if (err.toString().contains('PERMISSION_DENIED')) {
       await showErrorDialog(
-          navigator.currentContext!, 'ليس لديك الصلاحية لرؤية محتويات الرابط!');
+        navigator.currentContext!,
+        'ليس لديك الصلاحية لرؤية محتويات الرابط!',
+      );
     } else {
       await showErrorDialog(
-          navigator.currentContext!, 'حدث خطأ! أثناء قراءة محتويات الرابط');
+        navigator.currentContext!,
+        'حدث خطأ! أثناء قراءة محتويات الرابط',
+      );
       await FirebaseCrashlytics.instance
           .setCustomKey('LastErrorIn', 'Helpers.processLink');
       await FirebaseCrashlytics.instance.recordError(err, stcTrace);
@@ -728,34 +787,36 @@ Future<void> recoverDoc(BuildContext context, String path) async {
               child: const Text('استرجاع'),
             ),
           ],
-          content: StatefulBuilder(builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      value: nested,
-                      onChanged: (v) => setState(() => nested = v!),
-                    ),
-                    const Text(
-                      'استرجع ايضا العناصر بداخل هذا العنصر',
-                      textScaleFactor: 0.9,
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: keepBackup,
-                      onChanged: (v) => setState(() => keepBackup = v!),
-                    ),
-                    const Text('ابقاء البيانات المحذوفة'),
-                  ],
-                ),
-              ],
-            );
-          }),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: nested,
+                        onChanged: (v) => setState(() => nested = v!),
+                      ),
+                      const Text(
+                        'استرجع ايضا العناصر بداخل هذا العنصر',
+                        textScaler: TextScaler.linear(0.9),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: keepBackup,
+                        onChanged: (v) => setState(() => keepBackup = v!),
+                      ),
+                      const Text('ابقاء البيانات المحذوفة'),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ) ==
       true) {
@@ -792,13 +853,16 @@ Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
               title: const Text('اختر المناطق'),
               actions: [
                 IconButton(
-                    icon: const Icon(Icons.done),
-                    onPressed: () => navigator.currentState!.pop(true),
-                    tooltip: 'تم')
+                  icon: const Icon(Icons.done),
+                  onPressed: () => navigator.currentState!.pop(true),
+                  tooltip: 'تم',
+                ),
               ],
             ),
             body: DataObjectList<Area>(
-                options: _options, autoDisposeController: true),
+              options: _options,
+              autoDisposeController: true,
+            ),
           ),
         ),
       ) ==
@@ -808,7 +872,7 @@ Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
   return null;
 }
 
-void sendNotification(BuildContext context, dynamic attachement) async {
+Future<void> sendNotification(BuildContext context, dynamic attachement) async {
   final List<User>? users = await Navigator.push(
     context,
     MaterialPageRoute(
@@ -817,11 +881,13 @@ void sendNotification(BuildContext context, dynamic attachement) async {
           providers: [
             Provider<DataObjectListController<User>>(
               create: (_) => DataObjectListController<User>(
-                itemBuilder: (current,
-                        [void Function(User)? onLongPress,
-                        void Function(User)? onTap,
-                        Widget? trailing,
-                        Widget? subtitle]) =>
+                itemBuilder: (
+                  current, [
+                  void Function(User)? onLongPress,
+                  void Function(User)? onTap,
+                  trailing,
+                  subtitle,
+                ]) =>
                     DataObjectWidget(
                   current,
                   onTap: () => onTap!(current),
@@ -844,11 +910,13 @@ void sendNotification(BuildContext context, dynamic attachement) async {
               actions: [
                 IconButton(
                   onPressed: () {
-                    navigator.currentState!.pop(context
-                        .read<DataObjectListController<User>>()
-                        .selectedLatest
-                        ?.values
-                        .toList());
+                    navigator.currentState!.pop(
+                      context
+                          .read<DataObjectListController<User>>()
+                          .selectedLatest
+                          ?.values
+                          .toList(),
+                    );
                   },
                   icon: const Icon(Icons.done),
                   tooltip: 'تم',
@@ -929,7 +997,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                         ),
                       ),
                     ),
-                    Text('سيتم ارفاق ${attachement.name} مع الرسالة')
+                    Text('سيتم ارفاق ${attachement.name} مع الرسالة'),
                   ],
                 ),
               );
@@ -951,7 +1019,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
       'title': title.text,
       'body': 'أرسل إليك ${User.instance.name} رسالة',
       'content': content.text,
-      'attachement': 'https://churchdata.page.link/view$link'
+      'attachement': 'https://churchdata.page.link/view$link',
     });
     // else
     // await functions().httpsCallable('sendMessageToUsers').call({
@@ -1068,16 +1136,16 @@ Future<String> shareUserRaw(String uid) async {
       .toString();
 }
 
-void showBirthDayNotification() async {
+Future<void> showBirthDayNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   final user = User.instance;
   final source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
+    source: (await Connectivity().checkConnectivity()).isNotConnected
+        ? Source.cache
+        : Source.serverAndCache,
+  );
   JsonQuery docs;
   if (user.superAccess) {
     docs = await firestore
@@ -1099,14 +1167,16 @@ void showBirthDayNotification() async {
   } else {
     docs = await firestore
         .collection('Persons')
-        .where('AreaId',
-            whereIn: (await firestore
-                    .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
+        .where(
+          'AreaId',
+          whereIn: (await firestore
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .get(source))
+              .docs
+              .map((e) => e.reference)
+              .toList(),
+        )
         .where(
           'BirthDay',
           isGreaterThanOrEqualTo: Timestamp.fromDate(
@@ -1124,33 +1194,34 @@ void showBirthDayNotification() async {
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
-        2,
-        'أعياد الميلاد',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'Birthday',
-            'إشعارات أعياد الميلاد',
-            channelDescription: 'إشعارات أعياد الميلاد',
-            icon: 'birthday',
-            autoCancel: false,
-            visibility: NotificationVisibility.secret,
-            showWhen: false,
-          ),
+      2,
+      'أعياد الميلاد',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Birthday',
+          'إشعارات أعياد الميلاد',
+          channelDescription: 'إشعارات أعياد الميلاد',
+          icon: 'birthday',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
         ),
-        payload: 'Birthday');
+      ),
+      payload: 'Birthday',
+    );
 }
 
-void showConfessionNotification() async {
+Future<void> showConfessionNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   final user = User.instance;
   final source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
+    source: (await Connectivity().checkConnectivity()).isNotConnected
+        ? Source.cache
+        : Source.serverAndCache,
+  );
   JsonQuery docs;
   if (user.superAccess) {
     docs = await firestore
@@ -1161,40 +1232,49 @@ void showConfessionNotification() async {
   } else {
     docs = await firestore
         .collection('Persons')
-        .where('AreaId',
-            whereIn: (await firestore
-                    .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
+        .where(
+          'AreaId',
+          whereIn: (await firestore
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .get(source))
+              .docs
+              .map((e) => e.reference)
+              .toList(),
+        )
         .where('LastConfession', isLessThan: Timestamp.now())
         .limit(20)
         .get(source);
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
-        0,
-        'انذار الاعتراف',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails('Confessions', 'إشعارات الاعتراف',
-              channelDescription: 'إشعارات الاعتراف',
-              icon: 'warning',
-              autoCancel: false,
-              visibility: NotificationVisibility.secret,
-              showWhen: false),
+      0,
+      'انذار الاعتراف',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Confessions',
+          'إشعارات الاعتراف',
+          channelDescription: 'إشعارات الاعتراف',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
         ),
-        payload: 'Confessions');
+      ),
+      payload: 'Confessions',
+    );
 }
 
-Future showErrorDialog(BuildContext context, String? message,
-    {String? title}) async {
+Future showErrorDialog(
+  BuildContext context,
+  String? message, {
+  String? title,
+}) async {
   return showDialog(
     context: context,
     barrierDismissible: false, // user must tap button!
-    builder: (BuildContext context) => AlertDialog(
+    builder: (context) => AlertDialog(
       title: title != null ? Text(title) : null,
       content: Text(message ?? ''),
       actions: <Widget>[
@@ -1209,8 +1289,10 @@ Future showErrorDialog(BuildContext context, String? message,
   );
 }
 
-Future showErrorUpdateDataDialog(
-    {required BuildContext context, bool pushApp = true}) async {
+Future showErrorUpdateDataDialog({
+  required BuildContext context,
+  bool pushApp = true,
+}) async {
   if (pushApp ||
       Hive.box('Settings').get('DialogLastShown') !=
           tranucateToDay().millisecondsSinceEpoch) {
@@ -1273,7 +1355,7 @@ Future showErrorUpdateDataDialog(
   }
 }
 
-void showLoadingDialog(BuildContext context) async {
+Future<void> showLoadingDialog(BuildContext context) async {
   await showDialog(
     context: context,
     barrierDismissible: false,
@@ -1290,7 +1372,9 @@ void showLoadingDialog(BuildContext context) async {
 }
 
 Future<void> showMessage(
-    BuildContext context, no.Notification notification) async {
+  BuildContext context,
+  no.Notification notification,
+) async {
   final attachement = await getLinkObject(
     Uri.parse(notification.attachement!),
   );
@@ -1298,6 +1382,7 @@ Future<void> showMessage(
   final user = notification.from != ''
       ? await firestore.doc('Users/${notification.from}').get()
       : null;
+
   await showDialog(
     context: context,
     builder: (context) => DataDialog(
@@ -1339,13 +1424,15 @@ Future<void> showMessage(
             )
           else
             CachedNetworkImage(imageUrl: attachement.url),
-          Text('من: ' +
-              (user != null
-                  ? User.fromDoc(
-                      user,
-                    )!
-                      .name
-                  : 'مسؤلو البرنامج')),
+          Text(
+            'من: ' +
+                (user != null
+                    ? User.fromDoc(
+                        user,
+                      )!
+                        .name
+                    : 'مسؤلو البرنامج'),
+          ),
           Text(
             DateFormat('yyyy/M/d h:m a', 'ar-EG').format(
               DateTime.fromMillisecondsSinceEpoch(notification.time!),
@@ -1373,16 +1460,16 @@ Future<void> showPendingMessage([BuildContext? context]) async {
   }
 }
 
-void showTanawolNotification() async {
+Future<void> showTanawolNotification() async {
   await Firebase.initializeApp();
   if (firebaseAuth.currentUser == null) return;
   await User.instance.initialized;
   final user = User.instance;
   final source = GetOptions(
-      source:
-          (await Connectivity().checkConnectivity()) == ConnectivityResult.none
-              ? Source.cache
-              : Source.serverAndCache);
+    source: (await Connectivity().checkConnectivity()).isNotConnected
+        ? Source.cache
+        : Source.serverAndCache,
+  );
   JsonQuery docs;
   if (user.superAccess) {
     docs = await firestore
@@ -1393,35 +1480,38 @@ void showTanawolNotification() async {
   } else {
     docs = await firestore
         .collection('Persons')
-        .where('AreaId',
-            whereIn: (await firestore
-                    .collection('Areas')
-                    .where('Allowed', arrayContains: User.instance.uid)
-                    .get(source))
-                .docs
-                .map((e) => e.reference)
-                .toList())
+        .where(
+          'AreaId',
+          whereIn: (await firestore
+                  .collection('Areas')
+                  .where('Allowed', arrayContains: User.instance.uid)
+                  .get(source))
+              .docs
+              .map((e) => e.reference)
+              .toList(),
+        )
         .where('LastTanawol', isLessThan: Timestamp.now())
         .limit(20)
         .get(source);
   }
   if (docs.docs.isNotEmpty)
     await FlutterLocalNotificationsPlugin().show(
-        1,
-        'انذار التناول',
-        docs.docs.map((e) => e.data()['Name']).join(', '),
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'Tanawol',
-            'إشعارات التناول',
-            channelDescription: 'إشعارات التناول',
-            icon: 'warning',
-            autoCancel: false,
-            visibility: NotificationVisibility.secret,
-            showWhen: false,
-          ),
+      1,
+      'انذار التناول',
+      docs.docs.map((e) => e.data()['Name']).join(', '),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'Tanawol',
+          'إشعارات التناول',
+          channelDescription: 'إشعارات التناول',
+          icon: 'warning',
+          autoCancel: false,
+          visibility: NotificationVisibility.secret,
+          showWhen: false,
         ),
-        payload: 'Tanawol');
+      ),
+      payload: 'Tanawol',
+    );
 }
 
 Future<int> storeNotification(messaging_types.RemoteMessage message) async {
@@ -1432,7 +1522,7 @@ void streetTap(Street street) {
   navigator.currentState!.pushNamed('StreetInfo', arguments: street);
 }
 
-void takeScreenshot(GlobalKey key) async {
+Future<void> takeScreenshot(GlobalKey key) async {
   final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
   WidgetsBinding.instance.addPostFrameCallback(
@@ -1441,14 +1531,16 @@ void takeScreenshot(GlobalKey key) async {
       final ByteData byteData =
           (await image.toByteData(format: ui.ImageByteFormat.png))!;
       final Uint8List pngBytes = byteData.buffer.asUint8List();
-      await Share.shareFiles(
+      final file = await (await File(
+        (await getApplicationDocumentsDirectory()).path +
+            DateTime.now().millisecondsSinceEpoch.toString() +
+            '.png',
+      ).create())
+          .writeAsBytes(pngBytes.toList());
+
+      await Share.shareXFiles(
         [
-          (await (await File((await getApplicationDocumentsDirectory()).path +
-                          DateTime.now().millisecondsSinceEpoch.toString() +
-                          '.png')
-                      .create())
-                  .writeAsBytes(pngBytes.toList()))
-              .path
+          XFile(file.path),
         ],
       );
     },
@@ -1469,50 +1561,51 @@ Timestamp tranucateToDay({DateTime? time}) {
   );
 }
 
-void userTap(User user) async {
+Future<void> userTap(User user) async {
   if (user.approved) {
     await navigator.currentState!.pushNamed('UserInfo', arguments: user);
   } else {
     final dynamic rslt = await showDialog(
-        context: navigator.currentContext!,
-        builder: (context) => DataDialog(
-              actions: <Widget>[
-                if (user.personRef != null)
-                  TextButton.icon(
-                    icon: const Icon(Icons.info),
-                    label: const Text('اظهار استمارة البيانات'),
-                    onPressed: () async => navigator.currentState!.pushNamed(
-                      'PersonInfo',
-                      arguments: await user.getPerson(),
-                    ),
-                  ),
-                TextButton.icon(
-                  icon: const Icon(Icons.done),
-                  label: const Text('نعم'),
-                  onPressed: () => navigator.currentState!.pop(true),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.close),
-                  label: const Text('لا'),
-                  onPressed: () => navigator.currentState!.pop(false),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.close),
-                  label: const Text('حذف المستخدم'),
-                  onPressed: () => navigator.currentState!.pop('delete'),
-                ),
-              ],
-              title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  user.getPhoto(false),
-                  Text(
-                    'البريد الاكتروني: ' + (user.email),
-                  ),
-                ],
+      context: navigator.currentContext!,
+      builder: (context) => DataDialog(
+        actions: <Widget>[
+          if (user.personRef != null)
+            TextButton.icon(
+              icon: const Icon(Icons.info),
+              label: const Text('اظهار استمارة البيانات'),
+              onPressed: () async => navigator.currentState!.pushNamed(
+                'PersonInfo',
+                arguments: await user.getPerson(),
               ),
-            ));
+            ),
+          TextButton.icon(
+            icon: const Icon(Icons.done),
+            label: const Text('نعم'),
+            onPressed: () => navigator.currentState!.pop(true),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.close),
+            label: const Text('لا'),
+            onPressed: () => navigator.currentState!.pop(false),
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.close),
+            label: const Text('حذف المستخدم'),
+            onPressed: () => navigator.currentState!.pop('delete'),
+          ),
+        ],
+        title: Text('${user.name} غير مُنشط هل تريد تنشيطه؟'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            user.getPhoto(false),
+            Text(
+              'البريد الاكتروني: ' + (user.email),
+            ),
+          ],
+        ),
+      ),
+    );
     if (rslt == true) {
       scaffoldMessenger.currentState!.showSnackBar(
         const SnackBar(
@@ -1528,7 +1621,7 @@ void userTap(User user) async {
           ..approved = true
           // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
           ..notifyListeners();
-        userTap(user);
+        unawaited(userTap(user));
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         scaffoldMessenger.currentState!.showSnackBar(
           const SnackBar(
@@ -1570,7 +1663,7 @@ void userTap(User user) async {
 
 class MessageIcon extends StatelessWidget {
   final String url;
-  const MessageIcon(this.url, {Key? key}) : super(key: key);
+  const MessageIcon(this.url, {super.key});
 
   Color get color => Colors.transparent;
   String get name => '';
@@ -1614,26 +1707,28 @@ class MessageIcon extends StatelessWidget {
     return build(context);
   }
 
-  Future<String> getSecondLine() async => '';
+  Future<String> getSecondLine() async => SynchronousFuture('');
 }
 
 class QueryIcon extends StatelessWidget {
-  const QueryIcon({Key? key}) : super(key: key);
+  const QueryIcon({super.key});
 
   Color get color => Colors.transparent;
   String get name => 'نتائج بحث';
 
   @override
   Widget build(BuildContext context) {
-    return Icon(Icons.search,
-        size: MediaQuery.of(context).size.shortestSide / 7.2);
+    return Icon(
+      Icons.search,
+      size: MediaQuery.of(context).size.shortestSide / 7.2,
+    );
   }
 
   Widget getPhoto(BuildContext context) {
     return build(context);
   }
 
-  Future<String> getSecondLine() async => '';
+  Future<String> getSecondLine() async => SynchronousFuture('');
 }
 
 extension HexColor on Color {
@@ -1650,4 +1745,15 @@ extension HexColor on Color {
       '${red.toRadixString(16).padLeft(2, '0')}'
       '${green.toRadixString(16).padLeft(2, '0')}'
       '${blue.toRadixString(16).padLeft(2, '0')}';
+}
+
+extension ConnectivityX on List<ConnectivityResult> {
+  bool get isConnected => any(
+        (c) =>
+            c == ConnectivityResult.mobile ||
+            c == ConnectivityResult.wifi ||
+            c == ConnectivityResult.ethernet,
+      );
+
+  bool get isNotConnected => !isConnected;
 }

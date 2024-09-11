@@ -15,7 +15,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -34,7 +34,7 @@ import 'auth_screen.dart';
 import 'edit_users.dart';
 
 class Root extends StatefulWidget {
-  const Root({Key? key}) : super(key: key);
+  const Root({super.key});
 
   @override
   _RootState createState() => _RootState();
@@ -67,7 +67,7 @@ class _RootState extends State<Root>
   final BehaviorSubject<String> _searchQuery =
       BehaviorSubject<String>.seeded('');
 
-  void addTap([bool type = false]) async {
+  Future<void> addTap([bool type = false]) async {
     dynamic result;
     if (_tabController.index == 0) {
       result = await navigator.currentState!.pushNamed('Data/EditArea');
@@ -95,25 +95,33 @@ class _RootState extends State<Root>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async =>
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              content: const Text('هل تريد الخروج؟'),
-              actions: [
-                TextButton(
-                  onPressed: () => navigator.currentState!.pop(true),
-                  child: const Text('نعم'),
-                ),
-                TextButton(
-                  onPressed: () => navigator.currentState!.pop(false),
-                  child: const Text('لا'),
-                )
-              ],
-            ),
-          ) ??
-          false,
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final navigator = Navigator.of(context);
+
+        final dialogResult = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: const Text('هل تريد الخروج؟'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('نعم'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('لا'),
+              ),
+            ],
+          ),
+        );
+
+        if (dialogResult ?? false) {
+          navigator.pop(result);
+        }
+      },
       child: Scaffold(
         key: mainScfld,
         appBar: AppBar(
@@ -162,18 +170,20 @@ class _RootState extends State<Root>
                                     navigator.currentState!.pop();
                                   },
                                 ),
-                                const Text('ترتيب حسب:',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
+                                const Text(
+                                  'ترتيب حسب:',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
                                 ...getOrderingOptions(
-                                    _tabController.index == 0
-                                        ? _areasOrder
-                                        : _tabController.index == 1
-                                            ? _streetsOrder
-                                            : _tabController.index == 2
-                                                ? _familiesOrder
-                                                : _personsOrder,
-                                    _tabController.index),
+                                  _tabController.index == 0
+                                      ? _areasOrder
+                                      : _tabController.index == 1
+                                          ? _streetsOrder
+                                          : _tabController.index == 2
+                                              ? _familiesOrder
+                                              : _personsOrder,
+                                  _tabController.index,
+                                ),
                               ],
                             ),
                           );
@@ -193,7 +203,8 @@ class _RootState extends State<Root>
                           description: Column(
                             children: <Widget>[
                               const Text(
-                                  'يمكنك في أي وقت عمل بحث سريع عن أسماء المناطق، الشوارع، العائلات أو الأشخاص'),
+                                'يمكنك في أي وقت عمل بحث سريع عن أسماء المناطق، الشوارع، العائلات أو الأشخاص',
+                              ),
                               OutlinedButton.icon(
                                 icon: const Icon(Icons.forward),
                                 label: Text(
@@ -300,10 +311,12 @@ class _RootState extends State<Root>
                   barrierDismissible: false,
                   contentLocation: ContentLocation.below,
                   featureId: 'Streets',
-                  tapTarget: Image.asset('assets/streets.png',
-                      width: IconTheme.of(context).size,
-                      height: IconTheme.of(context).size,
-                      color: Theme.of(context).iconTheme.color),
+                  tapTarget: Image.asset(
+                    'assets/streets.png',
+                    width: IconTheme.of(context).size,
+                    height: IconTheme.of(context).size,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
                   title: const Text('الشوارع'),
                   description: Column(
                     children: [
@@ -439,18 +452,21 @@ class _RootState extends State<Root>
                   ? TextField(
                       focusNode: searchFocus,
                       decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.close,
-                                color: Theme.of(context)
-                                    .primaryTextTheme
-                                    .titleLarge
-                                    ?.color),
-                            onPressed: () {
-                              _searchQuery.add('');
-                              _showSearch.add(false);
-                            },
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            Icons.close,
+                            color: Theme.of(context)
+                                .primaryTextTheme
+                                .titleLarge
+                                ?.color,
                           ),
-                          hintText: 'بحث ...'),
+                          onPressed: () {
+                            _searchQuery.add('');
+                            _showSearch.add(false);
+                          },
+                        ),
+                        hintText: 'بحث ...',
+                      ),
                       onChanged: _searchQuery.add,
                     )
                   : const Text('البيانات');
@@ -469,13 +485,15 @@ class _RootState extends State<Root>
                     onPressed: addTap,
                     child: AnimatedBuilder(
                       animation: _tabController,
-                      builder: (context, _) => Icon(_tabController.index == 0
-                          ? Icons.add_location
-                          : _tabController.index == 1
-                              ? Icons.add_road
-                              : _tabController.index == 2
-                                  ? Icons.group_add
-                                  : Icons.person_add),
+                      builder: (context, _) => Icon(
+                        _tabController.index == 0
+                            ? Icons.add_location
+                            : _tabController.index == 1
+                                ? Icons.add_road
+                                : _tabController.index == 2
+                                    ? Icons.group_add
+                                    : Icons.person_add,
+                      ),
                     ),
                   )
                 : const SizedBox(width: 1, height: 1);
@@ -548,7 +566,7 @@ class _RootState extends State<Root>
                   gradient: LinearGradient(
                     colors: [
                       Color.fromARGB(255, 86, 213, 170),
-                      Color.fromARGB(255, 39, 124, 205)
+                      Color.fromARGB(255, 39, 124, 205),
                     ],
                     stops: [0, 1],
                   ),
@@ -569,7 +587,8 @@ class _RootState extends State<Root>
                       description: Column(
                         children: <Widget>[
                           const Text(
-                              'يمكنك الاطلاع على حسابك بالبرنامج وجميع الصلاحيات التي تملكها من خلال حسابي'),
+                            'يمكنك الاطلاع على حسابك بالبرنامج وجميع الصلاحيات التي تملكها من خلال حسابي',
+                          ),
                           OutlinedButton.icon(
                             icon: const Icon(Icons.forward),
                             label: Text(
@@ -626,13 +645,15 @@ class _RootState extends State<Root>
                       barrierDismissible: false,
                       featureId: 'ManageUsers',
                       tapTarget: const Icon(
-                          IconData(0xef3d, fontFamily: 'MaterialIconsR')),
+                        IconData(0xef3d, fontFamily: 'MaterialIconsR'),
+                      ),
                       contentLocation: ContentLocation.below,
                       title: const Text('إدارة المستخدمين'),
                       description: Column(
                         children: <Widget>[
                           const Text(
-                              'يمكنك دائمًا الاطلاع على مستخدمي البرنامج وتعديل صلاحياتهم من هنا'),
+                            'يمكنك دائمًا الاطلاع على مستخدمي البرنامج وتعديل صلاحياتهم من هنا',
+                          ),
                           OutlinedButton.icon(
                             icon: const Icon(Icons.forward),
                             label: Text(
@@ -716,7 +737,8 @@ class _RootState extends State<Root>
                                   ),
                                   onPressed: () =>
                                       FeatureDiscovery.completeCurrentStep(
-                                          context),
+                                    context,
+                                  ),
                                 ),
                                 OutlinedButton(
                                   onPressed: () =>
@@ -811,7 +833,8 @@ class _RootState extends State<Root>
                   description: Column(
                     children: [
                       const Text(
-                          'يمكنك دائمًا الاطلاع على جميع مواقع العائلات بالبرنامج عن طريق خريطة الافتقاد'),
+                        'يمكنك دائمًا الاطلاع على جميع مواقع العائلات بالبرنامج عن طريق خريطة الافتقاد',
+                      ),
                       OutlinedButton.icon(
                         icon: const Icon(Icons.forward),
                         label: Text(
@@ -858,7 +881,8 @@ class _RootState extends State<Root>
                   description: Column(
                     children: <Widget>[
                       const Text(
-                          'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل الأشخاص الذين يصادف عيد ميلادهم اليوم\nعرض كل الأشخاص داخل منطقة معينة'),
+                        'يمكن عمل بحث مفصل عن البيانات بالبرنامج بالخصائص المطلوبة\nمثال: عرض كل الأشخاص الذين يصادف عيد ميلادهم اليوم\nعرض كل الأشخاص داخل منطقة معينة',
+                      ),
                       OutlinedButton.icon(
                         icon: const Icon(Icons.forward),
                         label: Text(
@@ -913,7 +937,8 @@ class _RootState extends State<Root>
                       description: Column(
                         children: <Widget>[
                           const Text(
-                              'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا'),
+                            'يمكنك الأن استرجاع المحذوفات خلال مدة شهر من حذفها من هنا',
+                          ),
                           OutlinedButton.icon(
                             icon: const Icon(Icons.forward),
                             label: Text(
@@ -976,7 +1001,8 @@ class _RootState extends State<Root>
                   description: Column(
                     children: <Widget>[
                       const Text(
-                          'يمكنك ضبط بعض الاعدادات بالبرنامج مثل مظهر البرنامج ومظهر البيانات وبعض البيانات الاضافية مثل الوظائف والأباء الكهنة'),
+                        'يمكنك ضبط بعض الاعدادات بالبرنامج مثل مظهر البرنامج ومظهر البيانات وبعض البيانات الاضافية مثل الوظائف والأباء الكهنة',
+                      ),
                       OutlinedButton(
                         onPressed: () =>
                             FeatureDiscovery.completeCurrentStep(context),
@@ -1032,10 +1058,11 @@ class _RootState extends State<Root>
                                 child: Column(
                                   children: [
                                     Text(
-                                        'برجاء اختيار المنطقة التي تريد تصديرها:',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headlineSmall),
+                                      'برجاء اختيار المنطقة التي تريد تصديرها:',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall,
+                                    ),
                                     Expanded(
                                       child: DataObjectList<Area>(
                                         autoDisposeController: true,
@@ -1071,16 +1098,17 @@ class _RootState extends State<Root>
                               );
                               try {
                                 final String filename = Uri.decodeComponent(
-                                    (await firebaseFunctions
-                                            .httpsCallable('exportToExcel')
-                                            .call({'onlyArea': rslt.id}))
-                                        .data);
+                                  (await firebaseFunctions
+                                          .httpsCallable('exportToExcel')
+                                          .call({'onlyArea': rslt.id}))
+                                      .data,
+                                );
                                 final file = await File(
-                                        (await getApplicationDocumentsDirectory())
-                                                .path +
-                                            '/' +
-                                            filename.replaceAll(':', ''))
-                                    .create(recursive: true);
+                                  (await getApplicationDocumentsDirectory())
+                                          .path +
+                                      '/' +
+                                      filename.replaceAll(':', ''),
+                                ).create(recursive: true);
                                 await firebaseStorage
                                     .ref(filename)
                                     .writeToFile(file);
@@ -1103,10 +1131,13 @@ class _RootState extends State<Root>
                                     .hideCurrentSnackBar();
                                 scaffoldMessenger.currentState!.showSnackBar(
                                   const SnackBar(
-                                      content: Text('فشل تصدير البيانات')),
+                                    content: Text('فشل تصدير البيانات'),
+                                  ),
                                 );
                                 await FirebaseCrashlytics.instance.setCustomKey(
-                                    'LastErrorIn', 'Root.exportOnlyArea');
+                                  'LastErrorIn',
+                                  'Root.exportOnlyArea',
+                                );
                                 await FirebaseCrashlytics.instance
                                     .recordError(e, st);
                               }
@@ -1132,7 +1163,8 @@ class _RootState extends State<Root>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                        'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
+                                      'جار تصدير جميع البيانات...\nيرجى الانتظار...',
+                                    ),
                                     LinearProgressIndicator(),
                                   ],
                                 ),
@@ -1141,16 +1173,17 @@ class _RootState extends State<Root>
                             );
                             try {
                               final String filename = Uri.decodeComponent(
-                                  (await firebaseFunctions
-                                          .httpsCallable('exportToExcel')
-                                          .call())
-                                      .data);
+                                (await firebaseFunctions
+                                        .httpsCallable('exportToExcel')
+                                        .call())
+                                    .data,
+                              );
                               final file = await File(
-                                      (await getApplicationDocumentsDirectory())
-                                              .path +
-                                          '/' +
-                                          filename.replaceAll(':', ''))
-                                  .create(recursive: true);
+                                (await getApplicationDocumentsDirectory())
+                                        .path +
+                                    '/' +
+                                    filename.replaceAll(':', ''),
+                              ).create(recursive: true);
                               await firebaseStorage
                                   .ref(filename)
                                   .writeToFile(file);
@@ -1173,10 +1206,13 @@ class _RootState extends State<Root>
                                   .hideCurrentSnackBar();
                               scaffoldMessenger.currentState!.showSnackBar(
                                 const SnackBar(
-                                    content: Text('فشل تصدير البيانات')),
+                                  content: Text('فشل تصدير البيانات'),
+                                ),
                               );
                               await FirebaseCrashlytics.instance.setCustomKey(
-                                  'LastErrorIn', 'Root.exportAll');
+                                'LastErrorIn',
+                                'Root.exportAll',
+                              );
                               await FirebaseCrashlytics.instance
                                   .recordError(e, st);
                             }
@@ -1202,8 +1238,11 @@ class _RootState extends State<Root>
                   mainScfld.currentState!.openEndDrawer();
                   showAboutDialog(
                     context: context,
-                    applicationIcon: Image.asset('assets/Logo2.png',
-                        width: 100, height: 100),
+                    applicationIcon: Image.asset(
+                      'assets/Logo2.png',
+                      width: 100,
+                      height: 100,
+                    ),
                     applicationName: 'بيانات الكنيسة',
                     applicationLegalese:
                         'جميع الحقوق محفوظة: كنيسة السيدة العذراء مريم بالاسماعيلية',
@@ -1259,9 +1298,9 @@ class _RootState extends State<Root>
           navigator.currentState!
               .push(
             MaterialPageRoute(
-              builder: (_) => WillPopScope(
-                onWillPop: () => Future.delayed(Duration.zero, () => false),
-                child: const AuthScreen(),
+              builder: (_) => const PopScope(
+                canPop: false,
+                child: AuthScreen(),
               ),
             ),
           )
@@ -1272,22 +1311,20 @@ class _RootState extends State<Root>
         }
         _keepAlive(true);
         _recordActive();
-        break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
         _keepAlive(false);
         _recordLastSeen();
-        break;
     }
   }
 
-  void _recordLastSeen() async {
+  Future<void> _recordLastSeen() async {
     await User.instance.recordLastSeen();
   }
 
-  void _recordActive() async {
+  Future<void> _recordActive() async {
     await User.instance.recordActive();
   }
 
@@ -1313,7 +1350,8 @@ class _RootState extends State<Root>
   @override
   void didChangePlatformBrightness() {
     GetIt.I<ThemingService>().switchTheme(
-        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
+      PlatformDispatcher.instance.platformBrightness == Brightness.dark,
+    );
   }
 
   @override
@@ -1389,7 +1427,7 @@ class _RootState extends State<Root>
     await processLink(deepLink);
   }
 
-  void showPendingUIDialogs() async {
+  Future<void> showPendingUIDialogs() async {
     if (!await User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
@@ -1412,7 +1450,7 @@ class _RootState extends State<Root>
       'DataMap',
       'AdvancedSearch',
       if (User.instance.manageDeleted) 'ManageDeleted',
-      'Settings'
+      'Settings',
     ]);
   }
 
@@ -1425,7 +1463,8 @@ class _RootState extends State<Root>
         context: context,
         builder: (context) => AlertDialog(
           content: const Text(
-              'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية'),
+            'برجاء الغاء تفعيل حفظ الطاقة للبرنامج لإظهار الاشعارات في الخلفية',
+          ),
           actions: [
             TextButton(
               onPressed: () async {

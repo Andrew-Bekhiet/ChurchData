@@ -14,6 +14,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,8 +34,7 @@ class EditPerson extends StatefulWidget {
   final Person person;
   final bool userData;
 
-  const EditPerson({Key? key, required this.person, this.userData = false})
-      : super(key: key);
+  const EditPerson({required this.person, super.key, this.userData = false});
   @override
   _EditPersonState createState() => _EditPersonState();
 }
@@ -65,84 +65,89 @@ class _EditPersonState extends State<EditPerson> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
               actions: <Widget>[
-                IconButton(icon: Builder(
-                  builder: (context) {
-                    return Stack(
-                      children: <Widget>[
-                        const Positioned(
-                          left: 1.0,
-                          top: 2.0,
-                          child:
-                              Icon(Icons.photo_camera, color: Colors.black54),
-                        ),
-                        Icon(Icons.photo_camera,
-                            color: IconTheme.of(context).color),
-                      ],
-                    );
-                  },
-                ), onPressed: () async {
-                  final source = await showDialog(
-                    context: context,
-                    builder: (context) => SimpleDialog(
-                      children: <Widget>[
-                        TextButton.icon(
-                          onPressed: () => navigator.currentState!.pop(true),
-                          icon: const Icon(Icons.camera),
-                          label: const Text('التقاط صورة من الكاميرا'),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => navigator.currentState!.pop(false),
-                          icon: const Icon(Icons.photo_library),
-                          label: const Text('اختيار من المعرض'),
-                        ),
-                        if (changedImage != null || person.hasPhoto)
-                          TextButton.icon(
-                            onPressed: () =>
-                                navigator.currentState!.pop('delete'),
-                            icon: const Icon(Icons.delete),
-                            label: const Text('حذف الصورة'),
+                IconButton(
+                  icon: Builder(
+                    builder: (context) {
+                      return Stack(
+                        children: <Widget>[
+                          const Positioned(
+                            left: 1.0,
+                            top: 2.0,
+                            child:
+                                Icon(Icons.photo_camera, color: Colors.black54),
                           ),
-                      ],
-                    ),
-                  );
-                  if (source == null) return;
-                  if (source == 'delete') {
-                    changedImage = null;
-                    deletePhoto = true;
-                    person.hasPhoto = false;
-                    setState(() {});
-                    return;
-                  }
-                  if (source as bool &&
-                      !(await Permission.camera.request()).isGranted) return;
-                  final selectedImage = await ImagePicker().pickImage(
-                      source:
-                          source ? ImageSource.camera : ImageSource.gallery);
-                  if (selectedImage == null) return;
-                  changedImage = (await ImageCropper().cropImage(
-                    sourcePath: selectedImage.path,
-                    uiSettings: [
-                      AndroidUiSettings(
-                        cropStyle: CropStyle.circle,
-                        toolbarTitle: 'قص الصورة',
-                        toolbarColor: Theme.of(context).primaryColor,
-                        toolbarWidgetColor: Theme.of(context)
-                            .primaryTextTheme
-                            .titleLarge
-                            ?.color,
-                        initAspectRatio: CropAspectRatioPreset.original,
-                        lockAspectRatio: false,
+                          Icon(
+                            Icons.photo_camera,
+                            color: IconTheme.of(context).color,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  onPressed: () async {
+                    final source = await showDialog(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        children: <Widget>[
+                          TextButton.icon(
+                            onPressed: () => navigator.currentState!.pop(true),
+                            icon: const Icon(Icons.camera),
+                            label: const Text('التقاط صورة من الكاميرا'),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => navigator.currentState!.pop(false),
+                            icon: const Icon(Icons.photo_library),
+                            label: const Text('اختيار من المعرض'),
+                          ),
+                          if (changedImage != null || person.hasPhoto)
+                            TextButton.icon(
+                              onPressed: () =>
+                                  navigator.currentState!.pop('delete'),
+                              icon: const Icon(Icons.delete),
+                              label: const Text('حذف الصورة'),
+                            ),
+                        ],
                       ),
-                    ],
-                  ))
-                      ?.path;
-                  deletePhoto = false;
-                  setState(() {});
-                })
+                    );
+                    if (source == null) return;
+                    if (source == 'delete') {
+                      changedImage = null;
+                      deletePhoto = true;
+                      person.hasPhoto = false;
+                      setState(() {});
+                      return;
+                    }
+                    if (source as bool &&
+                        !(await Permission.camera.request()).isGranted) return;
+                    final selectedImage = await ImagePicker().pickImage(
+                      source: source ? ImageSource.camera : ImageSource.gallery,
+                    );
+                    if (selectedImage == null) return;
+                    changedImage = (await ImageCropper().cropImage(
+                      sourcePath: selectedImage.path,
+                      uiSettings: [
+                        AndroidUiSettings(
+                          cropStyle: CropStyle.circle,
+                          toolbarTitle: 'قص الصورة',
+                          toolbarColor: Theme.of(context).primaryColor,
+                          toolbarWidgetColor: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge
+                              ?.color,
+                          initAspectRatio: CropAspectRatioPreset.original,
+                          lockAspectRatio: false,
+                        ),
+                      ],
+                    ))
+                        ?.path;
+                    deletePhoto = false;
+                    setState(() {});
+                  },
+                ),
               ],
               backgroundColor:
                   person.color != Colors.transparent ? person.color : null,
@@ -326,9 +331,11 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                     validator: (_) => null,
                     builder: (context, state) => person.birthDate != null
-                        ? Text(DateFormat('yyyy/M/d').format(
-                            person.birthDate!.toDate(),
-                          ))
+                        ? Text(
+                            DateFormat('yyyy/M/d').format(
+                              person.birthDate!.toDate(),
+                            ),
+                          )
                         : null,
                   ),
                   Row(
@@ -415,16 +422,18 @@ class _EditPersonState extends State<EditPerson> {
                               Expanded(
                                 child: FutureBuilder<JsonQuery>(
                                   future: cache['Colleges']!.fetch(
-                                          () async => College.getAllForUser())
-                                      as Future<JsonQuery>,
+                                    () async => College.getAllForUser(),
+                                  ) as Future<JsonQuery>,
                                   builder: (context, data) {
                                     if (data.hasData) {
                                       return Container(
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 4.0),
+                                          vertical: 4.0,
+                                        ),
                                         child: DropdownButtonFormField<String>(
                                           key: const ValueKey(
-                                              'StudyYearDropDown'),
+                                            'StudyYearDropDown',
+                                          ),
                                           value: person.college?.path,
                                           items: data.data!.docs
                                               .map(
@@ -757,9 +766,11 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                     validator: (_) => null,
                     builder: (context, state) => person.lastTanawol != null
-                        ? Text(DateFormat('yyyy/M/d').format(
-                            person.lastTanawol!.toDate(),
-                          ))
+                        ? Text(
+                            DateFormat('yyyy/M/d').format(
+                              person.lastTanawol!.toDate(),
+                            ),
+                          )
                         : null,
                   ),
                   TapableFormField<Timestamp?>(
@@ -783,9 +794,11 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                     validator: (_) => null,
                     builder: (context, state) => person.lastConfession != null
-                        ? Text(DateFormat('yyyy/M/d').format(
-                            person.lastConfession!.toDate(),
-                          ))
+                        ? Text(
+                            DateFormat('yyyy/M/d').format(
+                              person.lastConfession!.toDate(),
+                            ),
+                          )
                         : null,
                   ),
                   if (!widget.userData)
@@ -839,9 +852,10 @@ class _EditPersonState extends State<EditPerson> {
                                           width: 50,
                                           color: Color(
                                             int.parse(
-                                                "0xff${item.data()['Color']}"),
+                                              "0xff${item.data()['Color']}",
+                                            ),
                                           ),
-                                        )
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -888,9 +902,11 @@ class _EditPersonState extends State<EditPerson> {
                       ),
                       validator: (_) => null,
                       builder: (context, state) => person.lastCall != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              person.lastCall!.toDate(),
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                person.lastCall!.toDate(),
+                              ),
+                            )
                           : null,
                     ),
                   if (!widget.userData)
@@ -991,8 +1007,8 @@ class _EditPersonState extends State<EditPerson> {
                                         person.isServant
                                     ? FutureBuilder<String?>(
                                         future: cache['ServingAreaName']!.fetch(
-                                                person.getServingAreaName)
-                                            as Future<String?>,
+                                          person.getServingAreaName,
+                                        ) as Future<String?>,
                                         builder: (contextt, dataServ) {
                                           if (dataServ.hasData) {
                                             return Text(dataServ.data!);
@@ -1014,7 +1030,8 @@ class _EditPersonState extends State<EditPerson> {
                   ElevatedButton.icon(
                     style: person.color != Colors.transparent
                         ? ElevatedButton.styleFrom(
-                            backgroundColor: person.color)
+                            backgroundColor: person.color,
+                          )
                         : null,
                     onPressed: selectColor,
                     icon: const Icon(Icons.color_lens),
@@ -1056,7 +1073,7 @@ class _EditPersonState extends State<EditPerson> {
     person.setStreetIdFromFamily();
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1085,7 +1102,7 @@ class _EditPersonState extends State<EditPerson> {
     );
   }
 
-  void _delete() async {
+  Future<void> _delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => DataDialog(
@@ -1108,7 +1125,7 @@ class _EditPersonState extends State<EditPerson> {
           ),
         ) ==
         true) {
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none) {
+      if ((await Connectivity().checkConnectivity()).isConnected) {
         await person.ref.delete();
       } else {
         // ignore: unawaited_futures
@@ -1181,7 +1198,8 @@ class _EditPersonState extends State<EditPerson> {
               builder: (context) => const DataDialog(
                 title: Text('بيانات غير كاملة'),
                 content: Text(
-                    'يرجى التأكد من ملئ هذه الحقول:\nتاريخ أخر تناول\nتاريخ أخر اعتراف\nوأن يكون أخر اعتراف منذ اقل من شهرين ,اخر تناول منذ أقل من شهر'),
+                  'يرجى التأكد من ملئ هذه الحقول:\nتاريخ أخر تناول\nتاريخ أخر اعتراف\nوأن يكون أخر اعتراف منذ اقل من شهرين ,اخر تناول منذ أقل من شهر',
+                ),
               ),
             );
             return;
@@ -1207,15 +1225,15 @@ class _EditPersonState extends State<EditPerson> {
 
         person.lastEdit = User.instance.uid;
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           if (widget.userData)
             await person.ref.set(
-                person.getMap()
-                  ..removeWhere(
-                      (key, value) => widget.person.getMap()[key] == value),
-                SetOptions(merge: true));
+              person.getMap()
+                ..removeWhere(
+                  (key, value) => widget.person.getMap()[key] == value,
+                ),
+              SetOptions(merge: true),
+            );
           else
             await person.update(old: widget.person.getMap());
         } else if (update) {
@@ -1225,14 +1243,14 @@ class _EditPersonState extends State<EditPerson> {
             person.ref.set(
               person.getMap()
                 ..removeWhere(
-                    (key, value) => widget.person.getMap()[key] == value),
+                  (key, value) => widget.person.getMap()[key] == value,
+                ),
               SetOptions(merge: true),
             );
           else
             // ignore: unawaited_futures
             person.update(old: widget.person.getMap());
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           await person.set();
         } else {
           //Intentionally unawaited because of no internet connection
@@ -1243,12 +1261,14 @@ class _EditPersonState extends State<EditPerson> {
         if (mounted) navigator.currentState!.pop(person.ref);
       } else {
         await showDialog(
-            context: context,
-            builder: (context) => const DataDialog(
-                  title: Text('بيانات غير كاملة'),
-                  content: Text(
-                      'يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالعائلة\nنوع الفرد'),
-                ));
+          context: context,
+          builder: (context) => const DataDialog(
+            title: Text('بيانات غير كاملة'),
+            content: Text(
+              'يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالعائلة\nنوع الفرد',
+            ),
+          ),
+        );
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
@@ -1305,7 +1325,7 @@ class _EditPersonState extends State<EditPerson> {
     }
   } */
 
-  void _selectArea() async {
+  Future<void> _selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -1318,8 +1338,12 @@ class _EditPersonState extends State<EditPerson> {
         FocusScope.of(context).nextFocus();
       },
       itemsStream: _orderOptions
-          .switchMap((value) => Area.getAllForUser(
-              orderBy: value.orderBy, descending: !value.asc))
+          .switchMap(
+            (value) => Area.getAllForUser(
+              orderBy: value.orderBy,
+              descending: !value.asc,
+            ),
+          )
           .map((s) => s.docs.map(Area.fromQueryDoc).toList()),
     );
 
@@ -1386,7 +1410,7 @@ class _EditPersonState extends State<EditPerson> {
     return null;
   }
 
-  void _selectFamily() async {
+  Future<void> _selectFamily() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -1399,8 +1423,12 @@ class _EditPersonState extends State<EditPerson> {
         FocusScope.of(context).nextFocus();
       },
       itemsStream: _orderOptions
-          .switchMap((value) => Family.getAllForUser(
-              orderBy: value.orderBy, descending: !value.asc))
+          .switchMap(
+            (value) => Family.getAllForUser(
+              orderBy: value.orderBy,
+              descending: !value.asc,
+            ),
+          )
           .map((s) => s.docs.map(Family.fromQueryDoc).toList()),
     );
 

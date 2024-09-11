@@ -7,9 +7,11 @@ class Loading extends StatelessWidget {
   final bool error;
   final String? message;
   final bool showVersionInfo;
-  const Loading(
-      {this.error = false, this.message, this.showVersionInfo = false})
-      : super(key: null);
+  const Loading({
+    this.error = false,
+    this.message,
+    this.showVersionInfo = false,
+  }) : super(key: null);
 
   String _getAssetImage() {
     final riseDay = getRiseDay();
@@ -41,9 +43,11 @@ class Loading extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(error
-                      ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
-                      : 'جار التحميل...'),
+                  Text(
+                    error
+                        ? 'لا يمكن تحميل البرنامج في الوقت الحالي'
+                        : 'جار التحميل...',
+                  ),
                   if (error)
                     OutlinedButton.icon(
                       key: const Key('ClickForMore'),
@@ -70,8 +74,10 @@ class Loading extends StatelessWidget {
                 child: FutureBuilder<PackageInfo>(
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
-                      ? Text('اصدار: ' + data.data!.version,
-                          style: Theme.of(context).textTheme.bodySmall)
+                      ? Text(
+                          'اصدار: ' + data.data!.version,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        )
                       : const Text(''),
                 ),
               ),

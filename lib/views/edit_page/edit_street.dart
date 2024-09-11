@@ -10,6 +10,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -21,7 +22,7 @@ import 'package:rxdart/rxdart.dart';
 class EditStreet extends StatefulWidget {
   final Street? street;
 
-  const EditStreet({Key? key, required this.street}) : super(key: key);
+  const EditStreet({required this.street, super.key});
 
   @override
   _EditStreetState createState() => _EditStreetState();
@@ -93,45 +94,48 @@ class _EditStreetState extends State<EditStreet> {
                   ),
                 ),
                 ElevatedButton.icon(
-                    icon: const Icon(
-                      IconData(0xe568, fontFamily: 'MaterialIconsR'),
-                    ),
-                    label: const Text('تعديل مكان الشارع على الخريطة'),
-                    onPressed: () async {
-                      final List<GeoPoint> oldPoints =
-                          street.locationPoints.sublist(0);
-                      final rslt = await navigator.currentState!.push(
-                        MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                            appBar: AppBar(
-                              actions: <Widget>[
-                                IconButton(
-                                  icon: const Icon(Icons.done),
-                                  onPressed: () =>
-                                      navigator.currentState!.pop(true),
-                                  tooltip: 'حفظ',
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () =>
-                                      navigator.currentState!.pop(false),
-                                  tooltip: 'حذف التحديد',
-                                )
-                              ],
-                              title:
-                                  Text('تعديل مكان ${street.name} على الخريطة'),
-                            ),
-                            body: street.getMapView(
-                                editMode: true, useGPSIfNull: true),
+                  icon: const Icon(
+                    IconData(0xe568, fontFamily: 'MaterialIconsR'),
+                  ),
+                  label: const Text('تعديل مكان الشارع على الخريطة'),
+                  onPressed: () async {
+                    final List<GeoPoint> oldPoints =
+                        street.locationPoints.sublist(0);
+                    final rslt = await navigator.currentState!.push(
+                      MaterialPageRoute(
+                        builder: (context) => Scaffold(
+                          appBar: AppBar(
+                            actions: <Widget>[
+                              IconButton(
+                                icon: const Icon(Icons.done),
+                                onPressed: () =>
+                                    navigator.currentState!.pop(true),
+                                tooltip: 'حفظ',
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () =>
+                                    navigator.currentState!.pop(false),
+                                tooltip: 'حذف التحديد',
+                              ),
+                            ],
+                            title:
+                                Text('تعديل مكان ${street.name} على الخريطة'),
+                          ),
+                          body: street.getMapView(
+                            editMode: true,
+                            useGPSIfNull: true,
                           ),
                         ),
-                      );
-                      if (rslt == null) {
-                        street.locationPoints = oldPoints;
-                      } else if (rslt == false) {
-                        street.locationPoints = [];
-                      }
-                    }),
+                      ),
+                    );
+                    if (rslt == null) {
+                      street.locationPoints = oldPoints;
+                    } else if (rslt == false) {
+                      street.locationPoints = [];
+                    }
+                  },
+                ),
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: InkWell(
@@ -142,9 +146,11 @@ class _EditStreetState extends State<EditStreet> {
                         labelText: 'تاريخ أخر زيارة',
                       ),
                       child: street.lastVisit != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              street.lastVisit!.toDate(),
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                street.lastVisit!.toDate(),
+                              ),
+                            )
                           : null,
                     ),
                   ),
@@ -159,9 +165,11 @@ class _EditStreetState extends State<EditStreet> {
                         labelText: 'تاريخ أخر زيارة (للأب الكاهن)',
                       ),
                       child: street.fatherLastVisit != null
-                          ? Text(DateFormat('yyyy/M/d').format(
-                              street.fatherLastVisit!.toDate(),
-                            ))
+                          ? Text(
+                              DateFormat('yyyy/M/d').format(
+                                street.fatherLastVisit!.toDate(),
+                              ),
+                            )
                           : null,
                     ),
                   ),
@@ -205,13 +213,14 @@ class _EditStreetState extends State<EditStreet> {
     street.lastVisit = Timestamp.fromDate(value);
   }
 
-  void delete() async {
+  Future<void> delete() async {
     if (await showDialog(
           context: context,
           builder: (context) => DataDialog(
             title: Text(street.name),
             content: Text(
-                'هل أنت متأكد من حذف ${street.name} وكل ما بداخله من عائلات وأشخاص؟'),
+              'هل أنت متأكد من حذف ${street.name} وكل ما بداخله من عائلات وأشخاص؟',
+            ),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -235,7 +244,7 @@ class _EditStreetState extends State<EditStreet> {
           duration: Duration(minutes: 20),
         ),
       );
-      if (await Connectivity().checkConnectivity() != ConnectivityResult.none)
+      if ((await Connectivity().checkConnectivity()).isConnected)
         await street.ref.delete();
       else {
         // ignore: unawaited_futures
@@ -265,8 +274,8 @@ class _EditStreetState extends State<EditStreet> {
           ),
         );
         if (street.locationPoints.isNotEmpty &&
-            hashList(street.locationPoints) !=
-                hashList(widget.street?.locationPoints)) {
+            Object.hashAll(street.locationPoints) !=
+                Object.hashAll(widget.street?.locationPoints ?? [])) {
           if (User.instance.approveLocations) {
             street.locationConfirmed = await showDialog(
               context: context,
@@ -274,7 +283,8 @@ class _EditStreetState extends State<EditStreet> {
               builder: (context) => DataDialog(
                 title: const Text('هل أنت متأكد من موقع الشارع على الخريطة؟'),
                 content: const Text(
-                    'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه'),
+                  'إن لم تكن متأكدًا سيتم إعلام المستخدمين الأخرين ليأكدوا عليه',
+                ),
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(true),
@@ -283,7 +293,7 @@ class _EditStreetState extends State<EditStreet> {
                   TextButton(
                     onPressed: () => navigator.currentState!.pop(false),
                     child: const Text('لا'),
-                  )
+                  ),
                 ],
               ),
             );
@@ -298,16 +308,13 @@ class _EditStreetState extends State<EditStreet> {
         final bool update = street.id != 'null';
         if (!update) street.ref = firestore.collection('Streets').doc();
 
-        if (update &&
-            await Connectivity().checkConnectivity() !=
-                ConnectivityResult.none) {
+        if (update && (await Connectivity().checkConnectivity()).isConnected) {
           await street.update(old: widget.street?.getMap() ?? {});
         } else if (update) {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           street.update(old: widget.street?.getMap() ?? {});
-        } else if (await Connectivity().checkConnectivity() !=
-            ConnectivityResult.none) {
+        } else if ((await Connectivity().checkConnectivity()).isConnected) {
           await street.set();
         } else {
           //Intentionally unawaited because of no internet connection
@@ -319,12 +326,12 @@ class _EditStreetState extends State<EditStreet> {
         if (mounted) navigator.currentState!.pop(street.ref);
       } else {
         await showDialog(
-            context: context,
-            builder: (context) => const DataDialog(
-                  title: Text('بيانات غير كاملة'),
-                  content:
-                      Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالمنطقة'),
-                ));
+          context: context,
+          builder: (context) => const DataDialog(
+            title: Text('بيانات غير كاملة'),
+            content: Text('يرجى التأكد من ملئ هذه الحقول:\nالاسم\nالمنطقة'),
+          ),
+        );
       }
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance
@@ -343,7 +350,7 @@ class _EditStreetState extends State<EditStreet> {
     }
   }
 
-  void selectArea() async {
+  Future<void> selectArea() async {
     final BehaviorSubject<OrderOptions> _orderOptions =
         BehaviorSubject<OrderOptions>.seeded(const OrderOptions());
 
@@ -359,8 +366,12 @@ class _EditStreetState extends State<EditStreet> {
             FocusScope.of(context).nextFocus();
           },
           itemsStream: _orderOptions
-              .switchMap((value) => Area.getAllForUser(
-                  orderBy: value.orderBy, descending: !value.asc))
+              .switchMap(
+                (value) => Area.getAllForUser(
+                  orderBy: value.orderBy,
+                  descending: !value.asc,
+                ),
+              )
               .map((s) => s.docs.map(Area.fromQueryDoc).toList()),
         );
         return Dialog(
@@ -406,7 +417,7 @@ class _EditStreetState extends State<EditStreet> {
     await _orderOptions.close();
   }
 
-  void selectColor() async {
+  Future<void> selectColor() async {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(

@@ -3,18 +3,19 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 class Invitation extends DataObject {
   Invitation({
     required JsonRef ref,
     required String title,
-    this.link,
-    this.usedBy,
     required this.generatedBy,
-    this.permissions,
     required this.generatedOn,
     required this.expiryDate,
+    this.link,
+    this.usedBy,
+    this.permissions,
   }) : super(ref, title, null);
 
   static Invitation? fromDoc(JsonDoc doc) =>
@@ -70,13 +71,16 @@ class Invitation extends DataObject {
               .docs
               .singleWhere((u) => u.id == usedBy)
               .data()['Name'];
-    return 'ينتهي في ' +
-        DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate());
+
+    return SynchronousFuture(
+      'ينتهي في ' + DateFormat('yyyy/M/d', 'ar-EG').format(expiryDate.toDate()),
+    );
   }
 
   Invitation.empty()
       : expiryDate = Timestamp.fromDate(
-            DateTime.now().add(const Duration(days: 1, minutes: 10))),
+          DateTime.now().add(const Duration(days: 1, minutes: 10)),
+        ),
         link = '',
         generatedBy = User.instance.uid!,
         super(firestore.collection('Invitations').doc(''), '', null) {

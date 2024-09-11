@@ -8,10 +8,12 @@ import 'package:churchdata/views/auth_screen.dart';
 import 'package:churchdata/views/login.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
 import '../fakes/fakes.dart';
@@ -19,6 +21,7 @@ import '../globals.dart';
 import '../main.dart';
 import '../main.mocks.dart';
 
+@GenerateNiceMocks([MockSpec<HttpsCallable>()])
 Future<void> main() async {
   await initTests();
 
@@ -88,12 +91,18 @@ Future<void> main() async {
           when(firebaseFunctions.httpsCallable('registerWithLink'))
               .thenReturn(mockHttpsCallable);
 
-          when(mockHttpsCallable.call(argThat(predicate((p) {
-            if (p == null) return false;
-            final Map<String, dynamic> m = p as Map<String, dynamic>;
-            return m['link'] == 'https://churchdata.page.link/fakeInvitation';
-          }))))
-              .thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
+          when(
+            mockHttpsCallable.call(
+              argThat(
+                predicate((p) {
+                  if (p == null) return false;
+                  final Map<String, dynamic> m = p as Map<String, dynamic>;
+                  return m['link'] ==
+                      'https://churchdata.page.link/fakeInvitation';
+                }),
+              ),
+            ),
+          ).thenAnswer((_) async => FakeHttpsCallableResult<String>('dumb'));
 
           await tester.pumpWidget(const App());
           await tester.pumpAndSettle();
@@ -101,22 +110,32 @@ Future<void> main() async {
           await tester.tap(find.text('تفعيل الحساب باللينك'));
           await tester.pump();
 
-          expect(find.text('برجاء ادخال لينك الدخول لتفعيل حسابك'),
-              findsOneWidget);
+          expect(
+            find.text('برجاء ادخال لينك الدخول لتفعيل حسابك'),
+            findsOneWidget,
+          );
 
           await tester.enterText(
-              find.widgetWithText(TextFormField, 'لينك الدعوة'),
-              'https://churchdata.page.link/fakeInvitation');
+            find.widgetWithText(TextFormField, 'لينك الدعوة'),
+            'https://churchdata.page.link/fakeInvitation',
+          );
           await tester.pump();
 
           await tester.tap(find.text('تفعيل الحساب باللينك'));
           await tester.pump();
 
-          verify(mockHttpsCallable.call(argThat(predicate((p) {
-            if (p == null) return false;
-            final Map<String, dynamic> m = p as Map<String, dynamic>;
-            return m['link'] == 'https://churchdata.page.link/fakeInvitation';
-          }))));
+          verify(
+            mockHttpsCallable.call(
+              argThat(
+                predicate((p) {
+                  if (p == null) return false;
+                  final Map<String, dynamic> m = p as Map<String, dynamic>;
+                  return m['link'] ==
+                      'https://churchdata.page.link/fakeInvitation';
+                }),
+              ),
+            ),
+          );
         });
 
         testWidgets(
@@ -124,14 +143,22 @@ Future<void> main() async {
           (tester) async {
             final MockHttpsCallable mockHttpsCallable = MockHttpsCallable();
 
-            when(mockHttpsCallable.call(argThat(predicate((p) {
-              if (p == null) return false;
-              final Map<String, dynamic> m = p as Map<String, dynamic>;
-              return m['name'] == 'name' &&
-                  m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
-                  m['fcmToken'] == '{FCMToken}';
-            })))).thenAnswer(
-                (_) async => FakeHttpsCallableResult<String>('dumb'));
+            when(
+              mockHttpsCallable.call(
+                argThat(
+                  predicate((p) {
+                    if (p == null) return false;
+                    final Map<String, dynamic> m = p as Map<String, dynamic>;
+                    return m['name'] == 'name' &&
+                        m['password'] ==
+                            Encryption.encryptPassword('Strong*P@ss9') &&
+                        m['fcmToken'] == '{FCMToken}';
+                  }),
+                ),
+              ),
+            ).thenAnswer(
+              (_) async => FakeHttpsCallableResult<String>('dumb'),
+            );
 
             when(firebaseFunctions.httpsCallable('registerAccount'))
                 .thenReturn(mockHttpsCallable);
@@ -169,7 +196,9 @@ Future<void> main() async {
             );
 
             await tester.enterText(
-                find.byKey(const Key('Password')), 'Strong*P@ss9');
+              find.byKey(const Key('Password')),
+              'Strong*P@ss9',
+            );
 
             await tester.scrollUntilVisible(
               find.byKey(const Key('PasswordConfirmation')),
@@ -178,7 +207,9 @@ Future<void> main() async {
             );
 
             await tester.enterText(
-                find.byKey(const Key('PasswordConfirmation')), 'Strong*P@ss9');
+              find.byKey(const Key('PasswordConfirmation')),
+              'Strong*P@ss9',
+            );
             await tester.pump();
 
             await tester.scrollUntilVisible(
@@ -191,13 +222,20 @@ Future<void> main() async {
 
             await tester.pump();
 
-            verify(mockHttpsCallable.call(argThat(predicate((p) {
-              if (p == null) return false;
-              final Map<String, dynamic> m = p as Map<String, dynamic>;
-              return m['name'] == 'name' &&
-                  m['password'] == Encryption.encryptPassword('Strong*P@ss9') &&
-                  m['fcmToken'] == '{FCMToken}';
-            }))));
+            verify(
+              mockHttpsCallable.call(
+                argThat(
+                  predicate((p) {
+                    if (p == null) return false;
+                    final Map<String, dynamic> m = p as Map<String, dynamic>;
+                    return m['name'] == 'name' &&
+                        m['password'] ==
+                            Encryption.encryptPassword('Strong*P@ss9') &&
+                        m['fcmToken'] == '{FCMToken}';
+                  }),
+                ),
+              ),
+            );
           },
           timeout: const Timeout(Duration(seconds: 5)),
         );
@@ -209,13 +247,15 @@ Future<void> main() async {
       setUp(() {
         when(localAuthentication.canCheckBiometrics)
             .thenAnswer((_) async => true);
-        when(localAuthentication.authenticate(
-          localizedReason: 'برجاء التحقق للمتابعة',
-          options: const AuthenticationOptions(
-            biometricOnly: true,
-            useErrorDialogs: false,
+        when(
+          localAuthentication.authenticate(
+            localizedReason: 'برجاء التحقق للمتابعة',
+            options: const AuthenticationOptions(
+              biometricOnly: true,
+              useErrorDialogs: false,
+            ),
           ),
-        )).thenAnswer((_) => _authCompleter.future);
+        ).thenAnswer((_) => _authCompleter.future);
       });
 
       tearDown(() async {
@@ -238,8 +278,7 @@ Future<void> main() async {
         });
 
         testWidgets('Entering password', (tester) async {
-          tester.binding.window.physicalSizeTestValue =
-              const Size(1080 * 3, 2400 * 3);
+          tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
           await tester.pumpWidget(
             wrapWithMaterialApp(
@@ -247,7 +286,7 @@ Future<void> main() async {
                 nextRoute: 'Success',
               ),
               routes: {
-                'Success': (_) => const Scaffold(body: Text('Test succeeded'))
+                'Success': (_) => const Scaffold(body: Text('Test succeeded')),
               },
             ),
           );
@@ -269,8 +308,7 @@ Future<void> main() async {
         });
         group('Errors', () {
           testWidgets('Empty Password', (tester) async {
-            tester.binding.window.physicalSizeTestValue =
-                const Size(1080 * 3, 2400 * 3);
+            tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
             await tester.pumpWidget(
               wrapWithMaterialApp(
@@ -289,8 +327,7 @@ Future<void> main() async {
             expect(find.text('كلمة سر فارغة!'), findsOneWidget);
           });
           testWidgets('Wrong Password', (tester) async {
-            tester.binding.window.physicalSizeTestValue =
-                const Size(1080 * 3, 2400 * 3);
+            tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
             await tester.pumpWidget(
               wrapWithMaterialApp(
@@ -312,8 +349,7 @@ Future<void> main() async {
       });
 
       testWidgets('With Biometrics', (tester) async {
-        tester.binding.window.physicalSizeTestValue =
-            const Size(1080 * 3, 2400 * 3);
+        tester.view.physicalSize = const Size(1080 * 3, 2400 * 3);
 
         await tester.pumpWidget(
           wrapWithMaterialApp(
@@ -321,7 +357,7 @@ Future<void> main() async {
               nextRoute: 'Success',
             ),
             routes: {
-              'Success': (_) => const Scaffold(body: Text('Test succeeded'))
+              'Success': (_) => const Scaffold(body: Text('Test succeeded')),
             },
           ),
         );
@@ -400,9 +436,15 @@ Future<void> main() async {
           await tester.tap(find.text('حسنًا'));
           await tester.pumpAndSettle();
 
-          lastConfessionMatcher = find.text(DateFormat('yyyy/M/d').format(
-              DateTime(lastConfession.year, lastConfession.month,
-                  lastConfession.day != 27 ? 27 : 28)));
+          lastConfessionMatcher = find.text(
+            DateFormat('yyyy/M/d').format(
+              DateTime(
+                lastConfession.year,
+                lastConfession.month,
+                lastConfession.day != 27 ? 27 : 28,
+              ),
+            ),
+          );
 
           await tester.tap(lastTanawolMatcher);
           await tester.pumpAndSettle();
@@ -415,10 +457,15 @@ Future<void> main() async {
           await tester.tap(find.text('حسنًا'));
           await tester.pumpAndSettle();
 
-          lastTanawolMatcher = find.text(DateFormat('yyyy/M/d').format(DateTime(
-              lastTanawol.year,
-              lastTanawol.month,
-              lastTanawol.day != 27 ? 27 : 28)));
+          lastTanawolMatcher = find.text(
+            DateFormat('yyyy/M/d').format(
+              DateTime(
+                lastTanawol.year,
+                lastTanawol.month,
+                lastTanawol.day != 27 ? 27 : 28,
+              ),
+            ),
+          );
 
           await tester.tap(find.byIcon(Icons.save));
 
@@ -426,17 +473,21 @@ Future<void> main() async {
             (await firestore.doc('Persons/user').get())
                 .data()?['LastTanawol']
                 ?.millisecondsSinceEpoch,
-            DateTime(lastTanawol.year, lastTanawol.month,
-                    lastTanawol.day != 27 ? 27 : 28)
-                .millisecondsSinceEpoch,
+            DateTime(
+              lastTanawol.year,
+              lastTanawol.month,
+              lastTanawol.day != 27 ? 27 : 28,
+            ).millisecondsSinceEpoch,
           );
           expect(
             (await firestore.doc('Persons/user').get())
                 .data()?['LastConfession']
                 ?.millisecondsSinceEpoch,
-            DateTime(lastConfession.year, lastConfession.month,
-                    lastConfession.day != 27 ? 27 : 28)
-                .millisecondsSinceEpoch,
+            DateTime(
+              lastConfession.year,
+              lastConfession.month,
+              lastConfession.day != 27 ? 27 : 28,
+            ).millisecondsSinceEpoch,
           );
         },
       );

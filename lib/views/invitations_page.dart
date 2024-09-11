@@ -6,7 +6,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:flutter/material.dart';
 
 class InvitationsPage extends StatefulWidget {
-  const InvitationsPage({Key? key}) : super(key: key);
+  const InvitationsPage({super.key});
 
   @override
   _InvitationsPageState createState() => _InvitationsPageState();
@@ -36,11 +36,12 @@ class _InvitationsPageState extends State<InvitationsPage> {
         child: StreamBuilder<List<Invitation>>(
           stream: options.objectsData,
           builder: (context, snapshot) {
-            return Text((snapshot.data?.length ?? 0).toString() + ' دعوة',
-                textAlign: TextAlign.center,
-                strutStyle:
-                    StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyLarge);
+            return Text(
+              (snapshot.data?.length ?? 0).toString() + ' دعوة',
+              textAlign: TextAlign.center,
+              strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
+              style: Theme.of(context).primaryTextTheme.bodyLarge,
+            );
           },
         ),
       ),

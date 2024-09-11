@@ -45,7 +45,7 @@ const List<Color> accents = <Color>[
   Colors.deepOrangeAccent,
   Colors.brown,
   Colors.blueGrey,
-  Colors.black
+  Colors.black,
 ];
 
 final AndroidParameters androidParameters = AndroidParameters(
@@ -84,13 +84,14 @@ List<Color> primaries = <Color>[
   Colors.deepOrange,
   Colors.deepOrangeAccent,
   Colors.blueAccent,
-  Colors.grey.shade700
+  Colors.grey.shade700,
 ];
 
 const String uriPrefix = 'https://churchdata.page.link';
 
 bool reportUID = true;
 bool configureMessaging = true;
+
 // ignore: constant_identifier_names
 enum PhoneCallAction { AddToContacts, Call, Message, Whatsapp }
 

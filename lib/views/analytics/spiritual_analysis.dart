@@ -9,7 +9,7 @@ import 'analytics_indicators.dart';
 
 class SpiritualAnalysis extends StatefulWidget {
   final List<Area>? areas;
-  const SpiritualAnalysis({Key? key, this.areas}) : super(key: key);
+  const SpiritualAnalysis({super.key, this.areas});
 
   @override
   _SpiritualAnalysisState createState() => _SpiritualAnalysisState();
@@ -18,8 +18,9 @@ class SpiritualAnalysis extends StatefulWidget {
 class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
   List<Area>? areas;
   DateTimeRange range = DateTimeRange(
-      start: DateTime.now().subtract(const Duration(days: 30)),
-      end: DateTime.now());
+    start: DateTime.now().subtract(const Duration(days: 30)),
+    end: DateTime.now(),
+  );
   DateTime minAvaliable = DateTime.now().subtract(const Duration(days: 30));
   final _screenKey = GlobalKey();
   bool minAvaliableSet = false;
@@ -65,8 +66,8 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
         ),
         body: FutureBuilder(
           future: _setRangeStart(),
-          builder: (context, _) {
-            if (_.connectionState == ConnectionState.done) {
+          builder: (context, rangeStartData) {
+            if (rangeStartData.connectionState == ConnectionState.done) {
               return StreamBuilder<List<Area>>(
                 initialData: widget.areas,
                 stream: Area.getAllForUser()
@@ -84,13 +85,14 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                       children: [
                         ListTile(
                           title: Text(
-                              'احصائيات الخدمة من ' +
-                                  intl.DateFormat.yMMMEd('ar_EG')
-                                      .format(range.start) +
-                                  ' الى ' +
-                                  intl.DateFormat.yMMMEd('ar_EG')
-                                      .format(range.end),
-                              style: Theme.of(context).textTheme.bodyLarge),
+                            'احصائيات الخدمة من ' +
+                                intl.DateFormat.yMMMEd('ar_EG')
+                                    .format(range.start) +
+                                ' الى ' +
+                                intl.DateFormat.yMMMEd('ar_EG')
+                                    .format(range.end),
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
@@ -117,7 +119,8 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                                     : DateTimeRange(
                                         start: DateTime.now()
                                             .subtract(const Duration(days: 1)),
-                                        end: range.end),
+                                        end: range.end,
+                                      ),
                                 firstDate: minAvaliable,
                                 lastDate: DateTime.now(),
                               );
@@ -147,7 +150,8 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                                   context: context,
                                   builder: (context) => const AlertDialog(
                                     content: Text(
-                                        'برجاء اختيار منطقة واحدة على الأقل'),
+                                      'برجاء اختيار منطقة واحدة على الأقل',
+                                    ),
                                   ),
                                 );
                             },

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
@@ -9,7 +11,7 @@ import '../models/user.dart';
 import 'mini_model_list.dart';
 
 class ChurchesPage extends StatelessWidget {
-  const ChurchesPage({Key? key}) : super(key: key);
+  const ChurchesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class ChurchesPage extends StatelessWidget {
 }
 
 class FathersPage extends StatelessWidget {
-  const FathersPage({Key? key}) : super(key: key);
+  const FathersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,11 @@ class FathersPage extends StatelessWidget {
   }
 }
 
-void churchTap(BuildContext context, Church church, bool editMode) async {
+Future<void> churchTap(
+  BuildContext context,
+  Church church,
+  bool editMode,
+) async {
   await showDialog(
     context: context,
     builder: (context) => AlertDialog(
@@ -53,7 +59,7 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
                     );
               }
               navigator.currentState!.pop();
-              churchTap(context, church, !editMode);
+              unawaited(churchTap(context, church, !editMode));
             },
             label: Text(editMode ? 'حفظ' : 'تعديل'),
           ),
@@ -108,8 +114,10 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
             else
               Padding(
                 padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
-                child: Text(church.name,
-                    style: Theme.of(context).textTheme.titleLarge),
+                child: Text(
+                  church.name,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
             Text(
               'العنوان:',
@@ -123,8 +131,10 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
             else if (church.address?.isNotEmpty ?? false)
               Text(church.address!),
             if (!editMode)
-              Text('الأباء بالكنيسة:',
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'الأباء بالكنيسة:',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             if (!editMode)
               StreamBuilder<JsonQuery>(
                 stream: church.getMembersLive(),
@@ -158,7 +168,11 @@ void churchTap(BuildContext context, Church church, bool editMode) async {
   );
 }
 
-void fatherTap(BuildContext context, Father father, bool editMode) async {
+Future<void> fatherTap(
+  BuildContext context,
+  Father father,
+  bool editMode,
+) async {
   await showDialog(
     context: context,
     builder: (context) => AlertDialog(
@@ -174,7 +188,7 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
               }
               navigator.currentState!.pop();
 
-              fatherTap(context, father, !editMode);
+              unawaited(fatherTap(context, father, !editMode));
             },
             label: Text(editMode ? 'حفظ' : 'تعديل'),
           ),
@@ -190,17 +204,18 @@ void fatherTap(BuildContext context, Father father, bool editMode) async {
                   content: Text('هل أنت متأكد من حذف ${father.name}؟'),
                   actions: <Widget>[
                     TextButton.icon(
-                        icon: const Icon(Icons.delete),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        label: const Text('نعم'),
-                        onPressed: () async {
-                          await firestore
-                              .collection('Fathers')
-                              .doc(father.id)
-                              .delete();
-                          navigator.currentState!.pop();
-                          navigator.currentState!.pop();
-                        }),
+                      icon: const Icon(Icons.delete),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      label: const Text('نعم'),
+                      onPressed: () async {
+                        await firestore
+                            .collection('Fathers')
+                            .doc(father.id)
+                            .delete();
+                        navigator.currentState!.pop();
+                        navigator.currentState!.pop();
+                      },
+                    ),
                     TextButton(
                       onPressed: () {
                         navigator.currentState!.pop();

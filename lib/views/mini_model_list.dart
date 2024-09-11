@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:churchdata/models/list.dart';
 import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/mini_models.dart';
@@ -13,14 +15,14 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
   final void Function(T)? modify;
   final T Function(JsonQueryDoc) transformer;
 
-  const MiniModelList(
-      {Key? key,
-      required this.title,
-      required this.collection,
-      this.add,
-      this.modify,
-      required this.transformer})
-      : super(key: key);
+  const MiniModelList({
+    required this.title,
+    required this.collection,
+    required this.transformer,
+    super.key,
+    this.add,
+    this.modify,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +88,11 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
     );
   }
 
-  void _defaultModify(BuildContext context, T item, bool editMode) async {
+  Future<void> _defaultModify(
+    BuildContext context,
+    T item,
+    bool editMode,
+  ) async {
     final name = TextEditingController(text: item.name);
     await showDialog(
       context: context,
@@ -101,7 +107,8 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                 }
                 navigator.currentState!.pop();
                 if (modify == null)
-                  _defaultModify(context, item..name = name.text, !editMode);
+                  unawaited(_defaultModify(
+                      context, item..name = name.text, !editMode));
               },
               label: Text(editMode ? 'حفظ' : 'تعديل'),
             ),
@@ -118,7 +125,8 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                     actions: <Widget>[
                       TextButton.icon(
                         icon: const Icon(Icons.delete),
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        style:
+                            TextButton.styleFrom(foregroundColor: Colors.red),
                         label: const Text('نعم'),
                         onPressed: () async {
                           await item.ref.delete();

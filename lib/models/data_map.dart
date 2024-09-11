@@ -11,7 +11,7 @@ import 'family.dart';
 import 'street.dart';
 
 class DataMap extends StatelessWidget {
-  const DataMap({Key? key}) : super(key: key);
+  const DataMap({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,9 @@ class DataMap extends StatelessWidget {
               builder: (context, snapshot) => snapshot.hasData
                   ? MegaMap(
                       initialLocation: LatLng(
-                          snapshot.data!.latitude!, snapshot.data!.longitude!),
+                        snapshot.data!.latitude!,
+                        snapshot.data!.longitude!,
+                      ),
                     )
                   : const Center(
                       child: CircularProgressIndicator(),
@@ -48,7 +50,7 @@ class MegaMap extends StatelessWidget {
   static const LatLng center = LatLng(30.0444, 31.2357); //Cairo Location
   final LatLng? initialLocation;
 
-  const MegaMap({Key? key, this.initialLocation}) : super(key: key);
+  const MegaMap({super.key, this.initialLocation});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +130,7 @@ class MegaMap extends StatelessWidget {
                                   ? s.color
                                   : s.color.withOpacity(0.25)),
                           points: s.locationPoints.map(fromGeoPoint).toList(),
-                        )
+                        ),
                   }
                 : {},
             markers: {
@@ -151,10 +153,11 @@ class MegaMap extends StatelessWidget {
                     },
                     markerId: MarkerId(f.id),
                     infoWindow: InfoWindow(
-                        title: f.name,
-                        snippet: f.locationConfirmed ? null : 'غير مؤكد'),
+                      title: f.name,
+                      snippet: f.locationConfirmed ? null : 'غير مؤكد',
+                    ),
                     position: fromGeoPoint(f.locationPoint!),
-                  )
+                  ),
             },
             initialCameraPosition: CameraPosition(
               zoom: 13,

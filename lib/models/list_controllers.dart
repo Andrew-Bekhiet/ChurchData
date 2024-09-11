@@ -55,7 +55,7 @@ abstract class BaseListController<L, U> {
     Map<String, U>? selected,
     Stream<String>? searchQuery,
   })  : assert(itemsStream != null || items != null),
-        assert(showNull == false || (showNull == true && empty != null)),
+        assert(!showNull || (showNull && empty != null)),
         _selectionMode = BehaviorSubject<bool>.seeded(selectionMode),
         _selected = BehaviorSubject<Map<String, U>>.seeded(selected ?? {}),
         _searchQuery = searchQuery == null
@@ -63,7 +63,7 @@ abstract class BaseListController<L, U> {
             : BehaviorSubject<String>(),
         _objectsData = itemsStream != null
             ? BehaviorSubject<L>()
-            : BehaviorSubject<L>.seeded(items!) {
+            : BehaviorSubject<L>.seeded(items as L) {
     //
     _searchQueryListener =
         searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
@@ -145,22 +145,33 @@ class DataObjectListController<T extends DataObject>
   @override
   final bool showNull;
 
-  final Widget Function(T, void Function(T)? onLongPress,
-      void Function(T)? onTap, Widget? trailing, Widget? subtitle) itemBuilder;
+  final Widget Function(
+    T,
+    void Function(T)? onLongPress,
+    void Function(T)? onTap,
+    Widget? trailing,
+    Widget? subtitle,
+  ) itemBuilder;
 
-  late final Widget Function(T,
-      {void Function(T)? onLongPress,
-      void Function(T)? onTap,
-      Widget? trailing,
-      Widget? subtitle}) buildItem;
+  late final Widget Function(
+    T, {
+    void Function(T)? onLongPress,
+    void Function(T)? onTap,
+    Widget? trailing,
+    Widget? subtitle,
+  }) buildItem;
 
   final BehaviorSubject<bool> grouped = BehaviorSubject.seeded(false);
 
   DataObjectListController({
     this.groupData,
-    Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
-            Widget? trailing, Widget? subtitle)?
-        itemBuilder,
+    Widget Function(
+      T,
+      void Function(T)? onLongPress,
+      void Function(T)? onTap,
+      Widget? trailing,
+      Widget? subtitle,
+    )? itemBuilder,
     this.onLongPress,
     this.tap,
     this.empty,
@@ -172,7 +183,7 @@ class DataObjectListController<T extends DataObject>
     List<T> Function(List<T>, String)? filter,
     Stream<String>? searchQuery,
   })  : assert(itemsStream != null || items != null),
-        assert(showNull == false || (showNull == true && empty != null)),
+        assert(!showNull || (showNull && empty != null)),
         _filter = (filter ??
             ((o, f) => o
                 .where((e) => filterString(e.name).contains(filterString(f)))
@@ -185,19 +196,27 @@ class DataObjectListController<T extends DataObject>
         _originalObjectsData = itemsStream != null
             ? BehaviorSubject<Map<String, T>>()
             : BehaviorSubject<Map<String, T>>.seeded(
-                {for (final o in items!) o.id: o}),
+                {for (final o in items!) o.id: o},
+              ),
         _objectsData = showNull
             ? BehaviorSubject<List<T>>.seeded([empty!])
             : BehaviorSubject<List<T>>(),
         itemBuilder = (itemBuilder ??
-            (i, void Function(T)? onLongPress, void Function(T)? onTap,
-                    Widget? trailing, Widget? subtitle) =>
-                DataObjectWidget<T>(i,
-                    subtitle: subtitle,
-                    onLongPress:
-                        onLongPress != null ? () => onLongPress(i) : null,
-                    onTap: onTap != null ? () => onTap(i) : null,
-                    trailing: trailing)) {
+            (
+              i,
+              void Function(T)? onLongPress,
+              void Function(T)? onTap,
+              Widget? trailing,
+              Widget? subtitle,
+            ) =>
+                DataObjectWidget<T>(
+                  i,
+                  subtitle: subtitle,
+                  onLongPress:
+                      onLongPress != null ? () => onLongPress(i) : null,
+                  onTap: onTap != null ? () => onTap(i) : null,
+                  trailing: trailing,
+                )) {
     //
     _searchQueryListener =
         searchQuery?.listen(_searchQuery.add, onError: _searchQuery.addError);
@@ -274,8 +293,9 @@ class DataObjectListController<T extends DataObject>
 String filterString(String s) => s
     .toLowerCase()
     .replaceAll(
-        RegExp(
-          r'[أإآ]',
-        ),
-        'ا')
+      RegExp(
+        r'[أإآ]',
+      ),
+      'ا',
+    )
     .replaceAll('ى', 'ي');
