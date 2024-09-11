@@ -183,7 +183,7 @@ class _UserRegisterationState extends State<UserRegisteration> {
                 const Text('أو'),
                 Text(
                   'يمكنك ادخال لينك الدعوة هنا',
-                  style: Theme.of(context).textTheme.bodyText1,
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 Container(height: 10),
                 TextFormField(
@@ -236,10 +236,10 @@ class _UserRegisterationState extends State<UserRegisteration> {
     if (!_formKey.currentState!.validate()) return;
     // ignore: unawaited_futures
     scaffoldMessenger.currentState!.showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             Text('جار انشاء حساب جديد'),
             LinearProgressIndicator(),
           ],
@@ -281,9 +281,9 @@ class _UserRegisterationState extends State<UserRegisteration> {
               } else if (snapshot.connectionState == ConnectionState.done) {
                 navigator.currentState!.pop();
               }
-              return Row(
+              return const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   CircularProgressIndicator(),
                   Text('جار تفعيل الحساب...'),
                 ],

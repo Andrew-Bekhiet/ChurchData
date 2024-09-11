@@ -18,8 +18,7 @@ import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -124,17 +123,21 @@ class _EditPersonState extends State<EditPerson> {
                       source:
                           source ? ImageSource.camera : ImageSource.gallery);
                   if (selectedImage == null) return;
-                  changedImage = (await ImageCropper.cropImage(
+                  changedImage = (await ImageCropper().cropImage(
                     sourcePath: selectedImage.path,
-                    cropStyle: CropStyle.circle,
-                    androidUiSettings: AndroidUiSettings(
-                      toolbarTitle: 'قص الصورة',
-                      toolbarColor: Theme.of(context).primaryColor,
-                      toolbarWidgetColor:
-                          Theme.of(context).primaryTextTheme.headline6?.color,
-                      initAspectRatio: CropAspectRatioPreset.original,
-                      lockAspectRatio: false,
-                    ),
+                    uiSettings: [
+                      AndroidUiSettings(
+                        cropStyle: CropStyle.circle,
+                        toolbarTitle: 'قص الصورة',
+                        toolbarColor: Theme.of(context).primaryColor,
+                        toolbarWidgetColor: Theme.of(context)
+                            .primaryTextTheme
+                            .titleLarge
+                            ?.color,
+                        initAspectRatio: CropAspectRatioPreset.original,
+                        lockAspectRatio: false,
+                      ),
+                    ],
                   ))
                       ?.path;
                   deletePhoto = false;
@@ -365,7 +368,6 @@ class _EditPersonState extends State<EditPerson> {
                                       ..insert(
                                         0,
                                         const DropdownMenuItem(
-                                          value: null,
                                           child: Text(''),
                                         ),
                                       ),
@@ -437,7 +439,6 @@ class _EditPersonState extends State<EditPerson> {
                                             ..insert(
                                               0,
                                               const DropdownMenuItem(
-                                                value: null,
                                                 child: Text(''),
                                               ),
                                             ),
@@ -499,7 +500,6 @@ class _EditPersonState extends State<EditPerson> {
                                       ..insert(
                                         0,
                                         const DropdownMenuItem(
-                                          value: null,
                                           child: Text(''),
                                         ),
                                       ),
@@ -638,7 +638,6 @@ class _EditPersonState extends State<EditPerson> {
                                     ..insert(
                                       0,
                                       const DropdownMenuItem(
-                                        value: null,
                                         child: Text(''),
                                       ),
                                     ),
@@ -707,7 +706,6 @@ class _EditPersonState extends State<EditPerson> {
                                   ..insert(
                                     0,
                                     const DropdownMenuItem(
-                                      value: null,
                                       child: Text(''),
                                     ),
                                   ),
@@ -852,7 +850,6 @@ class _EditPersonState extends State<EditPerson> {
                               ..insert(
                                 0,
                                 const DropdownMenuItem(
-                                  value: null,
                                   child: Text(''),
                                 ),
                               ),
@@ -947,7 +944,6 @@ class _EditPersonState extends State<EditPerson> {
                                     ..insert(
                                       0,
                                       const DropdownMenuItem(
-                                        value: null,
                                         child: Text(''),
                                       ),
                                     ),
@@ -1017,7 +1013,8 @@ class _EditPersonState extends State<EditPerson> {
                     ),
                   ElevatedButton.icon(
                     style: person.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(primary: person.color)
+                        ? ElevatedButton.styleFrom(
+                            backgroundColor: person.color)
                         : null,
                     onPressed: selectColor,
                     icon: const Icon(Icons.color_lens),
@@ -1354,7 +1351,7 @@ class _EditPersonState extends State<EditPerson> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Area>(
@@ -1435,7 +1432,7 @@ class _EditPersonState extends State<EditPerson> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Family>(

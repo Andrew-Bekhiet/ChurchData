@@ -12,8 +12,7 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -586,7 +585,7 @@ class _UserPState extends State<UserP> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Person>(
@@ -622,7 +621,7 @@ class _UserPState extends State<UserP> {
                           selectionMode: true,
                           itemsStream: User.getAllForUser(),
                           selected: {
-                            for (var item in users.data!) item.id: item
+                            for (final item in users.data!) item.id: item
                           },
                           itemBuilder:
                               (item, onLongPress, onTap, trailing, subtitle) =>
@@ -656,7 +655,7 @@ class _UserPState extends State<UserP> {
                             searchStream: context
                                 .read<DataObjectListController<User>>()
                                 .searchQuery,
-                            textStyle: Theme.of(context).textTheme.bodyText2),
+                            textStyle: Theme.of(context).textTheme.bodyMedium),
                       ),
                       body: const UsersList(
                         autoDisposeController: false,

@@ -88,6 +88,12 @@ class DataObjectListController<T extends DataObject>
     implements BaseListController<List<T>, T> {
   @override
   late final BehaviorSubject<List<T>> _objectsData;
+
+  final BehaviorSubject<Map<String, bool>> openedNodes =
+      BehaviorSubject.seeded({});
+
+  final Map<String, List<T>> Function(List<T>)? groupData;
+
   @override
   ValueStream<List<T>> get objectsData => _objectsData.stream;
   @override
@@ -148,7 +154,10 @@ class DataObjectListController<T extends DataObject>
       Widget? trailing,
       Widget? subtitle}) buildItem;
 
+  final BehaviorSubject<bool> grouped = BehaviorSubject.seeded(false);
+
   DataObjectListController({
+    this.groupData,
     Widget Function(T, void Function(T)? onLongPress, void Function(T)? onTap,
             Widget? trailing, Widget? subtitle)?
         itemBuilder,
@@ -212,7 +221,7 @@ class DataObjectListController<T extends DataObject>
   @override
   void selectAll() {
     if (!_selectionMode.value) _selectionMode.add(true);
-    _selected.add({for (var item in _objectsData.value) item.id: item});
+    _selected.add({for (final item in _objectsData.value) item.id: item});
   }
 
   @override
@@ -244,6 +253,10 @@ class DataObjectListController<T extends DataObject>
 
   @override
   Future<void> dispose() async {
+    if (!grouped.isClosed) await grouped.close();
+
+    if (!openedNodes.isClosed) await openedNodes.close();
+
     await _objectsDataListener?.cancel();
     if (!_objectsData.isClosed) await _objectsData.close();
 

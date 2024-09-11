@@ -71,7 +71,7 @@ class Loading extends StatelessWidget {
                   future: PackageInfo.fromPlatform(),
                   builder: (context, data) => data.hasData
                       ? Text('اصدار: ' + data.data!.version,
-                          style: Theme.of(context).textTheme.caption)
+                          style: Theme.of(context).textTheme.bodySmall)
                       : const Text(''),
                 ),
               ),

@@ -61,7 +61,7 @@ abstract class DataObject {
   }
 }
 
-abstract class ParentObject<T extends DataObject> {
+abstract mixin class ParentObject<T extends DataObject> {
   Future<List<T>> getChildren(
       [String orderBy = 'Name', bool tranucate = false]);
 
@@ -70,12 +70,12 @@ abstract class ParentObject<T extends DataObject> {
   }
 }
 
-abstract class ChildObject<T extends DataObject> {
+abstract mixin class ChildObject<T extends DataObject> {
   JsonRef? get parentId;
   Future<String?> getParentName();
 }
 
-abstract class PhotoObject {
+abstract mixin class PhotoObject {
   IconData defaultIcon = Icons.help;
   late bool hasPhoto;
 

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:async/async.dart';
 import 'package:churchdata/models/data_map.dart';
+import 'package:churchdata/models/mini_models.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/analytics/activity_analysis.dart';
@@ -20,20 +21,16 @@ import 'package:churchdata/views/info_page/user_info.dart';
 import 'package:churchdata/views/mini_model_list.dart';
 import 'package:churchdata/views/trash.dart';
 import 'package:churchdata/views/user_registeration.dart';
+import 'package:churchdata_core/churchdata_core.dart'
+    show ThemingService, initCore, registerFirebaseDependencies;
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
-    hide User
-    hide UserInfo;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
-    hide User
-    hide UserInfo;
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
@@ -42,20 +39,20 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart';
 
+import 'EncryptionKeys.dart';
 import 'models/area.dart';
 import 'models/family.dart';
 import 'models/hive_persistence_provider.dart';
 import 'models/invitation.dart';
 import 'models/loading_widget.dart';
-import 'models/mini_models.dart';
 import 'models/person.dart';
 import 'models/street.dart';
-import 'models/theme_notifier.dart';
 import 'models/user.dart';
 import 'utils/globals.dart';
 import 'utils/helpers.dart';
@@ -74,9 +71,8 @@ import 'views/settings.dart' as settingsui;
 import 'views/updates.dart';
 
 void main() async {
-  FlutterError.onError = (flutterError) {
-    FirebaseCrashlytics.instance.recordFlutterError(flutterError);
-  };
+  FlutterError.onError =
+      (details) => FirebaseCrashlytics.instance.recordFlutterError(details);
   ErrorWidget.builder = (error) {
     if (kReleaseMode) {
       FirebaseCrashlytics.instance.recordFlutterError(error);
@@ -99,8 +95,7 @@ void main() async {
 }
 
 final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
-final bool kUseFirebaseEmulators =
-    dotenv.env['kUseFirebaseEmulators']?.toString() == 'true';
+const bool kUseFirebaseEmulators = false;
 
 @visibleForTesting
 Future<void> initConfigs([bool retryOnHiveError = true]) async {
@@ -126,7 +121,20 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
   } else
     await Firebase.initializeApp();
 
-  if (firebaseAuth.currentUser?.uid != null) await User.instance.initialized;
+  registerFirebaseDependencies();
+
+  await initCore(
+    sentryDSN: sentryDSN,
+    overrides: {
+      ThemingService: () => ThemingService.withInitialThemeata(
+            ThemingService.getDefault(
+              darkTheme: Hive.box('Settings').get('DarkTheme'),
+              primaryOverride: Colors.cyan,
+              secondaryOverride: Colors.cyanAccent,
+            ),
+          )
+    },
+  );
 
   //Hive initialization:
   try {
@@ -148,7 +156,6 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
 
     await Hive.openBox('Settings');
     await Hive.openBox<bool>('FeatureDiscovery');
-    await Hive.openBox<Map>('NotificationsSettings');
     await Hive.openBox<String?>('PhotosURLsCache');
   } catch (e) {
     await Hive.close();
@@ -162,6 +169,7 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     rethrow;
   }
 
+  if (firebaseAuth.currentUser?.uid != null) await User.instance.initialized;
   //Notifications:
   if (!kIsWeb) await AndroidAlarmManager.initialize();
 
@@ -169,83 +177,9 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     await FlutterLocalNotificationsPlugin().initialize(
       const InitializationSettings(
           android: AndroidInitializationSettings('warning')),
-      onSelectNotification: onNotificationClicked,
+      onDidReceiveBackgroundNotificationResponse: onNotificationClicked,
+      onDidReceiveNotificationResponse: onNotificationClicked,
     );
-}
-
-@visibleForTesting
-ThemeData initTheme() {
-  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
-  final bool greatFeastTheme =
-      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-  MaterialColor color = Colors.cyan;
-  Color accent = Colors.cyanAccent;
-
-  final riseDay = getRiseDay();
-  if (greatFeastTheme &&
-      DateTime.now()
-          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-    color = black;
-    accent = blackAccent;
-    darkTheme = true;
-  } else if (greatFeastTheme &&
-      DateTime.now()
-          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-    darkTheme = false;
-  }
-
-  return ThemeData(
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: color,
-      brightness: darkTheme != null
-          ? (darkTheme ? Brightness.dark : Brightness.light)
-          : WidgetsBinding.instance!.window.platformBrightness,
-      accentColor: accent,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: color),
-      ),
-    ),
-    floatingActionButtonTheme:
-        FloatingActionButtonThemeData(backgroundColor: color),
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    brightness: darkTheme != null
-        ? (darkTheme ? Brightness.dark : Brightness.light)
-        : WidgetsBinding.instance!.window.platformBrightness,
-    primaryColor: color,
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    bottomAppBarTheme: BottomAppBarTheme(
-      color: accent,
-      shape: const CircularNotchedRectangle(),
-    ),
-  );
 }
 
 class App extends StatefulWidget {
@@ -274,16 +208,12 @@ class AppState extends State<App> {
       providers: [
         StreamProvider<User>.value(
             initialData: User.instance, value: User.instance.stream),
-        Provider<ThemeNotifier>(
-          create: (_) => ThemeNotifier(initTheme()),
-          dispose: (_, t) => t.dispose(),
-        ),
       ],
       builder: (context, _) => FeatureDiscovery.withProvider(
         persistenceProvider: HivePersistenceProvider(),
         child: StreamBuilder<ThemeData>(
-          initialData: context.read<ThemeNotifier>().theme,
-          stream: context.read<ThemeNotifier>().stream,
+          initialData: GetIt.I<ThemingService>().theme,
+          stream: GetIt.I<ThemingService>().stream,
           builder: (context, theme) {
             return MaterialApp(
               navigatorKey: navigator,
@@ -496,7 +426,7 @@ class AppState extends State<App> {
                   'Exception: Error Update User Data' &&
               User.instance.password != null &&
               !updateUserDataDialogShown) {
-            WidgetsBinding.instance!.addPostFrameCallback((_) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
               showErrorUpdateDataDialog(context: context);
               updateUserDataDialogShown = true;
             });
@@ -524,7 +454,7 @@ class AppState extends State<App> {
             } else if (user.approved && user.password != null) {
               return const AuthScreen(nextWidget: Root());
             } else {
-              WidgetsBinding.instance!.addPostFrameCallback((_) async {
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
                 if (user.personRef == null && !showFormOnce) {
                   showFormOnce = true;
                   if (kIsWeb ||

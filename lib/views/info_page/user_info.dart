@@ -9,8 +9,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 import '../edit_page/edit_user.dart';
@@ -102,7 +101,7 @@ class _UserInfoState extends State<UserInfo> {
             ListTile(
               title: Text(
                 user.name,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             ListTile(
@@ -130,7 +129,7 @@ class _UserInfoState extends State<UserInfo> {
             ),
             ListTile(
               title: Text('الصلاحيات:',
-                  style: Theme.of(context).textTheme.bodyText1),
+                  style: Theme.of(context).textTheme.bodyLarge),
             ),
             if (user.manageUsers == true)
               const ListTile(
@@ -206,7 +205,7 @@ class _UserInfoState extends State<UserInfo> {
                         'يستطيع ' +
                             user.name +
                             ' رؤية ${user.write ? 'وتعديل ' : ''}المناطق التالية وما بداخلها:',
-                        style: Theme.of(context).textTheme.headline6,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       Expanded(
                         child: DataObjectList<Area>(
@@ -254,7 +253,7 @@ class _UserInfoState extends State<UserInfo> {
                           showSuffix: false,
                           searchStream: listOptions.searchQuery,
                           textStyle:
-                              Theme.of(context).primaryTextTheme.headline6,
+                              Theme.of(context).primaryTextTheme.titleLarge,
                         ),
                       ),
                       body: UsersList(
@@ -271,7 +270,7 @@ class _UserInfoState extends State<UserInfo> {
                               strutStyle: StrutStyle(
                                   height: IconTheme.of(context).size! / 7.5),
                               style:
-                                  Theme.of(context).primaryTextTheme.bodyText1,
+                                  Theme.of(context).primaryTextTheme.bodyLarge,
                             );
                           },
                         ),

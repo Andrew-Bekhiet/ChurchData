@@ -127,7 +127,7 @@ class InvitationInfo extends StatelessWidget {
                   <Widget>[
                     ListTile(
                       title: Text(invitation.name,
-                          style: Theme.of(context).textTheme.headline6),
+                          style: Theme.of(context).textTheme.titleLarge),
                     ),
                     CopiableProperty(
                       'لينك الدعوة',
@@ -177,7 +177,7 @@ class InvitationInfo extends StatelessWidget {
                                             : '',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .overline),
+                                            .labelSmall),
                                   ],
                                 )
                               : const LinearProgressIndicator()),
@@ -197,7 +197,7 @@ class InvitationInfo extends StatelessWidget {
                             DateFormat('h:m a', 'ar-EG').format(
                               invitation.expiryDate.toDate(),
                             ),
-                            style: Theme.of(context).textTheme.overline,
+                            style: Theme.of(context).textTheme.labelSmall,
                           ),
                         ],
                       ),

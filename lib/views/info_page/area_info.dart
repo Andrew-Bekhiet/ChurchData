@@ -14,9 +14,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
-    hide User, FirebaseAuth;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
@@ -41,7 +39,7 @@ class _AreaInfoState extends State<AreaInfo> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback(
+    WidgetsBinding.instance.addPostFrameCallback(
       (_) async {
         if (!widget.area.locationConfirmed &&
             widget.area.locationPoints.isNotEmpty &&
@@ -136,7 +134,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .textTheme
-                                            .bodyText2
+                                            .bodyMedium
                                             ?.color,
                                       ),
                                     ),
@@ -152,7 +150,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .textTheme
-                                            .bodyText2
+                                            .bodyMedium
                                             ?.color,
                                       ),
                                     ),
@@ -164,7 +162,7 @@ class _AreaInfoState extends State<AreaInfo> {
                               targetColor: Colors.transparent,
                               textColor: Theme.of(context)
                                   .primaryTextTheme
-                                  .bodyText1!
+                                  .bodyLarge!
                                   .color!,
                               child: Builder(
                                 builder: (context) {
@@ -228,7 +226,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
-                                          .bodyText2
+                                          .bodyMedium
                                           ?.color,
                                     ),
                                   ),
@@ -244,7 +242,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
-                                          .bodyText2
+                                          .bodyMedium
                                           ?.color,
                                     ),
                                   ),
@@ -256,7 +254,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             targetColor: Colors.transparent,
                             textColor: Theme.of(context)
                                 .primaryTextTheme
-                                .bodyText1!
+                                .bodyLarge!
                                 .color!,
                             child: Builder(
                               builder: (context) {
@@ -301,7 +299,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -317,7 +315,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -329,7 +327,7 @@ class _AreaInfoState extends State<AreaInfo> {
                           targetColor: Colors.transparent,
                           textColor: Theme.of(context)
                               .primaryTextTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!,
                           child: PopupMenuButton(
                             onSelected: (_) => sendNotification(context, area),
@@ -373,7 +371,7 @@ class _AreaInfoState extends State<AreaInfo> {
                             type: MaterialType.transparency,
                             child: Text(
                               area.name,
-                              style: Theme.of(context).textTheme.headline6,
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
                           ),
                         ),
@@ -421,12 +419,12 @@ class _AreaInfoState extends State<AreaInfo> {
                       ),
                       const Divider(thickness: 1),
                       Text('الشوارع بالمنطقة:',
-                          style: Theme.of(context).textTheme.bodyText1),
+                          style: Theme.of(context).textTheme.bodyLarge),
                       SearchFilters(
                         1,
                         orderOptions: _orderOptions,
                         options: _listOptions,
-                        textStyle: Theme.of(context).textTheme.bodyText2,
+                        textStyle: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
                   ),
@@ -452,7 +450,7 @@ class _AreaInfoState extends State<AreaInfo> {
                   textAlign: TextAlign.center,
                   strutStyle:
                       StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                  style: Theme.of(context).primaryTextTheme.bodyLarge,
                 );
               },
             ),
@@ -486,7 +484,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -502,7 +500,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -514,7 +512,7 @@ class _AreaInfoState extends State<AreaInfo> {
                           targetColor: Theme.of(context).primaryColor,
                           textColor: Theme.of(context)
                               .primaryTextTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!,
                           child: const Icon(Icons.update),
                         ),
@@ -562,7 +560,7 @@ class _AreaInfoState extends State<AreaInfo> {
                                 style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
-                                      .bodyText2
+                                      .bodyMedium
                                       ?.color,
                                 ),
                               ),
@@ -574,7 +572,7 @@ class _AreaInfoState extends State<AreaInfo> {
                         targetColor: Theme.of(context).primaryColor,
                         textColor: Theme.of(context)
                             .primaryTextTheme
-                            .bodyText1!
+                            .bodyLarge!
                             .color!,
                         child: const Icon(Icons.add_road),
                       ),

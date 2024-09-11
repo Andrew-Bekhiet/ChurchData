@@ -1,14 +1,16 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services"
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
-}
-
-def flutterRoot = localProperties.getProperty('flutter.sdk')
-if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -21,51 +23,58 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
-
 android {
-    def releaseKey = new Properties()
-    def keystorePropertiesFile = rootProject.file('releaseKey.properties')
-    if (keystorePropertiesFile.exists()) {
-        releaseKey.load(new FileInputStream(keystorePropertiesFile))
+    namespace 'com.AndroidQuartz.churchdata'
+    
+    compileSdk 34
+    setBuildToolsVersion('34.0.0')
+    ndkVersion '26.1.10909125'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    def debugKey = new Properties()
-    def dKeystorePropertiesFile = rootProject.file('debugKey.properties')
-    if (dKeystorePropertiesFile.exists()) {
-        debugKey.load(new FileInputStream(dKeystorePropertiesFile))
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
-
-    compileSdkVersion 30
-    ndkVersion "22.0.7026061"
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
-    lintOptions {
-        disable 'InvalidPackage'
-    }
-
     defaultConfig {
         applicationId "com.AndroidQuartz.churchdata"
         targetSdkVersion 30
+        minSdkVersion 23
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
     }
 
     signingConfigs {
         release {
+            def releaseKey = new Properties()
+            def keystorePropertiesFile = rootProject.file('releaseKey.properties')
+            if (keystorePropertiesFile.exists()) {
+                releaseKey.load(new FileInputStream(keystorePropertiesFile))
+            }
+            
             keyAlias releaseKey['keyAlias']
             keyPassword releaseKey['keyPassword']
             storeFile releaseKey['storeFile'] ? file(releaseKey['storeFile']) : null
             storePassword releaseKey['storePassword']
         }
         debug {
+            def debugKey = new Properties()
+            def dKeystorePropertiesFile = rootProject.file('debugKey.properties')
+            if (dKeystorePropertiesFile.exists()) {
+                debugKey.load(new FileInputStream(dKeystorePropertiesFile))
+            }
+
             keyAlias debugKey['keyAlias']
             keyPassword debugKey['keyPassword']
             storeFile debugKey['storeFile'] ? file(debugKey['storeFile']) : null
@@ -74,35 +83,26 @@ android {
     }
     buildTypes {
         debug{
-            defaultConfig.minSdkVersion 25
+            defaultConfig.minSdkVersion 30
             signingConfig signingConfigs.debug
-            useProguard false
+            ndk {
+                abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            }
         }
         profile{
-            defaultConfig.minSdkVersion 26
             signingConfig signingConfigs.debug
             minifyEnabled true
             shrinkResources true
         }
         release {
-            defaultConfig.minSdkVersion 21
             signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    buildToolsVersion '30.0.3'
-}
-
-configurations {
-    all*.exclude group: 'com.google.guava', module: 'listenablefuture'
 }
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

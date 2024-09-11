@@ -40,7 +40,7 @@ class _InvitationsPageState extends State<InvitationsPage> {
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1);
+                style: Theme.of(context).primaryTextTheme.bodyLarge);
           },
         ),
       ),

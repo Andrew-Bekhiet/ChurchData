@@ -108,7 +108,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
           if (editMode)
             TextButton.icon(
               icon: const Icon(Icons.delete),
-              style: TextButton.styleFrom(primary: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: () async {
                 await showDialog(
                   context: context,
@@ -118,7 +118,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                     actions: <Widget>[
                       TextButton.icon(
                         icon: const Icon(Icons.delete),
-                        style: TextButton.styleFrom(primary: Colors.red),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
                         label: const Text('نعم'),
                         onPressed: () async {
                           await item.ref.delete();
@@ -152,7 +152,7 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
                   child: DefaultTextStyle(
                     style: Theme.of(context).dialogTheme.titleTextStyle ??
-                        Theme.of(context).textTheme.headline6!,
+                        Theme.of(context).textTheme.titleLarge!,
                     child: Text(item.name),
                   ),
                 ),

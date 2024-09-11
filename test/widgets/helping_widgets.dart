@@ -1,9 +1,5 @@
-import 'package:churchdata/models/data_object_widget.dart';
-import 'package:churchdata/models/models.dart';
-import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/form_widgets/password_field.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
-import 'package:churchdata/views/info_page/area_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,7 +19,9 @@ Future<void> main() async {
                 initialValue: 'initialValue',
                 labelText: 'some label',
                 onTap: (state) {},
-                builder: (context, state) {},
+                builder: (context, state) {
+                  return null;
+                },
               ),
             ),
           ),
@@ -41,7 +39,9 @@ Future<void> main() async {
                 decoration: (context, state) =>
                     const InputDecoration(labelText: 'Some label'),
                 onTap: (state) {},
-                builder: (context, state) {},
+                builder: (context, state) {
+                  return null;
+                },
               ),
             ),
           ),

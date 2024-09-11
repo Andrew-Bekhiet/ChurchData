@@ -5,9 +5,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
-    hide User, FirebaseAuth;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

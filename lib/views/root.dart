@@ -7,12 +7,14 @@ import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
+import 'package:churchdata_core/churchdata_core.dart' show ThemingService;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:open_file/open_file.dart';
@@ -199,7 +201,7 @@ class _RootState extends State<Root>
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -216,7 +218,7 @@ class _RootState extends State<Root>
                                   style: TextStyle(
                                     color: Theme.of(context)
                                         .textTheme
-                                        .bodyText2
+                                        .bodyMedium
                                         ?.color,
                                   ),
                                 ),
@@ -228,7 +230,7 @@ class _RootState extends State<Root>
                           targetColor: Colors.transparent,
                           textColor: Theme.of(context)
                               .primaryTextTheme
-                              .bodyText1!
+                              .bodyLarge!
                               .color!,
                           child: const Icon(Icons.search),
                         ),
@@ -266,7 +268,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -277,7 +280,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -286,7 +290,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.pin_drop),
                 ),
               ),
@@ -309,7 +313,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -320,7 +325,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -329,12 +335,12 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: Image.asset(
                     'assets/streets.png',
                     width: IconTheme.of(context).size,
                     height: IconTheme.of(context).size,
-                    color: Theme.of(context).primaryTextTheme.bodyText1!.color,
+                    color: Theme.of(context).primaryTextTheme.bodyLarge!.color,
                   ),
                 ),
               ),
@@ -354,7 +360,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -365,7 +372,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -374,7 +382,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.group),
                 ),
               ),
@@ -394,7 +402,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () {
@@ -406,7 +415,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -415,7 +425,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.person),
                 ),
               ),
@@ -433,7 +443,7 @@ class _RootState extends State<Root>
                             icon: Icon(Icons.close,
                                 color: Theme.of(context)
                                     .primaryTextTheme
-                                    .headline6
+                                    .titleLarge
                                     ?.color),
                             onPressed: () {
                               _searchQuery.add('');
@@ -496,7 +506,7 @@ class _RootState extends State<Root>
                   textAlign: TextAlign.center,
                   strutStyle:
                       StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                  style: Theme.of(context).primaryTextTheme.bodyText1,
+                  style: Theme.of(context).primaryTextTheme.bodyLarge,
                 );
               },
             ),
@@ -567,7 +577,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -582,7 +592,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -592,7 +602,7 @@ class _RootState extends State<Root>
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                          Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                       child: user.data!.getPhoto(true, false),
                     );
                   },
@@ -630,7 +640,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -645,7 +655,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -655,7 +665,7 @@ class _RootState extends State<Root>
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                          Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                       child: const Icon(
                         IconData(0xef3d, fontFamily: 'MaterialIconsR'),
                       ),
@@ -700,7 +710,7 @@ class _RootState extends State<Root>
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
-                                          .bodyText2
+                                          .bodyMedium
                                           ?.color,
                                     ),
                                   ),
@@ -716,7 +726,7 @@ class _RootState extends State<Root>
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
-                                          .bodyText2
+                                          .bodyMedium
                                           ?.color,
                                     ),
                                   ),
@@ -728,7 +738,7 @@ class _RootState extends State<Root>
                             targetColor: Colors.transparent,
                             textColor: Theme.of(context)
                                 .primaryTextTheme
-                                .bodyText1!
+                                .bodyLarge!
                                 .color!,
                             child: const Icon(Icons.analytics_outlined),
                           ),
@@ -759,7 +769,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -770,7 +781,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -779,7 +791,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.analytics_outlined),
                 ),
                 title: const Text('تحليل الحياة الروحية للمخدومين'),
@@ -805,7 +817,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -816,7 +829,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -825,7 +839,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.map),
                 ),
                 title: const Text('عرض خريطة الافتقاد'),
@@ -850,7 +864,8 @@ class _RootState extends State<Root>
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                         onPressed: () =>
@@ -861,7 +876,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -870,7 +886,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.search),
                 ),
                 title: const Text('بحث مفصل'),
@@ -905,7 +921,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -920,7 +936,7 @@ class _RootState extends State<Root>
                               style: TextStyle(
                                 color: Theme.of(context)
                                     .textTheme
-                                    .bodyText2
+                                    .bodyMedium
                                     ?.color,
                               ),
                             ),
@@ -930,7 +946,7 @@ class _RootState extends State<Root>
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       targetColor: Colors.transparent,
                       textColor:
-                          Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                          Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                       child: const Icon(Icons.delete_outline),
                     ),
                     onTap: () {
@@ -967,7 +983,8 @@ class _RootState extends State<Root>
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2?.color,
+                            color:
+                                Theme.of(context).textTheme.bodyMedium?.color,
                           ),
                         ),
                       ),
@@ -976,7 +993,7 @@ class _RootState extends State<Root>
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: const Icon(Icons.settings),
                 ),
                 title: const Text('الإعدادات'),
@@ -1018,7 +1035,7 @@ class _RootState extends State<Root>
                                         'برجاء اختيار المنطقة التي تريد تصديرها:',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .headline5),
+                                            .headlineSmall),
                                     Expanded(
                                       child: DataObjectList<Area>(
                                         autoDisposeController: true,
@@ -1109,17 +1126,17 @@ class _RootState extends State<Root>
                           onTap: () async {
                             mainScfld.currentState!.openEndDrawer();
                             scaffoldMessenger.currentState!.showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: const [
+                                  children: [
                                     Text(
                                         'جار تصدير جميع البيانات...\nيرجى الانتظار...'),
                                     LinearProgressIndicator(),
                                   ],
                                 ),
-                                duration: const Duration(minutes: 9),
+                                duration: Duration(minutes: 9),
                               ),
                             );
                             try {
@@ -1259,6 +1276,7 @@ class _RootState extends State<Root>
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
         _keepAlive(false);
         _recordLastSeen();
         break;
@@ -1276,7 +1294,7 @@ class _RootState extends State<Root>
   @override
   Future<void> dispose() async {
     super.dispose();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
 
     await _areasOptions.dispose();
     await _streetsOptions.dispose();
@@ -1294,7 +1312,8 @@ class _RootState extends State<Root>
 
   @override
   void didChangePlatformBrightness() {
-    changeTheme(context: mainScfld.currentContext!);
+    GetIt.I<ThemingService>().switchTheme(
+        WidgetsBinding.instance.window.platformBrightness == Brightness.dark);
   }
 
   @override
@@ -1302,7 +1321,7 @@ class _RootState extends State<Root>
     super.initState();
     initializeDateFormatting('ar_EG');
     _tabController = TabController(vsync: this, length: 4);
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _keepAlive(true);
     _areasOptions = DataObjectListController<Area>(
       searchQuery: _searchQuery,
@@ -1346,7 +1365,7 @@ class _RootState extends State<Root>
         ),
       ),
     );
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       showPendingUIDialogs();
     });
   }
@@ -1399,7 +1418,7 @@ class _RootState extends State<Root>
 
   Future<void> showBatteryOptimizationDialog() async {
     if (!kIsWeb &&
-        (await DeviceInfoPlugin().androidInfo).version.sdkInt! >= 23 &&
+        (await DeviceInfoPlugin().androidInfo).version.sdkInt >= 23 &&
         !(await Permission.ignoreBatteryOptimizations.status).isGranted &&
         Hive.box('Settings').get('ShowBatteryDialog', defaultValue: true)) {
       await showDialog(

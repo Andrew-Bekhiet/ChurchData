@@ -81,7 +81,6 @@
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 
 .flutter-plugins-dependencies
-pubspec.lock
 ios/Flutter/flutter_export_environment.sh
 Logo.png
 ios/Runner/._GoogleService-Info.plist
@@ -91,7 +90,6 @@ lib/EncryptionKeys.dart
 ios/Podfile2
 *.lock
 web/index.html
-package-lock.json
 detective_connect.txt
 README.docx
 .vscode/settings.json

@@ -1,7 +1,8 @@
+import 'dart:io';
+
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -130,19 +131,21 @@ class _MyAccountState extends State<MyAccount> {
                               ? ImageSource.camera
                               : ImageSource.gallery);
                       if (selectedImage == null) return;
-                      final finalImage = await ImageCropper.cropImage(
+                      final finalImage = await ImageCropper().cropImage(
                         sourcePath: selectedImage.path,
-                        cropStyle: CropStyle.circle,
-                        androidUiSettings: AndroidUiSettings(
-                          toolbarTitle: 'قص الصورة',
-                          toolbarColor: Theme.of(context).primaryColor,
-                          toolbarWidgetColor: Theme.of(context)
-                              .primaryTextTheme
-                              .headline6
-                              ?.color,
-                          initAspectRatio: CropAspectRatioPreset.original,
-                          lockAspectRatio: false,
-                        ),
+                        uiSettings: [
+                          AndroidUiSettings(
+                            cropStyle: CropStyle.circle,
+                            toolbarTitle: 'قص الصورة',
+                            toolbarColor: Theme.of(context).primaryColor,
+                            toolbarWidgetColor: Theme.of(context)
+                                .primaryTextTheme
+                                .titleLarge
+                                ?.color,
+                            initAspectRatio: CropAspectRatioPreset.original,
+                            lockAspectRatio: false,
+                          ),
+                        ],
                       );
                       if (finalImage != null) return;
                       if (await showDialog(
@@ -169,7 +172,7 @@ class _MyAccountState extends State<MyAccount> {
                           content: Text('جار التحميل'),
                           duration: Duration(minutes: 2),
                         ));
-                        await user.photoRef.putFile(finalImage!);
+                        await user.photoRef.putFile(File(finalImage!.path));
                         user.reloadImage();
                         setState(() {});
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();
@@ -211,7 +214,7 @@ class _MyAccountState extends State<MyAccount> {
                 ),
                 ListTile(
                   title: Text('الصلاحيات:',
-                      style: Theme.of(context).textTheme.bodyText1),
+                      style: Theme.of(context).textTheme.bodyLarge),
                 ),
                 if (user.manageUsers == true)
                   const ListTile(

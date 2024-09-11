@@ -27,7 +27,7 @@ class CopiableProperty extends StatelessWidget {
                     icon: const Icon(Icons.copy),
                     tooltip: 'نسخ',
                     onPressed: () =>
-                        Clipboard.setData(ClipboardData(text: value)),
+                        Clipboard.setData(ClipboardData(text: value!)),
                   )
                 else if (showError)
                   const IconButton(
@@ -44,7 +44,7 @@ class CopiableProperty extends StatelessWidget {
                   icon: const Icon(Icons.copy),
                   tooltip: 'نسخ',
                   onPressed: () =>
-                      Clipboard.setData(ClipboardData(text: value)),
+                      Clipboard.setData(ClipboardData(text: value!)),
                 )
               : showError
                   ? const IconButton(
@@ -73,7 +73,7 @@ class PhoneNumberProperty extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(name),
-      subtitle: Text(value ?? '', style: Theme.of(context).textTheme.caption),
+      subtitle: Text(value ?? '', style: Theme.of(context).textTheme.bodySmall),
       trailing: value != null && value!.isNotEmpty
           ? Row(
               mainAxisSize: MainAxisSize.min,
@@ -106,7 +106,7 @@ class PhoneNumberProperty extends StatelessWidget {
                   icon: const Icon(Icons.copy),
                   tooltip: 'نسخ',
                   onPressed: () =>
-                      Clipboard.setData(ClipboardData(text: value)),
+                      Clipboard.setData(ClipboardData(text: value!)),
                 ),
               ],
             )

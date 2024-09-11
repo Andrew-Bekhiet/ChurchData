@@ -5,30 +5,37 @@ import 'package:flutter_test/flutter_test.dart';
 void setupFirebaseMocks() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  // ignore: invalid_use_of_visible_for_testing_member
-  MethodChannelFirebase.channel.setMockMethodCallHandler((call) async {
-    if (call.method == 'Firebase#initializeCore') {
-      return [
-        {
-          'name': defaultFirebaseAppName,
-          'options': {
-            'apiKey': '123',
-            'appId': '123',
-            'messagingSenderId': '123',
-            'projectId': '123',
-          },
-          'pluginConstants': {},
-        }
-      ];
-    }
+  MethodChannelFirebase.api = FakeFirebaseCoreHostApi();
+}
 
-    if (call.method == 'Firebase#initializeApp') {
-      return {
-        'name': call.arguments['appName'],
-        'options': call.arguments['options'],
-        'pluginConstants': {},
-      };
-    }
-    return null;
-  });
+class FakeFirebaseCoreHostApi extends FirebaseCoreHostApi {
+  @override
+  Future<List<PigeonInitializeResponse?>> initializeCore() {
+    return Future.value(
+      [
+        PigeonInitializeResponse(
+          name: defaultFirebaseAppName,
+          options: PigeonFirebaseOptions(
+            apiKey: '123',
+            appId: '123',
+            messagingSenderId: '123',
+            projectId: '123',
+          ),
+          pluginConstants: {},
+        )
+      ],
+    );
+  }
+
+  @override
+  Future<PigeonInitializeResponse> initializeApp(
+      String argAppname, PigeonFirebaseOptions argInitializeapprequest) {
+    return Future.value(
+      PigeonInitializeResponse(
+        name: argAppname,
+        options: argInitializeapprequest,
+        pluginConstants: {},
+      ),
+    );
+  }
 }

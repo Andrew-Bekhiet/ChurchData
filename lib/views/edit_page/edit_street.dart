@@ -13,8 +13,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:rxdart/rxdart.dart';
@@ -169,7 +168,7 @@ class _EditStreetState extends State<EditStreet> {
                 ),
                 ElevatedButton.icon(
                   style: street.color != Colors.transparent
-                      ? ElevatedButton.styleFrom(primary: street.color)
+                      ? ElevatedButton.styleFrom(backgroundColor: street.color)
                       : null,
                   onPressed: selectColor,
                   icon: const Icon(Icons.color_lens),
@@ -389,7 +388,7 @@ class _EditStreetState extends State<EditStreet> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Area>(

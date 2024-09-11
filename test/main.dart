@@ -7,10 +7,12 @@ import 'package:churchdata/views/auth_screen.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connectivity_plus_platform_interface/connectivity_plus_platform_interface.dart';
 import 'package:connectivity_plus_platform_interface/method_channel_connectivity.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:device_info_plus_platform_interface/device_info_plus_platform_interface.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
+import 'package:firebase_auth_platform_interface/src/pigeon/messages.pigeon.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage_mocks/firebase_storage_mocks.dart';
@@ -22,22 +24,24 @@ import 'package:local_auth/local_auth.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'fakes/fake_firebase_database.dart';
 import 'fakes/fakes.dart';
-import 'fakes/fakes.mocks.dart';
 import 'globals.dart';
+import 'main.mocks.dart';
 
 bool _initialized = false;
 
 @GenerateMocks([
   FirebaseMessaging,
   FirebaseFunctions,
-  RemoteConfig,
+  FirebaseRemoteConfig,
   MockUser,
   LocalAuthentication,
   HttpsCallable,
+  DeviceInfoPlatform,
   UrlLauncherPlatform
 ])
 Future<void> initTests() async {
@@ -69,23 +73,25 @@ Future<void> initTests() async {
   firebaseMessaging = MockFirebaseMessaging();
   firebaseDynamicLinks = MockFirebaseDynamicLinks();
   googleSignIn = MyGoogleSignInMock();
-  remoteConfig = MockRemoteConfig();
+  remoteConfig = MockFirebaseRemoteConfig();
 
   //FirebaseAuth
   final MyMockUser user =
       MyMockUser(email: 'random@email.com', uid: '8t7we9rhuiU%762');
 
   when(user.getIdTokenResult()).thenAnswer(
-    (_) async => auth.IdTokenResult({'claims': userClaims}),
+    (_) async => auth.IdTokenResult(PigeonIdTokenResult(claims: userClaims)),
   );
   when(user.getIdTokenResult(true)).thenAnswer(
-    (_) async => auth.IdTokenResult({'claims': userClaims}),
+    (_) async => auth.IdTokenResult(PigeonIdTokenResult(claims: userClaims)),
   );
 
   firebaseAuth = FakeFirebaseAuth(mockUser: user);
   when(firebaseMessaging.getToken()).thenAnswer((_) async => '{FCMToken}');
   when(firebaseMessaging.requestPermission()).thenAnswer(
     (_) async => const NotificationSettings(
+      criticalAlert: AppleNotificationSetting.enabled,
+      timeSensitive: AppleNotificationSetting.enabled,
       alert: AppleNotificationSetting.enabled,
       announcement: AppleNotificationSetting.enabled,
       authorizationStatus: AuthorizationStatus.authorized,
@@ -156,23 +162,46 @@ Future<void> initTests() async {
     when(localAuthentication.canCheckBiometrics).thenAnswer((_) async => true);
     when(localAuthentication.isDeviceSupported()).thenAnswer((_) async => true);
     when(localAuthentication.authenticate(
-            localizedReason: 'برجاء التحقق للمتابعة',
-            biometricOnly: true,
-            useErrorDialogs: false))
-        .thenAnswer((_) async => true);
+      localizedReason: 'برجاء التحقق للمتابعة',
+      options: const AuthenticationOptions(
+        biometricOnly: true,
+        useErrorDialogs: false,
+      ),
+    )).thenAnswer((_) async => true);
 
     when(firebaseMessaging.getInitialMessage()).thenAnswer((_) async => null);
 
     // DeviceInfoPlugin.disableDeviceInfoPlatformOverride = true;
     DeviceInfoPlatform.instance = MockDeviceInfo();
-    when(DeviceInfoPlatform.instance.androidInfo()).thenAnswer(
-      (_) async => AndroidDeviceInfo(
-        supported32BitAbis: [],
-        supported64BitAbis: [],
-        supportedAbis: [],
-        systemFeatures: [],
-        version: MockAndroidBuildVersion(sdkInt: 22),
-      ),
+    when(DeviceInfoPlatform.instance.deviceInfo()).thenAnswer(
+      (_) async => AndroidDeviceInfo.fromMap({
+        'supported32BitAbis': [],
+        'supported64BitAbis': [],
+        'supportedAbis': [],
+        'systemFeatures': [],
+        'board': 'board',
+        'bootloader': 'bootloader',
+        'brand': 'brand',
+        'device': 'device',
+        'display': 'display',
+        'fingerprint': 'fingerprint',
+        'hardware': 'hardware',
+        'host': 'host',
+        'id': 'id',
+        'manufacturer': 'manufacturer',
+        'model': 'model',
+        'product': 'product',
+        'tags': 'tags',
+        'type': 'type',
+        'isPhysicalDevice': true,
+        'displayMetrics': {
+          'widthPixels': 1080,
+          'heightPixels': 1920,
+          'xdpi': 480.0,
+          'ydpi': 480.0,
+        },
+        'version': MockAndroidBuildVersion(sdkInt: 22).toMap(),
+      }),
     );
 
     const MethodChannel('dexterous.com/flutter/local_notifications')
@@ -215,5 +244,90 @@ Future<void> initHive([bool retryOnHiveError = false]) async {
 
     if (retryOnHiveError) return initHive();
     rethrow;
+  }
+}
+
+class MockDeviceInfo extends Mock
+    with MockPlatformInterfaceMixin
+    implements DeviceInfoPlatform {
+  @override
+  Future<AndroidDeviceInfo> deviceInfo() async {
+    return super.noSuchMethod(
+      Invocation.method(#androidInfo, []),
+      returnValue: AndroidDeviceInfo.fromMap({
+        'supported32BitAbis': [],
+        'supported64BitAbis': [],
+        'supportedAbis': [],
+        'systemFeatures': [],
+        'board': 'board',
+        'bootloader': 'bootloader',
+        'brand': 'brand',
+        'device': 'device',
+        'display': 'display',
+        'fingerprint': 'fingerprint',
+        'hardware': 'hardware',
+        'host': 'host',
+        'id': 'id',
+        'manufacturer': 'manufacturer',
+        'model': 'model',
+        'product': 'product',
+        'tags': 'tags',
+        'type': 'type',
+        'isPhysicalDevice': true,
+        'displayMetrics': {
+          'widthPixels': 1080,
+          'heightPixels': 1920,
+          'xdpi': 480.0,
+          'ydpi': 480.0,
+        },
+        'version': MockAndroidBuildVersion(sdkInt: 22).toMap(),
+      }),
+    );
+  }
+}
+
+class MockAndroidBuildVersion implements AndroidBuildVersion {
+  MockAndroidBuildVersion({
+    this.baseOS,
+    this.codename = '',
+    this.incremental = '',
+    this.previewSdkInt = 0,
+    this.release = '',
+    this.sdkInt = 0,
+    this.securityPatch,
+  });
+
+  @override
+  String? baseOS;
+
+  @override
+  String codename;
+
+  @override
+  String incremental;
+
+  @override
+  int previewSdkInt;
+
+  @override
+  String release;
+
+  @override
+  int sdkInt;
+
+  @override
+  String? securityPatch;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      'baseOS': baseOS,
+      'codename': codename,
+      'incremental': incremental,
+      'previewSdkInt': previewSdkInt,
+      'release': release,
+      'sdkInt': sdkInt,
+      'securityPatch': securityPatch,
+    };
   }
 }

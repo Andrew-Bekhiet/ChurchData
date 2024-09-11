@@ -176,7 +176,7 @@ class PersonInfo extends StatelessWidget {
                             type: MaterialType.transparency,
                             child: Text(
                               person.name,
-                              style: Theme.of(context).textTheme.headline6,
+                              style: Theme.of(context).textTheme.titleLarge,
                             ),
                           ),
                         ),
@@ -209,7 +209,7 @@ class PersonInfo extends StatelessWidget {
                                         person.birthDate!.toDate(),
                                       )
                                     : '',
-                                style: Theme.of(context).textTheme.overline),
+                                style: Theme.of(context).textTheme.labelSmall),
                           ],
                         ),
                       ),

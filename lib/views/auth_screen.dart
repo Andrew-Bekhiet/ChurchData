@@ -124,9 +124,12 @@ class _AuthScreenState extends State<AuthScreen> {
       if (!await localAuthentication.canCheckBiometrics) return;
       _authCompleter = Completer<bool>();
       final bool value = await localAuthentication.authenticate(
-          localizedReason: 'برجاء التحقق للمتابعة',
+        localizedReason: 'برجاء التحقق للمتابعة',
+        options: const AuthenticationOptions(
           biometricOnly: true,
-          useErrorDialogs: false);
+          useErrorDialogs: false,
+        ),
+      );
       if (!_authCompleter.isCompleted) _authCompleter.complete(value);
       if (value) {
         if (widget.nextRoute != null) {

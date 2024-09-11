@@ -11,12 +11,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:mockito/mockito.dart';
 
 import '../fakes/fakes.dart';
-import '../fakes/fakes.mocks.dart';
 import '../globals.dart';
 import '../main.dart';
+import '../main.mocks.dart';
 
 Future<void> main() async {
   await initTests();
@@ -209,10 +210,12 @@ Future<void> main() async {
         when(localAuthentication.canCheckBiometrics)
             .thenAnswer((_) async => true);
         when(localAuthentication.authenticate(
-                localizedReason: 'برجاء التحقق للمتابعة',
-                biometricOnly: true,
-                useErrorDialogs: false))
-            .thenAnswer((_) => _authCompleter.future);
+          localizedReason: 'برجاء التحقق للمتابعة',
+          options: const AuthenticationOptions(
+            biometricOnly: true,
+            useErrorDialogs: false,
+          ),
+        )).thenAnswer((_) => _authCompleter.future);
       });
 
       tearDown(() async {

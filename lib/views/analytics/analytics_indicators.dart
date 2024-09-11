@@ -35,7 +35,7 @@ class CartesianChart extends StatelessWidget {
           return SfCartesianChart(
             title: ChartTitle(text: title),
             enableAxisAnimation: true,
-            primaryYAxis: NumericAxis(decimalPlaces: 0),
+            primaryYAxis: const NumericAxis(decimalPlaces: 0),
             primaryXAxis: DateTimeAxis(
               minimum: range.start,
               maximum: range.end,
@@ -92,7 +92,6 @@ class CartesianChart extends StatelessWidget {
                     Colors.cyan[800]!.withOpacity(0.5)
                   ],
                 ),
-                borderWidth: 2,
                 dataSource: data.entries.toList(),
                 xValueMapper: (item, index) => item.key.toDate(),
                 yValueMapper: (item, index) => item.value.length,
@@ -124,16 +123,13 @@ class PieChart extends StatelessWidget {
       textDirection: TextDirection.ltr,
       child: SfCircularChart(
         tooltipBehavior: TooltipBehavior(enable: true),
-        legend: Legend(
+        legend: const Legend(
           isVisible: true,
           position: LegendPosition.bottom,
           overflowMode: LegendItemOverflowMode.wrap,
-          isResponsive: false,
         ),
         series: [
           PieSeries<Tuple2<int, String?>, String>(
-            enableTooltip: true,
-            dataLabelSettings: const DataLabelSettings(),
             dataLabelMapper: (entry, _) =>
                 (entry.item2 ?? 'غير معروف') +
                 ': ' +
@@ -234,7 +230,7 @@ class HistoryAnalysisWidget extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
 
                   final usersByID = {
-                    for (var u in usersData.data!.docs) u.id: User.fromDoc(u)
+                    for (final u in usersData.data!.docs) u.id: User.fromDoc(u)
                   };
                   final pieData =
                       groupBy<HistoryRecord, String?>(data, (s) => s.by)

@@ -20,8 +20,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as messaging_types;
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
@@ -44,90 +43,11 @@ import '../main.dart';
 import '../models/list_controllers.dart';
 import '../models/notification.dart' as no;
 import '../models/super_classes.dart';
-import '../models/theme_notifier.dart';
 import '../models/user.dart';
 import 'globals.dart';
 
 void areaTap(Area area) {
   navigator.currentState!.pushNamed('AreaInfo', arguments: area);
-}
-
-void changeTheme({Brightness? brightness, required BuildContext context}) {
-  bool? darkTheme = Hive.box('Settings').get('DarkTheme');
-  final bool greatFeastTheme =
-      Hive.box('Settings').get('GreatFeastTheme', defaultValue: true);
-  MaterialColor color = Colors.cyan;
-  Color accent = Colors.cyanAccent;
-
-  final riseDay = getRiseDay();
-  if (greatFeastTheme &&
-      DateTime.now()
-          .isAfter(riseDay.subtract(const Duration(days: 7, seconds: 20))) &&
-      DateTime.now().isBefore(riseDay.subtract(const Duration(days: 1)))) {
-    color = black;
-    accent = blackAccent;
-    darkTheme = true;
-  } else if (greatFeastTheme &&
-      DateTime.now()
-          .isBefore(riseDay.add(const Duration(days: 50, seconds: 20))) &&
-      DateTime.now().isAfter(riseDay.subtract(const Duration(days: 1)))) {
-    darkTheme = false;
-  }
-
-  brightness = brightness ??
-      (darkTheme != null
-          ? (darkTheme ? Brightness.dark : Brightness.light)
-          : MediaQuery.of(context).platformBrightness);
-  context.read<ThemeNotifier>().theme = ThemeData(
-    floatingActionButtonTheme:
-        FloatingActionButtonThemeData(backgroundColor: color),
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    brightness: darkTheme != null
-        ? (darkTheme ? Brightness.dark : Brightness.light)
-        : WidgetsBinding.instance!.window.platformBrightness,
-    inputDecorationTheme: InputDecorationTheme(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(15),
-        borderSide: BorderSide(color: color),
-      ),
-    ),
-    primaryColor: color,
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        primary: accent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-      ),
-    ),
-    bottomAppBarTheme: BottomAppBarTheme(
-      color: accent,
-      shape: const CircularNotchedRectangle(),
-    ),
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: color,
-      brightness: darkTheme != null
-          ? (darkTheme ? Brightness.dark : Brightness.light)
-          : WidgetsBinding.instance!.window.platformBrightness,
-      accentColor: accent,
-    ).copyWith(secondary: accent),
-  );
 }
 
 void dataObjectTap(DataObject obj) {
@@ -595,9 +515,10 @@ void onForegroundMessage(messaging_types.RemoteMessage message,
   );
 }
 
-Future<void> onNotificationClicked(String? payload) async {
-  if (WidgetsBinding.instance!.renderViewElement != null) {
-    await processClickedNotification(mainScfld.currentContext!, payload);
+Future<void> onNotificationClicked(NotificationResponse response) async {
+  if (WidgetsBinding.instance.rootElement != null) {
+    await processClickedNotification(
+        mainScfld.currentContext!, response.payload);
   }
 }
 
@@ -606,14 +527,17 @@ void personTap(Person person) {
 }
 
 Future processClickedNotification(BuildContext context,
-    [String? payload]) async {
+    [String? _payload]) async {
   final notificationDetails =
       await FlutterLocalNotificationsPlugin().getNotificationAppLaunchDetails();
   if (notificationDetails == null) return;
 
   if (notificationDetails.didNotificationLaunchApp) {
-    if ((notificationDetails.payload ?? payload) == 'Birthday') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    final payload =
+        notificationDetails.notificationResponse?.payload ?? _payload;
+
+    if (payload == 'Birthday') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -634,8 +558,8 @@ Future processClickedNotification(BuildContext context,
           ),
         );
       });
-    } else if ((notificationDetails.payload ?? payload) == 'Confessions') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    } else if (payload == 'Confessions') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -658,8 +582,8 @@ Future processClickedNotification(BuildContext context,
           ),
         );
       });
-    } else if ((notificationDetails.payload ?? payload) == 'Tanawol') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    } else if (payload == 'Tanawol') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -682,8 +606,8 @@ Future processClickedNotification(BuildContext context,
           ),
         );
       });
-    } else if ((notificationDetails.payload ?? payload) == 'Kodas') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    } else if (payload == 'Kodas') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -706,8 +630,8 @@ Future processClickedNotification(BuildContext context,
           ),
         );
       });
-    } else if ((notificationDetails.payload ?? payload) == 'Meeting') {
-      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+    } else if (payload == 'Meeting') {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         await Future.delayed(const Duration(milliseconds: 900), () => null);
         await navigator.currentState!.push(
           MaterialPageRoute(
@@ -857,7 +781,7 @@ Future<List<Area>?> selectAreas(BuildContext context, List<Area> areas) async {
         Area.getAllForUser().map((s) => s.docs.map(Area.fromQueryDoc).toList()),
     selectionMode: true,
     onLongPress: (_) {},
-    selected: {for (var a in areas) a.id: a},
+    selected: {for (final a in areas) a.id: a},
     searchQuery: Stream.value(''),
   );
   if (await Navigator.push(
@@ -939,7 +863,7 @@ void sendNotification(BuildContext context, dynamic attachement) async {
                   searchStream: context
                       .read<DataObjectListController<User>>()
                       .searchQuery,
-                  textStyle: Theme.of(context).textTheme.bodyText2,
+                  textStyle: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const Expanded(
                   child: UsersList(
@@ -1353,10 +1277,10 @@ void showLoadingDialog(BuildContext context) async {
   await showDialog(
     context: context,
     barrierDismissible: false,
-    builder: (_) => AlertDialog(
+    builder: (_) => const AlertDialog(
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: const <Widget>[
+        children: <Widget>[
           Text('جار التحميل...'),
           CircularProgressIndicator(),
         ],
@@ -1511,7 +1435,7 @@ void streetTap(Street street) {
 void takeScreenshot(GlobalKey key) async {
   final RenderRepaintBoundary? boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary?;
-  WidgetsBinding.instance!.addPostFrameCallback(
+  WidgetsBinding.instance.addPostFrameCallback(
     (_) async {
       final ui.Image image = await boundary!.toImage(pixelRatio: 2);
       final ByteData byteData =

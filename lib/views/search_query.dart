@@ -491,7 +491,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -526,7 +525,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -561,7 +559,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -596,7 +593,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -733,7 +729,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -748,7 +743,7 @@ class _SearchQueryState extends State<SearchQuery> {
             }),
         ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              primary: Color(
+              backgroundColor: Color(
                   queryValue is int ? queryValue : Colors.transparent.value),
             ),
             icon: const Icon(Icons.color_lens),
@@ -794,7 +789,6 @@ class _SearchQueryState extends State<SearchQuery> {
                     ..insert(
                       0,
                       const DropdownMenuItem(
-                        value: null,
                         child: Text(''),
                       ),
                     ),
@@ -1310,7 +1304,7 @@ class _SearchQueryState extends State<SearchQuery> {
               title: SearchFilters(parentIndex,
                   options: body.options!,
                   disableOrdering: true,
-                  textStyle: Theme.of(context).textTheme.bodyText2),
+                  textStyle: Theme.of(context).textTheme.bodyMedium),
             ),
             extendBody: true,
             floatingActionButtonLocation:
@@ -1332,7 +1326,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
               ),
@@ -1417,7 +1411,7 @@ class _SearchQueryState extends State<SearchQuery> {
                         )
                       : widget.query!['queryValue'].toString().substring(1)
           : null;
-      WidgetsBinding.instance!.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (_) => execute(),
       );
     }
@@ -1474,7 +1468,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Area>(
@@ -1539,7 +1533,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Family>(
@@ -1591,7 +1585,7 @@ class _SearchQueryState extends State<SearchQuery> {
                     orderOptions: BehaviorSubject<OrderOptions>.seeded(
                       const OrderOptions(),
                     ),
-                    textStyle: Theme.of(context).textTheme.bodyText2,
+                    textStyle: Theme.of(context).textTheme.bodyMedium,
                   ),
                   Expanded(
                     child: DataObjectList<Street>(

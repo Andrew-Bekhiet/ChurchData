@@ -35,7 +35,7 @@ class HistoryProperty extends StatelessWidget {
                       value!.toDate(),
                     )
                   : '',
-              style: Theme.of(context).textTheme.overline),
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
       trailing: IconButton(
@@ -215,7 +215,7 @@ class EditHistoryProperty extends StatelessWidget {
                         label: Text(
                           'التالي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
+                            color: Theme.of(context).textTheme.bodyMedium!.color,
                           ),
                         ),
                         onPressed: () =>
@@ -226,7 +226,7 @@ class EditHistoryProperty extends StatelessWidget {
                         child: Text(
                           'تخطي',
                           style: TextStyle(
-                            color: Theme.of(context).textTheme.bodyText2!.color,
+                            color: Theme.of(context).textTheme.bodyMedium!.color,
                           ),
                         ),
                       ),
@@ -235,7 +235,7 @@ class EditHistoryProperty extends StatelessWidget {
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   targetColor: Colors.transparent,
                   textColor:
-                      Theme.of(context).primaryTextTheme.bodyText1!.color!,
+                      Theme.of(context).primaryTextTheme.bodyLarge!.color!,
                   child: icon,
                 )
               : icon,
@@ -272,7 +272,7 @@ class TimeHistoryProperty extends StatelessWidget {
                       value!.toDate(),
                     )
                   : '',
-              style: Theme.of(context).textTheme.overline),
+              style: Theme.of(context).textTheme.labelSmall),
         ],
       ),
       trailing: IconButton(

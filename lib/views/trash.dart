@@ -122,7 +122,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
               child: Image.asset('assets/streets.png',
                   width: IconTheme.of(context).size,
                   height: IconTheme.of(context).size,
-                  color: Theme.of(context).primaryTextTheme.bodyText1?.color),
+                  color: Theme.of(context).primaryTextTheme.bodyLarge?.color),
             ),
             const Tab(
               icon: Icon(Icons.group),
@@ -144,7 +144,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6
+                                  .titleLarge
                                   ?.color),
                           onPressed: () {
                             _searchQuery.add('');
@@ -183,7 +183,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
                 textAlign: TextAlign.center,
                 strutStyle:
                     StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                style: Theme.of(context).primaryTextTheme.bodyText1,
+                style: Theme.of(context).primaryTextTheme.bodyLarge,
               );
             },
           ),
@@ -216,7 +216,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _tabController = TabController(vsync: this, length: 4);
 
     _areasOptions = DataObjectListController<Area>(
@@ -298,7 +298,7 @@ class _TrashDayScreenState extends State<TrashDayScreen>
   @override
   Future<void> dispose() async {
     super.dispose();
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
 
     await _areasOptions.dispose();
     await _streetsOptions.dispose();

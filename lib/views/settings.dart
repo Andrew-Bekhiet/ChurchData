@@ -1,20 +1,26 @@
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
-import 'package:churchdata/models/notification_setting.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
+import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata_core/churchdata_core.dart'
+    show
+        DateTimeX,
+        NotificationSetting,
+        NotificationSettingWidget,
+        TappableFormField,
+        ThemingService;
 import 'package:expandable/expandable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/user.dart';
 import '../utils/globals.dart';
-import '../utils/helpers.dart';
-import 'form_widgets/tapable_form_field.dart';
 
 enum DateType {
   month,
@@ -39,7 +45,8 @@ class SettingsState extends State<Settings> {
 
   var settings = Hive.box('Settings');
 
-  var notificationsSettings = Hive.box<Map>('NotificationsSettings');
+  var notificationsSettings =
+      Hive.box<NotificationSetting>('NotificationsSettings');
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +110,12 @@ class SettingsState extends State<Settings> {
                           await Hive.box('Settings')
                               .put('GreatFeastTheme', greatFeastTheme);
 
-                          changeTheme(context: context);
+                          GetIt.I<ThemingService>().switchTheme(
+                            darkTheme ??
+                                WidgetsBinding
+                                        .instance.window.platformBrightness ==
+                                    Brightness.dark,
+                          );
                         },
                         icon: const Icon(Icons.done),
                         label: const Text('تغيير'),
@@ -402,100 +414,95 @@ class SettingsState extends State<Settings> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (notifications['birthdayNotify'] ?? false)
+        if (notifications['birthdayNotify']!)
           Row(
             children: <Widget>[
               const Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
-                child: TapableFormField<DateTime>(
+                child: TappableFormField<DateTime>(
                   initialValue: DateTime(
                     2021,
                     1,
                     1,
-                    notificationsSettings.get('BirthDayTime',
-                        defaultValue: <String, int>{
-                          'Hours': 11
-                        })!.cast<String, int>()['Hours']!,
-                    notificationsSettings.get('BirthDayTime', defaultValue: {
-                      'Minutes': 0
-                    })!.cast<String, int>()['Minutes']!,
+                    notificationsSettings
+                        .get(
+                          'BirthDayTime',
+                          defaultValue: const NotificationSetting(11, 0, 1),
+                        )!
+                        .hours,
+                    notificationsSettings
+                        .get(
+                          'BirthDayTime',
+                          defaultValue: const NotificationSetting(11, 0, 1),
+                        )!
+                        .minutes,
                   ),
                   onTap: (state) async {
                     final selected = await showTimePicker(
                       initialTime: TimeOfDay.fromDateTime(state.value!),
                       context: context,
                     );
-
                     state.didChange(
-                      DateTime(2020, 1, 1, selected?.hour ?? state.value!.hour,
-                          selected?.minute ?? state.value!.minute),
+                      DateTime(
+                        2020,
+                        1,
+                        1,
+                        selected?.hour ?? state.value!.hour,
+                        selected?.minute ?? state.value!.minute,
+                      ),
                     );
                   },
-                  decoration: (context, state) => const InputDecoration(),
-                  validator: (_) => null,
                   builder: (context, state) => state.value != null
-                      ? Text(DateFormat(
-                              'h:m' +
-                                  (MediaQuery.of(context).alwaysUse24HourFormat
-                                      ? ''
-                                      : ' a'),
-                              'ar-EG')
-                          .format(
-                          state.value!,
-                        ))
-                      : null,
+                      ? Text(
+                          DateFormat(
+                            'h:m' +
+                                (MediaQuery.of(context).alwaysUse24HourFormat
+                                    ? ''
+                                    : ' a'),
+                            'ar-EG',
+                          ).format(state.value!),
+                        )
+                      : const Text(''),
                   onSaved: (value) async {
-                    final current = notificationsSettings.get('BirthDayTime',
-                        defaultValue: {
-                          'Hours': 11,
-                          'Minutes': 0
-                        })!.cast<String, int>();
-                    if (current['Hours'] == value?.hour &&
-                        current['Minutes'] == value?.minute) return;
+                    final current = notificationsSettings.get(
+                      'BirthDayTime',
+                      defaultValue: const NotificationSetting(11, 0, 1),
+                    )!;
+
+                    if (current.hours == value!.hour &&
+                        current.minutes == value.minute) return;
                     await notificationsSettings.put(
                       'BirthDayTime',
-                      <String, int>{
-                        'Hours': value!.hour,
-                        'Minutes': value.minute
-                      },
+                      NotificationSetting(value.hour, value.minute, 1),
                     );
-                    await AndroidAlarmManager.periodic(const Duration(days: 1),
-                        'BirthDay'.hashCode, showBirthDayNotification,
-                        exact: true,
-                        startAt: DateTime(
-                            DateTime.now().year,
-                            DateTime.now().month,
-                            DateTime.now().day,
-                            value.hour,
-                            value.minute),
-                        wakeup: true,
-                        rescheduleOnReboot: true);
+                    await AndroidAlarmManager.periodic(
+                      const Duration(days: 1),
+                      'BirthDay'.hashCode,
+                      showBirthDayNotification,
+                      exact: true,
+                      allowWhileIdle: true,
+                      startAt: DateTime.now().replaceTime(value),
+                      wakeup: true,
+                      rescheduleOnReboot: true,
+                    );
                   },
                 ),
               ),
             ],
           ),
-        if (notifications['confessionsNotify'] ?? false)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
-        if (notifications['confessionsNotify'] ?? false)
-          NotificationSetting(
+        if (notifications['confessionsNotify']!) const SizedBox(height: 20),
+        if (notifications['confessionsNotify']!)
+          NotificationSettingWidget(
             label: 'ارسال انذار الاعتراف كل ',
             hiveKey: 'ConfessionTime',
             alarmId: 'Confessions'.hashCode,
             notificationCallback: showConfessionNotification,
           ),
-        if (notifications['tanawolNotify'] ?? false)
-          const Divider(
-            thickness: 2,
-            height: 30,
-          ),
-        if (notifications['tanawolNotify'] ?? false)
-          NotificationSetting(
+        if (notifications['tanawolNotify']!) const SizedBox(height: 20),
+        if (notifications['tanawolNotify']!)
+          NotificationSettingWidget(
             label: 'ارسال انذار التناول كل ',
-            hiveKey: 'TtanawolTime',
+            hiveKey: 'TanawolTime',
             alarmId: 'Tanawol'.hashCode,
             notificationCallback: showTanawolNotification,
           ),

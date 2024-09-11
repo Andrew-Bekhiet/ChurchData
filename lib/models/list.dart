@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
@@ -8,6 +7,7 @@ import 'package:churchdata/utils/globals.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:group_list_view/group_list_view.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -15,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/helpers.dart';
+import 'invitation.dart';
 
 export 'package:churchdata/models/order_options.dart';
 export 'package:tuple/tuple.dart';
@@ -49,66 +50,42 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     _builtOnce = true;
     updateKeepAlive();
 
-    return StreamBuilder<List<T>>(
-      stream: _listOptions.objectsData,
+    return StreamBuilder(
+      stream: _listOptions.grouped.switchMap(
+        (g) {
+          if (g) {
+            return _listOptions.objectsData.map((data) {
+              if (_listOptions.groupData == null)
+                throw Exception('ListController.groupData is null');
+
+              return _listOptions.groupData!(data);
+            });
+          } else {
+            return _listOptions.objectsData;
+          }
+        },
+      ),
       builder: (context, stream) {
         if (stream.hasError) return Center(child: ErrorWidget(stream.error!));
         if (!stream.hasData)
           return const Center(child: CircularProgressIndicator());
 
-        final List<T> _data = stream.data!;
-        if (_data.isEmpty)
-          return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
+        if (stream.data is List<T>) {
+          final List<T> _data = stream.data! as List<T>;
+          if (_data.isEmpty)
+            return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
-        return ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          addAutomaticKeepAlives: _data.length < 500,
-          cacheExtent: 200,
-          itemCount: _data.length + 1,
-          itemBuilder: (context, i) {
-            if (i == _data.length)
-              return Container(height: MediaQuery.of(context).size.height / 19);
+          return _UngroupedList<T>(data: _data, listController: _listOptions);
+        } else if (stream.data is Map<String, List<T>>) {
+          final Map<String, List<T>> _data =
+              stream.data! as Map<String, List<T>>;
+          if (_data.isEmpty)
+            return Center(child: Text('لا يوجد ${_getPluralStringType()}'));
 
-            final T current = _data[i];
-            return _listOptions.buildItem(
-              current,
-              onLongPress: _listOptions.onLongPress ?? _defaultLongPress,
-              onTap: (T current) {
-                if (!_listOptions.selectionMode.value) {
-                  _listOptions.tap == null
-                      ? dataObjectTap(current)
-                      : _listOptions.tap!(current);
-                } else {
-                  _listOptions.toggleSelected(current);
-                }
-              },
-              trailing: StreamBuilder<Map<String, T>?>(
-                stream:
-                    Rx.combineLatest2<Map<String, T>, bool, Map<String, T>?>(
-                        _listOptions.selected,
-                        _listOptions.selectionMode,
-                        (a, b) => b ? a : null),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return Checkbox(
-                      value: snapshot.data!.containsKey(current.id),
-                      onChanged: (v) {
-                        if (v!) {
-                          _listOptions.select(current);
-                        } else {
-                          _listOptions.deselect(current);
-                        }
-                      },
-                    );
-                  }
-                  return current is Person
-                      ? current.getLeftWidget()
-                      : const SizedBox(width: 1, height: 1);
-                },
-              ),
-            );
-          },
-        );
+          return _GroupedList<T>(
+              groupedData: _data, listController: _listOptions);
+        }
+        return const Center(child: Text('لا يمكن عرض البيانات'));
       },
     );
   }
@@ -118,144 +95,6 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
     super.didChangeDependencies();
     _listOptions =
         widget.options ?? context.read<DataObjectListController<T>>();
-  }
-
-  void _defaultLongPress(T current) async {
-    _listOptions.selectionMode.add(!_listOptions.selectionMode.value);
-
-    if (!_listOptions.selectionMode.value) {
-      if (_listOptions.selected.value.isNotEmpty) {
-        if (T == Person) {
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              content: const Text('اختر أمرًا:'),
-              actions: <Widget>[
-                TextButton.icon(
-                  icon: const Icon(Icons.sms),
-                  onPressed: () {
-                    navigator.currentState!.pop();
-                    final List<Person> people = _listOptions
-                        .selected.value.values
-                        .cast<Person>()
-                        .toList()
-                        .where((p) => p.phone != null && p.phone!.isNotEmpty)
-                        .toList();
-                    if (people.isNotEmpty)
-                      launch(
-                        'sms:' +
-                            people
-                                .map(
-                                  (f) => getPhone(f.phone!),
-                                )
-                                .toList()
-                                .cast<String>()
-                                .join(','),
-                      );
-                  },
-                  label: const Text('ارسال رسالة جماعية'),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.share),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    await Share.share(
-                      (await Future.wait(
-                        _listOptions.selected.value.values.cast<Person>().map(
-                              (f) async => f.name + ': ' + await sharePerson(f),
-                            ),
-                      ))
-                          .join('\n'),
-                    );
-                  },
-                  label: const Text('مشاركة القائمة'),
-                ),
-                TextButton.icon(
-                  icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    final con = TextEditingController();
-                    String? msg = await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        actions: [
-                          TextButton.icon(
-                            icon: const Icon(Icons.send),
-                            label: const Text('ارسال'),
-                            onPressed: () {
-                              navigator.currentState!.pop(con.text);
-                            },
-                          ),
-                        ],
-                        content: TextFormField(
-                          controller: con,
-                          maxLines: null,
-                          decoration: const InputDecoration(
-                            labelText: 'اكتب رسالة',
-                          ),
-                        ),
-                      ),
-                    );
-                    if (msg != null) {
-                      msg = Uri.encodeComponent(msg);
-                      for (final Person person in _listOptions
-                          .selected.value.values
-                          .cast<Person>()
-                          .where(
-                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        final String phone = getPhone(person.phone!);
-                        await launch('https://wa.me/$phone?text=$msg');
-                      }
-                    }
-                  },
-                  label: const Text('ارسال رسالة واتساب للكل'),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.person_add),
-                  onPressed: () async {
-                    navigator.currentState!.pop();
-                    if ((await Permission.contacts.request()).isGranted) {
-                      for (final Person item in _listOptions
-                          .selected.value.values
-                          .cast<Person>()
-                          .where(
-                              (p) => p.phone != null && p.phone!.isNotEmpty)) {
-                        try {
-                          final c = Contact(
-                              photo: item.hasPhoto
-                                  ? await item.photoRef
-                                      .getData(100 * 1024 * 1024)
-                                  : null,
-                              phones: [Phone(item.phone!)])
-                            ..name.first = item.name;
-                          await c.insert();
-                        } catch (err, stkTrace) {
-                          await FirebaseCrashlytics.instance.setCustomKey(
-                              'LastErrorIn',
-                              'InnerPersonListState.build.addToContacts.tap');
-                          await FirebaseCrashlytics.instance
-                              .recordError(err, stkTrace);
-                        }
-                      }
-                    }
-                  },
-                  label: const Text('اضافة إلى جهات الاتصال بالهاتف'),
-                ),
-              ],
-            ),
-          );
-        } else
-          await Share.share(
-            (await Future.wait(_listOptions.selected.value.values
-                    .map((f) async => f.name + ': ' + await shareDataObject(f))
-                    .toList()))
-                .join('\n'),
-          );
-      }
-      _listOptions.selectNone(false);
-    } else {
-      _listOptions.select(current);
-    }
   }
 
   String _getPluralStringType() {
@@ -271,5 +110,310 @@ class _ListState<T extends DataObject> extends State<DataObjectList<T>>
   Future<void> dispose() async {
     super.dispose();
     if (widget.autoDisposeController) await _listOptions.dispose();
+  }
+}
+
+class _UngroupedList<T extends DataObject> extends StatelessWidget {
+  const _UngroupedList(
+      {Key? key, required this.data, required this.listController})
+      : super(key: key);
+
+  final List<T> data;
+  final DataObjectListController<T> listController;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      addAutomaticKeepAlives: data.length < 500,
+      cacheExtent: 200,
+      itemCount: data.length + 1,
+      itemBuilder: (context, i) {
+        if (i == data.length)
+          return Container(height: MediaQuery.of(context).size.height / 19);
+
+        final T current = data[i];
+        return listController.buildItem(
+          current,
+          onLongPress: listController.onLongPress ??
+              (item) => _defaultLongPress(context, item, listController),
+          onTap: (T current) {
+            if (!listController.selectionMode.value) {
+              listController.tap == null
+                  ? dataObjectTap(current)
+                  : listController.tap!(current);
+            } else {
+              listController.toggleSelected(current);
+            }
+          },
+          trailing: StreamBuilder<bool?>(
+            stream: Rx.combineLatest2<Map<String, T>, bool, bool?>(
+              listController.selected,
+              listController.selectionMode,
+              (a, b) => b ? a.containsKey(current.id) : null,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Checkbox(
+                  value: snapshot.data,
+                  onChanged: (v) {
+                    if (v!) {
+                      listController.select(current);
+                    } else {
+                      listController.deselect(current);
+                    }
+                  },
+                );
+              }
+              return current is Person
+                  ? current.getLeftWidget()
+                  : const SizedBox(width: 1, height: 1);
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GroupedList<O extends DataObject> extends StatelessWidget {
+  const _GroupedList(
+      {Key? key, required this.groupedData, required this.listController})
+      : super(key: key);
+
+  final Map<String, List<O>> groupedData;
+  final DataObjectListController<O> listController;
+
+  @override
+  Widget build(BuildContext context) {
+    return GroupListView(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      addAutomaticKeepAlives: groupedData.length < 500,
+      sectionsCount: groupedData.length + 1,
+      countOfItemInSection: (i) {
+        if (i == groupedData.length) return 0;
+
+        return groupedData.values.elementAt(i).length;
+      },
+      cacheExtent: 200,
+      groupHeaderBuilder: (context, i) {
+        if (i == groupedData.length)
+          return Container(height: MediaQuery.of(context).size.height / 15);
+
+        return Card(
+          child: ListTile(
+            title: Text(groupedData.keys.elementAt(i)),
+            onTap: () {
+              listController.openedNodes.add({
+                ...listController.openedNodes.value,
+                groupedData.keys.elementAt(i): !(listController
+                        .openedNodes.value[groupedData.keys.elementAt(i)] ??
+                    false)
+              });
+            },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    listController.openedNodes.add({
+                      ...listController.openedNodes.value,
+                      groupedData.keys.elementAt(i): !(listController
+                              .openedNodes
+                              .value[groupedData.keys.elementAt(i)] ??
+                          false)
+                    });
+                  },
+                  icon: Icon(
+                    listController.openedNodes
+                                .value[groupedData.keys.elementAt(i)] ??
+                            false
+                        ? Icons.arrow_drop_up
+                        : Icons.arrow_drop_down,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      itemBuilder: (context, i) {
+        final O current = groupedData[i.section]![i.index];
+        return listController.buildItem(
+          current,
+          onLongPress: listController.onLongPress ??
+              (item) => _defaultLongPress(context, item, listController),
+          onTap: (O current) {
+            if (!listController.selectionMode.value) {
+              listController.tap == null
+                  ? dataObjectTap(current)
+                  : listController.tap!(current);
+            } else {
+              listController.toggleSelected(current);
+            }
+          },
+          trailing: StreamBuilder<bool>(
+            stream: Rx.combineLatest2<Map<String, O>, bool, bool>(
+              listController.selected,
+              listController.selectionMode,
+              (a, b) => b ? a.containsKey(current.id) : false,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Checkbox(
+                  value: snapshot.data,
+                  onChanged: (v) {
+                    if (v!) {
+                      listController.select(current);
+                    } else {
+                      listController.deselect(current);
+                    }
+                  },
+                );
+              }
+              return current is Person
+                  ? current.getLeftWidget()
+                  : const SizedBox(width: 1, height: 1);
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+void _defaultLongPress<T extends DataObject>(BuildContext context, T current,
+    DataObjectListController<T> _listController) async {
+  _listController.selectionMode.add(!_listController.selectionMode.value);
+
+  if (!_listController.selectionMode.value) {
+    if (_listController.selected.value.isNotEmpty) {
+      if (T == Person) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            content: const Text('اختر أمرًا:'),
+            actions: <Widget>[
+              TextButton.icon(
+                icon: const Icon(Icons.sms),
+                onPressed: () {
+                  navigator.currentState!.pop();
+                  final List<Person> people = _listController
+                      .selected.value.values
+                      .cast<Person>()
+                      .toList()
+                      .where((p) => p.phone != null && p.phone!.isNotEmpty)
+                      .toList();
+                  if (people.isNotEmpty)
+                    launch(
+                      'sms:' +
+                          people
+                              .map(
+                                (f) => getPhone(f.phone!),
+                              )
+                              .toList()
+                              .cast<String>()
+                              .join(','),
+                    );
+                },
+                label: const Text('ارسال رسالة جماعية'),
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.share),
+                onPressed: () async {
+                  navigator.currentState!.pop();
+                  await Share.share(
+                    (await Future.wait(
+                      _listController.selected.value.values.cast<Person>().map(
+                            (f) async => f.name + ': ' + await sharePerson(f),
+                          ),
+                    ))
+                        .join('\n'),
+                  );
+                },
+                label: const Text('مشاركة القائمة'),
+              ),
+              TextButton.icon(
+                icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
+                onPressed: () async {
+                  navigator.currentState!.pop();
+                  final con = TextEditingController();
+                  String? msg = await showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      actions: [
+                        TextButton.icon(
+                          icon: const Icon(Icons.send),
+                          label: const Text('ارسال'),
+                          onPressed: () {
+                            navigator.currentState!.pop(con.text);
+                          },
+                        ),
+                      ],
+                      content: TextFormField(
+                        controller: con,
+                        maxLines: null,
+                        decoration: const InputDecoration(
+                          labelText: 'اكتب رسالة',
+                        ),
+                      ),
+                    ),
+                  );
+                  if (msg != null) {
+                    msg = Uri.encodeComponent(msg);
+                    for (final Person person in _listController
+                        .selected.value.values
+                        .cast<Person>()
+                        .where((p) => p.phone != null && p.phone!.isNotEmpty)) {
+                      final String phone = getPhone(person.phone!);
+                      await launch('https://wa.me/$phone?text=$msg');
+                    }
+                  }
+                },
+                label: const Text('ارسال رسالة واتساب للكل'),
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.person_add),
+                onPressed: () async {
+                  navigator.currentState!.pop();
+                  if ((await Permission.contacts.request()).isGranted) {
+                    for (final Person item in _listController
+                        .selected.value.values
+                        .cast<Person>()
+                        .where((p) => p.phone != null && p.phone!.isNotEmpty)) {
+                      try {
+                        final c = Contact(
+                            photo: item.hasPhoto
+                                ? await item.photoRef.getData(100 * 1024 * 1024)
+                                : null,
+                            phones: [Phone(item.phone!)])
+                          ..name.first = item.name;
+                        await c.insert();
+                      } catch (err, stkTrace) {
+                        await FirebaseCrashlytics.instance.setCustomKey(
+                            'LastErrorIn',
+                            'InnerPersonListState.build.addToContacts.tap');
+                        await FirebaseCrashlytics.instance
+                            .recordError(err, stkTrace);
+                      }
+                    }
+                  }
+                },
+                label: const Text('اضافة إلى جهات الاتصال بالهاتف'),
+              ),
+            ],
+          ),
+        );
+      } else
+        await Share.share(
+          (await Future.wait(_listController.selected.value.values
+                  .map((f) async => f.name + ': ' + await shareDataObject(f))
+                  .toList()))
+              .join('\n'),
+        );
+    }
+    _listController.selectNone(false);
+  } else {
+    _listController.select(current);
   }
 }

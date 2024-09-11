@@ -14,9 +14,9 @@ import 'package:mockito/mockito.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
-import '../fakes/fakes.mocks.dart';
 import '../globals.dart';
 import '../main.dart';
+import '../main.mocks.dart';
 
 Future<void> main() async {
   await initTests();

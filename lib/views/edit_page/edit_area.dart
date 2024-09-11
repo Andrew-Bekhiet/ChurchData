@@ -12,8 +12,7 @@ import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart' hide User;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,18 +106,21 @@ class _EditAreaState extends State<EditArea> {
                         source:
                             source ? ImageSource.camera : ImageSource.gallery);
                     if (selectedImage == null) return;
-                    changedImage = (await ImageCropper.cropImage(
-                            sourcePath: selectedImage.path,
-                            androidUiSettings: AndroidUiSettings(
-                              toolbarTitle: 'قص الصورة',
-                              toolbarColor: Theme.of(context).primaryColor,
-                              toolbarWidgetColor: Theme.of(context)
-                                  .primaryTextTheme
-                                  .headline6
-                                  ?.color,
-                              initAspectRatio: CropAspectRatioPreset.original,
-                              lockAspectRatio: false,
-                            )))
+                    changedImage = (await ImageCropper().cropImage(
+                      sourcePath: selectedImage.path,
+                      uiSettings: [
+                        AndroidUiSettings(
+                          toolbarTitle: 'قص الصورة',
+                          toolbarColor: Theme.of(context).primaryColor,
+                          toolbarWidgetColor: Theme.of(context)
+                              .primaryTextTheme
+                              .titleLarge
+                              ?.color,
+                          initAspectRatio: CropAspectRatioPreset.original,
+                          lockAspectRatio: false,
+                        ),
+                      ],
+                    ))
                         ?.path;
                     deletePhoto = false;
                     setState(() {});
@@ -276,7 +278,7 @@ class _EditAreaState extends State<EditArea> {
                   ),
                   ElevatedButton.icon(
                     style: area.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(primary: area.color)
+                        ? ElevatedButton.styleFrom(backgroundColor: area.color)
                         : null,
                     onPressed: selectColor,
                     icon: const Icon(Icons.color_lens),
@@ -288,7 +290,7 @@ class _EditAreaState extends State<EditArea> {
                       if (permission) {
                         return ElevatedButton.icon(
                           style: area.color != Colors.transparent
-                              ? ElevatedButton.styleFrom(primary: area.color)
+                              ? ElevatedButton.styleFrom(backgroundColor: area.color)
                               : null,
                           icon: const Icon(Icons.visibility),
                           onPressed: showUsers,
@@ -521,7 +523,7 @@ class _EditAreaState extends State<EditArea> {
                       showSubtitle: false,
                     ),
                     selectionMode: true,
-                    selected: {for (var item in users.data!) item.id: item},
+                    selected: {for (final item in users.data!) item.id: item},
                     itemsStream: User.getAllForUser(),
                   ),
                   dispose: (context, c) => c.dispose(),
@@ -535,7 +537,7 @@ class _EditAreaState extends State<EditArea> {
                         searchStream: context
                             .read<DataObjectListController<User>>()
                             .searchQuery,
-                        textStyle: Theme.of(context).primaryTextTheme.headline6,
+                        textStyle: Theme.of(context).primaryTextTheme.titleLarge,
                       ),
                       actions: [
                         IconButton(

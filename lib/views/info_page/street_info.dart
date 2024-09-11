@@ -14,9 +14,7 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart'
-    hide User, FirebaseAuth;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
@@ -44,7 +42,7 @@ class _StreetInfoState extends State<StreetInfo> {
     if (!widget.street.locationConfirmed &&
         widget.street.locationPoints.isNotEmpty &&
         showWarning) {
-      WidgetsBinding.instance!.addPostFrameCallback(
+      WidgetsBinding.instance.addPostFrameCallback(
         (_) {
           showWarning = false;
           showDialog(
@@ -173,7 +171,7 @@ class _StreetInfoState extends State<StreetInfo> {
                                 type: MaterialType.transparency,
                                 child: Text(
                                   street.name,
-                                  style: Theme.of(context).textTheme.headline6,
+                                  style: Theme.of(context).textTheme.titleLarge,
                                 ),
                               ),
                             ),
@@ -208,11 +206,11 @@ class _StreetInfoState extends State<StreetInfo> {
                             thickness: 1,
                           ),
                           Text('العائلات بالشارع:',
-                              style: Theme.of(context).textTheme.bodyText1),
+                              style: Theme.of(context).textTheme.bodyLarge),
                           SearchFilters(2,
                               orderOptions: _orderOptions,
                               options: _listOptions,
-                              textStyle: Theme.of(context).textTheme.bodyText2),
+                              textStyle: Theme.of(context).textTheme.bodyMedium),
                         ],
                       ),
                     ),
@@ -238,7 +236,7 @@ class _StreetInfoState extends State<StreetInfo> {
                     textAlign: TextAlign.center,
                     strutStyle:
                         StrutStyle(height: IconTheme.of(context).size! / 7.5),
-                    style: Theme.of(context).primaryTextTheme.bodyText1,
+                    style: Theme.of(context).primaryTextTheme.bodyLarge,
                   );
                 },
               ),

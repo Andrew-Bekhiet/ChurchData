@@ -10,8 +10,7 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:firebase_database/firebase_database.dart'
-    if (dart.library.html) 'package:churchdata/FirebaseWeb.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -563,7 +562,7 @@ class User extends DataObject with PhotoObject {
 
   static Future<List<User>> getUsersForEdit() async {
     final users = {
-      for (var u in (await User.getAllUsersLive()).docs)
+      for (final u in (await User.getAllUsersLive()).docs)
         u.id: (u.data()['allowedUsers'] as List?)?.cast<String>()
     };
     return (await firebaseFunctions.httpsCallable('getUsers').call())

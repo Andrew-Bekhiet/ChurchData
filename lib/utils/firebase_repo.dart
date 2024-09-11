@@ -16,4 +16,4 @@ FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 FirebaseDynamicLinks firebaseDynamicLinks = FirebaseDynamicLinks.instance;
 GoogleSignIn googleSignIn = GoogleSignIn();
-RemoteConfig remoteConfig = RemoteConfig.instance;
+FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;

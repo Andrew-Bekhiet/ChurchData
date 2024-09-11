@@ -77,7 +77,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                     return const Center(child: CircularProgressIndicator());
 
                   areas ??= snapshot.data;
-                  final areasByRef = {for (var a in areas!) a.ref.path: a};
+                  final areasByRef = {for (final a in areas!) a.ref.path: a};
 
                   return SingleChildScrollView(
                     child: Column(
@@ -90,7 +90,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                                   ' الى ' +
                                   intl.DateFormat.yMMMEd('ar_EG')
                                       .format(range.end),
-                              style: Theme.of(context).textTheme.bodyText1),
+                              style: Theme.of(context).textTheme.bodyLarge),
                           trailing: IconButton(
                             icon: const Icon(Icons.date_range),
                             tooltip: 'اختيار نطاق السجل',
@@ -100,7 +100,7 @@ class _SpiritualAnalysisState extends State<SpiritualAnalysis> {
                                   data: Theme.of(context).copyWith(
                                     textTheme:
                                         Theme.of(context).textTheme.copyWith(
-                                              overline: const TextStyle(
+                                              labelSmall: const TextStyle(
                                                 fontSize: 0,
                                               ),
                                             ),

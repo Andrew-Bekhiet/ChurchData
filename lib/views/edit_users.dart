@@ -54,7 +54,7 @@ class UsersPage extends StatelessWidget {
                           icon: Icon(Icons.close,
                               color: Theme.of(context)
                                   .primaryTextTheme
-                                  .headline6
+                                  .titleLarge
                                   ?.color),
                           onPressed: () {
                             _listOptions.searchQuery.add('');
@@ -76,7 +76,7 @@ class UsersPage extends StatelessWidget {
               (snapshot.data?.length ?? 0).toString() + ' مستخدم',
               textAlign: TextAlign.center,
               strutStyle: StrutStyle(height: IconTheme.of(context).size! / 7.5),
-              style: Theme.of(context).primaryTextTheme.bodyText1,
+              style: Theme.of(context).primaryTextTheme.bodyLarge,
             );
           },
         ),

@@ -27,7 +27,7 @@ class DataDialog extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0.0),
               child: DefaultTextStyle(
                 style: Theme.of(context).dialogTheme.titleTextStyle ??
-                    Theme.of(context).textTheme.headline6!,
+                    Theme.of(context).textTheme.titleLarge!,
                 child: title!,
               ),
             ),
