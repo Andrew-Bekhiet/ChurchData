@@ -1,0 +1,77 @@
+name: Build and Release app
+
+on: [push, workflow_dispatch]
+
+jobs:
+  release-app:
+    permissions:
+      contents: write
+
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ci release]'))
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          cache: true
+          pub-cache-key: "flutter-pub-:os:-:channel:-:version:-:arch:"
+          cache-key: "flutter-:os:-:channel:-:version:-:arch:"
+          channel: "stable"
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          cache: "gradle"
+          distribution: "corretto"
+          java-version: "17"
+
+      - name: Populate the Flutter tool's cache of binary artifacts
+        run: |
+          flutter config --disable-analytics
+          flutter precache
+
+      - name: Decode and save secrets to files
+        env:
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          ANDROID_STRINGS: ${{ secrets.ANDROID_STRINGS }}
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          ANDROID_KEYSTORE_PROPERTIES: ${{ secrets.ANDROID_KEYSTORE_PROPERTIES }}
+          ENCRYPTION_KEYS_DART: ${{ secrets.ENCRYPTION_KEYS_DART }}
+        run: |
+          echo $ANDROID_SIGNING_KEY | base64 -d -i > ./android/app/rKey.jks
+          echo $ANDROID_STRINGS | base64 -d -i > ./android/app/src/main/res/values/strings.xml
+          echo $GOOGLE_SERVICES_JSON | base64 -d -i > ./android/app/google-services.json
+          echo $ANDROID_KEYSTORE_PROPERTIES | base64 -d -i > ./android/releaseKey.properties
+          echo $ENCRYPTION_KEYS_DART | base64 -d -i > ./lib/EncryptionKeys.dart
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run new builder
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Build apk
+        run: flutter build apk
+
+      - name: Get version from pubspec.yaml
+        id: version
+        run: |
+          version=$(grep -m 1 'version:' pubspec.yaml | awk '{print $2}' | awk -F "+" '{print $1}')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Add version to APK filename
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/ChurchData-v${{ steps.version.outputs.version }}.apk
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/flutter-apk/ChurchData-v${{ steps.version.outputs.version }}.apk"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ steps.version.outputs.version }}
+          generateReleaseNotes: true
