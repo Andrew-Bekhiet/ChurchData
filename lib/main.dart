@@ -100,18 +100,18 @@ void main() async {
   runApp(const App());
 }
 
-final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
 const bool kUseFirebaseEmulators = false;
 
 Future<void> initConfigs([bool retryOnHiveError = true]) async {
   if (_initializing) return _initialization.future;
   _initializing = true;
 
-  //dot env
-  await dotenv.load();
-
   //Firebase initialization
-  if (kDebugMode && kUseFirebaseEmulators) {
+  if (kUseFirebaseEmulators && kDebugMode) {
+    //dot env
+    await dotenv.load();
+    final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
+
     await Firebase.initializeApp(
       options: FirebaseOptions(
         apiKey: dotenv.env['apiKey']!,
@@ -121,14 +121,16 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
         databaseURL: kEmulatorsHost + ':9000',
       ),
     );
+
     await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
         .useFirestoreEmulator(kEmulatorsHost, 8080);
     FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
     FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
-  } else
+  } else {
     await Firebase.initializeApp();
+  }
 
   registerFirebaseDependencies();
 
