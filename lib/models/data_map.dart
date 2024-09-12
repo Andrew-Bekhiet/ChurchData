@@ -63,7 +63,7 @@ class MegaMap extends StatelessWidget {
         );
       }(),
       builder: (context, data) {
-        if (data.connectionState != ConnectionState.done)
+        if (!data.hasData)
           return const Center(
             child: CircularProgressIndicator(),
           );

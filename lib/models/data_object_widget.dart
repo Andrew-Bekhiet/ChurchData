@@ -42,15 +42,18 @@ class AsyncDataObjectWidget<T extends DataObject> extends StatelessWidget {
         if (snapshot.hasError &&
             !snapshot.error.toString().toLowerCase().contains('denied'))
           return ErrorWidget(snapshot.error!);
+
         if (snapshot.hasError)
           return const Text('لا يمكن اظهار العنصر المطلوب');
 
-        if (snapshot.connectionState != ConnectionState.done)
-          return const LinearProgressIndicator();
+        if (!snapshot.hasData &&
+            snapshot.connectionState == ConnectionState.done)
+          return const Text('لا يوجد بيانات');
 
         if (!snapshot.hasData) {
-          return const Text('لا يوجد بيانات');
+          return const LinearProgressIndicator();
         }
+
         return DataObjectWidget<T>(
           snapshot.data!,
           isDense: isDense,

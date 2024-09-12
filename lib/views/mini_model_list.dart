@@ -107,8 +107,13 @@ class MiniModelList<T extends MiniModel> extends StatelessWidget {
                 }
                 navigator.currentState!.pop();
                 if (modify == null)
-                  unawaited(_defaultModify(
-                      context, item..name = name.text, !editMode));
+                  unawaited(
+                    _defaultModify(
+                      context,
+                      item..name = name.text,
+                      !editMode,
+                    ),
+                  );
               },
               label: Text(editMode ? 'حفظ' : 'تعديل'),
             ),

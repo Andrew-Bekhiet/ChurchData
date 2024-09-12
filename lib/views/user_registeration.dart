@@ -286,8 +286,11 @@ class _UserRegisterationState extends State<UserRegisteration> {
                   (snapshot.error! as FirebaseFunctionsException).message!,
                 );
               } else if (snapshot.connectionState == ConnectionState.done) {
-                navigator.currentState!.pop();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  navigator.currentState!.pop();
+                });
               }
+
               return const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

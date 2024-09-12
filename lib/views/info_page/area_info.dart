@@ -1,5 +1,4 @@
 import 'package:churchdata/models/area.dart';
-import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_dialog.dart';
 import 'package:churchdata/models/double_circular_notched_bhape.dart';
 import 'package:churchdata/models/history_property.dart';
@@ -12,6 +11,8 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata_core/churchdata_core.dart'
+    show CopiablePropertyWidget;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -390,7 +391,7 @@ class _AreaInfoState extends State<AreaInfo> {
                         ),
                       ),
                       if (area.address?.isNotEmpty ?? false)
-                        CopiableProperty('العنوان:', area.address),
+                        CopiablePropertyWidget('العنوان:', area.address),
                       if (area.locationPoints.isNotEmpty)
                         ElevatedButton.icon(
                           icon: const Icon(Icons.map),

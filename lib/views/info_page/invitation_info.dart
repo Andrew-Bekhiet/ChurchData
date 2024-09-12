@@ -1,8 +1,9 @@
-import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/invitation.dart';
 import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata_core/churchdata_core.dart'
+    show CopiablePropertyWidget;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -140,10 +141,10 @@ class InvitationInfo extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    CopiableProperty(
+                    CopiablePropertyWidget(
                       'لينك الدعوة',
                       invitation.link,
-                      items: [
+                      additionalOptions: [
                         IconButton(
                           onPressed: invitation.link != null
                               ? () async {

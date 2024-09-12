@@ -1,5 +1,4 @@
 import 'package:churchdata/models/area.dart';
-import 'package:churchdata/models/copiable_property.dart';
 import 'package:churchdata/models/data_object_widget.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/history_property.dart';
@@ -9,6 +8,8 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata_core/churchdata_core.dart'
+    hide JsonDoc, JsonRef, Timestamp;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -193,14 +194,14 @@ class PersonInfo extends StatelessWidget {
                       PhoneNumberProperty(
                         'رقم الهاتف:',
                         person.phone,
-                        (n) => _phoneCall(context, n),
+                        (n) => _phoneCall(context, n!),
                         (n) => _contactAdd(context, n, person),
                       ),
                       ...person.phones.entries.map(
                         (e) => PhoneNumberProperty(
                           e.key,
                           e.value,
-                          (n) => _phoneCall(context, n),
+                          (n) => _phoneCall(context, n!),
                           (n) => _contactAdd(context, n, person),
                         ),
                       ),
@@ -233,12 +234,9 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getJobName(),
                             builder: (context, data) {
-                              if (data.hasData)
-                                return Text(data.data!);
-                              else if (data.connectionState ==
-                                  ConnectionState.waiting)
-                                return const LinearProgressIndicator();
-                              return const Text('');
+                              if (data.hasData) return Text(data.data!);
+
+                              return const SizedBox();
                             },
                           ),
                         ),
@@ -258,34 +256,37 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getStudyYearName(),
                             builder: (context, data) {
-                              if (data.hasData)
-                                return Text(data.data!);
-                              else if (data.connectionState ==
-                                  ConnectionState.waiting)
-                                return const LinearProgressIndicator();
-                              return const Text('');
+                              if (data.hasData) return Text(data.data!);
+
+                              return const SizedBox();
                             },
                           ),
                         ),
                       if (person.isStudent)
-                        FutureBuilder<List>(
-                          future: Future.wait(
-                            [
-                              (person.studyYear?.get() ?? Future(() => null)),
-                              person.getCollegeName(),
-                            ],
+                        FutureBuilder<(StudyYear?, String?)>(
+                          future: Future(
+                            () async {
+                              final studyYearData =
+                                  await person.studyYear?.get();
+
+                              return (
+                                studyYearData != null
+                                    ? StudyYear.fromDoc(studyYearData)
+                                    : null,
+                                await person.getCollegeName(),
+                              );
+                            },
                           ),
                           builder: (context, data) {
                             if (data.hasData &&
-                                data.data?[0]?.data != null &&
-                                (data.data?[0]?.data()?['IsCollegeYear'] ??
-                                    false))
+                                (data.data?.$1?.isCollegeYear ?? false) &&
+                                data.data?.$2 != null)
                               return ListTile(
                                 title: const Text('الكلية'),
-                                subtitle: Text(data.data?[1] ?? ''),
+                                subtitle: Text(data.data?.$2 ?? ''),
                               );
-                            else if (data.hasData) return Container();
-                            return const LinearProgressIndicator();
+
+                            return const SizedBox();
                           },
                         ),
                       ListTile(
@@ -293,12 +294,9 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getStringType(),
                           builder: (context, data) {
-                            if (data.hasData)
-                              return Text(data.data!);
-                            else if (data.connectionState ==
-                                ConnectionState.waiting)
-                              return const LinearProgressIndicator();
-                            return const Text('');
+                            if (data.hasData) return Text(data.data!);
+
+                            return const SizedBox();
                           },
                         ),
                       ),
@@ -307,12 +305,9 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getChurchName(),
                           builder: (context, data) {
-                            if (data.hasData)
-                              return Text(data.data!);
-                            else if (data.connectionState ==
-                                ConnectionState.waiting)
-                              return const LinearProgressIndicator();
-                            return const Text('');
+                            if (data.hasData) return Text(data.data!);
+
+                            return const SizedBox();
                           },
                         ),
                       ),
@@ -325,12 +320,9 @@ class PersonInfo extends StatelessWidget {
                         subtitle: FutureBuilder<String?>(
                           future: person.getCFatherName(),
                           builder: (context, data) {
-                            if (data.hasData)
-                              return Text(data.data!);
-                            else if (data.connectionState ==
-                                ConnectionState.waiting)
-                              return const LinearProgressIndicator();
-                            return const Text('');
+                            if (data.hasData) return Text(data.data!);
+
+                            return const SizedBox();
                           },
                         ),
                       ),
@@ -377,7 +369,7 @@ class PersonInfo extends StatelessWidget {
                         person.ref.collection('CallHistory'),
                       ),
                       if ((person.notes ?? '') != '')
-                        CopiableProperty('ملاحظات:', person.notes),
+                        CopiablePropertyWidget('ملاحظات:', person.notes),
                       ListTile(
                         title: const Text('خادم؟:'),
                         subtitle: Text(person.isServant ? 'نعم' : 'لا'),
@@ -394,10 +386,8 @@ class PersonInfo extends StatelessWidget {
                                   title: const Text('منطقة الخدمة'),
                                   subtitle: Text(data.data!),
                                 );
-                              else if (data.connectionState ==
-                                  ConnectionState.waiting)
-                                return const LinearProgressIndicator();
-                              return const Text('');
+
+                              return const SizedBox();
                             },
                           ),
                         ),
@@ -407,12 +397,9 @@ class PersonInfo extends StatelessWidget {
                           subtitle: FutureBuilder<String?>(
                             future: person.getServingTypeName(),
                             builder: (context, data) {
-                              if (data.hasData)
-                                return Text(data.data!);
-                              else if (data.connectionState ==
-                                  ConnectionState.waiting)
-                                return const LinearProgressIndicator();
-                              return const Text('');
+                              if (data.hasData) return Text(data.data!);
+
+                              return const SizedBox();
                             },
                           ),
                         ),
@@ -485,7 +472,10 @@ class PersonInfo extends StatelessWidget {
     );
     if (result == null) return;
     if (result) {
-      await launch('tel:' + getPhone(number, false));
+      await launchUrl(
+        Uri(scheme: 'tel', path: formatPhone(number, false)),
+      );
+
       final recordLastCall = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -512,13 +502,16 @@ class PersonInfo extends StatelessWidget {
           ),
         );
       }
-    } else
-      await launch('tel://' + getPhone(number, false));
+    } else {
+      await launchUrl(
+        Uri(scheme: 'tel', path: formatPhone(number, false)),
+      );
+    }
   }
 
   Future<void> _contactAdd(
     BuildContext context,
-    String phone,
+    String? phone,
     Person person,
   ) async {
     if ((await Permission.contacts.request()).isGranted) {
@@ -534,7 +527,7 @@ class PersonInfo extends StatelessWidget {
                 children: [
                   TextFormField(controller: _name),
                   Container(height: 10),
-                  Text(phone),
+                  Text(phone ?? ''),
                 ],
               ),
               actions: [
@@ -550,12 +543,9 @@ class PersonInfo extends StatelessWidget {
           photo: person.hasPhoto
               ? await person.photoRef.getData(100 * 1024 * 1024)
               : null,
-          phones: [Phone(phone)],
+          phones: [Phone(phone ?? '')],
         )..name.first = _name.text;
         await c.insert();
-        scaffoldMessenger.currentState!.showSnackBar(
-          SnackBar(content: Text('تمت اضافة ' + _name.text + ' بنجاح')),
-        );
       }
     }
   }

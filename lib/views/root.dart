@@ -5,9 +5,10 @@ import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
+import 'package:churchdata/services/notifications_service.dart';
+import 'package:churchdata/services/theming_service.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
-import 'package:churchdata_core/churchdata_core.dart' show ThemingService;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -19,6 +20,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:open_file/open_file.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -500,6 +502,8 @@ class _RootState extends State<Root>
           },
         ),
         bottomNavigationBar: BottomAppBar(
+          color: Theme.of(context).colorScheme.primary,
+          shape: const CircularNotchedRectangle(),
           child: AnimatedBuilder(
             animation: _tabController,
             builder: (context, _) => StreamBuilder<List>(
@@ -558,8 +562,8 @@ class _RootState extends State<Root>
         drawer: Drawer(
           child: ListView(
             children: <Widget>[
-              DrawerHeader(
-                decoration: const BoxDecoration(
+              const DrawerHeader(
+                decoration: BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/Logo.png'),
                   ),
@@ -571,7 +575,7 @@ class _RootState extends State<Root>
                     stops: [0, 1],
                   ),
                 ),
-                child: Container(),
+                child: SizedBox(),
               ),
               ListTile(
                 leading: StreamBuilder<User>(
@@ -771,7 +775,7 @@ class _RootState extends State<Root>
                                 .pushNamed('ActivityAnalysis');
                           },
                         )
-                      : Container();
+                      : const SizedBox();
                 },
               ),
               ListTile(
@@ -1040,7 +1044,7 @@ class _RootState extends State<Root>
                             import(context);
                           },
                         )
-                      : Container();
+                      : const SizedBox();
                 },
               ),
               Selector<User, bool>(
@@ -1103,12 +1107,20 @@ class _RootState extends State<Root>
                                           .call({'onlyArea': rslt.id}))
                                       .data,
                                 );
+                                final documentsDirectory = Platform.isAndroid
+                                    ? (await getExternalStorageDirectories(
+                                        type: StorageDirectory.documents,
+                                      ))!
+                                        .first
+                                    : await getDownloadsDirectory();
+
                                 final file = await File(
-                                  (await getApplicationDocumentsDirectory())
-                                          .path +
-                                      '/' +
-                                      filename.replaceAll(':', ''),
+                                  path.join(
+                                    documentsDirectory!.path,
+                                    filename.replaceAll(':', ''),
+                                  ),
                                 ).create(recursive: true);
+
                                 await firebaseStorage
                                     .ref(filename)
                                     .writeToFile(file);
@@ -1144,7 +1156,7 @@ class _RootState extends State<Root>
                             }
                           },
                         )
-                      : Container();
+                      : const SizedBox();
                 },
               ),
               Selector<User, bool>(
@@ -1178,12 +1190,20 @@ class _RootState extends State<Root>
                                         .call())
                                     .data,
                               );
+                              final documentsDirectory = Platform.isAndroid
+                                  ? (await getExternalStorageDirectories(
+                                      type: StorageDirectory.documents,
+                                    ))!
+                                      .first
+                                  : await getDownloadsDirectory();
+
                               final file = await File(
-                                (await getApplicationDocumentsDirectory())
-                                        .path +
-                                    '/' +
-                                    filename.replaceAll(':', ''),
+                                path.join(
+                                  documentsDirectory!.path,
+                                  filename.replaceAll(':', ''),
+                                ),
                               ).create(recursive: true);
+
                               await firebaseStorage
                                   .ref(filename)
                                   .writeToFile(file);
@@ -1218,8 +1238,21 @@ class _RootState extends State<Root>
                             }
                           },
                         )
-                      : Container();
+                      : const SizedBox();
                 },
+              ),
+              StreamBuilder<bool>(
+                initialData: false,
+                stream:
+                    User.instance.stream.map((u) => u.exportAreas).distinct(),
+                builder: (context, data) => data.data!
+                    ? ListTile(
+                        leading: const Icon(Icons.list_alt),
+                        title: const Text('عمليات التصدير السابقة'),
+                        onTap: () =>
+                            navigator.currentState!.pushNamed('ExportOps'),
+                      )
+                    : const SizedBox(),
               ),
               const Divider(),
               if (!kIsWeb)
@@ -1290,6 +1323,13 @@ class _RootState extends State<Root>
   }
 
   @override
+  void didChangePlatformBrightness() {
+    GetIt.I<CDThemingService>().switchTheme(
+      PlatformDispatcher.instance.platformBrightness == Brightness.dark,
+    );
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
@@ -1345,13 +1385,6 @@ class _RootState extends State<Root>
 
     await _showSearch.close();
     await _searchQuery.close();
-  }
-
-  @override
-  void didChangePlatformBrightness() {
-    GetIt.I<ThemingService>().switchTheme(
-      PlatformDispatcher.instance.platformBrightness == Brightness.dark,
-    );
   }
 
   @override
@@ -1428,30 +1461,34 @@ class _RootState extends State<Root>
   }
 
   Future<void> showPendingUIDialogs() async {
+    if (!kIsWeb) {
+      await showDynamicLink();
+      await GetIt.I<CDNotificationsService>().showInitialNotification(context);
+      await showBatteryOptimizationDialog();
+    }
+
     if (!await User.instance.userDataUpToDate()) {
       await showErrorUpdateDataDialog(context: context, pushApp: false);
     }
-    if (!kIsWeb) await showDynamicLink();
-    if (!kIsWeb) await showPendingMessage(context);
-    if (!kIsWeb) await processClickedNotification(context);
-    if (!kIsWeb) await showBatteryOptimizationDialog();
-    FeatureDiscovery.discoverFeatures(context, [
-      'Areas',
-      'Streets',
-      'Families',
-      'Persons',
-      'Search',
-      'MyAccount',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
-        'ManageUsers',
-      if (User.instance.manageUsers || User.instance.manageAllowedUsers)
-        'ActivityAnalysis',
-      'SpiritualAnalysis',
-      'DataMap',
-      'AdvancedSearch',
-      if (User.instance.manageDeleted) 'ManageDeleted',
-      'Settings',
-    ]);
+
+    if (!kDebugMode && mounted)
+      FeatureDiscovery.discoverFeatures(context, [
+        'Areas',
+        'Streets',
+        'Families',
+        'Persons',
+        'Search',
+        'MyAccount',
+        if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+          'ManageUsers',
+        if (User.instance.manageUsers || User.instance.manageAllowedUsers)
+          'ActivityAnalysis',
+        'SpiritualAnalysis',
+        'DataMap',
+        'AdvancedSearch',
+        if (User.instance.manageDeleted) 'ManageDeleted',
+        'Settings',
+      ]);
   }
 
   Future<void> showBatteryOptimizationDialog() async {

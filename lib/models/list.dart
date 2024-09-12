@@ -4,6 +4,7 @@ import 'package:churchdata/models/list_controllers.dart';
 import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/utils/globals.dart';
+import 'package:churchdata_core/churchdata_core.dart' show formatPhone;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -12,7 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../utils/helpers.dart';
 import 'invitation.dart';
@@ -135,8 +136,7 @@ class _UngroupedList<T extends DataObject> extends StatelessWidget {
       cacheExtent: 200,
       itemCount: data.length + 1,
       itemBuilder: (context, i) {
-        if (i == data.length)
-          return Container(height: MediaQuery.of(context).size.height / 19);
+        if (i == data.length) return const SizedBox(height: 80);
 
         final T current = data[i];
         return listController.buildItem(
@@ -205,8 +205,7 @@ class _GroupedList<O extends DataObject> extends StatelessWidget {
       },
       cacheExtent: 200,
       groupHeaderBuilder: (context, i) {
-        if (i == groupedData.length)
-          return Container(height: MediaQuery.of(context).size.height / 15);
+        if (i == groupedData.length) return const SizedBox(height: 80);
 
         return Card(
           child: ListTile(
@@ -295,10 +294,13 @@ Future<void> _defaultLongPress<T extends DataObject>(
   T current,
   DataObjectListController<T> _listController,
 ) async {
+  final List<T> currentSelected =
+      _listController.selected.value.values.toList();
+
   _listController.selectionMode.add(!_listController.selectionMode.value);
 
   if (!_listController.selectionMode.value) {
-    if (_listController.selected.value.isNotEmpty) {
+    if (currentSelected.isNotEmpty) {
       if (T == Person) {
         await showDialog(
           context: context,
@@ -309,22 +311,20 @@ Future<void> _defaultLongPress<T extends DataObject>(
                 icon: const Icon(Icons.sms),
                 onPressed: () {
                   navigator.currentState!.pop();
-                  final List<Person> people = _listController
-                      .selected.value.values
-                      .cast<Person>()
-                      .toList()
-                      .where((p) => p.phone != null && p.phone!.isNotEmpty)
+
+                  final List<String> peoplePhones = currentSelected
+                      .where(
+                        (p) =>
+                            p is Person &&
+                            p.phone != null &&
+                            p.phone!.isNotEmpty,
+                      )
+                      .map((p) => getPhone((p as Person).phone!))
                       .toList();
-                  if (people.isNotEmpty)
-                    launch(
-                      'sms:' +
-                          people
-                              .map(
-                                (f) => getPhone(f.phone!),
-                              )
-                              .toList()
-                              .cast<String>()
-                              .join(','),
+
+                  if (peoplePhones.isNotEmpty)
+                    launchUrlString(
+                      'sms:' + peoplePhones.join(','),
                     );
                 },
                 label: const Text('ارسال رسالة جماعية'),
@@ -333,9 +333,10 @@ Future<void> _defaultLongPress<T extends DataObject>(
                 icon: const Icon(Icons.share),
                 onPressed: () async {
                   navigator.currentState!.pop();
+
                   await Share.share(
                     (await Future.wait(
-                      _listController.selected.value.values.cast<Person>().map(
+                      currentSelected.cast<Person>().map(
                             (f) async => f.name + ': ' + await sharePerson(f),
                           ),
                     ))
@@ -348,6 +349,7 @@ Future<void> _defaultLongPress<T extends DataObject>(
                 icon: const ImageIcon(AssetImage('assets/whatsapp.png')),
                 onPressed: () async {
                   navigator.currentState!.pop();
+
                   final con = TextEditingController();
                   String? msg = await showDialog(
                     context: context,
@@ -370,14 +372,16 @@ Future<void> _defaultLongPress<T extends DataObject>(
                       ),
                     ),
                   );
+
                   if (msg != null) {
                     msg = Uri.encodeComponent(msg);
-                    for (final Person person in _listController
-                        .selected.value.values
+                    for (final Person person in currentSelected
                         .cast<Person>()
                         .where((p) => p.phone != null && p.phone!.isNotEmpty)) {
-                      final String phone = getPhone(person.phone!);
-                      await launch('https://wa.me/$phone?text=$msg');
+                      final String phone = formatPhone(person.phone!);
+                      await launchUrlString(
+                        'whatsapp://send?phone=+$phone&text=$msg',
+                      );
                     }
                   }
                 },
@@ -388,8 +392,7 @@ Future<void> _defaultLongPress<T extends DataObject>(
                 onPressed: () async {
                   navigator.currentState!.pop();
                   if ((await Permission.contacts.request()).isGranted) {
-                    for (final Person item in _listController
-                        .selected.value.values
+                    for (final Person item in currentSelected
                         .cast<Person>()
                         .where((p) => p.phone != null && p.phone!.isNotEmpty)) {
                       try {
@@ -419,7 +422,7 @@ Future<void> _defaultLongPress<T extends DataObject>(
       } else
         await Share.share(
           (await Future.wait(
-            _listController.selected.value.values
+            currentSelected
                 .map((f) async => f.name + ': ' + await shareDataObject(f))
                 .toList(),
           ))

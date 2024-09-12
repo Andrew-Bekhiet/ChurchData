@@ -152,7 +152,7 @@ class Street extends DataObject
           }
           return MapView(
             childrenDepth: 3,
-            initialLocation: const LatLng(34, 50),
+            initialLocation: const LatLng(30.033333, 31.233334),
             editMode: editMode,
             street: this,
           );

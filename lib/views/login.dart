@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide FirebaseAuth, User;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -169,9 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<bool> setupSettings() async {
     try {
-      final user = User.instance;
       final settings = Hive.box('Settings');
-      settings.get('cacheSize') ?? await settings.put('cacheSize', 314572800);
 
       settings.get('AreaSecondLine') ??
           await settings.put('AreaSecondLine', 'Address');
@@ -185,85 +182,6 @@ class _LoginScreenState extends State<LoginScreen> {
       settings.get('PersonSecondLine') ??
           await settings.put('PersonSecondLine', 'Type');
 
-      if (!kIsWeb)
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) async {
-            if (user
-                .getNotificationsPermissions()
-                .values
-                .toList()
-                .any((e) => e)) {
-              final notificationsSettings =
-                  Hive.box<Map>('NotificationsSettings');
-              if (user.confessionsNotify) {
-                if (notificationsSettings.get('ConfessionTime') == null) {
-                  await notificationsSettings.put(
-                    'ConfessionTime',
-                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0},
-                  );
-                }
-                await AndroidAlarmManager.periodic(
-                  const Duration(days: 7),
-                  'Confessions'.hashCode,
-                  showConfessionNotification,
-                  exact: true,
-                  startAt: DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    11,
-                  ),
-                  rescheduleOnReboot: true,
-                );
-              }
-
-              if (user.tanawolNotify) {
-                if (notificationsSettings.get('TanawolTime') == null) {
-                  await notificationsSettings.put(
-                    'TanawolTime',
-                    <String, int>{'Period': 7, 'Hours': 11, 'Minutes': 0},
-                  );
-                }
-                await AndroidAlarmManager.periodic(
-                  const Duration(days: 7),
-                  'Tanawol'.hashCode,
-                  showTanawolNotification,
-                  exact: true,
-                  startAt: DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    11,
-                  ),
-                  rescheduleOnReboot: true,
-                );
-              }
-
-              if (user.birthdayNotify) {
-                if (notificationsSettings.get('BirthDayTime') == null) {
-                  await notificationsSettings.put(
-                    'BirthDayTime',
-                    <String, int>{'Hours': 11, 'Minutes': 0},
-                  );
-                }
-                await AndroidAlarmManager.periodic(
-                  const Duration(days: 1),
-                  'BirthDay'.hashCode,
-                  showBirthDayNotification,
-                  exact: true,
-                  startAt: DateTime(
-                    DateTime.now().year,
-                    DateTime.now().month,
-                    DateTime.now().day,
-                    11,
-                  ),
-                  wakeup: true,
-                  rescheduleOnReboot: true,
-                );
-              }
-            }
-          },
-        );
       return true;
     } catch (err, stkTrace) {
       await FirebaseCrashlytics.instance

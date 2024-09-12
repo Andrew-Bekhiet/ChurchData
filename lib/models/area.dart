@@ -174,7 +174,7 @@ class Area extends DataObject with PhotoObject, ParentObject<Street> {
           }
           return MapView(
             childrenDepth: depth,
-            initialLocation: const LatLng(34, 50),
+            initialLocation: const LatLng(30.033333, 31.233334),
             editMode: editMode,
             area: this,
           );

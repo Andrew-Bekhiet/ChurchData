@@ -204,18 +204,17 @@ class _FamilyInfoState extends State<FamilyInfo> {
                               ),
                             ),
                           ),
-                          if (family.address?.isNotEmpty ?? true)
-                            ListTile(
-                              title: const Text('العنوان'),
-                              subtitle: Text(family.address!),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.copy),
-                                tooltip: 'نسخ',
-                                onPressed: () => Clipboard.setData(
-                                  ClipboardData(text: family.address ?? ''),
-                                ),
+                          ListTile(
+                            title: const Text('العنوان'),
+                            subtitle: Text(family.address ?? ''),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.copy),
+                              tooltip: 'نسخ',
+                              onPressed: () => Clipboard.setData(
+                                ClipboardData(text: family.address ?? ''),
                               ),
                             ),
+                          ),
                           if (family.notes?.isNotEmpty ?? false)
                             ListTile(
                               title: const Text('ملاحظات'),

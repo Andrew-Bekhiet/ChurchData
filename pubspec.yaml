@@ -21,10 +21,6 @@ dependencies:
   connectivity_plus: ^6.0.3
   cupertino_icons: ^1.0.5
   device_info_plus: ^10.1.0
-  disable_battery_optimization:
-    git:
-      url: https://github.com/Andrew-Bekhiet/disable_battery_optimization
-      ref: e0bd4a6dc0ed3e411beb822a31b29e331416df86
   expandable: ^5.0.1
   feature_discovery:
     git:

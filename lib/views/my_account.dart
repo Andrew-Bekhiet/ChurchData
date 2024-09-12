@@ -149,7 +149,7 @@ class _MyAccountState extends State<MyAccount> {
                           ),
                         ],
                       );
-                      if (finalImage != null) return;
+                      if (finalImage == null) return;
                       if (await showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
@@ -175,7 +175,7 @@ class _MyAccountState extends State<MyAccount> {
                             duration: Duration(minutes: 2),
                           ),
                         );
-                        await user.photoRef.putFile(File(finalImage!.path));
+                        await user.photoRef.putFile(File(finalImage.path));
                         user.reloadImage();
                         setState(() {});
                         scaffoldMessenger.currentState!.hideCurrentSnackBar();

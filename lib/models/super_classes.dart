@@ -4,6 +4,7 @@ import 'package:async/async.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -119,6 +120,8 @@ class DataObjectPhoto extends StatefulWidget {
 class _DataObjectPhotoState extends State<DataObjectPhoto> {
   bool disposed = false;
 
+  String get cacheKey => widget.object.photoRef.fullPath;
+
   @override
   void dispose() {
     disposed = true;
@@ -127,15 +130,17 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
 
   Future<void> _updateCache(String cache) async {
     String? url;
+
     try {
       url = await widget.object.photoRef.getDownloadURL();
     } catch (e) {
       url = null;
     }
-    if (cache != url) {
-      await Hive.box<String?>('PhotosURLsCache')
-          .put(widget.object.photoRef.fullPath, url);
-      await DefaultCacheManager().removeFile(cache);
+
+    if (cache != url && url != null) {
+      await Hive.box<String?>('PhotosURLsCache').put(cacheKey, url);
+
+      await DefaultCacheManager().removeFile(cacheKey);
       widget.object._photoUrlCache.invalidate();
 
       if (mounted && !disposed) setState(() {});
@@ -148,8 +153,9 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
       builder: (context, constrains) {
         if (!widget.object.hasPhoto)
           return Icon(widget.object.defaultIcon, size: constrains.maxHeight);
+
         return Hero(
-          tag: widget.heroTag ?? widget.object.photoRef.fullPath,
+          tag: widget.heroTag ?? cacheKey,
           child: ConstrainedBox(
             constraints: BoxConstraints.expand(
               height: constrains.maxHeight,
@@ -158,22 +164,22 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
             child: FutureBuilder<String>(
               future: widget.object._photoUrlCache.fetch(
                 () async {
-                  final String? cache = Hive.box<String?>('PhotosURLsCache')
-                      .get(widget.object.photoRef.fullPath);
+                  final String? cache =
+                      Hive.box<String?>('PhotosURLsCache').get(cacheKey);
 
                   if (cache == null) {
                     final String url = await widget.object.photoRef
                         .getDownloadURL()
                         .catchError((onError) => '');
                     await Hive.box<String?>('PhotosURLsCache')
-                        .put(widget.object.photoRef.fullPath, url);
+                        .put(cacheKey, url);
 
                     return url;
                   }
 
                   unawaited(_updateCache(cache));
 
-                  return cache;
+                  return SynchronousFuture(cache);
                 },
               ),
               builder: (context, data) {
@@ -197,10 +203,10 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                         context: context,
                         builder: (context) => Dialog(
                           child: Hero(
-                            tag: widget.heroTag ??
-                                widget.object.photoRef.fullPath,
+                            tag: widget.heroTag ?? cacheKey,
                             child: InteractiveViewer(
                               child: CachedNetworkImage(
+                                cacheKey: cacheKey,
                                 imageUrl: data.data!,
                                 progressIndicatorBuilder:
                                     (context, url, progress) => AspectRatio(
@@ -215,6 +221,7 @@ class _DataObjectPhotoState extends State<DataObjectPhoto> {
                         ),
                       ),
                       child: CachedNetworkImage(
+                        cacheKey: cacheKey,
                         memCacheHeight: (constrains.maxHeight * 4).toInt(),
                         imageUrl: data.data!,
                         progressIndicatorBuilder: (context, url, progress) =>

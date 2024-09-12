@@ -1,8 +1,9 @@
 import 'package:churchdata/utils/globals.dart';
-import 'package:flutter/material.dart';
+import 'package:churchdata_core/churchdata_core.dart';
+import 'package:flutter/material.dart' hide Notification;
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../models/notification.dart' as n;
+import '../models/notification_widget.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -14,7 +15,8 @@ class NotificationsPage extends StatefulWidget {
 class _NotificationsPageState extends State<NotificationsPage> {
   @override
   void dispose() {
-    Hive.box<Map>('Notifications').close();
+    Hive.box<Notification>('Notifications').close();
+
     super.dispose();
   }
 
@@ -25,18 +27,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
         title: const Text('الإشعارات'),
       ),
       body: FutureBuilder(
-        future: Hive.openBox<Map>('Notifications'),
+        future: Hive.openBox<Notification>('Notifications'),
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done)
+          if (!snapshot.hasData)
             return const Center(child: CircularProgressIndicator());
+
           return ListView.builder(
-            itemCount: Hive.box<Map>('Notifications').length,
+            itemCount: Hive.box<Notification>('Notifications').length,
             itemBuilder: (context, i) {
-              return n.Notification.fromMessage(
-                Hive.box<Map>('Notifications')
-                    .getAt(Hive.box<Map>('Notifications').length - i - 1)!
-                    .cast<String, dynamic>(),
-                () async {
+              return NotificationWidget(
+                Hive.box<Notification>('Notifications').getAt(
+                  Hive.box<Notification>('Notifications').length - i - 1,
+                )!,
+                longPress: () async {
                   if (await showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -51,9 +54,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         ),
                       ) ==
                       true) {
-                    await Hive.box<Map>('Notifications').deleteAt(
-                      Hive.box<Map>('Notifications').length - i - 1,
+                    await Hive.box<Notification>('Notifications').deleteAt(
+                      Hive.box<Notification>('Notifications').length - i - 1,
                     );
+
                     setState(() {});
                   }
                 },

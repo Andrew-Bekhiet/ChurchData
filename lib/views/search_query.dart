@@ -642,7 +642,7 @@ class _SearchQueryState extends State<SearchQuery> {
               children: <Widget>[
                 const Text('بحث باليوم والشهر فقط'),
                 Switch(
-                  value: !birthDate,
+                  value: birthDate,
                   onChanged: (v) => setState(() {
                     birthDate = !v;
                   }),
@@ -1033,7 +1033,7 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        if (!birthDate && childIndex == 2) {
+        if (birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
@@ -1131,7 +1131,7 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        if (!birthDate && childIndex == 2) {
+        if (birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
@@ -1216,7 +1216,7 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        if (!birthDate && childIndex == 2) {
+        if (birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(
@@ -1301,7 +1301,7 @@ class _SearchQueryState extends State<SearchQuery> {
           );
           break;
         }
-        if (!birthDate && childIndex == 2) {
+        if (birthDate && childIndex == 2) {
           body = DataObjectList<Person>(
             autoDisposeController: true,
             options: DataObjectListController<Person>(

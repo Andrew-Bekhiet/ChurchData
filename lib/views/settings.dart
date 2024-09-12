@@ -1,9 +1,8 @@
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:churchdata/models/area.dart';
 import 'package:churchdata/models/family.dart';
 import 'package:churchdata/models/person.dart';
 import 'package:churchdata/models/street.dart';
-import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/services/notifications_service.dart';
 import 'package:churchdata_core/churchdata_core.dart'
     show
         DateTimeX,
@@ -347,48 +346,6 @@ class SettingsState extends State<Settings> {
                     return Container();
                   },
                 ),
-                ExpandablePanel(
-                  theme: ExpandableThemeData(
-                    useInkWell: true,
-                    iconColor: Theme.of(context).iconTheme.color,
-                    bodyAlignment: ExpandablePanelBodyAlignment.right,
-                  ),
-                  header: const Text(
-                    'أخرى',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  collapsed: const Text('إعدادات أخرى'),
-                  expanded: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'الحجم الأقصى للبيانات المؤقتة (MB):',
-                      ),
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.done,
-                      initialValue: ((settings.get(
-                                    'cacheSize',
-                                    defaultValue: 300 * 1024 * 1024,
-                                  ) /
-                                  1024) /
-                              1024)
-                          .truncate()
-                          .toString(),
-                      onSaved: (c) async {
-                        await settings.put(
-                          'cacheSize',
-                          int.parse(c!) * 1024 * 1024,
-                        );
-                      },
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) {
-                          return 'هذا الحقل مطلوب';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -430,6 +387,7 @@ class SettingsState extends State<Settings> {
               const Text('التذكير بأعياد الميلاد كل يوم الساعة: '),
               Expanded(
                 child: TappableFormField<DateTime>(
+                  decoration: (context, state) => const InputDecoration(),
                   initialValue: DateTime(
                     2021,
                     1,
@@ -485,10 +443,11 @@ class SettingsState extends State<Settings> {
                       'BirthDayTime',
                       NotificationSetting(value.hour, value.minute, 1),
                     );
-                    await AndroidAlarmManager.periodic(
+
+                    await CDNotificationsService.I.schedulePeriodic(
                       const Duration(days: 1),
                       'BirthDay'.hashCode,
-                      showBirthDayNotification,
+                      CDNotificationsService.showBirthDayNotification,
                       exact: true,
                       allowWhileIdle: true,
                       startAt: DateTime.now().replaceTime(value),
@@ -506,7 +465,8 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار الاعتراف كل ',
             hiveKey: 'ConfessionTime',
             alarmId: 'Confessions'.hashCode,
-            notificationCallback: showConfessionNotification,
+            notificationCallback:
+                CDNotificationsService.showConfessionNotification,
           ),
         if (notifications['tanawolNotify']!) const SizedBox(height: 20),
         if (notifications['tanawolNotify']!)
@@ -514,7 +474,8 @@ class SettingsState extends State<Settings> {
             label: 'ارسال انذار التناول كل ',
             hiveKey: 'TanawolTime',
             alarmId: 'Tanawol'.hashCode,
-            notificationCallback: showTanawolNotification,
+            notificationCallback:
+                CDNotificationsService.showTanawolNotification,
           ),
       ],
     );

@@ -82,7 +82,7 @@ class User extends DataObject with PhotoObject {
     await _stream.close();
   }
 
-  void _initListeners() {
+  Future<void> _initListeners() async {
     if (Hive.box('User').toMap().isNotEmpty &&
         Hive.box('User').get('name') != null &&
         Hive.box('User').get('email') != null &&
@@ -400,18 +400,20 @@ class User extends DataObject with PhotoObject {
 
   String getPermissions() {
     if (approved) {
-      String permissions = '';
-      if (manageUsers) permissions += 'تعديل المستخدمين،';
-      if (manageAllowedUsers) permissions += 'تعديل مستخدمين محددين،';
-      if (superAccess) permissions += 'رؤية جميع البيانات،';
-      if (manageDeleted) permissions += 'استرجاع المحئوفات،';
-      if (write) permissions += 'تعديل البيانات،';
-      if (exportAreas) permissions += 'تصدير منطقة،';
-      if (approveLocations) permissions += 'تأكيد المواقع،';
-      if (birthdayNotify) permissions += 'اشعار أعياد الميلاد،';
-      if (confessionsNotify) permissions += 'اشعار الاعتراف،';
-      if (tanawolNotify) permissions += 'اشعار التناول،';
-      return permissions;
+      final List<String> permissions = [
+        if (manageUsers) 'تعديل المستخدمين',
+        if (manageAllowedUsers) 'تعديل مستخدمين محددين',
+        if (superAccess) 'رؤية جميع البيانات',
+        if (manageDeleted) 'استرجاع المحئوفات',
+        if (write) 'تعديل البيانات',
+        if (exportAreas) 'تصدير منطقة',
+        if (approveLocations) 'تأكيد المواقع',
+        if (birthdayNotify) 'اشعار أعياد الميلاد',
+        if (confessionsNotify) 'اشعار الاعتراف',
+        if (tanawolNotify) 'اشعار التناول',
+      ];
+
+      return permissions.join(', ');
     }
     return 'حساب غير منشط';
   }

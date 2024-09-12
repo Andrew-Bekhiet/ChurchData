@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:async/async.dart';
 import 'package:churchdata/models/data_map.dart';
 import 'package:churchdata/models/mini_models.dart';
+import 'package:churchdata/services/notifications_service.dart';
+import 'package:churchdata/services/theming_service.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/views/analytics/activity_analysis.dart';
@@ -13,6 +14,7 @@ import 'package:churchdata/views/edit_page/edit_family.dart';
 import 'package:churchdata/views/edit_page/edit_person.dart';
 import 'package:churchdata/views/edit_page/edit_street.dart';
 import 'package:churchdata/views/edit_page/update_user_data_error_p.dart';
+import 'package:churchdata/views/exports.dart';
 import 'package:churchdata/views/info_page/area_info.dart';
 import 'package:churchdata/views/info_page/family_info.dart';
 import 'package:churchdata/views/info_page/person_info.dart';
@@ -22,7 +24,11 @@ import 'package:churchdata/views/mini_model_list.dart';
 import 'package:churchdata/views/trash.dart';
 import 'package:churchdata/views/user_registeration.dart';
 import 'package:churchdata_core/churchdata_core.dart'
-    show ThemingService, initCore, registerFirebaseDependencies;
+    show
+        NotificationsService,
+        ThemingService,
+        initCore,
+        registerFirebaseDependencies;
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:feature_discovery/feature_discovery.dart';
@@ -30,14 +36,11 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    hide Person;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -70,6 +73,9 @@ import 'views/search_query.dart';
 import 'views/settings.dart' as settingsui;
 import 'views/updates.dart';
 
+Completer<void> _initialization = Completer();
+bool _initializing = false;
+
 void main() async {
   FlutterError.onError =
       (details) => FirebaseCrashlytics.instance.recordFlutterError(details);
@@ -97,8 +103,10 @@ void main() async {
 final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
 const bool kUseFirebaseEmulators = false;
 
-@visibleForTesting
 Future<void> initConfigs([bool retryOnHiveError = true]) async {
+  if (_initializing) return _initialization.future;
+  _initializing = true;
+
   //dot env
   await dotenv.load();
 
@@ -127,13 +135,27 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
   await initCore(
     sentryDSN: sentryDSN,
     overrides: {
-      ThemingService: () => ThemingService.withInitialThemeata(
-            ThemingService.getDefault(
-              darkTheme: Hive.box('Settings').get('DarkTheme'),
-              primaryOverride: Colors.cyan,
-              secondaryOverride: Colors.cyanAccent,
-            ),
-          ),
+      ThemingService: () {
+        final instance = CDThemingService();
+
+        GetIt.I.registerSingleton<CDThemingService>(
+          instance,
+          dispose: (t) => t.dispose(),
+        );
+
+        return instance;
+      },
+      NotificationsService: () {
+        final instance = CDNotificationsService();
+
+        GetIt.I.registerSingleton<CDNotificationsService>(
+          instance,
+          signalsReady: true,
+          dispose: (n) => n.dispose(),
+        );
+
+        return instance;
+      },
     },
   );
 
@@ -168,22 +190,19 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     await Hive.deleteBoxFromDisk('NotificationsSettings');
     await Hive.deleteBoxFromDisk('PhotosURLsCache');
 
-    if (retryOnHiveError) return initConfigs(false);
+    if (retryOnHiveError) {
+      _initializing = false;
+
+      await initConfigs(false);
+
+      return _initialization.future;
+    }
     rethrow;
   }
 
   if (firebaseAuth.currentUser?.uid != null) await User.instance.initialized;
-  //Notifications:
-  if (!kIsWeb) await AndroidAlarmManager.initialize();
 
-  if (!kIsWeb)
-    await FlutterLocalNotificationsPlugin().initialize(
-      const InitializationSettings(
-        android: AndroidInitializationSettings('warning'),
-      ),
-      onDidReceiveBackgroundNotificationResponse: onNotificationClicked,
-      onDidReceiveNotificationResponse: onNotificationClicked,
-    );
+  return _initialization.complete();
 }
 
 class App extends StatefulWidget {
@@ -306,6 +325,7 @@ class AppState extends State<App> {
                 'Update': (context) => const Update(),
                 'Search': (context) => const SearchQuery(),
                 'Trash': (context) => const Trash(),
+                'ExportOps': (context) => const Exports(),
                 'DataMap': (context) => const DataMap(),
                 'AreaInfo': (context) => AreaInfo(
                       area:
@@ -495,45 +515,6 @@ class AppState extends State<App> {
     );
   }
 
-  Future configureFirebaseMessaging() async {
-    if (!Hive.box('Settings')
-            .get('FCM_Token_Registered', defaultValue: false) &&
-        firebaseAuth.currentUser != null) {
-      try {
-        firestore.FirebaseFirestore.instance.settings = firestore.Settings(
-          persistenceEnabled: true,
-          sslEnabled: true,
-          cacheSizeBytes: Hive.box('Settings')
-              .get('cacheSize', defaultValue: 300 * 1024 * 1024),
-        );
-        // ignore: empty_catches
-      } catch (e) {}
-      try {
-        final bool permission =
-            (await firebaseMessaging.requestPermission()).authorizationStatus ==
-                AuthorizationStatus.authorized;
-        if (permission)
-          await FirebaseFunctions.instance
-              .httpsCallable('registerFCMToken')
-              .call({'token': await firebaseMessaging.getToken()});
-        if (permission)
-          await Hive.box('Settings').put('FCM_Token_Registered', true);
-      } catch (err, stkTrace) {
-        await FirebaseCrashlytics.instance
-            .setCustomKey('LastErrorIn', 'AppState.initState');
-        await FirebaseCrashlytics.instance.recordError(err, stkTrace);
-      }
-    }
-    if (configureMessaging) {
-      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-      FirebaseMessaging.onMessage.listen(onForegroundMessage);
-      FirebaseMessaging.onMessageOpenedApp.listen((m) async {
-        await showPendingMessage();
-      });
-      configureMessaging = false;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
@@ -559,13 +540,22 @@ class AppState extends State<App> {
         minimumFetchInterval: const Duration(minutes: 2),
       ),
     );
-    await remoteConfig.fetchAndActivate();
+
+    try {
+      await remoteConfig.fetchAndActivate();
+    } catch (e) {}
 
     if (remoteConfig.getString('LoadApp') == 'false') {
       throw Exception('يجب التحديث لأخر إصدار لتشغيل البرنامج');
     } else {
       if (User.instance.uid != null) {
-        await configureFirebaseMessaging();
+        firestore.FirebaseFirestore.instance.settings =
+            const firestore.Settings(
+          persistenceEnabled: true,
+          sslEnabled: true,
+          cacheSizeBytes: 104857600,
+        );
+
         if (!kIsWeb && reportUID)
           await FirebaseCrashlytics.instance
               .setCustomKey('UID', User.instance.uid!);

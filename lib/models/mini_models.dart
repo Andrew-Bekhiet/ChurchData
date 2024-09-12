@@ -302,16 +302,20 @@ class ServingType extends MiniModel {
 }
 
 class StudyYear extends MiniModel {
-  bool isCollegeYear;
-  StudyYear(String id, String name, {this.isCollegeYear = false})
+  int grade;
+
+  StudyYear(String id, String name, {required this.grade})
       : super('StudyYears', id, name);
+
   StudyYear._createFromData(Json data, String id)
-      : isCollegeYear = data['IsCollegeYear'],
+      : grade = data['Grade'],
         super.createFromData('StudyYears', data, id);
 
   StudyYear.createNew()
-      : isCollegeYear = false,
+      : grade = 1,
         super.createNew('StudyYears');
+
+  bool get isCollegeYear => grade >= 13;
 
   @override
   bool operator ==(other) {
@@ -320,7 +324,7 @@ class StudyYear extends MiniModel {
 
   @override
   Json getMap() {
-    return {'Name': name, 'IsCollegeYear': isCollegeYear};
+    return {'Name': name, 'Grade': grade};
   }
 
   static StudyYear? fromDoc(JsonDoc data) =>
@@ -330,7 +334,7 @@ class StudyYear extends MiniModel {
       StudyYear._createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
-    return firestore.collection('StudyYears').orderBy('Name').get();
+    return firestore.collection('StudyYears').orderBy('Grade').get();
   }
 
   @override

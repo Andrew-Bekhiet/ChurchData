@@ -587,26 +587,24 @@ class _EditPersonState extends State<EditPerson> {
                               decoration: const InputDecoration(
                                 labelText: 'نوع الفرد',
                               ),
-                              child:
-                                  person.type != null && person.type!.isNotEmpty
-                                      ? FutureBuilder<String?>(
-                                          future: cache['PersonStringType']!
-                                                  .fetch(person.getStringType)
-                                              as Future<String?>,
-                                          builder: (cote, ty) {
-                                            if (ty.connectionState ==
-                                                    ConnectionState.done &&
-                                                ty.hasData) {
-                                              return Text(ty.data!);
-                                            } else if (ty.connectionState ==
-                                                ConnectionState.done)
-                                              return const Text('');
-                                            else {
-                                              return const LinearProgressIndicator();
-                                            }
-                                          },
-                                        )
-                                      : null,
+                              child: person.type != null &&
+                                      person.type!.isNotEmpty
+                                  ? FutureBuilder<String?>(
+                                      future: cache['PersonStringType']!
+                                              .fetch(person.getStringType)
+                                          as Future<String?>,
+                                      builder: (cote, ty) {
+                                        if (ty.hasData) return Text(ty.data!);
+
+                                        if (ty.connectionState ==
+                                            ConnectionState.done)
+                                          return const Text('');
+                                        else {
+                                          return const LinearProgressIndicator();
+                                        }
+                                      },
+                                    )
+                                  : null,
                             ),
                           ),
                         ),
@@ -1205,6 +1203,16 @@ class _EditPersonState extends State<EditPerson> {
             return;
           }
         }
+
+        if (person.isStudent) {
+          person = person.copyWith()
+            ..job = null
+            ..jobDescription = null
+            ..qualification;
+        } else {
+          person = person.copyWith()..studyYear = null;
+        }
+
         final bool update = person.id != 'null';
         if (!update) person.ref = firestore.collection('Persons').doc();
 
