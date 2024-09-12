@@ -48,6 +48,7 @@ jobs:
           echo $GOOGLE_SERVICES_JSON | base64 -d -i > ./android/app/google-services.json
           echo $ANDROID_KEYSTORE_PROPERTIES | base64 -d -i > ./android/releaseKey.properties
           echo $ENCRYPTION_KEYS_DART | base64 -d -i > ./lib/EncryptionKeys.dart
+          touch .env
 
       - name: Install dependencies
         run: flutter pub get
