@@ -82,7 +82,6 @@
 
 .flutter-plugins-dependencies
 ios/Flutter/flutter_export_environment.sh
-Logo.png
 ios/Runner/._GoogleService-Info.plist
 ios/Runner/GoogleService-Info.plist
 ios/Runner/AppDelegate.swift
