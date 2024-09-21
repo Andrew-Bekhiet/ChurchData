@@ -435,14 +435,6 @@ class _EditAreaState extends State<EditArea> {
         }
         final bool update = area.id != 'null';
         if (!update) area.ref = firestore.collection('Areas').doc();
-        if (changedImage != null) {
-          await firebaseStorage.ref().child('AreasPhotos/${area.id}').putFile(
-                File(changedImage!),
-              );
-          area.hasPhoto = true;
-        } else if (deletePhoto) {
-          await firebaseStorage.ref().child('AreasPhotos/${area.id}').delete();
-        }
 
         area.lastEdit = User.instance.uid;
 
@@ -458,6 +450,15 @@ class _EditAreaState extends State<EditArea> {
           //Intentionally unawaited because of no internet connection
           // ignore: unawaited_futures
           area.set();
+        }
+
+        if (changedImage != null) {
+          await firebaseStorage.ref().child('AreasPhotos/${area.id}').putFile(
+                File(changedImage!),
+              );
+          area.hasPhoto = true;
+        } else if (deletePhoto) {
+          await firebaseStorage.ref().child('AreasPhotos/${area.id}').delete();
         }
 
         scaffoldMessenger.currentState!.hideCurrentSnackBar();

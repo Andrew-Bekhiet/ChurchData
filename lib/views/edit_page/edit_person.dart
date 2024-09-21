@@ -1216,21 +1216,6 @@ class _EditPersonState extends State<EditPerson> {
         final bool update = person.id != 'null';
         if (!update) person.ref = firestore.collection('Persons').doc();
 
-        if (changedImage != null) {
-          await firebaseStorage
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .putFile(
-                File(changedImage!),
-              );
-          person.hasPhoto = true;
-        } else if (deletePhoto) {
-          await firebaseStorage
-              .ref()
-              .child('PersonsPhotos/${person.id}')
-              .delete();
-        }
-
         person.lastEdit = User.instance.uid;
 
         if (update && (await Connectivity().checkConnectivity()).isConnected) {
@@ -1265,6 +1250,22 @@ class _EditPersonState extends State<EditPerson> {
           // ignore: unawaited_futures
           person.set();
         }
+
+        if (changedImage != null) {
+          await firebaseStorage
+              .ref()
+              .child('PersonsPhotos/${person.id}')
+              .putFile(
+                File(changedImage!),
+              );
+          person.hasPhoto = true;
+        } else if (deletePhoto) {
+          await firebaseStorage
+              .ref()
+              .child('PersonsPhotos/${person.id}')
+              .delete();
+        }
+
         scaffoldMessenger.currentState!.hideCurrentSnackBar();
         if (mounted) navigator.currentState!.pop(person.ref);
       } else {
