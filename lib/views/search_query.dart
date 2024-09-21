@@ -644,7 +644,7 @@ class _SearchQueryState extends State<SearchQuery> {
                 Switch(
                   value: birthDate,
                   onChanged: (v) => setState(() {
-                    birthDate = !v;
+                    birthDate = v;
                   }),
                 ),
               ],
