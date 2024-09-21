@@ -15,5 +15,5 @@ FirebaseFunctions firebaseFunctions = FirebaseFunctions.instance;
 FirebaseStorage firebaseStorage = FirebaseStorage.instance;
 FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 FirebaseDynamicLinks firebaseDynamicLinks = FirebaseDynamicLinks.instance;
-GoogleSignIn googleSignIn = GoogleSignIn();
+GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
