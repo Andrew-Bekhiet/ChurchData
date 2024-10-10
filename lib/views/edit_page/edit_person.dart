@@ -15,8 +15,8 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:churchdata/views/form_widgets/color_field.dart';
 import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:derived_colors/derived_colors.dart';
@@ -1030,15 +1030,11 @@ class _EditPersonState extends State<EditPerson> {
                         return Container();
                       },
                     ),
-                  ElevatedButton.icon(
-                    style: person.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(
-                            backgroundColor: person.color,
-                          )
-                        : null,
-                    onPressed: selectColor,
-                    icon: const Icon(Icons.color_lens),
-                    label: const Text('اللون'),
+                  ColorField(
+                    initialValue: person.color,
+                    onChanged: (value) => setState(
+                      () => person.color = value ?? Colors.transparent,
+                    ),
                   ),
                   const SizedBox(height: 100),
                 ].map((w) => Focus(child: w)).toList(),
@@ -1074,35 +1070,6 @@ class _EditPersonState extends State<EditPerson> {
     super.initState();
     person = widget.person.copyWith();
     person.setStreetIdFromFamily();
-  }
-
-  Future<void> selectColor() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigator.currentState!.pop();
-              setState(() {
-                person.color = Colors.transparent;
-              });
-              FocusScope.of(context).nextFocus();
-            },
-            child: const Text('بلا لون'),
-          ),
-        ],
-        content: ColorsList(
-          selectedColor: person.color,
-          onSelect: (color) {
-            navigator.currentState!.pop();
-            setState(() {
-              person.color = color;
-            });
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> _delete() async {

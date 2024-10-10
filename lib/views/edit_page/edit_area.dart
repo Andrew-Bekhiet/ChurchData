@@ -9,7 +9,7 @@ import 'package:churchdata/models/user.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/views/form_widgets/color_field.dart';
 import 'package:churchdata/views/mini_lists/users_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -290,13 +290,11 @@ class _EditAreaState extends State<EditArea> {
                       ),
                     ),
                   ),
-                  ElevatedButton.icon(
-                    style: area.color != Colors.transparent
-                        ? ElevatedButton.styleFrom(backgroundColor: area.color)
-                        : null,
-                    onPressed: selectColor,
-                    icon: const Icon(Icons.color_lens),
-                    label: const Text('اللون'),
+                  ColorField(
+                    initialValue: area.color,
+                    onChanged: (value) => setState(
+                      () => area.color = value ?? Colors.transparent,
+                    ),
                   ),
                   Selector<User, bool>(
                     selector: (_, user) => user.manageUsers,
@@ -484,35 +482,6 @@ class _EditAreaState extends State<EditArea> {
         ),
       );
     }
-  }
-
-  Future<void> selectColor() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigator.currentState!.pop();
-              setState(() {
-                area.color = Colors.transparent;
-              });
-              FocusScope.of(context).nextFocus();
-            },
-            child: const Text('بلا لون'),
-          ),
-        ],
-        content: ColorsList(
-          selectedColor: area.color,
-          onSelect: (color) {
-            navigator.currentState!.pop();
-            setState(() {
-              area.color = color;
-            });
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> showUsers() async {

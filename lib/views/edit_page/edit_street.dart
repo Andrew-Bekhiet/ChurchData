@@ -11,7 +11,7 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/views/form_widgets/color_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:derived_colors/derived_colors.dart';
@@ -179,13 +179,11 @@ class _EditStreetState extends State<EditStreet> {
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  style: street.color != Colors.transparent
-                      ? ElevatedButton.styleFrom(backgroundColor: street.color)
-                      : null,
-                  onPressed: selectColor,
-                  icon: const Icon(Icons.color_lens),
-                  label: const Text('اللون'),
+                ColorField(
+                  initialValue: street.color,
+                  onChanged: (value) => setState(
+                    () => street.color = value ?? Colors.transparent,
+                  ),
                 ),
               ].map((w) => Focus(child: w)).toList(),
             ),
@@ -420,35 +418,6 @@ class _EditStreetState extends State<EditStreet> {
       },
     );
     await _orderOptions.close();
-  }
-
-  Future<void> selectColor() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigator.currentState!.pop();
-              setState(() {
-                street.color = Colors.transparent;
-              });
-            },
-            child: const Text('بلا لون'),
-          ),
-        ],
-        content: ColorsList(
-          selectedColor: street.color,
-          onSelect: (color) {
-            navigator.currentState!.pop();
-            setState(() {
-              street.color = color;
-            });
-            FocusScope.of(context).nextFocus();
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> _selectDate(BuildContext context) async {

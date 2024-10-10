@@ -11,7 +11,7 @@ import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
-import 'package:churchdata/views/mini_lists/colors_list.dart';
+import 'package:churchdata/views/form_widgets/color_field.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:derived_colors/derived_colors.dart';
@@ -324,13 +324,11 @@ class _EditFamilyState extends State<EditFamily> {
                     ),
                   ),
                 ),
-                ElevatedButton.icon(
-                  style: family.color != Colors.transparent
-                      ? ElevatedButton.styleFrom(backgroundColor: family.color)
-                      : null,
-                  onPressed: selectColor,
-                  icon: const Icon(Icons.color_lens),
-                  label: const Text('اللون'),
+                ColorField(
+                  initialValue: family.color,
+                  onChanged: (value) => setState(
+                    () => family.color = value ?? Colors.transparent,
+                  ),
                 ),
                 const SizedBox(height: 100),
               ].map((w) => Focus(child: w)).toList(),
@@ -512,35 +510,6 @@ class _EditFamilyState extends State<EditFamily> {
         ),
       );
     }
-  }
-
-  Future<void> selectColor() async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigator.currentState!.pop();
-              setState(() {
-                family.color = Colors.transparent;
-              });
-            },
-            child: const Text('بلا لون'),
-          ),
-        ],
-        content: ColorsList(
-          selectedColor: family.color,
-          onSelect: (color) {
-            navigator.currentState!.pop();
-            setState(() {
-              family.color = color;
-            });
-            FocusScope.of(context).nextFocus();
-          },
-        ),
-      ),
-    );
   }
 
   Future<void> selectFamily() async {

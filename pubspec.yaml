@@ -38,6 +38,7 @@ dependencies:
   firebase_messaging: ^15.1.0
   firebase_remote_config: ^5.1.0
   firebase_storage: ^12.2.0
+  flex_color_picker: ^3.6.0
   flutter:
     sdk: flutter
   flutter_cache_manager: ^3.4.1
