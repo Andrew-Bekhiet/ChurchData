@@ -14,6 +14,7 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -89,10 +90,15 @@ class _StreetInfoState extends State<StreetInfo> {
 
           final Street street = snapshot.data!;
 
+          final foregroundColor =
+              (street.color == Colors.transparent ? null : street.color)
+                  ?.findInvert();
+
           return Scaffold(
             appBar: AppBar(
               backgroundColor:
                   street.color != Colors.transparent ? street.color : null,
+              foregroundColor: foregroundColor,
               title: Text(street.name),
               actions: street.ref.path.startsWith('Deleted')
                   ? <Widget>[

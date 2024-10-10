@@ -14,6 +14,7 @@ import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata_core/churchdata_core.dart'
     show CopiablePropertyWidget;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -98,36 +99,142 @@ class _AreaInfoState extends State<AreaInfo> {
 
         return Scaffold(
           body: NestedScrollView(
-            headerSliverBuilder: (context, _) => <Widget>[
-              SliverAppBar(
-                backgroundColor:
-                    area.color != Colors.transparent ? area.color : null,
-                actions: area.ref.path.startsWith('Deleted')
-                    ? <Widget>[
-                        if (User.instance.write)
-                          IconButton(
-                            icon: const Icon(Icons.restore),
-                            tooltip: 'استعادة',
-                            onPressed: () {
-                              recoverDoc(context, area.ref.path);
-                            },
-                          ),
-                      ]
-                    : <Widget>[
-                        if (User.instance.write)
+            headerSliverBuilder: (context, _) {
+              final foregroundColor =
+                  (area.color == Colors.transparent ? null : area.color)
+                      ?.findInvert();
+
+              return <Widget>[
+                SliverAppBar(
+                  backgroundColor:
+                      area.color != Colors.transparent ? area.color : null,
+                  foregroundColor: foregroundColor,
+                  actions: area.ref.path.startsWith('Deleted')
+                      ? <Widget>[
+                          if (User.instance.write)
+                            IconButton(
+                              icon: const Icon(Icons.restore),
+                              tooltip: 'استعادة',
+                              onPressed: () {
+                                recoverDoc(context, area.ref.path);
+                              },
+                            ),
+                        ]
+                      : <Widget>[
+                          if (User.instance.write)
+                            IconButton(
+                              icon: DescribedFeatureOverlay(
+                                barrierDismissible: false,
+                                contentLocation: ContentLocation.below,
+                                featureId: 'Edit',
+                                tapTarget: Icon(
+                                  Icons.edit,
+                                  color: IconTheme.of(context).color,
+                                ),
+                                title: const Text('تعديل'),
+                                description: Column(
+                                  children: <Widget>[
+                                    const Text('يمكنك تعديل البيانات من هنا'),
+                                    OutlinedButton.icon(
+                                      icon: const Icon(Icons.forward),
+                                      label: Text(
+                                        'التالي',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color,
+                                        ),
+                                      ),
+                                      onPressed: () =>
+                                          FeatureDiscovery.completeCurrentStep(
+                                        context,
+                                      ),
+                                    ),
+                                    OutlinedButton(
+                                      onPressed: () =>
+                                          FeatureDiscovery.dismissAll(context),
+                                      child: Text(
+                                        'تخطي',
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.color,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.secondary,
+                                targetColor: Colors.transparent,
+                                textColor: Theme.of(context)
+                                    .primaryTextTheme
+                                    .bodyLarge!
+                                    .color!,
+                                child: Builder(
+                                  builder: (context) {
+                                    return Stack(
+                                      children: <Widget>[
+                                        const Positioned(
+                                          left: 1.0,
+                                          top: 2.0,
+                                          child: Icon(
+                                            Icons.edit,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.edit,
+                                          color: IconTheme.of(context).color,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ),
+                              onPressed: () async {
+                                final dynamic result =
+                                    await navigator.currentState!.pushNamed(
+                                  'Data/EditArea',
+                                  arguments: area,
+                                );
+                                if (result == null) return;
+
+                                scaffoldMessenger.currentState!
+                                    .hideCurrentSnackBar();
+                                if (result is JsonRef) {
+                                  scaffoldMessenger.currentState!.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم الحفظ بنجاح'),
+                                    ),
+                                  );
+                                } else if (result == 'deleted') {
+                                  navigator.currentState!.pop();
+                                  scaffoldMessenger.currentState!.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم الحذف بنجاح'),
+                                    ),
+                                  );
+                                }
+                              },
+                              tooltip: 'تعديل',
+                            ),
                           IconButton(
                             icon: DescribedFeatureOverlay(
                               barrierDismissible: false,
                               contentLocation: ContentLocation.below,
-                              featureId: 'Edit',
-                              tapTarget: Icon(
-                                Icons.edit,
-                                color: IconTheme.of(context).color,
+                              featureId: 'Share',
+                              tapTarget: const Icon(
+                                Icons.share,
                               ),
-                              title: const Text('تعديل'),
+                              title: const Text('مشاركة البيانات'),
                               description: Column(
                                 children: <Widget>[
-                                  const Text('يمكنك تعديل البيانات من هنا'),
+                                  const Text(
+                                    'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
+                                  ),
                                   OutlinedButton.icon(
                                     icon: const Icon(Icons.forward),
                                     label: Text(
@@ -174,12 +281,12 @@ class _AreaInfoState extends State<AreaInfo> {
                                         left: 1.0,
                                         top: 2.0,
                                         child: Icon(
-                                          Icons.edit,
+                                          Icons.share,
                                           color: Colors.black54,
                                         ),
                                       ),
                                       Icon(
-                                        Icons.edit,
+                                        Icons.share,
                                         color: IconTheme.of(context).color,
                                       ),
                                     ],
@@ -188,43 +295,24 @@ class _AreaInfoState extends State<AreaInfo> {
                               ),
                             ),
                             onPressed: () async {
-                              final dynamic result = await navigator
-                                  .currentState!
-                                  .pushNamed('Data/EditArea', arguments: area);
-                              if (result == null) return;
-
-                              scaffoldMessenger.currentState!
-                                  .hideCurrentSnackBar();
-                              if (result is JsonRef) {
-                                scaffoldMessenger.currentState!.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('تم الحفظ بنجاح'),
-                                  ),
-                                );
-                              } else if (result == 'deleted') {
-                                navigator.currentState!.pop();
-                                scaffoldMessenger.currentState!.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('تم الحذف بنجاح'),
-                                  ),
-                                );
-                              }
+                              await Share.share(
+                                await shareArea(area),
+                              );
                             },
-                            tooltip: 'تعديل',
+                            tooltip: 'مشاركة برابط',
                           ),
-                        IconButton(
-                          icon: DescribedFeatureOverlay(
+                          DescribedFeatureOverlay(
                             barrierDismissible: false,
                             contentLocation: ContentLocation.below,
-                            featureId: 'Share',
+                            featureId: 'MoreOptions',
                             tapTarget: const Icon(
-                              Icons.share,
+                              Icons.more_vert,
                             ),
-                            title: const Text('مشاركة البيانات'),
+                            title: const Text('المزيد من الخيارات'),
                             description: Column(
                               children: <Widget>[
                                 const Text(
-                                  'يمكنك مشاركة البيانات بلينك يفتح البيانات مباشرة داخل البرنامج',
+                                  'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة',
                                 ),
                                 OutlinedButton.icon(
                                   icon: const Icon(Icons.forward),
@@ -264,193 +352,124 @@ class _AreaInfoState extends State<AreaInfo> {
                                 .primaryTextTheme
                                 .bodyLarge!
                                 .color!,
-                            child: Builder(
-                              builder: (context) {
-                                return Stack(
-                                  children: <Widget>[
-                                    const Positioned(
-                                      left: 1.0,
-                                      top: 2.0,
-                                      child: Icon(
-                                        Icons.share,
-                                        color: Colors.black54,
-                                      ),
+                            child: PopupMenuButton(
+                              onSelected: (_) =>
+                                  sendNotification(context, area),
+                              itemBuilder: (context) {
+                                return [
+                                  const PopupMenuItem(
+                                    value: '',
+                                    child: Text(
+                                      'ارسال إشعار للمستخدمين عن المنطقة',
                                     ),
-                                    Icon(
-                                      Icons.share,
-                                      color: IconTheme.of(context).color,
-                                    ),
-                                  ],
-                                );
+                                  ),
+                                ];
                               },
                             ),
                           ),
-                          onPressed: () async {
-                            await Share.share(
-                              await shareArea(area),
-                            );
-                          },
-                          tooltip: 'مشاركة برابط',
+                        ],
+                  expandedHeight: 250.0,
+                  stretch: true,
+                  pinned: true,
+                  flexibleSpace: LayoutBuilder(
+                    builder: (context, constraints) => FlexibleSpaceBar(
+                      title: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: 1 -
+                                    ((constraints.biggest.height -
+                                            kToolbarHeight) /
+                                        (250 - kToolbarHeight)) >
+                                0.7
+                            ? 1
+                            : 0,
+                        child: Text(
+                          area.name,
+                          style: TextStyle(color: foregroundColor),
                         ),
-                        DescribedFeatureOverlay(
-                          barrierDismissible: false,
-                          contentLocation: ContentLocation.below,
-                          featureId: 'MoreOptions',
-                          tapTarget: const Icon(
-                            Icons.more_vert,
-                          ),
-                          title: const Text('المزيد من الخيارات'),
-                          description: Column(
-                            children: <Widget>[
-                              const Text(
-                                'يمكنك ايجاد المزيد من الخيارات من هنا مثل: اشعار المستخدمين عن المنطقة',
-                              ),
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.forward),
-                                label: Text(
-                                  'التالي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color,
-                                  ),
-                                ),
-                                onPressed: () =>
-                                    FeatureDiscovery.completeCurrentStep(
-                                  context,
-                                ),
-                              ),
-                              OutlinedButton(
-                                onPressed: () =>
-                                    FeatureDiscovery.dismissAll(context),
-                                child: Text(
-                                  'تخطي',
-                                  style: TextStyle(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.color,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                          targetColor: Colors.transparent,
-                          textColor: Theme.of(context)
-                              .primaryTextTheme
-                              .bodyLarge!
-                              .color!,
-                          child: PopupMenuButton(
-                            onSelected: (_) => sendNotification(context, area),
-                            itemBuilder: (context) {
-                              return [
-                                const PopupMenuItem(
-                                  value: '',
-                                  child:
-                                      Text('ارسال إشعار للمستخدمين عن المنطقة'),
-                                ),
-                              ];
-                            },
-                          ),
-                        ),
-                      ],
-                expandedHeight: 250.0,
-                stretch: true,
-                pinned: true,
-                flexibleSpace: LayoutBuilder(
-                  builder: (context, constraints) => FlexibleSpaceBar(
-                    title: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 300),
-                      opacity: constraints.biggest.height > kToolbarHeight * 1.7
-                          ? 0
-                          : 1,
-                      child: Text(area.name),
+                      ),
+                      background: area.photo(cropToCircle: false),
                     ),
-                    background: area.photo(cropToCircle: false),
                   ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    <Widget>[
-                      ListTile(
-                        title: Hero(
-                          tag: area.id + '-name',
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: Text(
-                              area.name,
-                              style: Theme.of(context).textTheme.titleLarge,
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(
+                      <Widget>[
+                        ListTile(
+                          title: Hero(
+                            tag: area.id + '-name',
+                            child: Material(
+                              type: MaterialType.transparency,
+                              child: Text(
+                                area.name,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      if (area.address?.isNotEmpty ?? false)
-                        CopiablePropertyWidget('العنوان:', area.address),
-                      if (area.locationPoints.isNotEmpty)
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.map),
-                          onPressed: () => showMap(context, area),
-                          label: const Text('إظهار على الخريطة'),
+                        if (area.address?.isNotEmpty ?? false)
+                          CopiablePropertyWidget('العنوان:', area.address),
+                        if (area.locationPoints.isNotEmpty)
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.map),
+                            onPressed: () => showMap(context, area),
+                            label: const Text('إظهار على الخريطة'),
+                          ),
+                        const Divider(thickness: 1),
+                        HistoryProperty(
+                          'تاريخ أخر زيارة:',
+                          area.lastVisit,
+                          area.ref.collection('VisitHistory'),
                         ),
-                      const Divider(thickness: 1),
-                      HistoryProperty(
-                        'تاريخ أخر زيارة:',
-                        area.lastVisit,
-                        area.ref.collection('VisitHistory'),
-                      ),
-                      HistoryProperty(
-                        'تاريخ أخر زيارة (لللأب الكاهن):',
-                        area.fatherLastVisit,
-                        area.ref.collection('FatherVisitHistory'),
-                      ),
-                      EditHistoryProperty(
-                        'أخر تحديث للبيانات:',
-                        area.lastEdit,
-                        area.ref.collection('EditHistory'),
-                        discoverFeature: true,
-                      ),
-                      if (User.instance.manageUsers ||
-                          User.instance.manageAllowedUsers)
+                        HistoryProperty(
+                          'تاريخ أخر زيارة (لللأب الكاهن):',
+                          area.fatherLastVisit,
+                          area.ref.collection('FatherVisitHistory'),
+                        ),
+                        EditHistoryProperty(
+                          'أخر تحديث للبيانات:',
+                          area.lastEdit,
+                          area.ref.collection('EditHistory'),
+                          discoverFeature: true,
+                        ),
+                        if (User.instance.manageUsers ||
+                            User.instance.manageAllowedUsers)
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.analytics_outlined),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              'ActivityAnalysis',
+                              arguments: [area],
+                            ),
+                            label: const Text('تحليل بيانات الخدمة'),
+                          ),
                         ElevatedButton.icon(
                           icon: const Icon(Icons.analytics_outlined),
                           onPressed: () => Navigator.pushNamed(
                             context,
-                            'ActivityAnalysis',
+                            'SpiritualAnalysis',
                             arguments: [area],
                           ),
-                          label: const Text('تحليل بيانات الخدمة'),
+                          label: const Text('تحليل الحياة الروحية للمخدومين'),
                         ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.analytics_outlined),
-                        onPressed: () => Navigator.pushNamed(
-                          context,
-                          'SpiritualAnalysis',
-                          arguments: [area],
+                        const Divider(thickness: 1),
+                        Text(
+                          'الشوارع بالمنطقة:',
+                          style: Theme.of(context).textTheme.bodyLarge,
                         ),
-                        label: const Text('تحليل الحياة الروحية للمخدومين'),
-                      ),
-                      const Divider(thickness: 1),
-                      Text(
-                        'الشوارع بالمنطقة:',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      SearchFilters(
-                        1,
-                        orderOptions: _orderOptions,
-                        options: _listOptions,
-                        textStyle: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
+                        SearchFilters(
+                          1,
+                          orderOptions: _orderOptions,
+                          options: _listOptions,
+                          textStyle: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ];
+            },
             body: SafeArea(
               child: area.ref.path.startsWith('Deleted')
                   ? const Text('يجب استعادة المنطقة لرؤية الشوراع بداخلها')

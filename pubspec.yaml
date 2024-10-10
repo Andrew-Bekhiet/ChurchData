@@ -20,6 +20,7 @@ dependencies:
   collection: ^1.18.0
   connectivity_plus: ^6.0.3
   cupertino_icons: ^1.0.5
+  derived_colors: ^0.4.0
   device_info_plus: ^10.1.0
   expandable: ^5.0.1
   feature_discovery:

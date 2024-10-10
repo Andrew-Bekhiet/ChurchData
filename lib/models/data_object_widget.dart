@@ -3,6 +3,7 @@ import 'package:churchdata/models/models.dart';
 import 'package:churchdata/models/super_classes.dart';
 import 'package:churchdata/typedefs.dart';
 import 'package:churchdata/utils/helpers.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:tinycolor2/tinycolor2.dart';
 
@@ -102,7 +103,19 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final nonTransparentColor =
+        current.color == Colors.transparent ? null : current.color;
+
+    final invert = nonTransparentColor?.findInvert();
+    final foregroundColor = invert ??
+        (wrapInCard
+            ? CardTheme.of(context).color?.findInvert()
+            : ListTileTheme.of(context).textColor);
+
     final tile = ListTile(
+      iconColor: foregroundColor,
+      textColor: foregroundColor,
+      tileColor: nonTransparentColor,
       dense: isDense,
       onLongPress: onLongPress,
       onTap: onTap ?? () => dataObjectTap(current),
@@ -122,7 +135,7 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   } else if (subtitleData.hasData) {
                     return Text(
                       subtitleData.data!,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     );
                   } else {
@@ -144,26 +157,15 @@ class DataObjectWidget<T extends DataObject> extends StatelessWidget {
                   .photo(cropToCircle: current is Person || current is User)
               : null),
     );
-    return wrapInCard
-        ? Card(
-            color: _getColor(context),
-            child: tile,
-          )
-        : tile;
-  }
 
-  Color? _getColor(BuildContext context) {
-    if (current.color == Colors.transparent) return null;
-    if (current.color.brightness > 170 &&
-        Theme.of(context).brightness == Brightness.dark) {
-      //refers to the contrasted text theme color
-      return current.color
-          .darken(((265 - current.color.brightness) / 255 * 100).toInt());
-    } else if (current.color.brightness < 85 &&
-        Theme.of(context).brightness == Brightness.light) {
-      return current.color
-          .lighten(((265 - current.color.brightness) / 255 * 100).toInt());
+    if (wrapInCard) {
+      return Card.filled(
+        elevation: 1,
+        color: nonTransparentColor,
+        child: tile,
+      );
     }
-    return current.color;
+
+    return tile;
   }
 }

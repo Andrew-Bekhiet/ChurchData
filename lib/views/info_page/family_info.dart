@@ -16,6 +16,7 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:churchdata/utils/globals.dart';
 import 'package:churchdata/utils/helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -111,10 +112,14 @@ class _FamilyInfoState extends State<FamilyInfo> {
 
           final Family family = snapshot.data!;
 
+          final foregroundColor =
+              (family.color == Colors.transparent ? null : family.color)
+                  ?.findInvert();
           return Scaffold(
             appBar: AppBar(
               backgroundColor:
                   family.color != Colors.transparent ? family.color : null,
+              foregroundColor: foregroundColor,
               title: Text(family.name),
               actions: family.ref.path.startsWith('Deleted')
                   ? <Widget>[

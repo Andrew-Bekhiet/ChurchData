@@ -14,6 +14,7 @@ import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -42,6 +43,10 @@ class _EditFamilyState extends State<EditFamily> {
       appBar: AppBar(
         backgroundColor:
             family.color != Colors.transparent ? family.color : null,
+        foregroundColor: (family.color == Colors.transparent
+                ? Theme.of(context).colorScheme.primary
+                : family.color)
+            .findInvert(),
         title: Text(family.name),
       ),
       body: Form(

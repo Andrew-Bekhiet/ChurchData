@@ -11,6 +11,7 @@ import 'package:churchdata/utils/helpers.dart';
 import 'package:churchdata_core/churchdata_core.dart'
     hide JsonDoc, JsonRef, Timestamp;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:intl/intl.dart';
@@ -44,11 +45,15 @@ class PersonInfo extends StatelessWidget {
 
             return NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
+                final foregroundColor =
+                    (person.color == Colors.transparent ? null : person.color)
+                        ?.findInvert();
                 return <Widget>[
                   SliverAppBar(
                     backgroundColor: person.color != Colors.transparent
                         ? person.color
                         : null,
+                    foregroundColor: foregroundColor,
                     actions: person.ref.path.startsWith('Deleted')
                         ? <Widget>[
                             if (permission)
@@ -161,11 +166,17 @@ class PersonInfo extends StatelessWidget {
                       builder: (context, constraints) => FlexibleSpaceBar(
                         title: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
-                          opacity:
-                              constraints.biggest.height > kToolbarHeight * 1.7
-                                  ? 0
-                                  : 1,
-                          child: Text(person.name),
+                          opacity: 1 -
+                                      ((constraints.biggest.height -
+                                              kToolbarHeight) /
+                                          (250 - kToolbarHeight)) >
+                                  0.7
+                              ? 1
+                              : 0,
+                          child: Text(
+                            person.name,
+                            style: TextStyle(color: foregroundColor),
+                          ),
                         ),
                         background: person.photo(cropToCircle: false),
                       ),

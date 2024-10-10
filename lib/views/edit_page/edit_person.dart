@@ -19,6 +19,7 @@ import 'package:churchdata/views/form_widgets/tapable_form_field.dart';
 import 'package:churchdata/views/mini_lists/colors_list.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:derived_colors/derived_colors.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -68,6 +69,12 @@ class _EditPersonState extends State<EditPerson> {
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return <Widget>[
             SliverAppBar(
+              backgroundColor:
+                  person.color != Colors.transparent ? person.color : null,
+              foregroundColor: (person.color == Colors.transparent
+                      ? Theme.of(context).colorScheme.primary
+                      : person.color)
+                  .findInvert(),
               actions: <Widget>[
                 IconButton(
                   icon: Builder(
@@ -149,8 +156,6 @@ class _EditPersonState extends State<EditPerson> {
                   },
                 ),
               ],
-              backgroundColor:
-                  person.color != Colors.transparent ? person.color : null,
               expandedHeight: 250.0,
               pinned: true,
               flexibleSpace: LayoutBuilder(
