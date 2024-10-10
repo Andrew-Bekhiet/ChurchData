@@ -112,21 +112,14 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     await dotenv.load();
     final String kEmulatorsHost = dotenv.env['kEmulatorsHost']!;
 
-    await Firebase.initializeApp(
-      options: FirebaseOptions(
-        apiKey: dotenv.env['apiKey']!,
-        appId: dotenv.env['appId']!,
-        messagingSenderId: 'messagingSenderId',
-        projectId: dotenv.env['projectId']!,
-        databaseURL: kEmulatorsHost + ':9000',
-      ),
-    );
+    await Firebase.initializeApp();
 
     await auth.FirebaseAuth.instance.useAuthEmulator(kEmulatorsHost, 9099);
     await FirebaseStorage.instance.useStorageEmulator(kEmulatorsHost, 9199);
     firestore.FirebaseFirestore.instance
         .useFirestoreEmulator(kEmulatorsHost, 8080);
     FirebaseFunctions.instance.useFunctionsEmulator(kEmulatorsHost, 5001);
+    FirebaseDatabase.instance.databaseURL = kEmulatorsHost + ':9000';
     FirebaseDatabase.instance.useDatabaseEmulator(kEmulatorsHost, 9000);
   } else {
     await Firebase.initializeApp();
