@@ -87,7 +87,6 @@ ios/Runner/GoogleService-Info.plist
 ios/Runner/AppDelegate.swift
 lib/EncryptionKeys.dart
 ios/Podfile2
-*.lock
 web/index.html
 detective_connect.txt
 README.docx
