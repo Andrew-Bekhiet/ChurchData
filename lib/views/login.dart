@@ -140,17 +140,14 @@ class _LoginScreenState extends State<LoginScreen> {
           signInFuture = firebaseAuth.signInWithCredential(credential);
         }
       } else {
-        final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-        if (googleUser != null) {
-          final GoogleSignInAuthentication googleAuth =
-              await googleUser.authentication;
-          if (googleAuth.accessToken != null) {
-            final AuthCredential credential = GoogleAuthProvider.credential(
-              idToken: googleAuth.idToken,
-              accessToken: googleAuth.accessToken,
-            );
-            signInFuture = firebaseAuth.signInWithCredential(credential);
-          }
+        final GoogleSignInAccount googleUser =
+            await googleSignIn.authenticate();
+        final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+        if (googleAuth.idToken != null) {
+          final AuthCredential credential = GoogleAuthProvider.credential(
+            idToken: googleAuth.idToken,
+          );
+          signInFuture = firebaseAuth.signInWithCredential(credential);
         }
       }
       if (signInFuture != null) {

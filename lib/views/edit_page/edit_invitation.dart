@@ -398,7 +398,7 @@ class _EditInvitationState extends State<EditInvitation> {
             duration: Duration(seconds: 15),
           ),
         );
-        if (widget.invitation.id == '') {
+        if (widget.invitation.id == 'null') {
           widget.invitation.ref = firestore.collection('Invitations').doc();
           widget.invitation.generatedBy = User.instance.uid!;
           await widget.invitation.ref.set({

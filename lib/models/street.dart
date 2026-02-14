@@ -43,7 +43,7 @@ class Street extends DataObject
   })  : locationPoints = locationPoints ?? [],
         super(ref, name, color);
 
-  Street._createFromData(Json data, JsonRef ref)
+  Street.createFromData(Json data, JsonRef ref)
       : areaId = data['AreaId'],
         locationConfirmed = data['LocationConfirmed'] ?? false,
         locationPoints = data['Location']?.cast<GeoPoint>() ?? [],
@@ -117,7 +117,7 @@ class Street extends DataObject
   Json getMap() => {
         'Name': name,
         'AreaId': areaId,
-        'Color': color.value,
+        'Color': color.toARGB32(),
         'Location': locationPoints.sublist(0),
         'LocationConfirmed': locationConfirmed,
         'LastVisit': lastVisit,
@@ -135,9 +135,7 @@ class Street extends DataObject
               future: Location.instance.getLocation(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData)
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
                 return MapView(
                   childrenDepth: 3,
                   initialLocation: LatLng(
@@ -161,16 +159,9 @@ class Street extends DataObject
     else if (locationPoints.isEmpty)
       return const Text(
         'لم يتم تحديد موقع للشارع',
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
       );
-    return MapView(
-      childrenDepth: 3,
-      editMode: editMode,
-      street: this,
-    );
+    return MapView(childrenDepth: 3, editMode: editMode, street: this);
   }
 
   Stream<JsonQuery> getMembersLive({
@@ -229,13 +220,12 @@ class Street extends DataObject
   }
 
   static Street? fromDoc(JsonDoc data) =>
-      data.exists ? Street._createFromData(data.data()!, data.reference) : null;
+      data.exists ? Street.createFromData(data.data()!, data.reference) : null;
 
   static Street fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
-  static Future<Street?> fromId(String id) async => Street.fromDoc(
-        await firestore.doc('Streets/$id').get(),
-      );
+  static Future<Street?> fromId(String id) async =>
+      Street.fromDoc(await firestore.doc('Streets/$id').get());
 
   static List<Street?> getAll(List<JsonDoc> streets) {
     return streets.map(Street.fromDoc).toList();
@@ -265,10 +255,7 @@ class Street extends DataObject
                   .snapshots()
               : firestore
                   .collection('Streets')
-                  .where(
-                    'AreaId',
-                    whereIn: a,
-                  )
+                  .where('AreaId', whereIn: a)
                   .orderBy(orderBy, descending: descending)
                   .snapshots(),
         );
@@ -278,9 +265,10 @@ class Street extends DataObject
     String orderBy = 'Name',
     bool descending = false,
   }) async {
-    return (await getAllForUser(orderBy: orderBy, descending: descending)
-            .asBroadcastStream()
-            .first)
+    return (await getAllForUser(
+      orderBy: orderBy,
+      descending: descending,
+    ).asBroadcastStream().first)
         .docs
         .map(fromQueryDoc)
         .toList();
@@ -318,16 +306,13 @@ class Street extends DataObject
     return firestore
         .collection('Families')
         .where('AreaId', isEqualTo: areaId)
-        .where(
-          'StreetId',
-          isEqualTo: firestore.collection('Streets').doc(id),
-        )
+        .where('StreetId', isEqualTo: firestore.collection('Streets').doc(id))
         .orderBy(orderBy, descending: descending)
         .snapshots();
   }
 
   @override
   Street copyWith() {
-    return Street._createFromData(getMap(), ref);
+    return Street.createFromData(getMap(), ref);
   }
 }

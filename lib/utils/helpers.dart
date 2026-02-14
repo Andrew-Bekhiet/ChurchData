@@ -19,7 +19,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_storage/firebase_storage.dart' hide ListOptions;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -850,17 +849,14 @@ Future<void> sendNotification(BuildContext context, dynamic attachement) async {
 Future<String> shareArea(Area area) async => shareAreaRaw(area.id);
 
 Future<String> shareAreaRaw(String id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://churchdata.com/viewArea?AreaId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewArea',
+    queryParameters: {
+      'AreaId': id,
+    },
+  ).toString();
 }
 
 Future<String> shareDataObject(DataObject obj) async {
@@ -874,17 +870,14 @@ Future<String> shareDataObject(DataObject obj) async {
 Future<String> shareFamily(Family family) async => shareFamilyRaw(family.id);
 
 Future<String> shareFamilyRaw(String id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://churchdata.com/viewFamily?FamilyId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewFamily',
+    queryParameters: {
+      'FamilyId': id,
+    },
+  ).toString();
 }
 
 Future<String> sharePerson(Person person) async {
@@ -892,63 +885,49 @@ Future<String> sharePerson(Person person) async {
 }
 
 Future<String> sharePersonRaw(String id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://churchdata.com/viewPerson?PersonId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewPerson',
+    queryParameters: {
+      'PersonId': id,
+    },
+  ).toString();
 }
 
 Future<String> shareQuery(Map<String, String> query) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.https('churchdata.com', 'viewQuery', query),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewQuery',
+    queryParameters: query,
+  ).toString();
 }
 
 Future<String> shareStreet(Street street) async => shareStreetRaw(street.id);
 
 Future<String> shareStreetRaw(String id) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://churchdata.com/viewStreet?StreetId=$id'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewStreet',
+    queryParameters: {
+      'StreetId': id,
+    },
+  ).toString();
 }
 
 Future<String> shareUser(User user) async => shareUserRaw(user.uid!);
 
 Future<String> shareUserRaw(String uid) async {
-  return (await FirebaseDynamicLinks.instance.buildShortLink(
-    DynamicLinkParameters(
-      uriPrefix: uriPrefix,
-      link: Uri.parse('https://churchdata.com/viewUser?UID=$uid'),
-      androidParameters: androidParameters,
-      iosParameters: iosParameters,
-    ),
-    shortLinkType: ShortDynamicLinkType.unguessable,
-  ))
-      .shortUrl
-      .toString();
+  return Uri(
+    scheme: 'https',
+    host: 'churchdata-cf3db.web.app',
+    path: '/viewUser',
+    queryParameters: {
+      'UID': uid,
+    },
+  ).toString();
 }
 
 Future showErrorDialog(

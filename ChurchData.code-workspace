@@ -30,6 +30,7 @@
       "statusBarItem.remoteForeground": "#15202b",
       "commandCenter.border": "#15202b99"
     },
-    "peacock.color": "#00BCD4"
+    "peacock.color": "#00BCD4",
+    "dart.flutterSdkPath": ".fvm/versions/3.41.1"
   }
 }

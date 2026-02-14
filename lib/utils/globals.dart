@@ -1,4 +1,3 @@
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -48,17 +47,7 @@ const List<Color> accents = <Color>[
   Colors.black,
 ];
 
-final AndroidParameters androidParameters = AndroidParameters(
-  packageName: 'com.AndroidQuartz.churchdata',
-  minimumVersion: 4,
-  fallbackUrl:
-      Uri.parse('https://github.com/Andrew-Bekhiet/ChurchData/releases/latest'),
-);
-
 FlutterSecureStorage flutterSecureStorage = const FlutterSecureStorage();
-
-const IOSParameters iosParameters =
-    IOSParameters(bundleId: 'com.AndroidQuartz.churchdata');
 
 final GlobalKey<ScaffoldState> mainScfld = GlobalKey<ScaffoldState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessenger =

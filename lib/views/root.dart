@@ -12,7 +12,6 @@ import 'package:churchdata/utils/firebase_repo.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:feature_discovery/feature_discovery.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -1441,28 +1440,8 @@ class _RootState extends State<Root>
     });
   }
 
-  Future showDynamicLink() async {
-    final PendingDynamicLinkData? data =
-        await firebaseDynamicLinks.getInitialLink();
-
-    firebaseDynamicLinks.onLink.listen(
-      (dynamicLink) async {
-        final Uri deepLink = dynamicLink.link;
-
-        await processLink(deepLink);
-      },
-      onError: (e) async {
-        debugPrint('DynamicLinks onError $e');
-      },
-    );
-    if (data == null) return;
-    final Uri deepLink = data.link;
-    await processLink(deepLink);
-  }
-
   Future<void> showPendingUIDialogs() async {
     if (!kIsWeb) {
-      await showDynamicLink();
       await GetIt.I<CDNotificationsService>().showInitialNotification(context);
       await showBatteryOptimizationDialog();
     }

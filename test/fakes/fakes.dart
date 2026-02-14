@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:firebase_auth_mocks/src/mock_confirmation_result.dart';
 import 'package:firebase_auth_mocks/src/mock_user_credential.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -214,17 +213,4 @@ class FakeHttpsCallableResult<T> extends Fake
 
   @override
   T data;
-}
-
-class MockFirebaseDynamicLinks extends Fake implements FirebaseDynamicLinks {
-  @override
-  Future<PendingDynamicLinkData?> getInitialLink() async {
-    return null;
-  }
-
-  @override
-  Stream<PendingDynamicLinkData> get onLink => const Stream.empty();
-
-  @override
-  Map get pluginConstants => throw UnimplementedError();
 }

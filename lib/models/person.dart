@@ -192,9 +192,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
         'Phone': phone ?? '',
         'BirthDate': toDurationString(birthDate, appendSince: false),
         'BirthDay': birthDay != null
-            ? DateFormat('d/M').format(
-                birthDay!.toDate(),
-              )
+            ? DateFormat('d/M').format(birthDay!.toDate())
             : '',
         'IsStudent': isStudent ? 'طالب' : '',
         'JobDescription': jobDescription ?? '',
@@ -214,25 +212,20 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   Widget getLeftWidget({bool ignoreSetting = false}) {
     return FutureBuilder<Json?>(
-      future: Future(
-        () async {
-          if (ignoreSetting ||
-              Hive.box('Settings')
-                  .get('ShowPersonState', defaultValue: false)) {
-            return (await state?.get())?.data();
-          }
-          return null;
-        },
-      ),
+      future: Future(() async {
+        if (ignoreSetting ||
+            Hive.box('Settings').get('ShowPersonState', defaultValue: false)) {
+          return (await state?.get())?.data();
+        }
+        return null;
+      }),
       builder: (context, color) {
         return color.data == null
             ? const SizedBox(width: 1, height: 1)
             : Container(
                 height: 50,
                 width: 50,
-                color: Color(
-                  int.parse('0xff${color.data!['Color']}'),
-                ),
+                color: Color(int.parse('0xff${color.data!['Color']}')),
               );
       },
     );
@@ -285,18 +278,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
             (notes ?? '') +
             (type ?? ''))
         .toLowerCase()
-        .replaceAll(
-          RegExp(
-            r'[أإآ]',
-          ),
-          'ا',
-        )
-        .replaceAll(
-          RegExp(
-            r'[ى]',
-          ),
-          'ي',
-        );
+        .replaceAll(RegExp(r'[أإآ]'), 'ا')
+        .replaceAll(RegExp(r'[ى]'), 'ي');
   }
 
   @override
@@ -393,9 +376,8 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
 
   static Person fromQueryDoc(JsonQueryDoc data) => fromDoc(data)!;
 
-  static Future<Person?> fromId(String id) async => Person.fromDoc(
-        await firestore.doc('Persons/$id').get(),
-      );
+  static Future<Person?> fromId(String id) async =>
+      Person.fromDoc(await firestore.doc('Persons/$id').get());
 
   static List<Person?> getAll(List<JsonDoc> persons) {
     return persons.map(Person.fromDoc).toList();
@@ -425,10 +407,7 @@ class Person extends DataObject with PhotoObject, ChildObject<Family> {
                   .snapshots()
               : firestore
                   .collection('Persons')
-                  .where(
-                    'AreaId',
-                    whereIn: a,
-                  )
+                  .where('AreaId', whereIn: a)
                   .orderBy(orderBy, descending: descending)
                   .snapshots(),
         );

@@ -83,7 +83,7 @@ class Invitation extends DataObject {
         ),
         link = '',
         generatedBy = User.instance.uid!,
-        super(firestore.collection('Invitations').doc(''), '', null) {
+        super(firestore.collection('Invitations').doc('null'), '', null) {
     name = '';
     permissions = {};
   }

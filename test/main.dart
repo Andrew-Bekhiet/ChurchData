@@ -71,7 +71,6 @@ Future<void> initTests() async {
   firebaseFunctions = MockFirebaseFunctions();
   firebaseStorage = MockFirebaseStorage();
   firebaseMessaging = MockFirebaseMessaging();
-  firebaseDynamicLinks = MockFirebaseDynamicLinks();
   googleSignIn = MyGoogleSignInMock();
   remoteConfig = MockFirebaseRemoteConfig();
 
@@ -90,6 +89,7 @@ Future<void> initTests() async {
   when(firebaseMessaging.getToken()).thenAnswer((_) async => '{FCMToken}');
   when(firebaseMessaging.requestPermission()).thenAnswer(
     (_) async => const NotificationSettings(
+      providesAppNotificationSettings: AppleNotificationSetting.enabled,
       criticalAlert: AppleNotificationSetting.enabled,
       timeSensitive: AppleNotificationSetting.enabled,
       alert: AppleNotificationSetting.enabled,

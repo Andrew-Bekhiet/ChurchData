@@ -1,5 +1,5 @@
 name: churchdata
-description: null
+description: ""
 
 publish_to: "none"
 version: 8.3.0+13
@@ -8,74 +8,73 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  android_alarm_manager_plus: ^4.0.3
+  android_alarm_manager_plus: ^5.0.0
   async: ^2.11.0
   cached_network_image: ^3.2.1
   churchdata_core:
     git:
       url: https://github.com/Andrew-Bekhiet/churchdata_core.git
       ref: master
-  cloud_firestore: ^5.4.0
-  cloud_functions: ^5.1.0
+  cloud_firestore: ^6.0.2
+  cloud_functions: ^6.0.2
   collection: ^1.18.0
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^7.0.0
   cupertino_icons: ^1.0.5
   derived_colors: ^0.4.0
-  device_info_plus: ^10.1.0
+  device_info_plus: ^12.1.0
   expandable: ^5.0.1
   feature_discovery:
     git:
       url: https://github.com/JahezAcademy/feature_discovery
       commit: 2d1541e3f497fd6e0bd4311a0b5ca31d764f6aa2
-  file_picker: ^8.0.4
-  firebase_analytics: ^11.3.0
-  firebase_auth: ^5.2.0
-  firebase_core: ^3.4.0
-  firebase_crashlytics: ^4.1.0
-  firebase_database: ^11.1.1
-  firebase_dynamic_links: ^6.0.5
-  firebase_in_app_messaging: ^0.8.0+5
-  firebase_messaging: ^15.1.0
-  firebase_remote_config: ^5.1.0
-  firebase_storage: ^12.2.0
+  file_picker: ^10.3.3
+  firebase_analytics: ^12.0.2
+  firebase_auth: ^6.1.0
+  firebase_core: ^4.1.1
+  firebase_crashlytics: ^5.0.2
+  firebase_database: ^12.0.2
+  firebase_in_app_messaging: ^0.9.0+2
+  firebase_messaging: ^16.0.2
+  firebase_remote_config: ^6.0.2
+  firebase_storage: ^13.0.2
   flex_color_picker: ^3.6.0
   flutter:
     sdk: flutter
   flutter_cache_manager: ^3.4.1
   flutter_colorpicker: ^1.0.3
   flutter_contacts: ^1.1.4
-  flutter_dotenv: ^5.0.2
-  flutter_local_notifications: ^17.1.2
+  flutter_dotenv: ^6.0.0
+  flutter_local_notifications: ^19.4.2
   flutter_localizations:
     sdk: flutter
   flutter_secure_storage: ^9.0.0
-  get_it: ^7.2.0
+  get_it: ^8.2.0
   google_maps_flutter: ^2.1.8
-  google_sign_in: ^6.2.1
+  google_sign_in: ^7.2.0
   group_list_view:
     git:
       url: https://github.com/Andrew-Bekhiet/flutter_group_list_view
       ref: 0ebdffaebc8ccdd8d92072edfe2f1db567a7db9e
   hive_flutter: ^1.1.0
-  image_cropper: ^8.0.2
+  image_cropper: ^11.0.0
   image_picker: ^1.0.7
-  intl: ^0.19.0
+  intl: ^0.20.2
   local_auth: ^2.1.0
-  location: ^7.0.0
+  location: ^8.0.1
   open_file: ^3.2.1
-  package_info_plus: ^8.0.2
+  package_info_plus: ^9.0.0
   path: ^1.9.0
   path_provider: ^2.0.11
   percent_indicator: ^4.2.2
-  permission_handler: ^11.2.0
+  permission_handler: ^12.0.1
   photo_view: ^0.15.0
   pie_chart: ^5.3.1
-  pointycastle: ^3.6.0
+  pointycastle: ^4.0.0
   provider: ^6.0.3
-  rxdart: ^0.27.4
-  share_plus: ^9.0.0
+  rxdart: ^0.28.0
+  share_plus: ^12.0.0
   spreadsheet_decoder: ^2.1.0
-  syncfusion_flutter_charts: ^26.1.35
+  syncfusion_flutter_charts: ^31.1.21
   timeago: ^3.2.2
   tinycolor2: ^3.0.1
   tuple: ^2.0.0
@@ -84,22 +83,22 @@ dependencies:
   version: ^3.0.2
 
 dev_dependencies:
-  analyzer: ^6.2.0
+  analyzer: ^8.2.0
   build_runner: ^2.1.11
   connectivity_plus_platform_interface: ^2.0.1
   device_info_plus_platform_interface: ^7.0.1
-  fake_cloud_firestore: ^3.0.2
-  firebase_auth_mocks: ^0.14.1
+  fake_cloud_firestore: ^4.0.0
+  firebase_auth_mocks: ^0.15.1
   # TODO: mocks
   # firebase_database_mocks: ^0.2.0+1
-  firebase_auth_platform_interface: ^7.4.4
-  firebase_core_platform_interface: ^5.2.1
-  firebase_storage_mocks: ^0.7.0
-  flutter_launcher_icons: ^0.13.1
+  firebase_auth_platform_interface: ^8.1.2
+  firebase_core_platform_interface: ^6.0.1
+  firebase_storage_mocks: ^0.8.0+1
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
   golden_toolkit: ^0.15.0
-  google_sign_in_mocks: ^0.3.0
+  google_sign_in_mocks: ^0.4.1
   mockito: ^5.2.0
   plugin_platform_interface: ^2.1.8
   url_launcher_platform_interface: ^2.3.2
@@ -122,7 +121,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
-    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

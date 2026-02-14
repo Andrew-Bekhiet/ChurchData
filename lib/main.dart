@@ -154,6 +154,10 @@ Future<void> initConfigs([bool retryOnHiveError = true]) async {
     },
   );
 
+  await googleSignIn.initialize(
+    serverClientId: googleSignInServerClientId,
+  );
+
   //Hive initialization:
   try {
     await Hive.initFlutter();

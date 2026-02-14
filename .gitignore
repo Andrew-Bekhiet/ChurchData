@@ -95,3 +95,6 @@ README.docx
 .env
 
 Areas/
+
+# FVM Version Cache
+.fvm/

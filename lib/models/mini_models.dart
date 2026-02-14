@@ -14,9 +14,7 @@ abstract class MiniModel extends DataObject {
 
   MiniModel.createFromData(this.collectionName, Json data, String id)
       : super.createFromData(
-          data,
-          firestore.collection(collectionName).doc(id),
-        );
+            data, firestore.collection(collectionName).doc(id));
 
   MiniModel.createNew(this.collectionName)
       : super(firestore.collection(collectionName).doc(), '', null);
@@ -40,7 +38,7 @@ abstract class MiniModel extends DataObject {
 class Church extends MiniModel with ParentObject<Father> {
   String? address;
   Church(String id, String name, {this.address}) : super('Churches', id, name);
-  Church._createFromData(Json data, String id)
+  Church.createFromData(Json data, String id)
       : super.createFromData('Churches', data, id) {
     address = data['Address'];
   }
@@ -67,10 +65,10 @@ class Church extends MiniModel with ParentObject<Father> {
   }
 
   static Church? fromDoc(JsonDoc data) =>
-      data.exists ? Church._createFromData(data.data()!, data.id) : null;
+      data.exists ? Church.createFromData(data.data()!, data.id) : null;
 
   static Church fromQueryDoc(JsonQueryDoc data) =>
-      Church._createFromData(data.data(), data.id);
+      Church.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Churches').orderBy('Name').get();
@@ -97,7 +95,7 @@ class Church extends MiniModel with ParentObject<Father> {
 class PersonState extends MiniModel {
   PersonState(String id, String name, Color color)
       : super('States', id, name, color);
-  PersonState._createFromData(Json data, String id)
+  PersonState.createFromData(Json data, String id)
       : super.createFromData('States', data, id) {
     color = Color(int.parse('0xFF' + data['Color']));
   }
@@ -115,10 +113,10 @@ class PersonState extends MiniModel {
   }
 
   static PersonState? fromDoc(JsonDoc data) =>
-      data.exists ? PersonState._createFromData(data.data()!, data.id) : null;
+      data.exists ? PersonState.createFromData(data.data()!, data.id) : null;
 
   static PersonState fromQueryDoc(JsonQueryDoc data) =>
-      PersonState._createFromData(data.data(), data.id);
+      PersonState.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('States').orderBy('Name').get();
@@ -130,7 +128,7 @@ class PersonState extends MiniModel {
 
 class College extends MiniModel {
   College(String id, String name) : super('Colleges', id, name);
-  College._createFromData(Json data, id)
+  College.createFromData(Json data, id)
       : super.createFromData('Colleges', data, id);
 
   College.createNew() : super.createNew('Colleges');
@@ -146,10 +144,10 @@ class College extends MiniModel {
   }
 
   static College? fromDoc(JsonDoc data) =>
-      data.exists ? College._createFromData(data.data()!, data.id) : null;
+      data.exists ? College.createFromData(data.data()!, data.id) : null;
 
   static College fromQueryDoc(JsonQueryDoc data) =>
-      College._createFromData(data.data(), data.id);
+      College.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Colleges').orderBy('Name').get();
@@ -162,7 +160,7 @@ class College extends MiniModel {
 class Father extends MiniModel with ChildObject<Church> {
   JsonRef? churchId;
   Father(String id, String name, this.churchId) : super('Fathers', id, name);
-  Father._createFromData(Json data, String id)
+  Father.createFromData(Json data, String id)
       : super.createFromData('Fathers', data, id) {
     churchId = data['ChurchId'];
   }
@@ -176,9 +174,7 @@ class Father extends MiniModel with ChildObject<Church> {
 
   Future<String?> getChurchName() async {
     if (churchId == null) return null;
-    return Church.fromDoc(
-      await churchId!.get(),
-    )?.name;
+    return Church.fromDoc(await churchId!.get())?.name;
   }
 
   @override
@@ -187,10 +183,10 @@ class Father extends MiniModel with ChildObject<Church> {
   }
 
   static Father? fromDoc(JsonDoc data) =>
-      data.exists ? Father._createFromData(data.data()!, data.id) : null;
+      data.exists ? Father.createFromData(data.data()!, data.id) : null;
 
   static Father fromQueryDoc(JsonQueryDoc data) =>
-      Father._createFromData(data.data(), data.id);
+      Father.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Fathers').orderBy('Name').get();
@@ -210,7 +206,7 @@ class Father extends MiniModel with ChildObject<Church> {
 
 class Job extends MiniModel {
   Job(String id, String name) : super('Jobs', id, name);
-  Job._createFromData(Json data, String id)
+  Job.createFromData(Json data, String id)
       : super.createFromData('Jobs', data, id);
 
   Job.createNew() : super.createNew('Jobs');
@@ -226,10 +222,10 @@ class Job extends MiniModel {
   }
 
   static Job? fromDoc(JsonDoc data) =>
-      data.exists ? Job._createFromData(data.data()!, data.id) : null;
+      data.exists ? Job.createFromData(data.data()!, data.id) : null;
 
   static Job fromQueryDoc(JsonQueryDoc data) =>
-      Job._createFromData(data.data(), data.id);
+      Job.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Jobs').orderBy('Name').get();
@@ -241,7 +237,7 @@ class Job extends MiniModel {
 
 class PersonType extends MiniModel {
   PersonType(String id, String name) : super('Types', id, name);
-  PersonType._createFromData(Json data, String id)
+  PersonType.createFromData(Json data, String id)
       : super.createFromData('Types', data, id);
 
   PersonType.createNew() : super.createNew('Types');
@@ -257,10 +253,10 @@ class PersonType extends MiniModel {
   }
 
   static PersonType? fromDoc(JsonDoc data) =>
-      data.exists ? PersonType._createFromData(data.data()!, data.id) : null;
+      data.exists ? PersonType.createFromData(data.data()!, data.id) : null;
 
   static PersonType fromQueryDoc(JsonQueryDoc data) =>
-      PersonType._createFromData(data.data(), data.id);
+      PersonType.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('Types').orderBy('Name').get();
@@ -272,7 +268,7 @@ class PersonType extends MiniModel {
 
 class ServingType extends MiniModel {
   ServingType(String id, String name) : super('ServingTypes', id, name);
-  ServingType._createFromData(Json data, String id)
+  ServingType.createFromData(Json data, String id)
       : super.createFromData('ServingTypes', data, id);
 
   ServingType.createNew() : super.createNew('ServingTypes');
@@ -288,10 +284,10 @@ class ServingType extends MiniModel {
   }
 
   static ServingType? fromDoc(JsonDoc data) =>
-      data.exists ? ServingType._createFromData(data.data()!, data.id) : null;
+      data.exists ? ServingType.createFromData(data.data()!, data.id) : null;
 
   static ServingType fromQueryDoc(JsonQueryDoc data) =>
-      ServingType._createFromData(data.data(), data.id);
+      ServingType.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('ServingTypes').orderBy('Name').get();
@@ -307,7 +303,7 @@ class StudyYear extends MiniModel {
   StudyYear(String id, String name, {required this.grade})
       : super('StudyYears', id, name);
 
-  StudyYear._createFromData(Json data, String id)
+  StudyYear.createFromData(Json data, String id)
       : grade = data['Grade'],
         super.createFromData('StudyYears', data, id);
 
@@ -328,10 +324,10 @@ class StudyYear extends MiniModel {
   }
 
   static StudyYear? fromDoc(JsonDoc data) =>
-      data.exists ? StudyYear._createFromData(data.data()!, data.id) : null;
+      data.exists ? StudyYear.createFromData(data.data()!, data.id) : null;
 
   static StudyYear fromQueryQueryDoc(JsonQueryDoc data) =>
-      StudyYear._createFromData(data.data(), data.id);
+      StudyYear.createFromData(data.data(), data.id);
 
   static Future<JsonQuery> getAllForUser() {
     return firestore.collection('StudyYears').orderBy('Grade').get();

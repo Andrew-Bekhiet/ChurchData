@@ -66,7 +66,7 @@ class CDThemingService extends ThemingService {
           const FloatingActionButtonThemeData(shape: CircleBorder()),
       visualDensity: VisualDensity.adaptivePlatformDensity,
       brightness: isDark ? Brightness.dark : Brightness.light,
-      bottomAppBarTheme: const BottomAppBarTheme(
+      bottomAppBarTheme: const BottomAppBarThemeData(
         color: Colors.cyanAccent,
         shape: CircularNotchedRectangle(),
       ),

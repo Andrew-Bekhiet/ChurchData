@@ -1,4 +1,5 @@
 import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
+import 'package:firebase_core_platform_interface/test.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Set up firebase core for tests.
@@ -10,12 +11,12 @@ void setupFirebaseMocks() {
 
 class FakeFirebaseCoreHostApi extends FirebaseCoreHostApi {
   @override
-  Future<List<PigeonInitializeResponse?>> initializeCore() {
+  Future<List<CoreInitializeResponse>> initializeCore() {
     return Future.value(
       [
-        PigeonInitializeResponse(
+        CoreInitializeResponse(
           name: defaultFirebaseAppName,
-          options: PigeonFirebaseOptions(
+          options: CoreFirebaseOptions(
             apiKey: '123',
             appId: '123',
             messagingSenderId: '123',
@@ -28,12 +29,12 @@ class FakeFirebaseCoreHostApi extends FirebaseCoreHostApi {
   }
 
   @override
-  Future<PigeonInitializeResponse> initializeApp(
+  Future<CoreInitializeResponse> initializeApp(
     String argAppname,
-    PigeonFirebaseOptions argInitializeapprequest,
+    CoreFirebaseOptions argInitializeapprequest,
   ) {
     return Future.value(
-      PigeonInitializeResponse(
+      CoreInitializeResponse(
         name: argAppname,
         options: argInitializeapprequest,
         pluginConstants: {},
