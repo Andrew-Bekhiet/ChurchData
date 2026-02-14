@@ -5,7 +5,7 @@ plugins {
     id "com.google.gms.google-services"
 }
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
 
 def localProperties = new Properties()
@@ -29,9 +29,9 @@ if (flutterVersionName == null) {
 android {
     namespace 'com.AndroidQuartz.churchdata'
     
-    compileSdk 34
-    setBuildToolsVersion('34.0.0')
-    ndkVersion '26.1.10909125'
+    compileSdkVersion 36
+    buildToolsVersion '34.0.0'
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -49,8 +49,8 @@ android {
     
     defaultConfig {
         applicationId "com.AndroidQuartz.churchdata"
-        targetSdkVersion 34
-        minSdkVersion 23
+        targetSdkVersion 35
+        minSdkVersion flutter.minSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
